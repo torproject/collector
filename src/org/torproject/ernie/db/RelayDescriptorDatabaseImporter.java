@@ -36,6 +36,13 @@ public final class RelayDescriptorDatabaseImporter {
   private Connection conn;
 
   /**
+   * Prepared statement to check whether any network status consensus
+   * entries matching a given valid-after time have been imported into the
+   * database before.
+   */
+  private PreparedStatement psSs;
+
+  /**
    * Prepared statement to check whether a given network status consensus
    * entry has been imported into the database before.
    */
@@ -146,7 +153,28 @@ public final class RelayDescriptorDatabaseImporter {
    */
   private BufferedWriter voteOut;
 
+  /**
+   * Date format to parse timestamps.
+   */
   private SimpleDateFormat dateTimeFormat;
+
+  /**
+   * The last valid-after time for which we checked whether they have been
+   * any network status entries in the database.
+   */
+  private long lastCheckedStatusEntries;
+
+  /**
+   * Set of fingerprints that we imported for the valid-after time in
+   * <code>lastCheckedStatusEntries</code>.
+   */
+  private Set<String> insertedStatusEntries;
+
+  /**
+   * Flag that tells us whether we need to check whether a network status
+   * entry is already contained in the database or not.
+   */
+  private boolean separateStatusEntryCheckNecessary;
 
   /**
    * Initialize database importer by connecting to the database and
@@ -168,6 +196,8 @@ public final class RelayDescriptorDatabaseImporter {
         this.conn.setAutoCommit(false);
 
         /* Prepare statements. */
+        this.psSs = conn.prepareStatement("SELECT COUNT(*) "
+            + "FROM statusentry WHERE validafter = ?");
         this.psRs = conn.prepareStatement("SELECT COUNT(*) "
             + "FROM statusentry WHERE validafter = ? AND descriptor = ?");
         this.psDs = conn.prepareStatement("SELECT COUNT(*) "
@@ -208,12 +238,16 @@ public final class RelayDescriptorDatabaseImporter {
         this.logger.log(Level.WARNING, "Could not connect to database or "
             + "prepare statements.", e);
       }
+
+      /* Initialize set of fingerprints to remember which status entries
+       * we already imported. */
+      this.insertedStatusEntries = new HashSet<String>();
     }
 
     /* Remember where we want to write raw import files. */
     this.rawFilesDirectory = rawFilesDirectory;
 
-    /* Initialize data format, so that we can format timestamps. */
+    /* Initialize date format, so that we can format timestamps. */
     this.dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     this.dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
@@ -227,14 +261,37 @@ public final class RelayDescriptorDatabaseImporter {
       SortedSet<String> flags, String version, long bandwidth,
       String ports, byte[] rawDescriptor) {
     try {
-      if (this.psRs != null && this.psR != null) {
+      if (this.psSs != null && this.psRs != null && this.psR != null) {
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         Timestamp validAfterTimestamp = new Timestamp(validAfter);
-        this.psRs.setTimestamp(1, validAfterTimestamp, cal);
-        this.psRs.setString(2, descriptor);
-        ResultSet rs = psRs.executeQuery();
-        rs.next();
-        if (rs.getInt(1) == 0) {
+        if (lastCheckedStatusEntries != validAfter) {
+          this.psSs.setTimestamp(1, validAfterTimestamp, cal);
+          ResultSet rs = psSs.executeQuery();
+          rs.next();
+          if (rs.getInt(1) == 0) {
+            separateStatusEntryCheckNecessary = false;
+            insertedStatusEntries.clear();
+          } else {
+            separateStatusEntryCheckNecessary = true;
+          }
+          rs.close();
+          lastCheckedStatusEntries = validAfter;
+        }
+        boolean alreadyContained = false;
+        if (separateStatusEntryCheckNecessary ||
+            insertedStatusEntries.contains(fingerprint)) {
+          this.psRs.setTimestamp(1, validAfterTimestamp, cal);
+          this.psRs.setString(2, descriptor);
+          ResultSet rs = psRs.executeQuery();
+          rs.next();
+          if (rs.getInt(1) > 0) {
+            alreadyContained = true;
+          }
+          rs.close();
+        } else {
+          insertedStatusEntries.add(fingerprint);
+        }
+        if (!alreadyContained) {
           this.psR.clearParameters();
           this.psR.setTimestamp(1, validAfterTimestamp, cal);
           this.psR.setString(2, nickname);
