@@ -401,6 +401,32 @@ public class RelayDescriptorParser {
                 break;
               }
             }
+          } else if (line.startsWith("conn-bi-direct ")) {
+            if (this.rddi != null) {
+              String[] parts = line.split(" ");
+              if (parts.length == 6 &&
+                  parts[5].split(",").length == 4) {
+                try {
+                  String connBiDirectStatsEnd = parts[1] + " " + parts[2];
+                  long connBiDirectSeconds = Long.parseLong(parts[3].
+                      substring(1));
+                  String[] parts2 = parts[5].split(",");
+                  long below = Long.parseLong(parts2[0]);
+                  long read = Long.parseLong(parts2[1]);
+                  long write = Long.parseLong(parts2[2]);
+                  long both = Long.parseLong(parts2[3]);
+                  this.rddi.addConnBiDirect(dir, connBiDirectStatsEnd,
+                      connBiDirectSeconds, below, read, write, both);
+                } catch (NumberFormatException e) {
+                  this.logger.log(Level.WARNING, "Number format "
+                      + "exception while parsing conn-bi-direct stats "
+                      + "string '" + line + "'. Skipping.", e);
+                }
+              } else {
+                this.logger.warning("Skipping invalid conn-bi-direct "
+                    + "stats string '" + line + "'.");
+              }
+            }
           }
         }
         String ascii = new String(data, "US-ASCII");

@@ -29,6 +29,7 @@ public final class RelayDescriptorDatabaseImporter {
   private int rrsCount = 0;
   private int rcsCount = 0;
   private int rvsCount = 0;
+  private int rbsCount = 0;
 
   /**
    * Relay descriptor database connection.
@@ -79,6 +80,12 @@ public final class RelayDescriptorDatabaseImporter {
   private PreparedStatement psVs;
 
   /**
+   * Prepared statement to check whether a given conn-bi-direct stats
+   * string has been imported into the database before.
+   */
+  private PreparedStatement psBs;
+
+  /**
    * Prepared statement to insert a network status consensus entry into
    * the database.
    */
@@ -112,6 +119,12 @@ public final class RelayDescriptorDatabaseImporter {
    * database.
    */
   private PreparedStatement psV;
+
+  /**
+   * Prepared statement to insert a conn-bi-direct stats string into the
+   * database.
+   */
+  private PreparedStatement psB;
 
   /**
    * Logger for this class.
@@ -152,6 +165,11 @@ public final class RelayDescriptorDatabaseImporter {
    * Raw import file containing votes.
    */
   private BufferedWriter voteOut;
+
+  /**
+   * Raw import file containing conn-bi-direct stats strings.
+   */
+  private BufferedWriter connBiDirectOut;
 
   /**
    * Date format to parse timestamps.
@@ -210,6 +228,8 @@ public final class RelayDescriptorDatabaseImporter {
             + "FROM consensus WHERE validafter = ?");
         this.psVs = conn.prepareStatement("SELECT COUNT(*) "
             + "FROM vote WHERE validafter = ? AND dirsource = ?");
+        this.psBs = conn.prepareStatement("SELECT COUNT(*) "
+            + "FROM connbidirect WHERE source = ? AND statsend = ?");
         this.psR = conn.prepareStatement("INSERT INTO statusentry "
             + "(validafter, nickname, fingerprint, descriptor, "
             + "published, address, orport, dirport, isauthority, "
@@ -234,6 +254,9 @@ public final class RelayDescriptorDatabaseImporter {
             + "(validafter, rawdesc) VALUES (?, ?)");
         this.psV = conn.prepareStatement("INSERT INTO vote "
             + "(validafter, dirsource, rawdesc) VALUES (?, ?, ?)");
+        this.psB = conn.prepareStatement("INSERT INTO connbidirect "
+            + "(source, statsend, seconds, belownum, readnum, writenum, "
+            + "bothnum) VALUES (?, ?, ?, ?, ?, ?, ?)");
       } catch (SQLException e) {
         this.logger.log(Level.WARNING, "Could not connect to database or "
             + "prepare statements.", e);
@@ -698,6 +721,68 @@ public final class RelayDescriptorDatabaseImporter {
   }
 
   /**
+   * Insert a conn-bi-direct stats string into the database.
+   */
+  public void addConnBiDirect(String source, String statsEnd,
+      long seconds, long below, long read, long write, long both) {
+    long statsEndTime = 0L;
+    try {
+      statsEndTime = this.dateTimeFormat.parse(statsEnd).getTime();
+    } catch (ParseException e) {
+      this.logger.log(Level.WARNING, "Could not add conn-bi-direct "
+          + "stats string with interval ending '" + statsEnd + "'.", e);
+      return;
+    }
+    if (this.psBs != null && this.psB != null) {
+      try {
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        Timestamp statsEndTimestamp = new Timestamp(statsEndTime);
+        this.psBs.setString(1, source);
+        this.psBs.setTimestamp(2, statsEndTimestamp, cal);
+        ResultSet rs = psBs.executeQuery();
+        rs.next();
+        if (rs.getInt(1) == 0) {
+          this.psB.clearParameters();
+          this.psB.setString(1, source);
+          this.psB.setTimestamp(2, statsEndTimestamp, cal);
+          this.psB.setLong(3, seconds);
+          this.psB.setLong(4, below);
+          this.psB.setLong(5, read);
+          this.psB.setLong(6, write);
+          this.psB.setLong(7, both);
+          this.psB.executeUpdate();
+          rbsCount++;
+          if (rbsCount % autoCommitCount == 0)  {
+            this.conn.commit();
+            rbsCount = 0;
+          }
+        }
+      } catch (SQLException e) {
+        this.logger.log(Level.WARNING, "Could not add conn-bi-direct "
+            + "stats string.", e);
+      }
+    }
+    if (this.rawFilesDirectory != null) {
+      try {
+        if (this.connBiDirectOut == null) {
+          new File(rawFilesDirectory).mkdirs();
+          this.connBiDirectOut = new BufferedWriter(new FileWriter(
+              rawFilesDirectory + "/connbidirect.sql"));
+          this.connBiDirectOut.write(" COPY connbidirect (source, "
+              + "statsend, seconds, belownum, readnum, writenum, "
+              + "bothnum) FROM stdin;\n");
+        }
+        this.connBiDirectOut.write(source + "\t" + statsEnd + "\t"
+            + seconds + "\t" + below + "\t" + read + "\t" + write + "\t"
+            + both + "\n");
+      } catch (IOException e) {
+        this.logger.log(Level.WARNING, "Could not write conn-bi-direct "
+            + "stats string to raw database import file.", e);
+      }
+    }
+  }
+
+  /**
    * Close the relay descriptor database connection.
    */
   public void closeConnection() {
@@ -743,6 +828,10 @@ public final class RelayDescriptorDatabaseImporter {
       if (this.voteOut != null) {
         this.voteOut.write("\\.\n");
         this.voteOut.close();
+      }
+      if (this.connBiDirectOut != null) {
+        this.connBiDirectOut.write("\\.\n");
+        this.connBiDirectOut.close();
       }
     } catch (IOException e) {
       this.logger.log(Level.WARNING, "Could not close one or more raw "

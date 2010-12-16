@@ -101,6 +101,19 @@ CREATE TABLE vote (
     CONSTRAINT vote_pkey PRIMARY KEY (validafter, dirsource)
 );
 
+-- TABLE connbidirect
+-- Contain conn-bi-direct stats strings
+CREATE TABLE connbidirect (
+    source CHARACTER(40) NOT NULL,
+    statsend TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    seconds INTEGER NOT NULL,
+    belownum BIGINT NOT NULL,
+    readnum BIGINT NOT NULL,
+    writenum BIGINT NOT NULL,
+    bothnum BIGINT NOT NULL,
+    CONSTRAINT connbidirect_pkey PRIMARY KEY (source, statsend)
+);
+
 -- Create the various indexes we need for searching relays
 CREATE INDEX statusentry_validafter_address
   ON statusentry (validafter, address);
