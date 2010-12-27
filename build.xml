@@ -22,6 +22,7 @@
 <!--ERNIE-specific targets -->
   <target name="init">
     <mkdir dir="${classes}"/>
+    <copy file="config.template" tofile="config"/>
   </target>
   <target name="compile" depends="init"> 
     <javac srcdir="${sources}"
