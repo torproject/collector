@@ -44,3 +44,6 @@ dist/
 # Possibly modified config file
 config
 
+# Generated raw database import files
+pg-import/
+
