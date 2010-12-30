@@ -44,19 +44,6 @@
 ## Relative path to directory to import bridge descriptor snapshots from
 #BridgeSnapshotsDirectory bridge-directories/
 #
-## Import local Maxmind GeoIP databases
-#ImportGeoIPDatabases 0
-#
-## Relative path to directory to import GeoIP databases from
-#GeoIPDatabasesDirectory geoipdb/
-#
-## Download (commercial) Maxmind GeoIP database for sanitizing bridge
-## descriptors
-#DownloadGeoIPDatabase 0
-#
-## Maxmind license key for downloading commercial GeoIP databases
-#MaxmindLicenseKey NA
-#
 ## Import torperf data, if available, and write stats to disk
 #ImportWriteTorperfStats 0
 #

@@ -19,7 +19,6 @@ public class Configuration {
   private boolean writeDirectoryArchives = false;
   private String directoryArchivesOutputDirectory = "directory-archive/";
   private boolean importCachedRelayDescriptors = false;
-  //this.cachedRelayDescriptorDirectory.add
   private List<String> cachedRelayDescriptorsDirectory =
       new ArrayList<String>(Arrays.asList("cacheddesc/".split(",")));
   private boolean importDirectoryArchives = false;
@@ -47,10 +46,6 @@ public class Configuration {
   private String getTorStatsUrl = "http://gettor.torproject.org:8080/"
       + "~gettor/gettor_stats.txt";
   private boolean downloadExitList = false;
-  private boolean importGeoIPDatabases = false;
-  private String geoIPDatabasesDirectory = "geoipdb/";
-  private boolean downloadGeoIPDatabase = false;
-  private String maxmindLicenseKey = "";
   private boolean writeConsensusHealth = false;
   public Configuration() {
 
@@ -169,16 +164,6 @@ public class Configuration {
         } else if (line.startsWith("DownloadExitList")) {
           this.downloadExitList = Integer.parseInt(
               line.split(" ")[1]) != 0;
-        } else if (line.startsWith("ImportGeoIPDatabases")) {
-          this.importGeoIPDatabases = Integer.parseInt(
-              line.split(" ")[1]) != 0;
-        } else if (line.startsWith("GeoIPDatabasesDirectory")) {
-          this.geoIPDatabasesDirectory = line.split(" ")[1];
-        } else if (line.startsWith("DownloadGeoIPDatabase")) {
-          this.downloadGeoIPDatabase = Integer.parseInt(
-              line.split(" ")[1]) != 0;
-        } else if (line.startsWith("MaxmindLicenseKey")) {
-          this.maxmindLicenseKey = line.split(" ")[1];
         } else if (line.startsWith("WriteConsensusHealth")) {
           this.writeConsensusHealth = Integer.parseInt(
               line.split(" ")[1]) != 0;
@@ -352,18 +337,6 @@ public class Configuration {
   }
   public boolean getDownloadExitList() {
     return this.downloadExitList;
-  }
-  public boolean getImportGeoIPDatabases() {
-    return this.importGeoIPDatabases;
-  }
-  public String getGeoIPDatabasesDirectory() {
-    return this.geoIPDatabasesDirectory;
-  }
-  public boolean getDownloadGeoIPDatabase() {
-    return this.downloadGeoIPDatabase;
-  }
-  public String getMaxmindLicenseKey() {
-    return this.maxmindLicenseKey;
   }
   public boolean getWriteConsensusHealth() {
     return this.writeConsensusHealth;
