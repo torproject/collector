@@ -217,10 +217,6 @@ public class RelayDescriptorParser {
               this.bsfh.addHashedRelay(hashedRelayIdentity);
             }
           }
-          if (this.csfh != null) {
-            this.csfh.addConsensusResults(validAfterTime, exit, fast,
-                guard, running, stable);
-          }
           if (this.rdd != null) {
             this.rdd.haveParsedConsensus(validAfterTime, dirSources,
                 serverDescriptors);
