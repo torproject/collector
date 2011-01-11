@@ -343,7 +343,7 @@ public class SanitizedBridgesWriter {
       BufferedReader br = new BufferedReader(new StringReader(
           new String(data, "US-ASCII")));
       StringBuilder scrubbed = new StringBuilder();
-      String line = null, hashedBridgeIdentity = null,
+      String line = null, hashedBridgeIdentity = null, address = null,
           published = null;
       boolean skipCrypto = false;
       while ((line = br.readLine()) != null) {
@@ -372,6 +372,7 @@ public class SanitizedBridgesWriter {
          * database and replace it with 127.0.0.1 in the scrubbed
          * version. */
         } else if (line.startsWith("router ")) {
+          address = line.split(" ")[2];
           scrubbed = new StringBuilder("router Unnamed 127.0.0.1 "
               + line.split(" ")[3] + " " + line.split(" ")[4] + " "
               + line.split(" ")[5] + "\n");
@@ -416,10 +417,20 @@ public class SanitizedBridgesWriter {
               + mapping.extraInfoDescriptorIdentifier.toUpperCase()
               + "\n");
 
+        /* Possibly sanitize reject lines if they contain the bridge's own
+         * IP address. */
+        } else if (line.startsWith("reject ")) {
+          if (address != null && line.startsWith("reject " + address)) {
+            scrubbed.append("reject 127.0.0.1"
+                + line.substring("reject ".length() + address.length())
+                + "\n");
+          } else {
+            scrubbed.append(line + "\n");
+          }
+
         /* Write the following lines unmodified to the sanitized
          * descriptor. */
-        } else if (line.startsWith("reject ")
-            || line.startsWith("accept ")
+        } else if (line.startsWith("accept ")
             || line.startsWith("platform ")
             || line.startsWith("opt protocols ")
             || line.startsWith("uptime ")
