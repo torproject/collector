@@ -52,9 +52,16 @@ public class BridgeSnapshotReader {
           try {
             FileInputStream in = new FileInputStream(pop);
             if (in.available() > 0) {
-              GzipCompressorInputStream gcis =
-                  new GzipCompressorInputStream(in);
-              TarArchiveInputStream tais = new TarArchiveInputStream(gcis);
+              TarArchiveInputStream tais = null;
+              if (pop.getName().endsWith(".tar.gz")) {
+                GzipCompressorInputStream gcis =
+                    new GzipCompressorInputStream(in);
+                tais = new TarArchiveInputStream(gcis);
+              } else if (pop.getName().endsWith(".tar")) {
+                tais = new TarArchiveInputStream(in);
+              } else {
+                continue;
+              }
               BufferedInputStream bis = new BufferedInputStream(tais);
               String fn = pop.getName();
               String dateTime = fn.substring(11, 21) + " "
