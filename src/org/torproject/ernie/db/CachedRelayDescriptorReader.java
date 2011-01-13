@@ -72,6 +72,30 @@ public class CachedRelayDescriptorReader {
             if (rdp != null) {
               rdp.parse(allData);
             }
+          } else if (f.getName().equals("v3-status-votes")) {
+            int parsedNum = 0;
+            String ascii = new String(allData, "US-ASCII");
+            String startToken = "network-status-version ";
+            int end = ascii.length();
+            int start = ascii.indexOf(startToken);
+            while (start >= 0 && start < end) {
+              int next = ascii.indexOf(startToken, start + 1);
+              if (next < 0) {
+                next = end;
+              }
+              if (start < next) {
+                byte[] rawNetworkStatusBytes = new byte[next - start];
+                System.arraycopy(allData, start, rawNetworkStatusBytes, 0,
+                    next - start);
+                if (rdp != null) {
+                  rdp.parse(rawNetworkStatusBytes);
+                }
+                parsedNum++;
+              }
+              start = next;
+            }
+            dumpStats.append("\n" + f.getName() + ": " + parsedNum
+                + " votes");
           } else if (f.getName().startsWith("cached-descriptors") ||
               f.getName().startsWith("cached-extrainfo")) {
             String ascii = new String(allData, "US-ASCII");
@@ -107,8 +131,6 @@ public class CachedRelayDescriptorReader {
             dumpStats.append("\n" + f.getName() + ": " + parsedNum + " "
                 + (f.getName().startsWith("cached-descriptors") ?
                 "server" : "extra-info") + " descriptors");
-            logger.fine("Finished reading "
-                + cachedDescDir.getAbsolutePath() + " directory.");
           }
         } catch (IOException e) {
           logger.log(Level.WARNING, "Failed reading "
@@ -118,6 +140,8 @@ public class CachedRelayDescriptorReader {
               + cachedDescDir.getAbsolutePath() + " directory.", e);
         }
       }
+      logger.fine("Finished reading "
+          + cachedDescDir.getAbsolutePath() + " directory.");
     }
     logger.info(dumpStats.toString());
   }
