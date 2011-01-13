@@ -38,10 +38,6 @@ public class Main {
         new BridgeStatsFileHandler(
         config.getWriteAggregateStatsDatabase() ?
         config.getRelayDescriptorDatabaseJDBC() : null) : null;
-    DirreqStatsFileHandler dsfh = config.getWriteDirreqStats() ?
-        new DirreqStatsFileHandler(
-        config.getWriteAggregateStatsDatabase() ?
-        config.getRelayDescriptorDatabaseJDBC() : null) : null;
 
     // Prepare consensus health checker
     ConsensusHealthChecker chc = config.getWriteConsensusHealth() ?
@@ -65,13 +61,12 @@ public class Main {
     // Prepare relay descriptor parser (only if we are writing stats or
     // directory archives to disk)
     RelayDescriptorParser rdp = config.getWriteConsensusStats() ||
-        config.getWriteBridgeStats() || config.getWriteDirreqStats() ||
+        config.getWriteBridgeStats() ||
         config.getWriteDirectoryArchives() ||
         config.getWriteRelayDescriptorDatabase() ||
         config.getWriteRelayDescriptorsRawFiles() ||
         config.getWriteConsensusHealth() ?
-        new RelayDescriptorParser(csfh, bsfh, dsfh, aw, rddi, chc)
-            : null;
+        new RelayDescriptorParser(csfh, bsfh, aw, rddi, chc) : null;
 
     // Import/download relay descriptors from the various sources
     if (rdp != null) {
@@ -83,8 +78,8 @@ public class Main {
             bsfh != null || rddi != null || chc != null;
         boolean downloadCurrentVotes = aw != null || chc != null;
         boolean downloadAllServerDescriptors = aw != null ||
-            dsfh != null || rddi != null;
-        boolean downloadAllExtraInfos = aw != null || dsfh != null;
+            rddi != null;
+        boolean downloadAllExtraInfos = aw != null || rddi != null;
         rdd = new RelayDescriptorDownloader(rdp, dirSources,
             downloadCurrentConsensus, downloadCurrentVotes,
             downloadAllServerDescriptors, downloadAllExtraInfos);
@@ -130,10 +125,6 @@ public class Main {
     if (aw != null) {
       aw.dumpStats();
       aw = null;
-    }
-    if (dsfh != null) {
-      dsfh.writeFile();
-      dsfh = null;
     }
 
     // Prepare sanitized bridge descriptor writer

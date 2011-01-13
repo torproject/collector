@@ -18,12 +18,6 @@ import org.apache.commons.codec.binary.*;
 public class RelayDescriptorParser {
 
   /**
-   * Stats file handler that accepts parse results for directory request
-   * statistics.
-   */
-  private DirreqStatsFileHandler dsfh;
-
-  /**
    * Stats file handler that accepts parse results for consensus
    * statistics.
    */
@@ -65,12 +59,10 @@ public class RelayDescriptorParser {
    * Initializes this class.
    */
   public RelayDescriptorParser(ConsensusStatsFileHandler csfh,
-      BridgeStatsFileHandler bsfh, DirreqStatsFileHandler dsfh,
-      ArchiveWriter aw, RelayDescriptorDatabaseImporter rddi,
-      ConsensusHealthChecker chc) {
+      BridgeStatsFileHandler bsfh, ArchiveWriter aw,
+      RelayDescriptorDatabaseImporter rddi, ConsensusHealthChecker chc) {
     this.csfh = csfh;
     this.bsfh = bsfh;
-    this.dsfh = dsfh;
     this.aw = aw;
     this.rddi = rddi;
     this.chc = chc;
@@ -376,7 +368,7 @@ public class RelayDescriptorParser {
             seconds = Long.parseLong(parts[3].substring(1));
           } else if (line.startsWith("dirreq-v3-reqs ")
               && line.length() > "dirreq-v3-reqs ".length()) {
-            if (this.dsfh != null) {
+            if (this.rddi != null) {
               try {
                 int allUsers = 0;
                 Map<String, String> obs = new HashMap<String, String>();
@@ -389,7 +381,7 @@ public class RelayDescriptorParser {
                   obs.put(country, "" + users);
                 }
                 obs.put("zy", "" + allUsers);
-                this.dsfh.addObs(dir, statsEnd, seconds, obs);
+                this.rddi.addDirReqStats(dir, statsEnd, seconds, obs);
               } catch (NumberFormatException e) {
                 this.logger.log(Level.WARNING, "Could not parse "
                     + "dirreq-v3-reqs line '" + line + "' in descriptor. "

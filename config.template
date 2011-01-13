@@ -99,9 +99,6 @@
 ## Write consensus stats to disk
 #WriteConsensusStats 0
 #
-## Write dirreq stats to disk
-#WriteDirreqStats 0
-#
 ## Write bridge stats to disk
 #WriteBridgeStats 0
 

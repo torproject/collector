@@ -14,7 +14,6 @@ import java.util.logging.*;
  */
 public class Configuration {
   private boolean writeConsensusStats = false;
-  private boolean writeDirreqStats = false;
   private boolean writeBridgeStats = false;
   private boolean writeDirectoryArchives = false;
   private String directoryArchivesOutputDirectory = "directory-archive/";
@@ -72,9 +71,6 @@ public class Configuration {
           continue;
         } else if (line.startsWith("WriteConsensusStats")) {
           this.writeConsensusStats = Integer.parseInt(
-              line.split(" ")[1]) != 0;
-        } else if (line.startsWith("WriteDirreqStats")) {
-          this.writeDirreqStats = Integer.parseInt(
               line.split(" ")[1]) != 0;
         } else if (line.startsWith("WriteBridgeStats")) {
           this.writeBridgeStats = Integer.parseInt(
@@ -202,8 +198,7 @@ public class Configuration {
         !this.writeRelayDescriptorDatabase &&
         !this.writeAggregateStatsDatabase &&
         !this.writeSanitizedBridges && !this.writeConsensusStats &&
-        !this.writeDirreqStats && !this.writeBridgeStats &&
-        !this.writeConsensusHealth) {
+        !this.writeBridgeStats && !this.writeConsensusHealth) {
       logger.warning("We have not been configured to read data from any "
           + "data source or write data to any data sink. You need to "
           + "edit your config file (" + configFile.getAbsolutePath()
@@ -215,8 +210,7 @@ public class Configuration {
         !(this.writeDirectoryArchives ||
         this.writeRelayDescriptorDatabase ||
         this.writeRelayDescriptorsRawFiles || this.writeConsensusStats ||
-        this.writeDirreqStats || this.writeBridgeStats ||
-        this.writeConsensusHealth)) {
+        this.writeBridgeStats || this.writeConsensusHealth)) {
       logger.warning("We are configured to import/download relay "
           + "descriptors, but we don't have a single data sink to write "
           + "relay descriptors to.");
@@ -224,7 +218,7 @@ public class Configuration {
     if (!(this.importCachedRelayDescriptors ||
         this.importDirectoryArchives || this.downloadRelayDescriptors) &&
         (this.writeDirectoryArchives ||
-        this.writeRelayDescriptorDatabase || this.writeDirreqStats)) {
+        this.writeRelayDescriptorDatabase)) {
       logger.warning("We are configured to write relay descriptor to at "
           + "least one data sink, but we don't have a single data source "
           + "containing relay descriptors.");
@@ -253,9 +247,6 @@ public class Configuration {
   }
   public boolean getWriteConsensusStats() {
     return this.writeConsensusStats;
-  }
-  public boolean getWriteDirreqStats() {
-    return this.writeDirreqStats;
   }
   public boolean getWriteBridgeStats() {
     return this.writeBridgeStats;

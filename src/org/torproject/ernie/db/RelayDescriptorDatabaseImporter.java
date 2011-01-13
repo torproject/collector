@@ -30,6 +30,7 @@ public final class RelayDescriptorDatabaseImporter {
   private int rcsCount = 0;
   private int rvsCount = 0;
   private int rbsCount = 0;
+  private int rqsCount = 0;
 
   /**
    * Relay descriptor database connection.
@@ -86,6 +87,12 @@ public final class RelayDescriptorDatabaseImporter {
   private PreparedStatement psBs;
 
   /**
+   * Prepared statement to check whether a given dirreq stats string has
+   * been imported into the database before.
+   */
+  private PreparedStatement psQs;
+
+  /**
    * Prepared statement to insert a network status consensus entry into
    * the database.
    */
@@ -125,6 +132,12 @@ public final class RelayDescriptorDatabaseImporter {
    * database.
    */
   private PreparedStatement psB;
+
+  /**
+   * Prepared statement to insert a given dirreq stats string into the
+   * database.
+   */
+  private PreparedStatement psQ;
 
   /**
    * Logger for this class.
@@ -170,6 +183,11 @@ public final class RelayDescriptorDatabaseImporter {
    * Raw import file containing conn-bi-direct stats strings.
    */
   private BufferedWriter connBiDirectOut;
+
+  /**
+   * Raw import file containing dirreq stats.
+   */
+  private BufferedWriter dirReqOut;
 
   /**
    * Date format to parse timestamps.
@@ -230,6 +248,8 @@ public final class RelayDescriptorDatabaseImporter {
             + "FROM vote WHERE validafter = ? AND dirsource = ?");
         this.psBs = conn.prepareStatement("SELECT COUNT(*) "
             + "FROM connbidirect WHERE source = ? AND statsend = ?");
+        this.psQs = conn.prepareStatement("SELECT COUNT(*) "
+            + "FROM dirreq_stats WHERE source = ? AND statsend = ?");
         this.psR = conn.prepareStatement("INSERT INTO statusentry "
             + "(validafter, nickname, fingerprint, descriptor, "
             + "published, address, orport, dirport, isauthority, "
@@ -257,6 +277,9 @@ public final class RelayDescriptorDatabaseImporter {
         this.psB = conn.prepareStatement("INSERT INTO connbidirect "
             + "(source, statsend, seconds, belownum, readnum, writenum, "
             + "bothnum) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        this.psQ = conn.prepareStatement("INSERT INTO dirreq_stats "
+            + "(source, statsend, seconds, country, requests) VALUES "
+            + "(?, ?, ?, ?, ?)");
       } catch (SQLException e) {
         this.logger.log(Level.WARNING, "Could not connect to database or "
             + "prepare statements.", e);
@@ -778,6 +801,70 @@ public final class RelayDescriptorDatabaseImporter {
       } catch (IOException e) {
         this.logger.log(Level.WARNING, "Could not write conn-bi-direct "
             + "stats string to raw database import file.", e);
+      }
+    }
+  }
+
+  /**
+   * Adds observations on the number of directory requests by country as
+   * seen on a directory at a given date to the database.
+   */
+  public void addDirReqStats(String source, String statsEnd, long seconds,
+      Map<String, String> dirReqsPerCountry) {
+    long statsEndTime = 0L;
+    try {
+      statsEndTime = this.dateTimeFormat.parse(statsEnd).getTime();
+    } catch (ParseException e) {
+      this.logger.log(Level.WARNING, "Could not add dirreq stats with "
+          + "interval ending '" + statsEnd + "'.", e);
+      return;
+    }
+    if (this.psQs != null && this.psQ != null) {
+      try {
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        Timestamp statsEndTimestamp = new Timestamp(statsEndTime);
+        this.psQs.setString(1, source);
+        this.psQs.setTimestamp(2, statsEndTimestamp, cal);
+        ResultSet rs = psQs.executeQuery();
+        rs.next();
+        if (rs.getInt(1) == 0) {
+          for (Map.Entry<String, String> e :
+              dirReqsPerCountry.entrySet()) {
+            this.psQ.clearParameters();
+            this.psQ.setString(1, source);
+            this.psQ.setTimestamp(2, statsEndTimestamp, cal);
+            this.psQ.setLong(3, seconds);
+            this.psQ.setString(4, e.getKey());
+            this.psQ.setLong(5, Long.parseLong(e.getValue()));
+            this.psQ.executeUpdate();
+            rqsCount++;
+            if (rqsCount % autoCommitCount == 0)  {
+              this.conn.commit();
+              rqsCount = 0;
+            }
+          }
+        }
+      } catch (SQLException e) {
+        this.logger.log(Level.WARNING, "Could not add dirreq stats.", e);
+      }
+    }
+    if (this.rawFilesDirectory != null) {
+      try {
+        if (this.dirReqOut == null) {
+          new File(rawFilesDirectory).mkdirs();
+          this.dirReqOut = new BufferedWriter(new FileWriter(
+              rawFilesDirectory + "/dirreq_stats.sql"));
+          this.dirReqOut.write(" COPY dirreq_stats (source, statsend, "
+              + "seconds, country, requests) FROM stdin;\n");
+        }
+        for (Map.Entry<String, String> e :
+            dirReqsPerCountry.entrySet()) {
+          this.dirReqOut.write(source + "\t" + statsEnd + "\t" + seconds
+              + "\t" + e.getKey() + "\t" + e.getValue() + "\n");
+        }
+      } catch (IOException e) {
+        this.logger.log(Level.WARNING, "Could not write dirreq stats to "
+            + "raw database import file.", e);
       }
     }
   }
