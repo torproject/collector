@@ -18,12 +18,6 @@ import org.apache.commons.codec.binary.*;
 public class RelayDescriptorParser {
 
   /**
-   * Stats file handler that accepts parse results for consensus
-   * statistics.
-   */
-  private ConsensusStatsFileHandler csfh;
-
-  /**
    * Stats file handler that accepts parse results for bridge statistics.
    */
   private BridgeStatsFileHandler bsfh;
@@ -58,10 +52,9 @@ public class RelayDescriptorParser {
   /**
    * Initializes this class.
    */
-  public RelayDescriptorParser(ConsensusStatsFileHandler csfh,
-      BridgeStatsFileHandler bsfh, ArchiveWriter aw,
-      RelayDescriptorDatabaseImporter rddi, ConsensusHealthChecker chc) {
-    this.csfh = csfh;
+  public RelayDescriptorParser(BridgeStatsFileHandler bsfh,
+      ArchiveWriter aw, RelayDescriptorDatabaseImporter rddi,
+      ConsensusHealthChecker chc) {
     this.bsfh = bsfh;
     this.aw = aw;
     this.rddi = rddi;

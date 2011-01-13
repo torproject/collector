@@ -29,11 +29,7 @@ public class Main {
       System.exit(1);
     }
 
-    // Prepare stats file handlers (only if we are writing stats)
-    ConsensusStatsFileHandler csfh = config.getWriteConsensusStats() ?
-        new ConsensusStatsFileHandler(
-        config.getWriteAggregateStatsDatabase() ?
-        config.getRelayDescriptorDatabaseJDBC() : null) : null;
+    // Prepare bridge stats file handler
     BridgeStatsFileHandler bsfh = config.getWriteBridgeStats() ?
         new BridgeStatsFileHandler(
         config.getWriteAggregateStatsDatabase() ?
@@ -60,13 +56,12 @@ public class Main {
 
     // Prepare relay descriptor parser (only if we are writing stats or
     // directory archives to disk)
-    RelayDescriptorParser rdp = config.getWriteConsensusStats() ||
-        config.getWriteBridgeStats() ||
+    RelayDescriptorParser rdp = config.getWriteBridgeStats() ||
         config.getWriteDirectoryArchives() ||
         config.getWriteRelayDescriptorDatabase() ||
         config.getWriteRelayDescriptorsRawFiles() ||
         config.getWriteConsensusHealth() ?
-        new RelayDescriptorParser(csfh, bsfh, aw, rddi, chc) : null;
+        new RelayDescriptorParser(bsfh, aw, rddi, chc) : null;
 
     // Import/download relay descriptors from the various sources
     if (rdp != null) {
@@ -74,8 +69,8 @@ public class Main {
       if (config.getDownloadRelayDescriptors()) {
         List<String> dirSources =
             config.getDownloadFromDirectoryAuthorities();
-        boolean downloadCurrentConsensus = aw != null || csfh != null ||
-            bsfh != null || rddi != null || chc != null;
+        boolean downloadCurrentConsensus = aw != null || bsfh != null ||
+            rddi != null || chc != null;
         boolean downloadCurrentVotes = aw != null || chc != null;
         boolean downloadAllServerDescriptors = aw != null ||
             rddi != null;
@@ -126,6 +121,12 @@ public class Main {
       aw.dumpStats();
       aw = null;
     }
+
+    // Prepare consensus stats file handler
+    ConsensusStatsFileHandler csfh = config.getWriteConsensusStats() ?
+        new ConsensusStatsFileHandler(
+        config.getWriteAggregateStatsDatabase() ?
+        config.getRelayDescriptorDatabaseJDBC() : null) : null;
 
     // Prepare sanitized bridge descriptor writer
     SanitizedBridgesWriter sbw = config.getWriteSanitizedBridges() ?
