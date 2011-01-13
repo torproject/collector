@@ -65,6 +65,7 @@ public class LoggingConfiguration {
         return dateTimeFormat.format(new Date(record.getMillis())) + " "
             + record.getLevel() + " " + record.getSourceClassName() + " "
             + record.getSourceMethodName() + " " + record.getMessage()
+            + (record.getThrown() != null ? " " + record.getThrown() : "")
             + "\n";
       }
     };
