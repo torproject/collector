@@ -369,7 +369,6 @@ public final class RelayDescriptorDatabaseImporter {
           rrsCount++;
           if (rrsCount % autoCommitCount == 0)  {
             this.conn.commit();
-            rrsCount = 0;
           }
         }
       }
@@ -456,7 +455,6 @@ public final class RelayDescriptorDatabaseImporter {
           rdsCount++;
           if (rdsCount % autoCommitCount == 0)  {
             this.conn.commit();
-            rdsCount = 0;
           }
         }
       }
@@ -519,7 +517,6 @@ public final class RelayDescriptorDatabaseImporter {
           resCount++;
           if (resCount % autoCommitCount == 0)  {
             this.conn.commit();
-            resCount = 0;
           }
         }
       }
@@ -622,7 +619,6 @@ public final class RelayDescriptorDatabaseImporter {
             rhsCount++;
             if (rhsCount % autoCommitCount == 0)  {
               this.conn.commit();
-              rhsCount = 0;
             }
           }
         }
@@ -669,7 +665,6 @@ public final class RelayDescriptorDatabaseImporter {
           rcsCount++;
           if (rcsCount % autoCommitCount == 0)  {
             this.conn.commit();
-            rcsCount = 0;
           }
         }
       }
@@ -717,7 +712,6 @@ public final class RelayDescriptorDatabaseImporter {
           rvsCount++;
           if (rvsCount % autoCommitCount == 0)  {
             this.conn.commit();
-            rvsCount = 0;
           }
         }
       }
@@ -777,7 +771,6 @@ public final class RelayDescriptorDatabaseImporter {
           rbsCount++;
           if (rbsCount % autoCommitCount == 0)  {
             this.conn.commit();
-            rbsCount = 0;
           }
         }
       } catch (SQLException e) {
@@ -840,7 +833,6 @@ public final class RelayDescriptorDatabaseImporter {
             rqsCount++;
             if (rqsCount % autoCommitCount == 0)  {
               this.conn.commit();
-              rqsCount = 0;
             }
           }
         }
@@ -873,6 +865,14 @@ public final class RelayDescriptorDatabaseImporter {
    * Close the relay descriptor database connection.
    */
   public void closeConnection() {
+
+    /* Log stats about imported descriptors. */
+    this.logger.info(String.format("Finished importing relay "
+        + "descriptors: %d consensuses, %d network status entries, %d "
+        + "votes, %d server descriptors, %d extra-info descriptors, %d "
+        + "bandwidth history elements, %d dirreq stats elements, and %d "
+        + "conn-bi-direct stats lines", rcsCount, rrsCount, rvsCount,
+        rdsCount, resCount, rhsCount, rqsCount, rbsCount));
 
     /* Commit any stragglers before closing. */
     if (this.conn != null) {
