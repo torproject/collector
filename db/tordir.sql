@@ -806,3 +806,20 @@ CREATE TABLE gettor_stats (
     CONSTRAINT gettor_stats_pkey PRIMARY KEY("date", bundle)
 );
 
+-- FUNCTION refresh_all()
+-- This function refreshes all statistics in the database.
+CREATE OR REPLACE FUNCTION refresh_all() RETURNS INTEGER AS $$
+  BEGIN
+    PERFORM refresh_relay_statuses_per_day();
+    PERFORM refresh_network_size();
+    PERFORM refresh_network_size_hour();
+    PERFORM refresh_relay_platforms();
+    PERFORM refresh_relay_versions();
+    PERFORM refresh_total_bandwidth();
+    PERFORM refresh_total_bwhist();
+    PERFORM refresh_user_stats();
+    DELETE FROM updates;
+  RETURN 1;
+  END;
+$$ LANGUAGE plpgsql;
+
