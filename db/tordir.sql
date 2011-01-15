@@ -32,24 +32,24 @@ CREATE TABLE extrainfo (
     CONSTRAINT extrainfo_pkey PRIMARY KEY (extrainfo)
 );
 
--- TABLE bandwidth
--- Contains bandwidth histories contained in extra-info descriptors.
--- Every row represents a 15-minute interval and can have read, written,
--- dirread, and dirwritten set or not. We're making sure that there's only
--- one interval for each extrainfo. However, it's possible that an
--- interval is contained in another extra-info descriptor of the same
--- relay. These duplicates need to be filtered when aggregating bandwidth
--- histories.
+-- Contains bandwidth histories reported by relays in extra-info
+-- descriptors. Each row contains the reported bandwidth in 15-minute
+-- intervals for each relay and date.
 CREATE TABLE bwhist (
     fingerprint CHARACTER(40) NOT NULL,
-    extrainfo CHARACTER(40) NOT NULL,
-    intervalend TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    read BIGINT,
-    written BIGINT,
-    dirread BIGINT,
-    dirwritten BIGINT,
-    CONSTRAINT bwhist_pkey PRIMARY KEY (extrainfo, intervalend)
+    date DATE NOT NULL,
+    read BIGINT[],
+    read_sum BIGINT,
+    written BIGINT[],
+    written_sum BIGINT,
+    dirread BIGINT[],
+    dirread_sum BIGINT,
+    dirwritten BIGINT[],
+    dirwritten_sum BIGINT,
+    CONSTRAINT bwhist_pkey PRIMARY KEY (fingerprint, date)
 );
+
+CREATE INDEX bwhist_date ON bwhist (date);
 
 -- TABLE statusentry
 -- Contains all of the consensus entries published by the directories.
@@ -188,8 +188,6 @@ CREATE TABLE total_bwhist (
     date DATE NOT NULL,
     read BIGINT,
     written BIGINT,
-    dirread BIGINT,
-    dirwritten BIGINT,
     CONSTRAINT total_bwhist_pkey PRIMARY KEY(date)
 );
 
@@ -262,6 +260,59 @@ RETURNS INTEGER AS $$
     GROUP BY DATE(validafter);
     RETURN 1;
     END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION array_sum (BIGINT[]) RETURNS BIGINT AS $$
+  SELECT SUM($1[i])::bigint
+  FROM generate_series(array_lower($1, 1), array_upper($1, 1)) index(i);
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION insert_bwhist(
+    insert_fingerprint CHARACTER(40), insert_date DATE,
+    insert_read BIGINT[], insert_written BIGINT[],
+    insert_dirread BIGINT[], insert_dirwritten BIGINT[])
+    RETURNS INTEGER AS $$
+  BEGIN
+  IF (SELECT COUNT(*) FROM bwhist
+      WHERE fingerprint = insert_fingerprint AND date = insert_date) = 0
+      THEN
+    INSERT INTO bwhist (fingerprint, date, read, written, dirread,
+        dirwritten)
+    VALUES (insert_fingerprint, insert_date, insert_read, insert_written,
+        insert_dirread, insert_dirwritten);
+  ELSE
+    BEGIN
+    UPDATE bwhist
+    SET read[array_lower(insert_read, 1):
+          array_upper(insert_read, 1)] = insert_read,
+        written[array_lower(insert_written, 1):
+          array_upper(insert_written, 1)] = insert_written,
+        dirread[array_lower(insert_dirread, 1):
+          array_upper(insert_dirread, 1)] = insert_dirread,
+        dirwritten[array_lower(insert_dirwritten, 1):
+          array_upper(insert_dirwritten, 1)] = insert_dirwritten
+    WHERE fingerprint = insert_fingerprint AND date = insert_date;
+    -- Updating twice is an ugly workaround for PostgreSQL bug 5840
+    UPDATE bwhist
+    SET read[array_lower(insert_read, 1):
+          array_upper(insert_read, 1)] = insert_read,
+        written[array_lower(insert_written, 1):
+          array_upper(insert_written, 1)] = insert_written,
+        dirread[array_lower(insert_dirread, 1):
+          array_upper(insert_dirread, 1)] = insert_dirread,
+        dirwritten[array_lower(insert_dirwritten, 1):
+          array_upper(insert_dirwritten, 1)] = insert_dirwritten
+    WHERE fingerprint = insert_fingerprint AND date = insert_date;
+    END;
+  END IF;
+  UPDATE bwhist
+  SET read_sum = array_sum(read),
+      written_sum = array_sum(written),
+      dirread_sum = array_sum(dirread),
+      dirwritten_sum = array_sum(dirwritten)
+  WHERE fingerprint = insert_fingerprint AND date = insert_date;
+  RETURN 1;
+  END;
 $$ LANGUAGE plpgsql;
 
 -- refresh_* functions
@@ -443,43 +494,15 @@ CREATE OR REPLACE FUNCTION refresh_total_bandwidth() RETURNS INTEGER AS $$
     END;
 $$ LANGUAGE plpgsql;
 
--- FUNCTION refresh_total_bwhist()
 CREATE OR REPLACE FUNCTION refresh_total_bwhist() RETURNS INTEGER AS $$
   BEGIN
   DELETE FROM total_bwhist WHERE date IN (SELECT date FROM updates);
-  INSERT INTO total_bwhist (date, read, written, dirread, dirwritten)
-  SELECT date,
-         SUM(read) AS read,
-         SUM(written) AS written,
-         SUM(dirread) * (SUM(written) + SUM(read)) / (1
-           + SUM(CASE WHEN dirwritten IS NULL THEN NULL ELSE written END)
-           + SUM(CASE WHEN dirread IS NULL THEN NULL ELSE read END))
-           AS dirread,
-         SUM(dirwritten) * (SUM(written) + SUM(read)) / (1
-           + SUM(CASE WHEN dirwritten IS NULL THEN NULL ELSE written END)
-           + SUM(CASE WHEN dirread IS NULL THEN NULL ELSE read END))
-           AS dirwritten
-  FROM (
-    SELECT fingerprint,
-           DATE(intervalend) AS date,
-           SUM(read) AS read,
-           SUM(written) AS written,
-           SUM(dirread) AS dirread,
-           SUM(dirwritten) AS dirwritten
-    FROM (
-      SELECT DISTINCT fingerprint,
-                      intervalend,
-                      read,
-                      written,
-                      dirread,
-                      dirwritten
-      FROM bwhist
-      WHERE DATE(intervalend) >= (SELECT MIN(date) FROM updates)
-      AND DATE(intervalend) <= (SELECT MAX(date) FROM updates)
-      AND DATE(intervalend) IN (SELECT date FROM updates)
-    ) byinterval
-    GROUP BY fingerprint, DATE(intervalend)
-  ) byrelay
+  INSERT INTO total_bwhist (date, read, written)
+  SELECT date, SUM(read_sum) AS read, SUM(written_sum) AS written
+  FROM bwhist
+  WHERE date >= (SELECT MIN(date) FROM updates)
+  AND date <= (SELECT MAX(date) FROM updates)
+  AND date IN (SELECT date FROM updates)
   GROUP BY date;
   RETURN 1;
   END;
@@ -520,17 +543,17 @@ CREATE OR REPLACE FUNCTION refresh_user_stats() RETURNS INTEGER AS $$
            THEN NULL ELSE written END) AS bw,
          SUM(CASE WHEN authority IS NOT NULL
            THEN NULL ELSE read END) AS br,
-         SUM(CASE WHEN dirwritten IS NULL OR authority IS NOT NULL
+         SUM(CASE WHEN dirwritten = 0 OR authority IS NOT NULL
            THEN NULL ELSE written END) AS bwd,
-         SUM(CASE WHEN dirwritten IS NULL OR authority IS NOT NULL
+         SUM(CASE WHEN dirwritten = 0 OR authority IS NOT NULL
            THEN NULL ELSE read END) AS brd,
          SUM(CASE WHEN requests IS NULL OR authority IS NOT NULL
            THEN NULL ELSE written END) AS bwr,
          SUM(CASE WHEN requests IS NULL OR authority IS NOT NULL
            THEN NULL ELSE read END) AS brr,
-         SUM(CASE WHEN dirwritten IS NULL OR requests IS NULL
+         SUM(CASE WHEN dirwritten = 0 OR requests IS NULL
            OR authority IS NOT NULL THEN NULL ELSE written END) AS bwdr,
-         SUM(CASE WHEN dirwritten IS NULL OR requests IS NULL
+         SUM(CASE WHEN dirwritten = 0 OR requests IS NULL
            OR authority IS NOT NULL THEN NULL ELSE read END) AS brdr,
          SUM(CASE WHEN opendirport IS NULL OR authority IS NOT NULL
            THEN NULL ELSE written END) AS bwp,
@@ -589,19 +612,12 @@ CREATE OR REPLACE FUNCTION refresh_user_stats() RETURNS INTEGER AS $$
   LEFT JOIN (
     -- In the next step, we expand the result by bandwidth histories of
     -- all relays.
-    SELECT fingerprint,
-           DATE(intervalend) AS date,
-           SUM(read) AS read, SUM(written) AS written,
-           SUM(dirread) AS dirread, SUM(dirwritten) AS dirwritten
-    FROM (
-      SELECT DISTINCT fingerprint, intervalend,
-        read, written, dirread, dirwritten
-      FROM bwhist
-      WHERE DATE(intervalend) >= (SELECT MIN(date) FROM updates)
-      AND DATE(intervalend) <= (SELECT MAX(date) FROM updates)
-      AND DATE(intervalend) IN (SELECT date FROM updates)
-    ) distinct_bwhist
-    GROUP BY 1, 2
+    SELECT fingerprint, date, read_sum AS read, written_sum AS written,
+           dirread_sum AS dirread, dirwritten_sum AS dirwritten
+    FROM bwhist
+    WHERE date >= (SELECT MIN(date) FROM updates)
+    AND date <= (SELECT MAX(date) FROM updates)
+    AND date IN (SELECT date FROM updates)
   ) bwhist_by_relay
   ON dirreq_stats_by_country.date = bwhist_by_relay.date
   LEFT JOIN (

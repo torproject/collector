@@ -308,8 +308,7 @@ public class RelayDescriptorParser {
         String dir = line.split(" ")[2];
         String statsEnd = null;
         long seconds = -1L;
-        SortedMap<String, String> bandwidthHistory =
-            new TreeMap<String, String>();
+        List<String> bandwidthHistory = new ArrayList<String>();
         boolean skip = false;
         while ((line = br.readLine()) != null) {
           if (line.startsWith("published ")) {
@@ -319,37 +318,7 @@ public class RelayDescriptorParser {
               line.startsWith("write-history ") ||
               line.startsWith("dirreq-read-history ") ||
               line.startsWith("dirreq-write-history ")) {
-            String[] parts = line.split(" ");
-            if (parts.length == 6) {
-              String type = parts[0];
-              String intervalEndTime = parts[1] + " " + parts[2];
-              long intervalEnd = dateTimeFormat.parse(intervalEndTime).
-                  getTime();
-              if (Math.abs(published - intervalEnd) >
-                  7L * 24L * 60L * 60L * 1000L) {
-                this.logger.fine("Extra-info descriptor publication time "
-                    + publishedTime + " and last interval time "
-                    + intervalEndTime + " in " + type + " line differ by "
-                    + "more than 7 days! Not adding this line!");
-                continue;
-              }
-              try {
-                long intervalLength = Long.parseLong(parts[3].
-                    substring(1));
-                String[] values = parts[5].split(",");
-                for (int i = values.length - 1; i >= 0; i--) {
-                  Long.parseLong(values[i]);
-                  bandwidthHistory.put(intervalEnd + "," + type,
-                      intervalEnd + "," + type + "," + values[i]);
-                  intervalEnd -= intervalLength * 1000L;
-                }
-              } catch (NumberFormatException e) {
-                this.logger.log(Level.WARNING, "Could not parse "
-                    + line.split(" ")[0] + " line '" + line + "' in "
-                    + "descriptor. Skipping.", e);
-                break;
-              }
-            }
+            bandwidthHistory.add(line);
           } else if (line.startsWith("dirreq-stats-end ")) {
             String[] parts = line.split(" ");
             if (parts.length < 5) {
