@@ -7,6 +7,9 @@ import java.text.*;
 import java.util.*;
 import java.util.logging.*;
 
+import org.apache.commons.codec.binary.*;
+import org.apache.commons.codec.digest.*;
+
 /**
  * Parses all descriptors in local directory cacheddesc/ and sorts them
  * into directory structure in directory-archive/.
@@ -18,6 +21,28 @@ public class CachedRelayDescriptorReader {
         + "relay descriptors from local Tor data directories:");
     Logger logger = Logger.getLogger(
         CachedRelayDescriptorReader.class.getName());
+
+    /* Read import history containing SHA-1 digests of previously parsed
+     * statuses and descriptors, so that we can skip them in this run. */
+    Set<String> lastImportHistory = new HashSet<String>(),
+        currentImportHistory = new HashSet<String>();
+    File importHistoryFile = new File("stats/cacheddesc-import-history");
+    if (importHistoryFile.exists()) {
+      try {
+        BufferedReader br = new BufferedReader(new FileReader(
+            importHistoryFile));
+        String line;
+        while ((line = br.readLine()) != null) {
+          lastImportHistory.add(line);
+        }
+        br.close();
+      } catch (IOException e) {
+        logger.log(Level.WARNING, "Could not read import history from "
+            + importHistoryFile.getAbsolutePath() + ".", e);
+      }
+    }
+
+    /* Read cached descriptors directories. */
     for (String inputDirectory : inputDirectories) {
       File cachedDescDir = new File(inputDirectory);
       if (!cachedDescDir.exists()) {
@@ -67,13 +92,21 @@ public class CachedRelayDescriptorReader {
             }
             br.close();
 
-            /* Parse the cached consensus (regardless of whether it's
-             * stale or not. */
+            /* Parse the cached consensus if we haven't parsed it before
+             * (but regardless of whether it's stale or not). */
             if (rdp != null) {
-              rdp.parse(allData);
+              String digest = Hex.encodeHexString(DigestUtils.sha(
+                  allData));
+              if (!lastImportHistory.contains(digest) &&
+                  !currentImportHistory.contains(digest)) {
+                rdp.parse(allData);
+              } else {
+                dumpStats.append(" (skipped)");
+              }
+              currentImportHistory.add(digest);
             }
           } else if (f.getName().equals("v3-status-votes")) {
-            int parsedNum = 0;
+            int parsedNum = 0, skippedNum = 0;
             String ascii = new String(allData, "US-ASCII");
             String startToken = "network-status-version ";
             int end = ascii.length();
@@ -88,14 +121,22 @@ public class CachedRelayDescriptorReader {
                 System.arraycopy(allData, start, rawNetworkStatusBytes, 0,
                     next - start);
                 if (rdp != null) {
-                  rdp.parse(rawNetworkStatusBytes);
+                  String digest = Hex.encodeHexString(DigestUtils.sha(
+                      rawNetworkStatusBytes));
+                  if (!lastImportHistory.contains(digest) &&
+                      !currentImportHistory.contains(digest)) {
+                    rdp.parse(rawNetworkStatusBytes);
+                    parsedNum++;
+                  } else {
+                    skippedNum++;
+                  }
+                  currentImportHistory.add(digest);
                 }
-                parsedNum++;
               }
               start = next;
             }
-            dumpStats.append("\n" + f.getName() + ": " + parsedNum
-                + " votes");
+            dumpStats.append("\n" + f.getName() + ": parsed " + parsedNum
+                + ", skipped " + skippedNum + " votes");
           } else if (f.getName().startsWith("cached-descriptors") ||
               f.getName().startsWith("cached-extrainfo")) {
             String ascii = new String(allData, "US-ASCII");
@@ -105,7 +146,7 @@ public class CachedRelayDescriptorReader {
                 "router " : "extra-info ";
             String sigToken = "\nrouter-signature\n";
             String endToken = "\n-----END SIGNATURE-----\n";
-            int parsedNum = 0;
+            int parsedNum = 0, skippedNum = 0;
             while (end < ascii.length()) {
               start = ascii.indexOf(startToken, end);
               if (start < 0) {
@@ -124,11 +165,20 @@ public class CachedRelayDescriptorReader {
               byte[] descBytes = new byte[end - start];
               System.arraycopy(allData, start, descBytes, 0, end - start);
               if (rdp != null) {
-                rdp.parse(descBytes);
-                parsedNum++;
+                String digest = Hex.encodeHexString(DigestUtils.sha(
+                    descBytes));
+                if (!lastImportHistory.contains(digest) &&
+                    !currentImportHistory.contains(digest)) {
+                  rdp.parse(descBytes);
+                  parsedNum++;
+                } else {
+                  skippedNum++;
+                }
+                currentImportHistory.add(digest);
               }
             }
-            dumpStats.append("\n" + f.getName() + ": " + parsedNum + " "
+            dumpStats.append("\n" + f.getName() + ": parsed " + parsedNum
+                + ", skipped " + skippedNum + " "
                 + (f.getName().startsWith("cached-descriptors") ?
                 "server" : "extra-info") + " descriptors");
           }
@@ -143,6 +193,21 @@ public class CachedRelayDescriptorReader {
       logger.fine("Finished reading "
           + cachedDescDir.getAbsolutePath() + " directory.");
     }
+
+    /* Write import history containing SHA-1 digests to disk. */
+    try {
+      importHistoryFile.getParentFile().mkdirs();
+      BufferedWriter bw = new BufferedWriter(new FileWriter(
+          importHistoryFile));
+      for (String digest : currentImportHistory) {
+        bw.write(digest + "\n");
+      }
+      bw.close();
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Could not write import history to "
+           + importHistoryFile.getAbsolutePath() + ".", e);
+    }
+
     logger.info(dumpStats.toString());
   }
 }
