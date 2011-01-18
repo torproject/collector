@@ -228,119 +228,23 @@ CREATE TABLE relay_statuses_per_day (
     CONSTRAINT relay_statuses_per_day_pkey PRIMARY KEY(date)
 );
 
--- TABLE updates
--- A helper table which is used to keep track of what tables and where
--- need to be updated upon refreshes.
+-- Dates to be included in the next refresh run.
+CREATE TABLE scheduled_updates (
+    id SERIAL,
+    date DATE NOT NULL
+);
+
+-- Dates in the current refresh run.  When starting a refresh run, we copy
+-- the rows from scheduled_updates here in order to delete just those
+-- lines after the refresh run.  Otherwise we might forget scheduled dates
+-- that have been added during a refresh run.  If this happens we're going
+-- to update these dates in the next refresh run.
 CREATE TABLE updates (
-    "date" date NOT NULL,
-    CONSTRAINT updates_pkey PRIMARY KEY(date)
+    id INTEGER,
+    date DATE
 );
 
 CREATE LANGUAGE plpgsql;
-
--- FUNCTION update_status
--- This keeps the updates table up to date for the time graphs.
-CREATE OR REPLACE FUNCTION update_status() RETURNS TRIGGER AS $$
-    BEGIN
-    IF (TG_OP='INSERT' OR TG_OP='UPDATE') THEN
-        IF (SELECT COUNT(*) FROM updates
-            WHERE DATE=DATE(new.validafter)) = 0 THEN
-            INSERT INTO updates
-            VALUES (DATE(NEW.validafter));
-        END IF;
-    END IF;
-    IF (TG_OP='DELETE' OR TG_OP='UPDATE') THEN
-        IF (SELECT COUNT(*) FROM updates
-            WHERE DATE=DATE(old.validafter)) = 0 THEN
-            INSERT INTO updates
-            VALUES (DATE(OLD.validafter));
-        END IF;
-    END IF;
-    RETURN NULL; -- result is ignored since this is an AFTER trigger
-END;
-$$ LANGUAGE plpgsql;
-
--- TRIGGER update_status
--- This calls the function update_status() each time a row is inserted,
--- updated, or deleted from the statusentry table.
-CREATE TRIGGER update_status
-AFTER INSERT OR UPDATE OR DELETE
-ON statusentry
-    FOR EACH ROW EXECUTE PROCEDURE update_status();
-
--- FUNCTION update_desc
--- This keeps the updates table up to date for the time graphs.
-CREATE OR REPLACE FUNCTION update_desc() RETURNS TRIGGER AS $$
-    BEGIN
-    IF (TG_OP='INSERT' OR TG_OP='UPDATE') THEN
-      BEGIN
-        IF (SELECT COUNT(*) FROM updates
-            WHERE DATE=DATE(new.published)) = 0 THEN
-            INSERT INTO updates
-            VALUES (DATE(NEW.published));
-        END IF;
-        IF (SELECT COUNT(*) FROM updates
-            WHERE DATE=DATE(new.published)+1) = 0 THEN
-            INSERT INTO updates
-            VALUES (DATE(NEW.published)+1);
-        END IF;
-      END;
-    END IF;
-    IF (TG_OP='DELETE' OR TG_OP='UPDATE') THEN
-      BEGIN
-        IF (SELECT COUNT(*) FROM updates
-            WHERE DATE=DATE(old.published)) = 0 THEN
-            INSERT INTO updates
-            VALUES (DATE(OLD.published));
-        END IF;
-        IF (SELECT COUNT(*) FROM updates
-            WHERE DATE=DATE(old.published)+1) = 0 THEN
-            INSERT INTO updates
-            VALUES (DATE(OLD.published)+1);
-        END IF;
-      END;
-    END IF;
-    RETURN NULL; -- result is ignored since this is an AFTER trigger
-END;
-$$ LANGUAGE plpgsql;
-
--- TRIGGER update_desc
--- This calls the function update_desc() each time a row is inserted,
--- updated, or deleted from the descriptors table.
-CREATE TRIGGER update_desc
-AFTER INSERT OR UPDATE OR DELETE
-ON descriptor
-    FOR EACH ROW EXECUTE PROCEDURE update_desc();
-
--- FUNCTION update_bwhist
--- This keeps the updates table up to date for the time graphs.
-CREATE OR REPLACE FUNCTION update_bwhist() RETURNS TRIGGER AS $$
-    BEGIN
-    IF (TG_OP='INSERT' OR TG_OP='UPDATE') THEN
-      IF (SELECT COUNT(*) FROM updates
-          WHERE DATE = DATE(NEW.intervalend)) = 0 THEN
-          INSERT INTO updates
-          VALUES (DATE(NEW.intervalend));
-      END IF;
-    END IF;
-    IF (TG_OP='DELETE' OR TG_OP='UPDATE') THEN
-      IF (SELECT COUNT(*) FROM updates
-          WHERE DATE = DATE(OLD.intervalend)) = 0 THEN
-          INSERT INTO updates
-          VALUES (DATE(OLD.intervalend));
-      END IF;
-    END IF;
-    RETURN NULL; -- result is ignored since this is an AFTER trigger
-END;
-$$ LANGUAGE plpgsql;
-
--- TRIGGER update_desc
--- This calls the function update_desc() each time a row is inserted,
--- updated, or deleted from the descriptors table.
-CREATE TRIGGER update_bwhist
-AFTER INSERT OR UPDATE OR DELETE
-ON bwhist
-    FOR EACH ROW EXECUTE PROCEDURE update_bwhist();
 
 -- FUNCTION refresh_relay_statuses_per_day()
 -- Updates helper table which is used to refresh the aggregate tables.
@@ -348,7 +252,7 @@ CREATE OR REPLACE FUNCTION refresh_relay_statuses_per_day()
 RETURNS INTEGER AS $$
     BEGIN
     DELETE FROM relay_statuses_per_day
-    WHERE date IN (SELECT * FROM updates);
+    WHERE date IN (SELECT date FROM updates);
     INSERT INTO relay_statuses_per_day (date, count)
     SELECT DATE(validafter) AS date, COUNT(*) AS count
     FROM (SELECT DISTINCT validafter
@@ -374,7 +278,7 @@ CREATE OR REPLACE FUNCTION refresh_network_size() RETURNS INTEGER AS $$
     BEGIN
 
     DELETE FROM network_size
-    WHERE date IN (SELECT * FROM updates);
+    WHERE date IN (SELECT date FROM updates);
 
         INSERT INTO network_size
         (date, avg_running, avg_exit, avg_guard, avg_fast, avg_stable)
@@ -407,7 +311,7 @@ CREATE OR REPLACE FUNCTION refresh_network_size_hour() RETURNS INTEGER AS $$
     BEGIN
 
     DELETE FROM network_size_hour
-    WHERE DATE(validafter) IN (SELECT * FROM updates);
+    WHERE DATE(validafter) IN (SELECT date FROM updates);
 
     INSERT INTO network_size_hour
     (validafter, avg_running, avg_exit, avg_guard, avg_fast, avg_stable)
@@ -432,7 +336,7 @@ CREATE OR REPLACE FUNCTION refresh_relay_platforms() RETURNS INTEGER AS $$
     BEGIN
 
     DELETE FROM relay_platforms
-    WHERE date IN (SELECT * FROM updates);
+    WHERE date IN (SELECT date FROM updates);
 
     INSERT INTO relay_platforms
     (date, avg_linux, avg_darwin, avg_bsd, avg_windows, avg_other)
@@ -475,7 +379,7 @@ CREATE OR REPLACE FUNCTION refresh_relay_versions() RETURNS INTEGER AS $$
     BEGIN
 
     DELETE FROM relay_versions
-    WHERE date IN (SELECT * FROM updates);
+    WHERE date IN (SELECT date FROM updates);
 
     INSERT INTO relay_versions
     (date, version, relays)
@@ -508,7 +412,7 @@ CREATE OR REPLACE FUNCTION refresh_total_bandwidth() RETURNS INTEGER AS $$
     BEGIN
 
     DELETE FROM total_bandwidth
-    WHERE date IN (SELECT * FROM updates);
+    WHERE date IN (SELECT date FROM updates);
 
     INSERT INTO total_bandwidth
     (bwavg, bwburst, bwobserved, bwadvertised, date)
@@ -544,7 +448,7 @@ $$ LANGUAGE plpgsql;
 -- FUNCTION refresh_total_bwhist()
 CREATE OR REPLACE FUNCTION refresh_total_bwhist() RETURNS INTEGER AS $$
   BEGIN
-  DELETE FROM total_bwhist WHERE date IN (SELECT * FROM updates);
+  DELETE FROM total_bwhist WHERE date IN (SELECT date FROM updates);
   INSERT INTO total_bwhist (date, read, written, dirread, dirwritten)
   SELECT date,
          SUM(read) AS read,
@@ -591,7 +495,7 @@ CREATE OR REPLACE FUNCTION refresh_user_stats() RETURNS INTEGER AS $$
   BEGIN
   -- Start by deleting user statistics of the dates we're about to
   -- regenerate.
-  DELETE FROM user_stats WHERE date IN (SELECT * FROM updates);
+  DELETE FROM user_stats WHERE date IN (SELECT date FROM updates);
   -- Now insert new user statistics.
   INSERT INTO user_stats (date, country, r, dw, dr, drw, drr, bw, br, bwd,
       brd, bwr, brr, bwdr, brdr, bwp, brp, bwn, brn)
@@ -806,10 +710,11 @@ CREATE TABLE gettor_stats (
     CONSTRAINT gettor_stats_pkey PRIMARY KEY("date", bundle)
 );
 
--- FUNCTION refresh_all()
--- This function refreshes all statistics in the database.
+-- Refresh all statistics in the database.
 CREATE OR REPLACE FUNCTION refresh_all() RETURNS INTEGER AS $$
   BEGIN
+    DELETE FROM updates;
+    INSERT INTO updates SELECT * FROM scheduled_updates;
     PERFORM refresh_relay_statuses_per_day();
     PERFORM refresh_network_size();
     PERFORM refresh_network_size_hour();
@@ -818,7 +723,7 @@ CREATE OR REPLACE FUNCTION refresh_all() RETURNS INTEGER AS $$
     PERFORM refresh_total_bandwidth();
     PERFORM refresh_total_bwhist();
     PERFORM refresh_user_stats();
-    DELETE FROM updates;
+    DELETE FROM scheduled_updates WHERE id IN (SELECT id FROM updates);
   RETURN 1;
   END;
 $$ LANGUAGE plpgsql;

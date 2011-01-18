@@ -93,6 +93,18 @@ public final class RelayDescriptorDatabaseImporter {
   private PreparedStatement psQs;
 
   /**
+   * Set of dates that have been inserted into the database for being
+   * included in the next refresh run.
+   */
+  private Set<Long> scheduledUpdates;
+
+  /**
+   * Prepared statement to insert a date into the database that shall be
+   * included in the next refresh run.
+   */
+  private PreparedStatement psU;
+
+  /**
    * Prepared statement to insert a network status consensus entry into
    * the database.
    */
@@ -280,6 +292,9 @@ public final class RelayDescriptorDatabaseImporter {
         this.psQ = conn.prepareStatement("INSERT INTO dirreq_stats "
             + "(source, statsend, seconds, country, requests) VALUES "
             + "(?, ?, ?, ?, ?)");
+        this.psU = conn.prepareStatement("INSERT INTO scheduled_updates "
+            + "(date) VALUES (?)");
+        this.scheduledUpdates = new HashSet<Long>();
       } catch (SQLException e) {
         this.logger.log(Level.WARNING, "Could not connect to database or "
             + "prepare statements.", e);
@@ -298,6 +313,24 @@ public final class RelayDescriptorDatabaseImporter {
     this.dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 
+  private void addDateToScheduledUpdates(long timestamp)
+      throws SQLException {
+    long dateMillis = 0L;
+    try {
+      dateMillis = this.dateTimeFormat.parse(
+          this.dateTimeFormat.format(timestamp).substring(0, 10)
+          + " 00:00:00").getTime();
+    } catch (ParseException e) {
+      this.logger.log(Level.WARNING, "Internal parsing error.", e);
+      return;
+    }
+    if (!this.scheduledUpdates.contains(dateMillis)) {
+      this.psU.setDate(1, new java.sql.Date(dateMillis));
+      this.psU.execute();
+      this.scheduledUpdates.add(dateMillis);
+    }
+  }
+
   /**
    * Insert network status consensus entry into database.
    */
@@ -308,6 +341,7 @@ public final class RelayDescriptorDatabaseImporter {
       String ports, byte[] rawDescriptor) {
     try {
       if (this.psSs != null && this.psRs != null && this.psR != null) {
+        this.addDateToScheduledUpdates(validAfter);
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         Timestamp validAfterTimestamp = new Timestamp(validAfter);
         if (lastCheckedStatusEntries != validAfter) {
@@ -430,6 +464,9 @@ public final class RelayDescriptorDatabaseImporter {
       String extraInfoDigest, byte[] rawDescriptor) {
     try {
       if (this.psDs != null && this.psD != null) {
+        this.addDateToScheduledUpdates(published);
+        this.addDateToScheduledUpdates(
+            published + 24L * 60L * 60L * 1000L);
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         this.psDs.setString(1, descriptor);
         ResultSet rs = psDs.executeQuery();
@@ -652,6 +689,7 @@ public final class RelayDescriptorDatabaseImporter {
   public void addConsensus(long validAfter, byte[] rawDescriptor) {
     try {
       if (this.psCs != null && this.psC != null) {
+        this.addDateToScheduledUpdates(validAfter);
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         Timestamp validAfterTimestamp = new Timestamp(validAfter);
         this.psCs.setTimestamp(1, validAfterTimestamp, cal);
@@ -752,6 +790,7 @@ public final class RelayDescriptorDatabaseImporter {
     }
     if (this.psBs != null && this.psB != null) {
       try {
+        this.addDateToScheduledUpdates(statsEndTime);
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         Timestamp statsEndTimestamp = new Timestamp(statsEndTime);
         this.psBs.setString(1, source);
@@ -814,6 +853,7 @@ public final class RelayDescriptorDatabaseImporter {
     }
     if (this.psQs != null && this.psQ != null) {
       try {
+        this.addDateToScheduledUpdates(statsEndTime);
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         Timestamp statsEndTimestamp = new Timestamp(statsEndTime);
         this.psQs.setString(1, source);
@@ -873,6 +913,22 @@ public final class RelayDescriptorDatabaseImporter {
         + "bandwidth history elements, %d dirreq stats elements, and %d "
         + "conn-bi-direct stats lines", rcsCount, rrsCount, rvsCount,
         rdsCount, resCount, rhsCount, rqsCount, rbsCount));
+
+    /* Insert scheduled updates a second time, just in case the refresh
+     * run has started since inserting them the first time in which case
+     * it will miss the data inserted afterwards.  We cannot, however,
+     * insert them only now, because if a Java execution fails at a random
+     * point, we might have added data, but not the corresponding dates to
+     * update statistics. */
+    try {
+      for (long dateMillis : this.scheduledUpdates) {
+        this.psU.setDate(1, new java.sql.Date(dateMillis));
+        this.psU.execute();
+      }
+    } catch (SQLException e) {
+      this.logger.log(Level.WARNING, "Could not add scheduled dates for "
+          + "the next refresh run.", e);
+    }
 
     /* Commit any stragglers before closing. */
     if (this.conn != null) {
