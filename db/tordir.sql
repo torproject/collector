@@ -255,12 +255,10 @@ RETURNS INTEGER AS $$
     WHERE date IN (SELECT date FROM updates);
     INSERT INTO relay_statuses_per_day (date, count)
     SELECT DATE(validafter) AS date, COUNT(*) AS count
-    FROM (SELECT DISTINCT validafter
-          FROM statusentry
-          WHERE DATE(validafter) >= (SELECT MIN(date) FROM updates)
-          AND DATE(validafter) <= (SELECT MAX(date) FROM updates)
-          AND DATE(validafter) IN (SELECT date FROM updates))
-          distinct_consensuses
+    FROM consensus
+    WHERE DATE(validafter) >= (SELECT MIN(date) FROM updates)
+    AND DATE(validafter) <= (SELECT MAX(date) FROM updates)
+    AND DATE(validafter) IN (SELECT date FROM updates)
     GROUP BY DATE(validafter);
     RETURN 1;
     END;
