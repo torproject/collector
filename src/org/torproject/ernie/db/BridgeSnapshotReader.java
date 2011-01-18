@@ -5,6 +5,10 @@ package org.torproject.ernie.db;
 import java.io.*;
 import java.util.*;
 import java.util.logging.*;
+
+import org.apache.commons.codec.binary.*;
+import org.apache.commons.codec.digest.*;
+
 import org.apache.commons.compress.compressors.gzip.*;
 import org.apache.commons.compress.archivers.tar.*;
 
@@ -40,6 +44,10 @@ public class BridgeSnapshotReader {
       }
       logger.fine("Importing files in directory " + bridgeDirectoriesDir
          + "/...");
+      Set<String> descriptorImportHistory = new HashSet<String>();
+      int parsedFiles = 0, skippedFiles = 0, parsedStatuses = 0,
+          parsedServerDescriptors = 0, skippedServerDescriptors = 0,
+          parsedExtraInfoDescriptors = 0, skippedExtraInfoDescriptors = 0;
       Stack<File> filesInInputDir = new Stack<File>();
       filesInInputDir.add(bdDir);
       while (!filesInInputDir.isEmpty()) {
@@ -78,6 +86,15 @@ public class BridgeSnapshotReader {
                 if (allData.length == 0) {
                   continue;
                 }
+                String fileDigest = Hex.encodeHexString(DigestUtils.sha(
+                    allData));
+                if (!descriptorImportHistory.contains(fileDigest)) {
+                  descriptorImportHistory.add(fileDigest);
+                  parsedFiles++;
+                } else {
+                  skippedFiles++;
+                  continue;
+                }
                 String ascii = new String(allData, "US-ASCII");
                 BufferedReader br3 = new BufferedReader(new StringReader(
                     ascii));
@@ -91,6 +108,7 @@ public class BridgeSnapshotReader {
                 }
                 if (firstLine.startsWith("r ")) {
                   bdp.parse(allData, dateTime, false);
+                  parsedStatuses++;
                 } else {
                   int start = -1, sig = -1, end = -1;
                   String startToken =
@@ -116,7 +134,24 @@ public class BridgeSnapshotReader {
                     byte[] descBytes = new byte[end - start];
                     System.arraycopy(allData, start, descBytes, 0,
                         end - start);
-                    bdp.parse(descBytes, dateTime, false);
+                    String descriptorDigest = Hex.encodeHexString(
+                        DigestUtils.sha(descBytes));
+                    if (!descriptorImportHistory.contains(
+                        descriptorDigest)) {
+                      bdp.parse(descBytes, dateTime, false);
+                      descriptorImportHistory.add(descriptorDigest);
+                      if (firstLine.startsWith("router ")) {
+                        parsedServerDescriptors++;
+                      } else {
+                        parsedExtraInfoDescriptors++;
+                      }
+                    } else {
+                      if (firstLine.startsWith("router ")) {
+                        skippedServerDescriptors++;
+                      } else {
+                        skippedExtraInfoDescriptors++;
+                      }
+                    }
                   }
                 }
               }
@@ -136,7 +171,13 @@ public class BridgeSnapshotReader {
         }
       }
       logger.fine("Finished importing files in directory "
-          + bridgeDirectoriesDir + "/.");
+          + bridgeDirectoriesDir + "/.  In total, we parsed "
+          + parsedFiles + " files (skipped " + skippedFiles
+          + ") containing " + parsedStatuses + " statuses, "
+          + parsedServerDescriptors + " server descriptors (skipped "
+          + skippedServerDescriptors + "), and "
+          + parsedExtraInfoDescriptors + " extra-info descriptors "
+          + "(skipped " + skippedExtraInfoDescriptors + ").");
       if (!parsed.isEmpty() && modified) {
         logger.fine("Writing file " + pbdFile.getAbsolutePath() + "...");
         try {
