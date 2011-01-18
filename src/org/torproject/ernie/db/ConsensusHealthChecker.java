@@ -35,14 +35,19 @@ public class ConsensusHealthChecker {
   }
 
   public void processConsensus(String validAfterTime, byte[] data) {
-    if (this.mostRecentValidAfterTime != null &&
-        this.mostRecentValidAfterTime.compareTo(validAfterTime) > 0) {
-      /* We already have a more recent consensus. */
-      return;
-    }
-    /* The votes we know are older than this consensus.  Discard them. */
-    if (this.mostRecentValidAfterTime.compareTo(validAfterTime) < 0) {
-      this.mostRecentVotes.clear();
+    /* Do we already know a consensus and/or vote(s)? */
+    if (this.mostRecentValidAfterTime != null) {
+      int compareKnownToNew =
+          this.mostRecentValidAfterTime.compareTo(validAfterTime);
+      if (compareKnownToNew > 0) {
+        /* The consensus or vote(s) we know are more recent than this
+         * consensus.  No need to store it. */
+        return;
+      } else if (compareKnownToNew < 0) {
+        /* This consensus is newer than the known consensus or vote(s).
+         * Discard all known votes and overwrite the consensus below. */
+        this.mostRecentVotes.clear();
+      }
     }
     /* Store this consensus. */
     this.mostRecentValidAfterTime = validAfterTime;
