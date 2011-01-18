@@ -35,23 +35,33 @@ public class ConsensusHealthChecker {
   }
 
   public void processConsensus(String validAfterTime, byte[] data) {
-    if (this.mostRecentValidAfterTime == null ||
-        this.mostRecentValidAfterTime.compareTo(validAfterTime) < 0) {
-      this.mostRecentValidAfterTime = validAfterTime;
-      this.mostRecentVotes.clear();
-      this.mostRecentConsensus = data;
+    if (this.mostRecentValidAfterTime != null &&
+        this.mostRecentValidAfterTime.compareTo(validAfterTime) > 0) {
+      /* We already have a more recent consensus. */
+      return;
     }
+    /* The votes we know are older than this consensus.  Discard them. */
+    if (this.mostRecentValidAfterTime.compareTo(validAfterTime) < 0) {
+      this.mostRecentVotes.clear();
+    }
+    /* Store this consensus. */
+    this.mostRecentValidAfterTime = validAfterTime;
+    this.mostRecentConsensus = data;
   }
 
   public void processVote(String validAfterTime, String dirSource,
       byte[] data) {
     if (this.mostRecentValidAfterTime == null ||
         this.mostRecentValidAfterTime.compareTo(validAfterTime) < 0) {
+      /* This vote is more recent than the known consensus.  Discard the
+       * consensus and all currently known votes. */
       this.mostRecentValidAfterTime = validAfterTime;
       this.mostRecentVotes.clear();
       this.mostRecentConsensus = null;
     }
     if (this.mostRecentValidAfterTime.equals(validAfterTime)) {
+      /* Store this vote which belongs to the known consensus and/or
+       * other votes. */
       this.mostRecentVotes.put(dirSource, data);
     }
   }
