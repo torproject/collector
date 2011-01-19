@@ -575,7 +575,8 @@ public class SanitizedBridgesWriter {
             || line.startsWith("geoip-start-time ")
             || line.startsWith("geoip-client-origins ")
             || line.startsWith("bridge-stats-end ") 
-            || line.startsWith("bridge-ips ")) {
+            || line.startsWith("bridge-ips ")
+            || line.startsWith("geoip-db-digest ")) {
           scrubbed.append(line + "\n");
 
         /* When we reach the signature, we're done. Write the sanitized
