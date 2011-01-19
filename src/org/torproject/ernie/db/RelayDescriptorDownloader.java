@@ -8,6 +8,9 @@ import java.text.*;
 import java.util.*;
 import java.util.logging.*;
 
+import org.apache.commons.codec.digest.*;
+import org.apache.commons.codec.binary.*;
+
 /**
  * Downloads missing relay descriptors from the directories via HTTP.
  * Keeps a list of missing descriptors that gets updated by parse results
@@ -430,6 +433,34 @@ public class RelayDescriptorDownloader {
       while (!currentDirSources.isEmpty() && !urls.isEmpty()) {
         String authority = currentDirSources.first();
         String url = urls.first();
+        urls.remove(url);
+        Set<String> requestedUrls = new HashSet<String>();
+        requestedUrls.add(url);
+        if (url.contains("server")) {
+          StringBuilder combinedUrl = new StringBuilder(url);
+          int descriptors = 1;
+          while (descriptors++ <= 96 && !urls.isEmpty() &&
+              urls.first().contains("server")) {
+            url = urls.first();
+            urls.remove(url);
+            requestedUrls.add(url);
+            combinedUrl.append("+" + url.substring("/tor/server/d/".
+                length()));
+          }
+          url = combinedUrl.toString();
+        } else if (url.contains("extra")) {
+          StringBuilder combinedUrl = new StringBuilder(url);
+          int descriptors = 1;
+          while (descriptors++ <= 96 && !urls.isEmpty() &&
+              urls.first().contains("extra")) {
+            url = urls.first();
+            urls.remove(url);
+            requestedUrls.add(url);
+            combinedUrl.append("+" + url.substring("/tor/extra/d/".
+                length()));
+          }
+          url = combinedUrl.toString();
+        }
         String fullUrl = "http://" + authority + url;
         byte[] allData = null;
         if (!downloaded.contains(fullUrl)) {
@@ -456,16 +487,6 @@ public class RelayDescriptorDownloader {
               }
               in.close();
               allData = baos.toByteArray();
-              rdp.parse(allData);
-              if (url.endsWith("consensus")) {
-                this.downloadedConsensuses++;
-              } else if (url.contains("status-vote")) {
-                this.downloadedVotes++;
-              } else if (url.contains("server")) {
-                this.downloadedServerDescriptors++;
-              } else if (url.contains("extra")) {
-                this.downloadedExtraInfoDescriptors++;
-              }
             }
           } catch (IOException e) {
             remainingDirSources.remove(authority);
@@ -480,10 +501,60 @@ public class RelayDescriptorDownloader {
             }
           }
         }
-        if (allData == null) {
-          retryUrls.add(url);
+        if (allData != null) {
+          if (url.endsWith("consensus")) {
+            this.rdp.parse(allData);
+            this.downloadedConsensuses++;
+          } else if (url.contains("status-vote")) {
+            this.rdp.parse(allData);
+            this.downloadedVotes++;
+          } else if (url.contains("server") ||
+              url.contains("extra")) {
+            String ascii = null;
+            try {
+              ascii = new String(allData, "US-ASCII");
+            } catch (UnsupportedEncodingException e) {
+            }
+            int start = -1, sig = -1, end = -1;
+            String startToken = url.contains("server") ?
+                "router " : "extra-info ";
+            String sigToken = "\nrouter-signature\n";
+            String endToken = "\n-----END SIGNATURE-----\n";
+            while (end < ascii.length()) {
+              start = ascii.indexOf(startToken, end);
+              if (start < 0) {
+                break;
+              }
+              sig = ascii.indexOf(sigToken, start);
+              if (sig < 0) {
+                break;
+              }
+              sig += sigToken.length();
+              end = ascii.indexOf(endToken, sig);
+              if (end < 0) {
+                break;
+              }
+              end += endToken.length();
+              byte[] descBytes = new byte[end - start];
+              System.arraycopy(allData, start, descBytes, 0, end - start);
+              String digest = Hex.encodeHexString(DigestUtils.sha(
+                  descBytes));
+              this.rdp.parse(descBytes);
+              if (url.contains("server")) {
+                this.downloadedServerDescriptors++;
+                requestedUrls.remove("/tor/server/d/" + digest);
+              } else {
+                this.downloadedExtraInfoDescriptors++;
+                requestedUrls.remove("/tor/extra/d/" + digest);
+              }
+            }
+          }
         }
-        urls.remove(url);
+        if (requestedUrls.isEmpty()) {
+          retryUrls.addAll(requestedUrls);
+          logger.fine("Retrying " + requestedUrls.size() + " URLs for "
+              + "which we didn't receive descriptors.");
+        }
         if (urls.isEmpty()) {
           currentDirSources.remove(authority);
           urls.addAll(retryUrls);
