@@ -921,6 +921,8 @@ public class SanitizedBridgesWriter {
      * descriptor. We keep the timestamp of the last re-written network
      * status in order to make sure we re-writing any network status at
      * most once. */
+    this.logger.fine("Rewriting network statuses that might have "
+        + "changed.");
     String lastDescriptorPublishedPlus24Hours = "1970-01-01 00:00:00";
     for (String published : this.descriptorPublicationTimes) {
       if (published.compareTo(lastDescriptorPublishedPlus24Hours) <= 0) {
@@ -971,9 +973,11 @@ public class SanitizedBridgesWriter {
             dateTimeFormat.format(statusTime));
       }
     }
+    this.logger.fine("Finished rewriting network statuses.");
 
     /* Write descriptor mappings to disk. */
     try {
+      this.logger.fine("Writing descriptor mappings to disk.");
       BufferedWriter bw = new BufferedWriter(new FileWriter(
           this.bridgeDescriptorMappingsFile));
       for (DescriptorMapping mapping :
@@ -981,6 +985,7 @@ public class SanitizedBridgesWriter {
         bw.write(mapping.toString() + "\n");
       }
       bw.close();
+      this.logger.fine("Finished writing descriptor mappings to disk.");
     } catch (IOException e) {
       this.logger.log(Level.WARNING, "Could not write descriptor "
           + "mappings to disk.", e);
