@@ -270,13 +270,15 @@ public class SanitizedBridgesWriter {
               + descPublicationTime + " 127.0.0.1 " + orPort + " "
               + dirPort + "\n");
 
-        /* Nothing special about s lines; just copy them. */
-        } else if (line.startsWith("s ")) {
+        /* Nothing special about s, w, and p lines; just copy them. */
+        } else if (line.startsWith("s ") || line.equals("s") ||
+            line.startsWith("w ") || line.equals("w") ||
+            line.startsWith("p ") || line.equals("p")) {
           scrubbed.append(line + "\n");
 
-        /* There should be nothing else but r and s lines in the network
-         * status. If there is, we should probably learn before writing
-         * anything to the sanitized descriptors. */
+        /* There should be nothing else but r, w, p, and s lines in the
+         * network status.  If there is, we should probably learn before
+         * writing anything to the sanitized descriptors. */
         } else {
           this.logger.fine("Unknown line '" + line + "' in bridge "
               + "network status. Not writing to disk!");
