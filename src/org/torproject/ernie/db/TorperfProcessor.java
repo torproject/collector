@@ -74,6 +74,9 @@ public class TorperfProcessor {
               receivedBytes *= 1024L;
             } else if (pop.getName().endsWith("mb.data")) {
               receivedBytes *= 1024L * 1024L;
+            } else {
+              // not a valid .data file
+              continue;
             }
             receivedBytes *= Long.parseLong(size.substring(0,
                 size.length() - "xb.data".length()));
