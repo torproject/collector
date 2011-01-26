@@ -122,6 +122,8 @@ public class TorperfProcessor {
             rawObs.entrySet().iterator();
         List<Long> dlTimes = new ArrayList<Long>();
         boolean haveWrittenFinalLine = false;
+        SortedMap<String, List<Long>> dlTimesAllSources =
+            new TreeMap<String, List<Long>>();
         while (it.hasNext() || !haveWrittenFinalLine) {
           Map.Entry<String, String> next = it.hasNext() ? it.next() : null;
           if (tempSourceDate != null
@@ -134,8 +136,15 @@ public class TorperfProcessor {
               long q3 = dlTimes.get(dlTimes.size() * 3 / 4 - 1);
               stats.put(tempSourceDate, tempSourceDate + "," + q1 + ","
                   + md + "," + q3);
+              String allSourceDate = "all" + tempSourceDate.substring(
+                  tempSourceDate.indexOf("-"));
+              if (dlTimesAllSources.containsKey(allSourceDate)) {
+                dlTimesAllSources.get(allSourceDate).addAll(dlTimes);
+              } else {
+                dlTimesAllSources.put(allSourceDate, dlTimes);
+              }
             }
-            dlTimes.clear();
+            dlTimes = new ArrayList<Long>();
             if (next == null) {
               haveWrittenFinalLine = true;
             }
@@ -148,6 +157,17 @@ public class TorperfProcessor {
           }
         }
         bw.close();
+        for (Map.Entry<String, List<Long>> e :
+            dlTimesAllSources.entrySet()) {
+          String allSourceDate = e.getKey();
+          dlTimes = e.getValue();
+          Collections.sort(dlTimes);
+          long q1 = dlTimes.get(dlTimes.size() / 4 - 1);
+          long md = dlTimes.get(dlTimes.size() / 2 - 1);
+          long q3 = dlTimes.get(dlTimes.size() * 3 / 4 - 1);
+          stats.put(allSourceDate, allSourceDate + "," + q1 + "," + md
+              + "," + q3);
+        }
         logger.fine("Finished writing file " + rawFile.getAbsolutePath()
             + ".");
       }
