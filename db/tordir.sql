@@ -712,6 +712,9 @@ CREATE TABLE torperf_stats (
     q1 INTEGER NOT NULL,
     md INTEGER NOT NULL,
     q3 INTEGER NOT NULL,
+    timeouts INTEGER NOT NULL,
+    failures INTEGER NOT NULL,
+    requests INTEGER NOT NULL,
     CONSTRAINT torperf_stats_pkey PRIMARY KEY("date", source)
 );
 

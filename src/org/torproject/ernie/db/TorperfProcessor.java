@@ -29,13 +29,6 @@ public class TorperfProcessor {
             break;
           }
           String key = line.substring(0, line.lastIndexOf(","));
-          if (line.substring(line.lastIndexOf(",") + 1).startsWith("-")) {
-            /* If completion time is negative, this is because we had an
-             * integer overflow bug. Fix this. */
-            long newValue = Long.parseLong(line.substring(
-                line.lastIndexOf(",") + 1)) + 100000000L;
-            line = key + "," + newValue;
-          }
           rawObs.put(key, line);
         }
         br.close();
@@ -87,11 +80,8 @@ public class TorperfProcessor {
             formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
             while ((line = br.readLine()) != null) {
               String[] parts = line.split(" ");
-              // remove defective lines as they occurred on gabelmoo as well
-              // as incomplete downloads
-              if (parts.length == 20 && parts[0].length() == 10
-                  && !parts[16].equals("0")
-                  && Long.parseLong(parts[19]) > receivedBytes) {
+              // remove defective lines as they occurred on gabelmoo
+              if (parts.length == 20 && parts[0].length() == 10) {
                 long startSec = Long.parseLong(parts[0]);
                 String dateTime = formatter.format(startSec * 1000L);
                 long completeMillis = Long.parseLong(parts[16])
@@ -99,13 +89,17 @@ public class TorperfProcessor {
                     - Long.parseLong(parts[0]) * 1000L
                     + Long.parseLong(parts[1]) / 1000L;
                 String key = source + "," + dateTime;
-                String value = key + "," + completeMillis;
+                String value = key;
+                if (parts[16].equals("0")) {
+                  value += ",-2"; // -2 for timeout
+                } else if (Long.parseLong(parts[19]) < receivedBytes) {
+                  value += ",-1"; // -1 for failure
+                } else {
+                  value += "," + completeMillis;
+                }
                 if (!rawObs.containsKey(key)) {
                   rawObs.put(key, value);
                   addedRawObs++;
-                  // TODO if torperf-stats generation takes long, compile
-                  // list of dates that have changes for torperf-stats and
-                  // only re-generate those
                 }
               }
             }
@@ -127,6 +121,9 @@ public class TorperfProcessor {
         boolean haveWrittenFinalLine = false;
         SortedMap<String, List<Long>> dlTimesAllSources =
             new TreeMap<String, List<Long>>();
+        SortedMap<String, long[]> statusesAllSources =
+            new TreeMap<String, long[]>();
+        long failures = 0, timeouts = 0, requests = 0;
         while (it.hasNext() || !haveWrittenFinalLine) {
           Map.Entry<String, String> next = it.hasNext() ? it.next() : null;
           if (tempSourceDate != null
@@ -138,7 +135,8 @@ public class TorperfProcessor {
               long md = dlTimes.get(dlTimes.size() / 2 - 1);
               long q3 = dlTimes.get(dlTimes.size() * 3 / 4 - 1);
               stats.put(tempSourceDate, tempSourceDate + "," + q1 + ","
-                  + md + "," + q3);
+                  + md + "," + q3 + "," + timeouts + "," + failures + ","
+                  + requests);
               String allSourceDate = "all" + tempSourceDate.substring(
                   tempSourceDate.indexOf("-"));
               if (dlTimesAllSources.containsKey(allSourceDate)) {
@@ -146,8 +144,21 @@ public class TorperfProcessor {
               } else {
                 dlTimesAllSources.put(allSourceDate, dlTimes);
               }
+              if (statusesAllSources.containsKey(allSourceDate)) {
+                long[] status = statusesAllSources.get(allSourceDate);
+                status[0] += timeouts;
+                status[1] += failures;
+                status[2] += requests;
+              } else {
+                long[] status = new long[3];
+                status[0] = timeouts;
+                status[1] = failures;
+                status[2] = requests;
+                statusesAllSources.put(allSourceDate, status);
+              }
             }
             dlTimes = new ArrayList<Long>();
+            failures = timeouts = requests = 0;
             if (next == null) {
               haveWrittenFinalLine = true;
             }
@@ -156,7 +167,15 @@ public class TorperfProcessor {
             bw.append(next.getValue() + "\n");
             String[] parts = next.getValue().split(",");
             tempSourceDate = parts[0] + "," + parts[1];
-            dlTimes.add(Long.parseLong(parts[3]));
+            long completeMillis = Long.parseLong(parts[3]);
+            if (completeMillis == -2L) {
+              timeouts++;
+            } else if (completeMillis == -1L) {
+              failures++;
+            } else {
+              dlTimes.add(Long.parseLong(parts[3]));
+            }
+            requests++;
           }
         }
         bw.close();
@@ -168,8 +187,13 @@ public class TorperfProcessor {
           long q1 = dlTimes.get(dlTimes.size() / 4 - 1);
           long md = dlTimes.get(dlTimes.size() / 2 - 1);
           long q3 = dlTimes.get(dlTimes.size() * 3 / 4 - 1);
+          long[] status = statusesAllSources.get(allSourceDate);
+          timeouts = status[0];
+          failures = status[1];
+          requests = status[2];
           stats.put(allSourceDate, allSourceDate + "," + q1 + "," + md
-              + "," + q3);
+              + "," + q3 + "," + timeouts + "," + failures + ","
+              + requests);
         }
         logger.fine("Finished writing file " + rawFile.getAbsolutePath()
             + ".");
@@ -179,8 +203,7 @@ public class TorperfProcessor {
             + "...");
         statsFile.getParentFile().mkdirs();
         BufferedWriter bw = new BufferedWriter(new FileWriter(statsFile));
-        bw.append("source,date,q1,md,q3\n");
-        // TODO should we handle missing days?
+        bw.append("source,date,q1,md,q3,timeouts,failures,requests\n");
         for (String s : stats.values()) {
           bw.append(s + "\n");
         }
@@ -228,7 +251,8 @@ public class TorperfProcessor {
         conn.setAutoCommit(false);
         Statement statement = conn.createStatement();
         ResultSet rs = statement.executeQuery(
-            "SELECT date, source, q1, md, q3 FROM torperf_stats");
+            "SELECT date, source, q1, md, q3, timeouts, failures, "
+            + "requests FROM torperf_stats");
         while (rs.next()) {
           String date = rs.getDate(1).toString();
           String source = rs.getString(2);
@@ -239,16 +263,26 @@ public class TorperfProcessor {
             long newQ1 = Long.parseLong(newStats[2]);
             long newMd = Long.parseLong(newStats[3]);
             long newQ3 = Long.parseLong(newStats[4]);
+            long newTimeouts = Long.parseLong(newStats[5]);
+            long newFailures = Long.parseLong(newStats[6]);
+            long newRequests = Long.parseLong(newStats[7]);
             long oldQ1 = rs.getLong(3);
             long oldMd = rs.getLong(4);
             long oldQ3 = rs.getLong(5);
-            if (newQ1 != oldQ1 || newMd != oldMd || newQ3 != oldQ3) {
+            long oldTimeouts = rs.getLong(6);
+            long oldFailures = rs.getLong(7);
+            long oldRequests = rs.getLong(8);
+            if (newQ1 != oldQ1 || newMd != oldMd || newQ3 != oldQ3 ||
+                newTimeouts != oldTimeouts ||
+                newFailures != oldFailures ||
+                newRequests != oldRequests) {
               updateRows.add(insertRow);
             }
           }
         }
         PreparedStatement psU = conn.prepareStatement(
-            "UPDATE torperf_stats SET q1 = ?, md = ?, q3 = ? "
+            "UPDATE torperf_stats SET q1 = ?, md = ?, q3 = ?, "
+            + "timeouts = ?, failures = ?, requests = ? "
             + "WHERE date = ? AND source = ?");
         for (String row : updateRows) {
           String[] newStats = row.split(",");
@@ -257,17 +291,23 @@ public class TorperfProcessor {
           long q1 = Long.parseLong(newStats[2]);
           long md = Long.parseLong(newStats[3]);
           long q3 = Long.parseLong(newStats[4]);
+          long timeouts = Long.parseLong(newStats[5]);
+          long failures = Long.parseLong(newStats[6]);
+          long requests = Long.parseLong(newStats[7]);
           psU.clearParameters();
           psU.setLong(1, q1);
           psU.setLong(2, md);
           psU.setLong(3, q3);
-          psU.setDate(4, date);
-          psU.setString(5, source);
+          psU.setLong(4, timeouts);
+          psU.setLong(5, failures);
+          psU.setLong(6, requests);
+          psU.setDate(7, date);
+          psU.setString(8, source);
           psU.executeUpdate();
         }
         PreparedStatement psI = conn.prepareStatement(
-            "INSERT INTO torperf_stats (q1, md, q3, date, source) "
-            + "VALUES (?, ?, ?, ?, ?)");
+            "INSERT INTO torperf_stats (q1, md, q3, timeouts, failures, "
+            + "requests, date, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         for (String row : insertRows.values()) {
           String[] newStats = row.split(",");
           String source = newStats[0];
@@ -275,12 +315,18 @@ public class TorperfProcessor {
           long q1 = Long.parseLong(newStats[2]);
           long md = Long.parseLong(newStats[3]);
           long q3 = Long.parseLong(newStats[4]);
+          long timeouts = Long.parseLong(newStats[5]);
+          long failures = Long.parseLong(newStats[6]);
+          long requests = Long.parseLong(newStats[7]);
           psI.clearParameters();
           psI.setLong(1, q1);
           psI.setLong(2, md);
           psI.setLong(3, q3);
-          psI.setDate(4, date);
-          psI.setString(5, source);
+          psI.setLong(4, timeouts);
+          psI.setLong(5, failures);
+          psI.setLong(6, requests);
+          psI.setDate(7, date);
+          psI.setString(8, source);
           psI.executeUpdate();
         }
         conn.commit();
