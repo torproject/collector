@@ -1,25 +1,15 @@
 <project default="run" name="ERNIE" basedir=".">
-  <!-- ERNIE specific build properties -->
   <property name="sources" value="src/"/>
   <property name="classes" value="bin/"/>
   <property name="docs" value="javadoc/"/>
   <property name="name" value="ERNIE"/>
-
-<!-- Usage target -->
-  <target name="usage">
-    <echo message=""/>
-    <echo message="${name} build file"/>
-    <echo message="-----------------------------------"/>
-    <echo message=""/>
-
-    <echo message="init      --> Initialize ERNIE directories"/>
-    <echo message="compile   --> Compile ERNIE"/>
-    <echo message="run       --> Run ERNIE"/>
-    <echo message="docs      --> Generate ERNIE javadoc tree to javadoc/"/>
-    <echo message=""/>
-  </target>
-
-<!--ERNIE-specific targets -->
+  <path id="classpath">
+    <pathelement path="${classes}"/>
+    <pathelement location="lib/commons-codec-1.4.jar"/>
+    <pathelement location="lib/commons-compress-1.0.jar"/>
+    <pathelement location="lib/postgresql-8.4-701.jdbc4.jar"/>
+    <pathelement location="lib/junit-4.8.2.jar"/>
+  </path>
   <target name="init">
     <mkdir dir="${classes}"/>
     <copy file="config.template" tofile="config"/>
@@ -29,20 +19,33 @@
            destdir="${classes}"
            excludes="org/torproject/ernie/web/"
            debug="true" debuglevel="lines,source"
-           classpath="lib/commons-codec-1.4.jar;lib/commons-compress-1.0.jar;lib/postgresql-8.4-701.jdbc4.jar"
-           includeantruntime="false"/>
+           includeantruntime="false">
+      <classpath refid="classpath"/>
+    </javac>
   </target>
   <target name="run" depends="compile">
-    <java classpath="${classes};lib/commons-codec-1.4.jar:lib/commons-compress-1.0.jar;lib/postgresql-8.4-701.jdbc4.jar"
-          fork="true"
+    <java fork="true"
           maxmemory="1024m"
-          classname="org.torproject.ernie.db.Main"/>
+          classname="org.torproject.ernie.db.Main">
+      <classpath refid="classpath"/>
+    </java>
   </target>
   <target name="docs">
     <mkdir dir="${docs}"/>
-    <javadoc destdir="${docs}"
-             classpath="lib/commons-codec-1.4.jar;lib/commons-compress-1.0.jar">
+    <javadoc destdir="${docs}">
+      <classpath refid="classpath"/>
       <fileset dir="${sources}/" includes="**/*.java" />
     </javadoc>
   </target>
+  <target name="test" depends="compile">
+    <junit haltonfailure="true" printsummary="off">
+      <classpath refid="classpath"/>
+      <formatter type="plain" usefile="false"/>
+      <batchtest>
+        <fileset dir="${classes}"
+                 includes="**/*Test.class"/>
+      </batchtest>
+    </junit>
+  </target>
 </project>
+

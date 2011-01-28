@@ -9,11 +9,16 @@ import java.util.*;
 import java.util.logging.*;
 
 public class TorperfProcessor {
-  public TorperfProcessor(String torperfDirectory, String connectionURL) {
+  public TorperfProcessor(File torperfDirectory, File statsDirectory,
+      String connectionURL) {
+
+    if (torperfDirectory == null || statsDirectory == null) {
+      throw new IllegalArgumentException();
+    }
+
     Logger logger = Logger.getLogger(TorperfProcessor.class.getName());
-    File rawFile = new File("stats/torperf-raw");
-    File statsFile = new File("stats/torperf-stats");
-    File torperfDir = new File(torperfDirectory);
+    File rawFile = new File(statsDirectory, "torperf-raw");
+    File statsFile = new File(statsDirectory, "torperf-stats");
     SortedMap<String, String> rawObs = new TreeMap<String, String>();
     SortedMap<String, String> stats = new TreeMap<String, String>();
     int addedRawObs = 0;
@@ -48,10 +53,10 @@ public class TorperfProcessor {
         logger.fine("Finished reading file " + statsFile.getAbsolutePath()
             + ".");
       }
-      if (torperfDir.exists()) {
+      if (torperfDirectory.exists()) {
         logger.fine("Importing files in " + torperfDirectory + "/...");
         Stack<File> filesInInputDir = new Stack<File>();
-        filesInInputDir.add(torperfDir);
+        filesInInputDir.add(torperfDirectory);
         while (!filesInInputDir.isEmpty()) {
           File pop = filesInInputDir.pop();
           if (pop.isDirectory()) {

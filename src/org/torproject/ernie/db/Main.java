@@ -2,6 +2,7 @@
  * See LICENSE for licensing information */
 package org.torproject.ernie.db;
 
+import java.io.*;
 import java.util.*;
 import java.util.logging.*;
 
@@ -29,6 +30,9 @@ public class Main {
       System.exit(1);
     }
 
+    // Define stats directory for temporary files
+    File statsDirectory = new File("stats");
+
     // Prepare bridge stats file handler
     BridgeStatsFileHandler bsfh = config.getWriteBridgeStats() ?
         new BridgeStatsFileHandler(
@@ -41,8 +45,8 @@ public class Main {
 
     // Prepare writing relay descriptor archive to disk
     ArchiveWriter aw = config.getWriteDirectoryArchives() ?
-        new ArchiveWriter(config.getDirectoryArchivesOutputDirectory())
-        : null;
+        new ArchiveWriter(
+        new File(config.getDirectoryArchivesOutputDirectory())) : null;
 
     // Prepare writing relay descriptors to database
     RelayDescriptorDatabaseImporter rddi =
@@ -82,14 +86,16 @@ public class Main {
       }
       if (config.getImportCachedRelayDescriptors()) {
         new CachedRelayDescriptorReader(rdp,
-            config.getCachedRelayDescriptorDirectory());
+            config.getCachedRelayDescriptorDirectory(), statsDirectory);
         if (aw != null) {
           aw.intermediateStats("importing relay descriptors from local "
               + "Tor data directories");
         }
       }
       if (config.getImportDirectoryArchives()) {
-        new ArchiveReader(rdp, config.getDirectoryArchivesDirectory(),
+        new ArchiveReader(rdp,
+            new File(config.getDirectoryArchivesDirectory()),
+            statsDirectory,
             config.getKeepDirectoryArchiveImportHistory());
         if (aw != null) {
           aw.intermediateStats("importing relay descriptors from local "
@@ -131,7 +137,8 @@ public class Main {
     // Prepare sanitized bridge descriptor writer
     SanitizedBridgesWriter sbw = config.getWriteSanitizedBridges() ?
         new SanitizedBridgesWriter(
-        config.getSanitizedBridgesWriteDirectory()) : null;
+        new File(config.getSanitizedBridgesWriteDirectory()),
+        statsDirectory) : null;
 
     // Prepare bridge descriptor parser
     BridgeDescriptorParser bdp = config.getWriteConsensusStats() ||
@@ -141,11 +148,13 @@ public class Main {
     // Import bridge descriptors
     if (bdp != null && config.getImportSanitizedBridges()) {
       new SanitizedBridgesReader(bdp,
-          config.getSanitizedBridgesDirectory(),
-          config.getKeepSanitizedBridgesImportHistory());
+          new File(config.getSanitizedBridgesDirectory()),
+          statsDirectory, config.getKeepSanitizedBridgesImportHistory());
     }
     if (bdp != null && config.getImportBridgeSnapshots()) {
-      new BridgeSnapshotReader(bdp, config.getBridgeSnapshotsDirectory());
+      new BridgeSnapshotReader(bdp,
+          new File(config.getBridgeSnapshotsDirectory()),
+          statsDirectory);
     }
 
     // Finish writing sanitized bridge descriptors to disk
@@ -166,7 +175,8 @@ public class Main {
 
     // Import and process torperf stats
     if (config.getImportWriteTorperfStats()) {
-      new TorperfProcessor(config.getTorperfDirectory(),
+      new TorperfProcessor(new File(config.getTorperfDirectory()),
+          statsDirectory,
           config.getWriteAggregateStatsDatabase() ?
           config.getRelayDescriptorDatabaseJDBC() : null);
     }

@@ -17,12 +17,18 @@ import org.apache.commons.compress.archivers.tar.*;
  */
 public class BridgeSnapshotReader {
   public BridgeSnapshotReader(BridgeDescriptorParser bdp,
-      String bridgeDirectoriesDir) {
+      File bridgeDirectoriesDir, File statsDirectory) {
+
+    if (bdp == null || bridgeDirectoriesDir == null ||
+        statsDirectory == null) {
+      throw new IllegalArgumentException();
+    }
+
     Logger logger =
         Logger.getLogger(BridgeSnapshotReader.class.getName());
     SortedSet<String> parsed = new TreeSet<String>();
-    File bdDir = new File(bridgeDirectoriesDir);
-    File pbdFile = new File("stats/parsed-bridge-directories");
+    File bdDir = bridgeDirectoriesDir;
+    File pbdFile = new File(statsDirectory, "parsed-bridge-directories");
     boolean modified = false;
     if (bdDir.exists()) {
       if (pbdFile.exists()) {

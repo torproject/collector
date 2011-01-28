@@ -161,16 +161,24 @@ public class SanitizedBridgesWriter {
   /**
    * Output directory for writing sanitized bridge descriptors.
    */
-  private String sanitizedBridgesDir;
+  private File sanitizedBridgesDirectory;
+
+  private File statsDirectory;
 
   /**
    * Initializes this class, including reading in the known descriptor
    * mapping.
    */
-  public SanitizedBridgesWriter(String dir) {
+  public SanitizedBridgesWriter(File sanitizedBridgesDirectory,
+      File statsDirectory) {
+
+    if (sanitizedBridgesDirectory == null || statsDirectory == null) {
+      throw new IllegalArgumentException();
+    }
 
     /* Memorize argument values. */
-    this.sanitizedBridgesDir = dir;
+    this.sanitizedBridgesDirectory = sanitizedBridgesDirectory;
+    this.statsDirectory = statsDirectory;
 
     /* Initialize logger. */
     this.logger = Logger.getLogger(
@@ -307,7 +315,8 @@ public class SanitizedBridgesWriter {
       String stime = publicationTime.substring(11, 13)
           + publicationTime.substring(14, 16)
           + publicationTime.substring(17, 19);
-      File statusFile = new File(this.sanitizedBridgesDir + "/" + syear
+      File statusFile = new File(
+          this.sanitizedBridgesDirectory.getAbsolutePath() + "/" + syear
           + "/" + smonth + "/statuses/" + sday + "/" + syear + smonth
           + sday + "-" + stime + "-"
           + "4A0CCD2DDC7995083D73F5D667100C8A5831F16D");
@@ -496,7 +505,8 @@ public class SanitizedBridgesWriter {
     /* Determine filename of sanitized server descriptor. */
     String dyear = mapping.published.substring(0, 4);
     String dmonth = mapping.published.substring(5, 7);
-    File newFile = new File(this.sanitizedBridgesDir + "/"
+    File newFile = new File(
+        this.sanitizedBridgesDirectory.getAbsolutePath() + "/"
         + dyear + "/" + dmonth + "/server-descriptors/"
         + "/" + scrubbedHash.charAt(0) + "/"
         + scrubbedHash.charAt(1) + "/"
@@ -627,7 +637,8 @@ public class SanitizedBridgesWriter {
     /* Determine filename of sanitized server descriptor. */
     String dyear = mapping.published.substring(0, 4);
     String dmonth = mapping.published.substring(5, 7);
-    File newFile = new File(this.sanitizedBridgesDir + "/"
+    File newFile = new File(
+        this.sanitizedBridgesDirectory.getAbsolutePath() + "/"
         + dyear + "/" + dmonth + "/extra-infos/"
         + scrubbedDescHash.charAt(0) + "/"
         + scrubbedDescHash.charAt(1) + "/"
@@ -708,7 +719,8 @@ public class SanitizedBridgesWriter {
       String stime = published.substring(11, 13)
           + published.substring(14, 16)
           + published.substring(17, 19);
-      File statusFile = new File(this.sanitizedBridgesDir + "/" + syear
+      File statusFile = new File(
+          this.sanitizedBridgesDirectory.getAbsolutePath() + "/" + syear
           + "/" + smonth + "/statuses/" + sday + "/" + syear + smonth
           + sday + "-" + stime + "-"
           + "4A0CCD2DDC7995083D73F5D667100C8A5831F16D");
@@ -775,7 +787,8 @@ public class SanitizedBridgesWriter {
       mapping.serverDescriptorIdentifier = scrubbedHash;
       String dyear = published.substring(0, 4);
       String dmonth = published.substring(5, 7);
-      File newFile = new File(this.sanitizedBridgesDir + "/"
+      File newFile = new File(
+          this.sanitizedBridgesDirectory.getAbsolutePath() + "/"
           + dyear + "/" + dmonth + "/server-descriptors/"
           + scrubbedHash.substring(0, 1) + "/"
           + scrubbedHash.substring(1, 2) + "/"
@@ -832,7 +845,8 @@ public class SanitizedBridgesWriter {
       mapping.extraInfoDescriptorIdentifier = scrubbedHash;
       String dyear = published.substring(0, 4);
       String dmonth = published.substring(5, 7);
-      File newFile = new File(this.sanitizedBridgesDir + "/"
+      File newFile = new File(
+          this.sanitizedBridgesDirectory.getAbsolutePath() + "/"
           + dyear + "/" + dmonth + "/extra-infos/"
           + scrubbedHash.substring(0, 1) + "/"
           + scrubbedHash.substring(1, 2) + "/"
@@ -874,7 +888,7 @@ public class SanitizedBridgesWriter {
       String dyear = mapping.published.substring(0, 4);
       String dmonth = mapping.published.substring(5, 7);
       File serverDescriptorFile = new File(
-          this.sanitizedBridgesDir + "/"
+          this.sanitizedBridgesDirectory.getAbsolutePath() + "/"
           + dyear + "/" + dmonth + "/server-descriptors/"
           + mapping.serverDescriptorIdentifier.substring(0, 1) + "/"
           + mapping.serverDescriptorIdentifier.substring(1, 2) + "/"
@@ -942,7 +956,8 @@ public class SanitizedBridgesWriter {
       }
       String[] dayOne = dateFormat.format(publishedTime).split("-");
 
-      File publishedDayOne = new File(this.sanitizedBridgesDir + "/"
+      File publishedDayOne = new File(
+          this.sanitizedBridgesDirectory.getAbsolutePath() + "/"
           + dayOne[0] + "/" + dayOne[1] + "/statuses/" + dayOne[2]);
       if (publishedDayOne.exists()) {
         statusesToRewrite.addAll(Arrays.asList(publishedDayOne.
@@ -951,7 +966,8 @@ public class SanitizedBridgesWriter {
       long plus24Hours = publishedTime + 24L * 60L * 60L * 1000L;
       lastDescriptorPublishedPlus24Hours = dateFormat.format(plus24Hours);
       String[] dayTwo = dateFormat.format(plus24Hours).split("-");
-      File publishedDayTwo = new File(this.sanitizedBridgesDir + "/"
+      File publishedDayTwo = new File(
+          this.sanitizedBridgesDirectory.getAbsolutePath() + "/"
           + dayTwo[0] + "/" + dayTwo[1] + "/statuses/" + dayTwo[2]);
       if (publishedDayTwo.exists()) {
         statusesToRewrite.addAll(Arrays.asList(publishedDayTwo.

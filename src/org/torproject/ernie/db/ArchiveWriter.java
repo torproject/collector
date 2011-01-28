@@ -11,11 +11,16 @@ import org.apache.commons.codec.binary.*;
 
 public class ArchiveWriter {
   private Logger logger;
-  private String outputDirectory;
+  private File outputDirectory;
   private int storedConsensuses = 0, storedVotes = 0,
       storedServerDescriptors = 0, storedExtraInfoDescriptors = 0;
 
-  public ArchiveWriter(String outputDirectory) {
+  public ArchiveWriter(File outputDirectory) {
+
+    if (outputDirectory == null) {
+      throw new IllegalArgumentException();
+    }
+
     this.logger = Logger.getLogger(ArchiveWriter.class.getName());
     this.outputDirectory = outputDirectory;
   }
@@ -192,7 +197,8 @@ public class ArchiveWriter {
                         String extraInfoDigest = line2.startsWith("opt ") ?
                             line2.split(" ")[2].toLowerCase() :
                             line2.split(" ")[1].toLowerCase();
-                        String filename2 = outputDirectory
+                        String filename2 =
+                            outputDirectory.getAbsolutePath()
                             + "/extra-info/"
                             + descriptorFormat.format(new Date(published))
                             + extraInfoDigest.substring(0, 1) + "/"
@@ -224,7 +230,8 @@ public class ArchiveWriter {
                 line.split(" ")[3] + "=")).toLowerCase();
             long published = validAfterFormat.parse(
                 line.split(" ")[4] + " " + line.split(" ")[5]).getTime();
-            String filename = outputDirectory + "/server-descriptor/"
+            String filename = outputDirectory.getAbsolutePath()
+                + "/server-descriptor/"
                 + descriptorFormat.format(new Date(published))
                 + digest.substring(0, 1) + "/"
                 + digest.substring(1, 2) + "/" + digest;
@@ -239,7 +246,8 @@ public class ArchiveWriter {
                   String extraInfoDigest = line2.startsWith("opt ") ?
                       line2.split(" ")[2].toLowerCase() :
                       line2.split(" ")[1].toLowerCase();
-                  String filename2 = outputDirectory + "/extra-info/"
+                  String filename2 = outputDirectory.getAbsolutePath()
+                      + "/extra-info/"
                       + descriptorFormat.format(new Date(published))
                       + extraInfoDigest.substring(0, 1) + "/"
                       + extraInfoDigest.substring(1, 2) + "/"

@@ -8,12 +8,17 @@ import java.util.logging.*;
 
 public class SanitizedBridgesReader {
   public SanitizedBridgesReader(BridgeDescriptorParser bdp,
-      String bridgesDir, boolean keepImportHistory) {
+      File bridgesDir, File statsDirectory, boolean keepImportHistory) {
+
+    if (bdp == null || bridgesDir == null || statsDirectory == null) {
+      throw new IllegalArgumentException();
+    }
+
     Logger logger =
         Logger.getLogger(SanitizedBridgesReader.class.getName());
     SortedSet<String> bridgesImportHistory = new TreeSet<String>();
     File bridgesImportHistoryFile =
-        new File("stats/bridges-import-history");
+        new File(statsDirectory, "bridges-import-history");
     if (keepImportHistory && bridgesImportHistoryFile.exists()) {
       try {
         BufferedReader br = new BufferedReader(new FileReader(
@@ -28,10 +33,10 @@ public class SanitizedBridgesReader {
             + "import history file. Skipping.");
       }
     }
-    if (new File(bridgesDir).exists()) {
+    if (bridgesDir.exists()) {
       logger.fine("Importing files in directory " + bridgesDir + "/...");
       Stack<File> filesInInputDir = new Stack<File>();
-      filesInInputDir.add(new File(bridgesDir));
+      filesInInputDir.add(bridgesDir);
       List<File> problems = new ArrayList<File>();
       while (!filesInInputDir.isEmpty()) {
         File pop = filesInInputDir.pop();

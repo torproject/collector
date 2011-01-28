@@ -16,7 +16,13 @@ import org.apache.commons.codec.digest.*;
  */
 public class CachedRelayDescriptorReader {
   public CachedRelayDescriptorReader(RelayDescriptorParser rdp,
-      List<String> inputDirectories) {
+      List<String> inputDirectories, File statsDirectory) {
+
+    if (rdp == null || inputDirectories == null ||
+        inputDirectories.isEmpty() || statsDirectory == null) {
+      throw new IllegalArgumentException();
+    }
+
     StringBuilder dumpStats = new StringBuilder("Finished importing "
         + "relay descriptors from local Tor data directories:");
     Logger logger = Logger.getLogger(
@@ -26,7 +32,8 @@ public class CachedRelayDescriptorReader {
      * statuses and descriptors, so that we can skip them in this run. */
     Set<String> lastImportHistory = new HashSet<String>(),
         currentImportHistory = new HashSet<String>();
-    File importHistoryFile = new File("stats/cacheddesc-import-history");
+    File importHistoryFile = new File(statsDirectory,
+        "cacheddesc-import-history");
     if (importHistoryFile.exists()) {
       try {
         BufferedReader br = new BufferedReader(new FileReader(

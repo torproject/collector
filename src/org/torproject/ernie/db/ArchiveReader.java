@@ -12,13 +12,19 @@ import org.apache.commons.compress.compressors.bzip2.*;
  * them to the relay descriptor parser.
  */
 public class ArchiveReader {
-  public ArchiveReader(RelayDescriptorParser rdp, String archivesDir,
-      boolean keepImportHistory) {
+  public ArchiveReader(RelayDescriptorParser rdp, File archivesDirectory,
+      File statsDirectory, boolean keepImportHistory) {
+
+    if (rdp == null || archivesDirectory == null ||
+        statsDirectory == null) {
+      throw new IllegalArgumentException();
+    }
+
     int parsedFiles = 0, ignoredFiles = 0;
     Logger logger = Logger.getLogger(ArchiveReader.class.getName());
     SortedSet<String> archivesImportHistory = new TreeSet<String>();
-    File archivesImportHistoryFile =
-        new File("stats/archives-import-history");
+    File archivesImportHistoryFile = new File(statsDirectory,
+        "archives-import-history");
     if (keepImportHistory && archivesImportHistoryFile.exists()) {
       try {
         BufferedReader br = new BufferedReader(new FileReader(
@@ -33,11 +39,11 @@ public class ArchiveReader {
             + "history file. Skipping.");
       }
     }
-    if (new File(archivesDir).exists()) {
-      logger.fine("Importing files in directory " + archivesDir
+    if (archivesDirectory.exists()) {
+      logger.fine("Importing files in directory " + archivesDirectory
           + "/...");
       Stack<File> filesInInputDir = new Stack<File>();
-      filesInInputDir.add(new File(archivesDir));
+      filesInInputDir.add(archivesDirectory);
       List<File> problems = new ArrayList<File>();
       while (!filesInInputDir.isEmpty()) {
         File pop = filesInInputDir.pop();
@@ -89,11 +95,11 @@ public class ArchiveReader {
         }
       }
       if (problems.isEmpty()) {
-        logger.fine("Finished importing files in directory " + archivesDir
-            + "/.");
+        logger.fine("Finished importing files in directory "
+            + archivesDirectory + "/.");
       } else {
         StringBuilder sb = new StringBuilder("Failed importing files in "
-            + "directory " + archivesDir + "/:");
+            + "directory " + archivesDirectory + "/:");
         int printed = 0;
         for (File f : problems) {
           sb.append("\n  " + f.getAbsolutePath());
