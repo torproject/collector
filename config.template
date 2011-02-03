@@ -93,6 +93,11 @@
 ## Write sanitized bridges to disk
 #WriteSanitizedBridges 0
 #
+## Replace IP addresses in sanitized bridge descriptors with 10.x.y.z
+## where x.y.z = H(IP address | bridge identity | secret)[:3], so that we
+## can learn about IP address changes.
+#ReplaceIPAddressesWithHashes 0
+#
 ## Relative path to directory to write sanitized bridges to
 #SanitizedBridgesWriteDirectory sanitized-bridges/
 #

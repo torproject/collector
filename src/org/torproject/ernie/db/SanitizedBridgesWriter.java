@@ -165,12 +165,16 @@ public class SanitizedBridgesWriter {
 
   private File statsDirectory;
 
+  private boolean replaceIPAddressesWithHashes;
+
+  private byte[] secretForHashingIPAddresses;
+
   /**
    * Initializes this class, including reading in the known descriptor
    * mapping.
    */
   public SanitizedBridgesWriter(File sanitizedBridgesDirectory,
-      File statsDirectory) {
+      File statsDirectory, boolean replaceIPAddressesWithHashes) {
 
     if (sanitizedBridgesDirectory == null || statsDirectory == null) {
       throw new IllegalArgumentException();
@@ -179,6 +183,7 @@ public class SanitizedBridgesWriter {
     /* Memorize argument values. */
     this.sanitizedBridgesDirectory = sanitizedBridgesDirectory;
     this.statsDirectory = statsDirectory;
+    this.replaceIPAddressesWithHashes = replaceIPAddressesWithHashes;
 
     /* Initialize logger. */
     this.logger = Logger.getLogger(
@@ -188,6 +193,11 @@ public class SanitizedBridgesWriter {
     this.bridgeDescriptorMappings = new TreeMap<String,
         DescriptorMapping>();
     this.descriptorPublicationTimes = new TreeSet<String>();
+
+    /* Define "secret" to be used for replacing IP addresses with hashes.
+     * TODO implement generating secrets and storing them to disk. */
+    this.secretForHashingIPAddresses =
+        "secret for hashing IP addresses".getBytes();
 
     /* Read known descriptor mappings from disk. */
     this.bridgeDescriptorMappingsFile = new File(
@@ -224,6 +234,27 @@ public class SanitizedBridgesWriter {
     }
   }
 
+  private String scrubAddress(String address, byte[] fingerprintBytes) {
+    if (this.replaceIPAddressesWithHashes) {
+      byte[] hashInput = new byte[4 + 20 + 31];
+      String[] ipParts = address.split("\\.");
+      for (int i = 0; i < 4; i++) {
+        hashInput[i] = (byte) Integer.parseInt(ipParts[i]);
+      }
+      System.arraycopy(fingerprintBytes, 0, hashInput, 4, 20);
+      System.arraycopy(this.secretForHashingIPAddresses, 0,
+          hashInput, 24, 31);
+      byte[] hashOutput = DigestUtils.sha256(hashInput);
+      String hashedAddress = "10."
+          + (((int) hashOutput[0] + 256) % 256) + "."
+          + (((int) hashOutput[1] + 256) % 256) + "."
+          + (((int) hashOutput[2] + 256) % 256);
+      return hashedAddress;
+    } else {
+      return "127.0.0.1";
+    }
+  }
+
   /**
    * Sanitizes a network status and writes it to disk. Processes every r
    * line separately and looks up whether the descriptor mapping contains
@@ -247,6 +278,7 @@ public class SanitizedBridgesWriter {
           String[] parts = line.split(" ");
           String bridgeIdentity = parts[2];
           String descPublicationTime = parts[4] + " " + parts[5];
+          String address = parts[6];
           String orPort = parts[7];
           String dirPort = parts[8];
 
@@ -273,10 +305,12 @@ public class SanitizedBridgesWriter {
           String sdi = Base64.encodeBase64String(Hex.decodeHex(
                 mapping.serverDescriptorIdentifier.toCharArray())).
                 substring(0, 27);
+          String scrubbedAddress = scrubAddress(address,
+              Base64.decodeBase64(bridgeIdentity + "=="));
           scrubbed.append("r Unnamed "
               + hashedBridgeIdentityBase64 + " " + sdi + " "
-              + descPublicationTime + " 127.0.0.1 " + orPort + " "
-              + dirPort + "\n");
+              + descPublicationTime + " " + scrubbedAddress + " "
+              + orPort + " " + dirPort + "\n");
 
         /* Nothing special about s, w, and p lines; just copy them. */
         } else if (line.startsWith("s ") || line.equals("s") ||
@@ -355,7 +389,7 @@ public class SanitizedBridgesWriter {
           new String(data, "US-ASCII")));
       StringBuilder scrubbed = new StringBuilder();
       String line = null, hashedBridgeIdentity = null, address = null,
-          published = null;
+          published = null, routerLine = null, scrubbedAddress = null;
       boolean skipCrypto = false;
       while ((line = br.readLine()) != null) {
 
@@ -379,14 +413,12 @@ public class SanitizedBridgesWriter {
         if (skipCrypto && !line.startsWith("-----END ")) {
           continue;
 
-        /* Parse the original IP address for looking it up in the GeoIP
-         * database and replace it with 127.0.0.1 in the scrubbed
-         * version. */
+        /* Store the router line for later processing, because we may need
+         * the bridge identity fingerprint for replacing the IP address in
+         * the scrubbed version.  */
         } else if (line.startsWith("router ")) {
           address = line.split(" ")[2];
-          scrubbed = new StringBuilder("router Unnamed 127.0.0.1 "
-              + line.split(" ")[3] + " " + line.split(" ")[4] + " "
-              + line.split(" ")[5] + "\n");
+          routerLine = line;
 
         /* Parse the publication time and add it to the list of descriptor
          * publication times to re-write network statuses at the end of
@@ -402,8 +434,11 @@ public class SanitizedBridgesWriter {
           String fingerprint = line.substring(line.startsWith("opt ") ?
               "opt fingerprint".length() : "fingerprint".length()).
               replaceAll(" ", "").toLowerCase();
-          hashedBridgeIdentity = DigestUtils.shaHex(Hex.decodeHex(
-              fingerprint.toCharArray())).toLowerCase();
+          byte[] fingerprintBytes = Hex.decodeHex(
+              fingerprint.toCharArray());
+          hashedBridgeIdentity = DigestUtils.shaHex(fingerprintBytes).
+              toLowerCase();
+          scrubbedAddress = scrubAddress(address, fingerprintBytes);
           scrubbed.append("opt fingerprint");
           for (int i = 0; i < hashedBridgeIdentity.length() / 4; i++)
             scrubbed.append(" " + hashedBridgeIdentity.substring(4 * i,
@@ -417,7 +452,11 @@ public class SanitizedBridgesWriter {
         /* When we reach the signature, we're done. Write the sanitized
          * descriptor to disk below. */
         } else if (line.startsWith("router-signature")) {
-          scrubbedDesc = scrubbed.toString();
+          String[] routerLineParts = routerLine.split(" ");
+          scrubbedDesc = "router Unnamed " + scrubbedAddress + " "
+              + routerLineParts[3] + " " + routerLineParts[4] + " "
+              + routerLineParts[5] + "\n";
+          scrubbedDesc += scrubbed.toString();
           break;
 
         /* Replace extra-info digest with the one we know from our
@@ -432,7 +471,7 @@ public class SanitizedBridgesWriter {
          * IP address. */
         } else if (line.startsWith("reject ")) {
           if (address != null && line.startsWith("reject " + address)) {
-            scrubbed.append("reject 127.0.0.1"
+            scrubbed.append("reject " + scrubbedAddress
                 + line.substring("reject ".length() + address.length())
                 + "\n");
           } else {
@@ -675,6 +714,7 @@ public class SanitizedBridgesWriter {
               toLowerCase();
           String descPublished = line.split(" ")[4] + " "
               + line.split(" ")[5];
+          String address = line.split(" ")[6];
           String mappingKey = (hashedBridgeIdentity + ","
               + descPublished).toLowerCase();
           DescriptorMapping mapping = null;
@@ -693,7 +733,7 @@ public class SanitizedBridgesWriter {
           String dirPort = line.split(" ")[8];
           sb.append("r Unnamed "
               + hashedBridgeIdentityBase64 + " " + sdi + " "
-              + descPublished + " 127.0.0.1 " + orPort + " "
+              + descPublished + " " + address + " " + orPort + " "
               + dirPort + "\n");
         } else {
           sb.append(line + "\n");
@@ -761,9 +801,9 @@ public class SanitizedBridgesWriter {
           }
         }
         if (line2.startsWith("router ")) {
-          sb.append("router Unnamed 127.0.0.1 " + line2.split(" ")[3]
-              + " " + line2.split(" ")[4] + " " + line2.split(" ")[5]
-              + "\n");
+          sb.append("router Unnamed " + line2.split(" ")[2] + " "
+              + line2.split(" ")[3] + " " + line2.split(" ")[4] + " "
+              + line2.split(" ")[5] + "\n");
         } else if (line2.startsWith("published ")) {
           published = line2.substring("published ".length());
           sb.append(line2 + "\n");
