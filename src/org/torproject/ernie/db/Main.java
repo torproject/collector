@@ -138,7 +138,8 @@ public class Main {
     SanitizedBridgesWriter sbw = config.getWriteSanitizedBridges() ?
         new SanitizedBridgesWriter(
         new File(config.getSanitizedBridgesWriteDirectory()),
-        statsDirectory, config.getReplaceIPAddressesWithHashes()) : null;
+        statsDirectory, config.getReplaceIPAddressesWithHashes(),
+        config.getLimitBridgeDescriptorMappings()) : null;
 
     // Prepare bridge descriptor parser
     BridgeDescriptorParser bdp = config.getWriteConsensusStats() ||

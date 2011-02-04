@@ -27,13 +27,13 @@ public class SanitizedBridgesWriterTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testSanitizedBridgesDirectoryNull() {
-    new SanitizedBridgesWriter(null, this.tempStatsDirectory, false);
+    new SanitizedBridgesWriter(null, this.tempStatsDirectory, false, -1L);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testStatsDirectoryNull() {
     new SanitizedBridgesWriter(this.tempSanitizedBridgesDirectory, null,
-        false);
+        false, -1L);
   }
 }
 

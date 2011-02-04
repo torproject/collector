@@ -31,6 +31,7 @@ public class Configuration {
   private String relayDescriptorRawFilesDirectory = "pg-import/";
   private boolean writeSanitizedBridges = false;
   private boolean replaceIPAddressesWithHashes = false;
+  private long limitBridgeDescriptorMappings = -1L;
   private String sanitizedBridgesWriteDirectory = "sanitized-bridges/";
   private boolean importSanitizedBridges = false;
   private String sanitizedBridgesDirectory = "bridges/";
@@ -117,6 +118,9 @@ public class Configuration {
         } else if (line.startsWith("ReplaceIPAddressesWithHashes")) {
           this.replaceIPAddressesWithHashes = Integer.parseInt(
               line.split(" ")[1]) != 0;
+        } else if (line.startsWith("LimitBridgeDescriptorMappings")) {
+          this.limitBridgeDescriptorMappings = Long.parseLong(
+              line.split(" ")[1]);
         } else if (line.startsWith("SanitizedBridgesWriteDirectory")) {
           this.sanitizedBridgesWriteDirectory = line.split(" ")[1];
         } else if (line.startsWith("ImportSanitizedBridges")) {
@@ -296,6 +300,9 @@ public class Configuration {
   }
   public boolean getReplaceIPAddressesWithHashes() {
     return this.replaceIPAddressesWithHashes;
+  }
+  public long getLimitBridgeDescriptorMappings() {
+    return this.limitBridgeDescriptorMappings;
   }
   public String getSanitizedBridgesWriteDirectory() {
     return this.sanitizedBridgesWriteDirectory;

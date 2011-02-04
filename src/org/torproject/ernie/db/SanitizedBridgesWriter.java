@@ -169,12 +169,17 @@ public class SanitizedBridgesWriter {
 
   private byte[] secretForHashingIPAddresses;
 
+  private String bridgeDescriptorMappingsCutOffTimestamp;
+
+  private boolean haveWarnedAboutLimitedMapping;
+
   /**
    * Initializes this class, including reading in the known descriptor
    * mapping.
    */
   public SanitizedBridgesWriter(File sanitizedBridgesDirectory,
-      File statsDirectory, boolean replaceIPAddressesWithHashes) {
+      File statsDirectory, boolean replaceIPAddressesWithHashes,
+      long limitBridgeDescriptorMappings) {
 
     if (sanitizedBridgesDirectory == null || statsDirectory == null) {
       throw new IllegalArgumentException();
@@ -199,6 +204,20 @@ public class SanitizedBridgesWriter {
     this.secretForHashingIPAddresses =
         "secret for hashing IP addresses".getBytes();
 
+    /* If we're configured to keep descriptor mappings only for a limited
+     * time, define the cut-off day and time. */
+    if (limitBridgeDescriptorMappings >= 0L) {
+      SimpleDateFormat formatter = new SimpleDateFormat(
+          "yyyy-MM-dd HH:mm:ss");
+      formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+      this.bridgeDescriptorMappingsCutOffTimestamp = formatter.format(
+          System.currentTimeMillis() - 24L * 60L * 60L * 1000L
+          * limitBridgeDescriptorMappings);
+    } else {
+      this.bridgeDescriptorMappingsCutOffTimestamp =
+          "1999-12-31 23:59:59";
+    }
+
     /* Read known descriptor mappings from disk. */
     this.bridgeDescriptorMappingsFile = new File(
         "stats/bridge-descriptor-mappings");
@@ -207,9 +226,16 @@ public class SanitizedBridgesWriter {
         BufferedReader br = new BufferedReader(new FileReader(
             this.bridgeDescriptorMappingsFile));
         String line = null;
+        int read = 0, skipped = 0;
         while ((line = br.readLine()) != null) {
           if (line.split(",").length == 4) {
             String[] parts = line.split(",");
+            if (this.bridgeDescriptorMappingsCutOffTimestamp.
+                compareTo(parts[1]) > 0) {
+              skipped++;
+              continue;
+            }
+            read++;
             DescriptorMapping dm = new DescriptorMapping(line);
             dm.hashedBridgeIdentity = parts[0];
             dm.published = parts[1];
@@ -225,6 +251,8 @@ public class SanitizedBridgesWriter {
           }
         }
         br.close();
+        this.logger.fine("Finished reading " + read + " descriptor "
+            + "mappings from disk, skipped " + skipped + ".");
       } catch (IOException e) {
         this.logger.log(Level.WARNING, "Could not read in "
             + this.bridgeDescriptorMappingsFile.getAbsolutePath()
@@ -261,6 +289,15 @@ public class SanitizedBridgesWriter {
    * a bridge with given identity hash and descriptor publication time. */
   public void sanitizeAndStoreNetworkStatus(byte[] data,
       String publicationTime) {
+
+    if (this.bridgeDescriptorMappingsCutOffTimestamp.
+        compareTo(publicationTime) > 0) {
+      this.logger.log(!this.haveWarnedAboutLimitedMapping ? Level.WARNING
+          : Level.FINE, "Sanitizing and storing network status with "
+          + "publication time outside our descriptor mapping interval. "
+          + "We might not be able to repair references.");
+      this.haveWarnedAboutLimitedMapping = true;
+    }
 
     /* Parse the given network status line by line. */
     StringBuilder scrubbed = new StringBuilder();
@@ -425,6 +462,15 @@ public class SanitizedBridgesWriter {
          * the sanitizing procedure. */
         } else if (line.startsWith("published ")) {
           published = line.substring("published ".length());
+          if (this.bridgeDescriptorMappingsCutOffTimestamp.
+              compareTo(published) > 0) {
+            this.logger.log(!this.haveWarnedAboutLimitedMapping
+                ? Level.WARNING : Level.FINE, "Sanitizing and storing "
+                + "server descriptor with publication time outside our "
+                + "descriptor mapping interval. We might not be able to "
+                + "repair references.");
+            this.haveWarnedAboutLimitedMapping = true;
+          }
           this.descriptorPublicationTimes.add(published);
           scrubbed.append(line + "\n");
 
@@ -618,6 +664,15 @@ public class SanitizedBridgesWriter {
         } else if (line.startsWith("published ")) {
           scrubbed.append(line + "\n");
           published = line.substring("published ".length());
+          if (this.bridgeDescriptorMappingsCutOffTimestamp.
+              compareTo(published) > 0) {
+            this.logger.log(!this.haveWarnedAboutLimitedMapping
+                ? Level.WARNING : Level.FINE, "Sanitizing and storing "
+                + "extra-info descriptor with publication time outside "
+                + "our descriptor mapping interval. We might not be able "
+                + "to repair references.");
+            this.haveWarnedAboutLimitedMapping = true;
+          }
 
         /* Write the following lines unmodified to the sanitized
          * descriptor. */
@@ -697,6 +752,14 @@ public class SanitizedBridgesWriter {
   }
 
   public void storeSanitizedNetworkStatus(byte[] data, String published) {
+    if (this.bridgeDescriptorMappingsCutOffTimestamp.
+        compareTo(published) > 0) {
+      this.logger.log(!this.haveWarnedAboutLimitedMapping ? Level.WARNING
+          : Level.FINE, "Storing sanitized network status with "
+          + "publication time outside our descriptor mapping interval. "
+          + "We might not be able to repair references.");
+      this.haveWarnedAboutLimitedMapping = true;
+    }
     String scrubbed = null;
     try {
       String ascii = new String(data, "US-ASCII");
@@ -806,6 +869,15 @@ public class SanitizedBridgesWriter {
               + line2.split(" ")[5] + "\n");
         } else if (line2.startsWith("published ")) {
           published = line2.substring("published ".length());
+          if (this.bridgeDescriptorMappingsCutOffTimestamp.
+              compareTo(published) > 0) {
+            this.logger.log(!this.haveWarnedAboutLimitedMapping
+                ? Level.WARNING : Level.FINE, "Storing sanitized "
+                + "server descriptor with publication time outside our "
+                + "descriptor mapping interval. We might not be able to "
+                + "repair references.");
+            this.haveWarnedAboutLimitedMapping = true;
+          }
           sb.append(line2 + "\n");
           this.descriptorPublicationTimes.add(published);
         } else if (line2.startsWith("opt fingerprint ")) {
@@ -874,6 +946,15 @@ public class SanitizedBridgesWriter {
         } else if (line2.startsWith("published ")) {
           sb.append(line2 + "\n");
           published = line2.substring("published ".length());
+          if (this.bridgeDescriptorMappingsCutOffTimestamp.
+              compareTo(published) > 0) {
+            this.logger.log(!this.haveWarnedAboutLimitedMapping
+                ? Level.WARNING : Level.FINE, "Storing sanitized "
+                + "extra-info descriptor with publication time outside "
+                + "our descriptor mapping interval. We might not be able "
+                + "to repair references.");
+            this.haveWarnedAboutLimitedMapping = true;
+          }
           this.descriptorPublicationTimes.add(published);
         } else {
           sb.append(line2 + "\n");
@@ -1038,12 +1119,21 @@ public class SanitizedBridgesWriter {
       this.logger.fine("Writing descriptor mappings to disk.");
       BufferedWriter bw = new BufferedWriter(new FileWriter(
           this.bridgeDescriptorMappingsFile));
+      int wrote = 0, skipped = 0;
       for (DescriptorMapping mapping :
           this.bridgeDescriptorMappings.values()) {
-        bw.write(mapping.toString() + "\n");
+        String mappingString = mapping.toString();
+        if (this.bridgeDescriptorMappingsCutOffTimestamp.
+            compareTo(mappingString.split(",")[1]) > 0) {
+          skipped++;
+        } else {
+          wrote++;
+          bw.write(mapping.toString() + "\n");
+        }
       }
       bw.close();
-      this.logger.fine("Finished writing descriptor mappings to disk.");
+      this.logger.fine("Finished writing " + wrote + " descriptor "
+          + "mappings to disk, skipped " + skipped + ".");
     } catch (IOException e) {
       this.logger.log(Level.WARNING, "Could not write descriptor "
           + "mappings to disk.", e);
