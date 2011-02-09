@@ -167,7 +167,7 @@ public class SanitizedBridgesWriter {
 
   private boolean replaceIPAddressesWithHashes;
 
-  private byte[] secretForHashingIPAddresses;
+  private Map<String, byte[]> secretsForHashingIPAddresses;
 
   private String bridgeDescriptorMappingsCutOffTimestamp;
 
@@ -199,10 +199,9 @@ public class SanitizedBridgesWriter {
         DescriptorMapping>();
     this.descriptorPublicationTimes = new TreeSet<String>();
 
-    /* Define "secret" to be used for replacing IP addresses with hashes.
-     * TODO implement generating secrets and storing them to disk. */
-    this.secretForHashingIPAddresses =
-        "secret for hashing IP addresses".getBytes();
+    /* Read secrets for replacing IP addresses with hashes from disk. */
+    // TODO actually implement reading from disk
+    this.secretsForHashingIPAddresses = new HashMap<String, byte[]>();
 
     /* If we're configured to keep descriptor mappings only for a limited
      * time, define the cut-off day and time. */
@@ -237,12 +236,8 @@ public class SanitizedBridgesWriter {
             }
             read++;
             DescriptorMapping dm = new DescriptorMapping(line);
-            dm.hashedBridgeIdentity = parts[0];
-            dm.published = parts[1];
-            dm.serverDescriptorIdentifier = parts[2];
-            dm.extraInfoDescriptorIdentifier = parts[3];
-            this.bridgeDescriptorMappings.put(line.split(",")[0] + ","
-                + line.split(",")[1], dm);
+            this.bridgeDescriptorMappings.put(parts[0] + "," + parts[1],
+                dm);
           } else {
             this.logger.warning("Corrupt line '" + line + "' in "
                 + this.bridgeDescriptorMappingsFile.getAbsolutePath()
@@ -262,7 +257,8 @@ public class SanitizedBridgesWriter {
     }
   }
 
-  private String scrubAddress(String address, byte[] fingerprintBytes) {
+  private String scrubAddress(String address, byte[] fingerprintBytes,
+      String published) {
     if (this.replaceIPAddressesWithHashes) {
       byte[] hashInput = new byte[4 + 20 + 31];
       String[] ipParts = address.split("\\.");
@@ -270,8 +266,18 @@ public class SanitizedBridgesWriter {
         hashInput[i] = (byte) Integer.parseInt(ipParts[i]);
       }
       System.arraycopy(fingerprintBytes, 0, hashInput, 4, 20);
-      System.arraycopy(this.secretForHashingIPAddresses, 0,
-          hashInput, 24, 31);
+      String month = published.substring(0, "yyyy-MM".length());
+      if (!this.secretsForHashingIPAddresses.containsKey(month)) {
+        // TODO implement generating secrets using a secure random
+        // generator
+        // TODO also, we should write secrets to disk immediately before
+        // using them, or we might end with inconsistently sanitized
+        // bridges
+        this.secretsForHashingIPAddresses.put(month,
+            ("secret for hashing IPs: " + month).getBytes());
+      }
+      byte[] secret = this.secretsForHashingIPAddresses.get(month);
+      System.arraycopy(secret, 0, hashInput, 24, 31);
       byte[] hashOutput = DigestUtils.sha256(hashInput);
       String hashedAddress = "10."
           + (((int) hashOutput[0] + 256) % 256) + "."
@@ -343,7 +349,8 @@ public class SanitizedBridgesWriter {
                 mapping.serverDescriptorIdentifier.toCharArray())).
                 substring(0, 27);
           String scrubbedAddress = scrubAddress(address,
-              Base64.decodeBase64(bridgeIdentity + "=="));
+              Base64.decodeBase64(bridgeIdentity + "=="),
+              descPublicationTime);
           scrubbed.append("r Unnamed "
               + hashedBridgeIdentityBase64 + " " + sdi + " "
               + descPublicationTime + " " + scrubbedAddress + " "
@@ -484,7 +491,8 @@ public class SanitizedBridgesWriter {
               fingerprint.toCharArray());
           hashedBridgeIdentity = DigestUtils.shaHex(fingerprintBytes).
               toLowerCase();
-          scrubbedAddress = scrubAddress(address, fingerprintBytes);
+          scrubbedAddress = scrubAddress(address, fingerprintBytes,
+              published);
           scrubbed.append("opt fingerprint");
           for (int i = 0; i < hashedBridgeIdentity.length() / 4; i++)
             scrubbed.append(" " + hashedBridgeIdentity.substring(4 * i,
