@@ -167,11 +167,15 @@ public class SanitizedBridgesWriter {
 
   private boolean replaceIPAddressesWithHashes;
 
+  private boolean persistenceProblemWithSecrets;
+
   private SortedMap<String, byte[]> secretsForHashingIPAddresses;
 
   private String bridgeDescriptorMappingsCutOffTimestamp;
 
   private boolean haveWarnedAboutLimitedMapping;
+
+  private File bridgeIpSecretsFile;
 
   /**
    * Initializes this class, including reading in the known descriptor
@@ -199,9 +203,48 @@ public class SanitizedBridgesWriter {
         DescriptorMapping>();
     this.descriptorPublicationTimes = new TreeSet<String>();
 
-    /* Read secrets for replacing IP addresses with hashes from disk. */
-    // TODO actually implement reading from disk
+    /* Read hex-encoded secrets for replacing IP addresses with hashes
+     * from disk. */
     this.secretsForHashingIPAddresses = new TreeMap<String, byte[]>();
+    this.bridgeIpSecretsFile = new File(statsDirectory,
+        "bridge-ip-secrets");
+    if (this.bridgeIpSecretsFile.exists()) {
+      try {
+        BufferedReader br = new BufferedReader(new FileReader(
+            this.bridgeIpSecretsFile));
+        String line;
+        while ((line = br.readLine()) != null) {
+          if (line.length() != ("yyyy-MM,".length() + 31 * 2) ||
+              line.split(",").length != 2) {
+            this.logger.warning("Invalid line in bridge-ip-secrets file "
+                + "starting with '" + line.substring(0, 7) + "'! "
+                + "Not calculating any IP address hashes in this "
+                + "execution!");
+            this.persistenceProblemWithSecrets = true;
+            break;
+          }
+          String[] parts = line.split(",");
+          String month = parts[0];
+          byte[] secret = Hex.decodeHex(parts[1].toCharArray());
+          this.secretsForHashingIPAddresses.put(month, secret);
+        }
+        if (!this.persistenceProblemWithSecrets) {
+          this.logger.fine("Read "
+              + this.secretsForHashingIPAddresses.size() + " secrets for "
+              + "hashing bridge IP addresses.");
+        }
+      } catch (DecoderException e) {
+        this.logger.log(Level.WARNING, "Failed to decode hex string in "
+            + this.bridgeIpSecretsFile + "! Not calculating any IP "
+            + "address hashes in this execution!", e);
+        this.persistenceProblemWithSecrets = true;
+      } catch (IOException e) {
+        this.logger.log(Level.WARNING, "Failed to read "
+            + this.bridgeIpSecretsFile + "! Not calculating any IP "
+            + "address hashes in this execution!", e);
+        this.persistenceProblemWithSecrets = true;
+      }
+    }
 
     /* If we're configured to keep descriptor mappings only for a limited
      * time, define the cut-off day and time. */
@@ -258,8 +301,13 @@ public class SanitizedBridgesWriter {
   }
 
   private String scrubAddress(String address, byte[] fingerprintBytes,
-      String published) {
+      String published) throws IOException {
     if (this.replaceIPAddressesWithHashes) {
+      if (this.persistenceProblemWithSecrets) {
+        /* There's a persistence problem, so we shouldn't scrub more IP
+         * addresses in this execution. */
+        return null;
+      }
       byte[] hashInput = new byte[4 + 20 + 31];
       String[] ipParts = address.split("\\.");
       for (int i = 0; i < 4; i++) {
@@ -270,17 +318,33 @@ public class SanitizedBridgesWriter {
       if (!this.secretsForHashingIPAddresses.containsKey(month)) {
         // TODO implement generating secrets using a secure random
         // generator
-        this.secretsForHashingIPAddresses.put(month,
-            ("secret for hashing IPs: " + month).getBytes());
+        byte[] secret = ("secret for hashing IPs: " + month).getBytes();
         if (month.compareTo(
             this.bridgeDescriptorMappingsCutOffTimestamp) < 0) {
           this.logger.warning("Generated a secret that we won't make "
               + "persistent, because it's outside our bridge descriptors "
               + "mapping interval.");
         } else {
-          // TODO append secrets to file on disk immediately before using
-          // it, or we might end with inconsistently sanitized bridges
+          /* Append secret to file on disk immediately before using it, or
+           * we might end with inconsistently sanitized bridges. */
+          try {
+            if (!this.bridgeIpSecretsFile.exists()) {
+              this.bridgeIpSecretsFile.getParentFile().mkdirs();
+            }
+            BufferedWriter bw = new BufferedWriter(new FileWriter(
+                this.bridgeIpSecretsFile,
+                this.bridgeIpSecretsFile.exists()));
+            bw.write(month + "," + Hex.encodeHexString(secret) + "\n");
+            bw.close();
+          } catch (IOException e) {
+            this.logger.log(Level.WARNING, "Could not store new secret "
+                + "to disk! Not calculating any IP address hashes in "
+                + "this execution!", e);
+            this.persistenceProblemWithSecrets = true;
+            throw new IOException(e);
+          }
         }
+        this.secretsForHashingIPAddresses.put(month, secret);
       }
       byte[] secret = this.secretsForHashingIPAddresses.get(month);
       System.arraycopy(secret, 0, hashInput, 24, 31);
@@ -301,6 +365,12 @@ public class SanitizedBridgesWriter {
    * a bridge with given identity hash and descriptor publication time. */
   public void sanitizeAndStoreNetworkStatus(byte[] data,
       String publicationTime) {
+
+    if (this.persistenceProblemWithSecrets) {
+      /* There's a persistence problem, so we shouldn't scrub more IP
+       * addresses in this execution. */
+      return;
+    }
 
     if (this.bridgeDescriptorMappingsCutOffTimestamp.
         compareTo(publicationTime) > 0) {
@@ -356,9 +426,14 @@ public class SanitizedBridgesWriter {
           String sdi = Base64.encodeBase64String(Hex.decodeHex(
                 mapping.serverDescriptorIdentifier.toCharArray())).
                 substring(0, 27);
-          String scrubbedAddress = scrubAddress(address,
-              Base64.decodeBase64(bridgeIdentity + "=="),
-              descPublicationTime);
+          String scrubbedAddress = null;
+          try {
+            scrubbedAddress = scrubAddress(address,
+                Base64.decodeBase64(bridgeIdentity + "=="),
+                descPublicationTime);
+          } catch (IOException e) {
+            return;
+          }
           if (scrubbed.length() > 0) {
             String scrubbedLine = scrubbed.toString();
             scrubbedLines.put(scrubbedLine.split(" ")[2], scrubbedLine);
@@ -444,6 +519,12 @@ public class SanitizedBridgesWriter {
    */
   public void sanitizeAndStoreServerDescriptor(byte[] data) {
 
+    if (this.persistenceProblemWithSecrets) {
+      /* There's a persistence problem, so we shouldn't scrub more IP
+       * addresses in this execution. */
+      return;
+    }
+
     /* Parse descriptor to generate a sanitized version and to look it up
      * in the descriptor mapping. */
     String scrubbedDesc = null;
@@ -511,8 +592,14 @@ public class SanitizedBridgesWriter {
               fingerprint.toCharArray());
           hashedBridgeIdentity = DigestUtils.shaHex(fingerprintBytes).
               toLowerCase();
-          scrubbedAddress = scrubAddress(address, fingerprintBytes,
-              published);
+          try {
+            scrubbedAddress = scrubAddress(address, fingerprintBytes,
+                published);
+          } catch (IOException e) {
+            /* There's a persistence problem, so we shouldn't scrub more
+             * IP addresses in this execution. */
+            return;
+          }
           scrubbed.append("opt fingerprint");
           for (int i = 0; i < hashedBridgeIdentity.length() / 4; i++)
             scrubbed.append(" " + hashedBridgeIdentity.substring(4 * i,
@@ -1171,22 +1258,29 @@ public class SanitizedBridgesWriter {
     if (!this.secretsForHashingIPAddresses.isEmpty() &&
         this.secretsForHashingIPAddresses.firstKey().compareTo(
         this.bridgeDescriptorMappingsCutOffTimestamp) < 0) {
-      int kept = 0, deleted = 0;
-      SortedMap<String, byte[]> secretsStoredOnDisk =
-          new TreeMap<String, byte[]>();
-      for (Map.Entry<String, byte[]> e :
-          this.secretsForHashingIPAddresses.entrySet()) {
-        if (e.getKey().compareTo(
-            this.bridgeDescriptorMappingsCutOffTimestamp) < 0) {
-          deleted++;
-        } else {
-          secretsStoredOnDisk.put(e.getKey(), e.getValue());
-          kept++;
+      try {
+        int kept = 0, deleted = 0;
+        BufferedWriter bw = new BufferedWriter(new FileWriter(
+            this.bridgeIpSecretsFile));
+        for (Map.Entry<String, byte[]> e :
+            this.secretsForHashingIPAddresses.entrySet()) {
+          if (e.getKey().compareTo(
+              this.bridgeDescriptorMappingsCutOffTimestamp) < 0) {
+            deleted++;
+          } else {
+            bw.write(e.getKey() + "," + Hex.encodeHexString(e.getValue())
+                + "\n");
+            kept++;
+          }
         }
+        bw.close();
+        this.logger.info("Deleted " + deleted + " secrets that we don't "
+            + "need anymore and kept " + kept + ".");
+      } catch (IOException e) {
+        this.logger.log(Level.WARNING, "Could not store reduced set of "
+            + "secrets to disk! This is a bad sign, better check what's "
+            + "going on!", e);
       }
-      // TODO write reduced set of secrets to disk
-      this.logger.info("Deleted " + deleted + " secrets that we don't "
-          + "need anymore and kept " + kept + ".");
     }
   }
 }
