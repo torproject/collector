@@ -167,7 +167,7 @@ public class SanitizedBridgesWriter {
 
   private boolean replaceIPAddressesWithHashes;
 
-  private Map<String, byte[]> secretsForHashingIPAddresses;
+  private SortedMap<String, byte[]> secretsForHashingIPAddresses;
 
   private String bridgeDescriptorMappingsCutOffTimestamp;
 
@@ -201,7 +201,7 @@ public class SanitizedBridgesWriter {
 
     /* Read secrets for replacing IP addresses with hashes from disk. */
     // TODO actually implement reading from disk
-    this.secretsForHashingIPAddresses = new HashMap<String, byte[]>();
+    this.secretsForHashingIPAddresses = new TreeMap<String, byte[]>();
 
     /* If we're configured to keep descriptor mappings only for a limited
      * time, define the cut-off day and time. */
@@ -270,11 +270,17 @@ public class SanitizedBridgesWriter {
       if (!this.secretsForHashingIPAddresses.containsKey(month)) {
         // TODO implement generating secrets using a secure random
         // generator
-        // TODO also, we should write secrets to disk immediately before
-        // using them, or we might end with inconsistently sanitized
-        // bridges
         this.secretsForHashingIPAddresses.put(month,
             ("secret for hashing IPs: " + month).getBytes());
+        if (month.compareTo(
+            this.bridgeDescriptorMappingsCutOffTimestamp) < 0) {
+          this.logger.warning("Generated a secret that we won't make "
+              + "persistent, because it's outside our bridge descriptors "
+              + "mapping interval.");
+        } else {
+          // TODO append secrets to file on disk immediately before using
+          // it, or we might end with inconsistently sanitized bridges
+        }
       }
       byte[] secret = this.secretsForHashingIPAddresses.get(month);
       System.arraycopy(secret, 0, hashInput, 24, 31);
@@ -1159,6 +1165,28 @@ public class SanitizedBridgesWriter {
     } catch (IOException e) {
       this.logger.log(Level.WARNING, "Could not write descriptor "
           + "mappings to disk.", e);
+    }
+
+    /* Delete secrets that we don't need anymore. */
+    if (!this.secretsForHashingIPAddresses.isEmpty() &&
+        this.secretsForHashingIPAddresses.firstKey().compareTo(
+        this.bridgeDescriptorMappingsCutOffTimestamp) < 0) {
+      int kept = 0, deleted = 0;
+      SortedMap<String, byte[]> secretsStoredOnDisk =
+          new TreeMap<String, byte[]>();
+      for (Map.Entry<String, byte[]> e :
+          this.secretsForHashingIPAddresses.entrySet()) {
+        if (e.getKey().compareTo(
+            this.bridgeDescriptorMappingsCutOffTimestamp) < 0) {
+          deleted++;
+        } else {
+          secretsStoredOnDisk.put(e.getKey(), e.getValue());
+          kept++;
+        }
+      }
+      // TODO write reduced set of secrets to disk
+      this.logger.info("Deleted " + deleted + " secrets that we don't "
+          + "need anymore and kept " + kept + ".");
     }
   }
 }
