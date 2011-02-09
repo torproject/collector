@@ -3,6 +3,7 @@
 package org.torproject.ernie.db;
 
 import java.io.*;
+import java.security.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -177,6 +178,8 @@ public class SanitizedBridgesWriter {
 
   private File bridgeIpSecretsFile;
 
+  private SecureRandom secureRandom;
+
   /**
    * Initializes this class, including reading in the known descriptor
    * mapping.
@@ -202,6 +205,18 @@ public class SanitizedBridgesWriter {
     this.bridgeDescriptorMappings = new TreeMap<String,
         DescriptorMapping>();
     this.descriptorPublicationTimes = new TreeSet<String>();
+
+    /* Initialize secure random number generator if we need it. */
+    if (this.replaceIPAddressesWithHashes) {
+      try {
+        this.secureRandom = SecureRandom.getInstance("SHA1PRNG", "SUN");
+      } catch (GeneralSecurityException e) {
+        this.logger.log(Level.WARNING, "Could not initialize secure "
+            + "random number generator! Not calculating any IP address "
+            + "hashes in this execution!", e);
+        this.persistenceProblemWithSecrets = true;
+      }
+    }
 
     /* Read hex-encoded secrets for replacing IP addresses with hashes
      * from disk. */
@@ -316,9 +331,8 @@ public class SanitizedBridgesWriter {
       System.arraycopy(fingerprintBytes, 0, hashInput, 4, 20);
       String month = published.substring(0, "yyyy-MM".length());
       if (!this.secretsForHashingIPAddresses.containsKey(month)) {
-        // TODO implement generating secrets using a secure random
-        // generator
-        byte[] secret = ("secret for hashing IPs: " + month).getBytes();
+        byte[] secret = new byte[31];
+        this.secureRandom.nextBytes(secret);
         if (month.compareTo(
             this.bridgeDescriptorMappingsCutOffTimestamp) < 0) {
           this.logger.warning("Generated a secret that we won't make "
