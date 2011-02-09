@@ -306,8 +306,10 @@ public class SanitizedBridgesWriter {
     }
 
     /* Parse the given network status line by line. */
-    StringBuilder scrubbed = new StringBuilder();
+    SortedMap<String, String> scrubbedLines =
+        new TreeMap<String, String>();
     try {
+      StringBuilder scrubbed = new StringBuilder();
       BufferedReader br = new BufferedReader(new StringReader(new String(
           data, "US-ASCII")));
       String line = null;
@@ -351,6 +353,11 @@ public class SanitizedBridgesWriter {
           String scrubbedAddress = scrubAddress(address,
               Base64.decodeBase64(bridgeIdentity + "=="),
               descPublicationTime);
+          if (scrubbed.length() > 0) {
+            String scrubbedLine = scrubbed.toString();
+            scrubbedLines.put(scrubbedLine.split(" ")[2], scrubbedLine);
+            scrubbed = new StringBuilder();
+          }
           scrubbed.append("r Unnamed "
               + hashedBridgeIdentityBase64 + " " + sdi + " "
               + descPublicationTime + " " + scrubbedAddress + " "
@@ -372,6 +379,11 @@ public class SanitizedBridgesWriter {
         }
       }
       br.close();
+      if (scrubbed.length() > 0) {
+        String scrubbedLine = scrubbed.toString();
+        scrubbedLines.put(scrubbedLine.split(" ")[2], scrubbedLine);
+        scrubbed = new StringBuilder();
+      }
 
     } catch (IOException e) {
       this.logger.log(Level.WARNING, "Could not parse bridge network "
@@ -404,7 +416,9 @@ public class SanitizedBridgesWriter {
 
       /* Write sanitized network status to disk. */
       BufferedWriter bw = new BufferedWriter(new FileWriter(statusFile));
-      bw.write(scrubbed.toString());
+      for (String scrubbed : scrubbedLines.values()) {
+        bw.write(scrubbed);
+      }
       bw.close();
 
     } catch (IOException e) {
