@@ -94,13 +94,6 @@ public class BridgeSnapshotReader {
                 }
                 String fileDigest = Hex.encodeHexString(DigestUtils.sha(
                     allData));
-                if (!descriptorImportHistory.contains(fileDigest)) {
-                  descriptorImportHistory.add(fileDigest);
-                  parsedFiles++;
-                } else {
-                  skippedFiles++;
-                  continue;
-                }
                 String ascii = new String(allData, "US-ASCII");
                 BufferedReader br3 = new BufferedReader(new StringReader(
                     ascii));
@@ -115,6 +108,11 @@ public class BridgeSnapshotReader {
                 if (firstLine.startsWith("r ")) {
                   bdp.parse(allData, dateTime, false);
                   parsedStatuses++;
+                } else if (descriptorImportHistory.contains(fileDigest)) {
+                  /* Skip server descriptors or extra-info descriptors if
+                   * we parsed them before. */
+                  skippedFiles++;
+                  continue;
                 } else {
                   int start = -1, sig = -1, end = -1;
                   String startToken =
@@ -160,6 +158,8 @@ public class BridgeSnapshotReader {
                     }
                   }
                 }
+                descriptorImportHistory.add(fileDigest);
+                parsedFiles++;
               }
             }
             in.close();
