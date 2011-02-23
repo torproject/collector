@@ -65,30 +65,6 @@ public class GetTorProcessor {
       return;
     }
 
-    File statsFile = new File("stats/gettor-stats");
-    logger.fine("Writing file " + statsFile.getAbsolutePath() + "...");
-    try {
-      statsFile.getParentFile().mkdirs();
-      BufferedWriter bw = new BufferedWriter(new FileWriter(statsFile));
-      bw.write("date");
-      for (String column : columns) {
-        bw.write("," + column);
-      }
-      bw.write("\n");
-      for (String date : data.keySet()) {
-        bw.write(date);
-        for (String column : columns) {
-          Integer value = data.get(date).get(column);
-          bw.write("," + (value == null ? "NA" : value));
-        }
-        bw.write("\n");
-      }
-      bw.close();
-    } catch (IOException e) {
-      logger.log(Level.WARNING, "Failed writing "
-          + statsFile.getAbsolutePath() + "!", e);
-    }
-
     /* Write results to database. */
     if (connectionURL != null) {
       try {

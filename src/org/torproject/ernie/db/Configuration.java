@@ -252,6 +252,11 @@ public class Configuration {
           + "least one data sink, but we don't have a single data source "
           + "containing bridge descriptors.");
     }
+    if (this.downloadProcessGetTorStats &&
+        !this.writeAggregateStatsDatabase) {
+      logger.warning("We are configured to download GetTor statistics, "
+          + "but not to import them into the database.");
+    }
   }
   public boolean getWriteConsensusStats() {
     return this.writeConsensusStats;
