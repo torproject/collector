@@ -40,8 +40,6 @@ public class RelayDescriptorParser {
    */
   private RelayDescriptorDatabaseImporter rddi;
 
-  private ConsensusHealthChecker chc;
-
   /**
    * Logger for this class.
    */
@@ -53,12 +51,10 @@ public class RelayDescriptorParser {
    * Initializes this class.
    */
   public RelayDescriptorParser(BridgeStatsFileHandler bsfh,
-      ArchiveWriter aw, RelayDescriptorDatabaseImporter rddi,
-      ConsensusHealthChecker chc) {
+      ArchiveWriter aw, RelayDescriptorDatabaseImporter rddi) {
     this.bsfh = bsfh;
     this.aw = aw;
     this.rddi = rddi;
-    this.chc = chc;
 
     /* Initialize logger. */
     this.logger = Logger.getLogger(RelayDescriptorParser.class.getName());
@@ -209,9 +205,6 @@ public class RelayDescriptorParser {
           if (this.aw != null) {
             this.aw.storeConsensus(data, validAfter);
           }
-          if (this.chc != null) {
-            this.chc.processConsensus(validAfterTime, data);
-          }
         } else {
           if (this.rddi != null) {
             this.rddi.addVote(validAfter, dirSource, data);
@@ -235,9 +228,6 @@ public class RelayDescriptorParser {
                 this.aw.storeVote(data, validAfter, dirSource, digest);
               }
             }
-          }
-          if (this.chc != null) {
-            this.chc.processVote(validAfterTime, dirSource, data);
           }
         }
       } else if (line.startsWith("router ")) {

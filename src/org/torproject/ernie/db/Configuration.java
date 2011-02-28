@@ -47,7 +47,6 @@ public class Configuration {
   private String getTorStatsUrl = "http://gettor.torproject.org:8080/"
       + "~gettor/gettor_stats.txt";
   private boolean downloadExitList = false;
-  private boolean writeConsensusHealth = false;
   public Configuration() {
 
     /* Initialize logger. */
@@ -168,9 +167,6 @@ public class Configuration {
         } else if (line.startsWith("DownloadExitList")) {
           this.downloadExitList = Integer.parseInt(
               line.split(" ")[1]) != 0;
-        } else if (line.startsWith("WriteConsensusHealth")) {
-          this.writeConsensusHealth = Integer.parseInt(
-              line.split(" ")[1]) != 0;
         } else {
           logger.severe("Configuration file contains unrecognized "
               + "configuration key in line '" + line + "'! Exiting!");
@@ -206,7 +202,7 @@ public class Configuration {
         !this.writeRelayDescriptorDatabase &&
         !this.writeAggregateStatsDatabase &&
         !this.writeSanitizedBridges && !this.writeConsensusStats &&
-        !this.writeBridgeStats && !this.writeConsensusHealth) {
+        !this.writeBridgeStats) {
       logger.warning("We have not been configured to read data from any "
           + "data source or write data to any data sink. You need to "
           + "edit your config file (" + configFile.getAbsolutePath()
@@ -218,7 +214,7 @@ public class Configuration {
         !(this.writeDirectoryArchives ||
         this.writeRelayDescriptorDatabase ||
         this.writeRelayDescriptorsRawFiles || this.writeConsensusStats ||
-        this.writeBridgeStats || this.writeConsensusHealth)) {
+        this.writeBridgeStats)) {
       logger.warning("We are configured to import/download relay "
           + "descriptors, but we don't have a single data sink to write "
           + "relay descriptors to.");
@@ -347,9 +343,6 @@ public class Configuration {
   }
   public boolean getDownloadExitList() {
     return this.downloadExitList;
-  }
-  public boolean getWriteConsensusHealth() {
-    return this.writeConsensusHealth;
   }
 }
 

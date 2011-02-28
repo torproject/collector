@@ -39,10 +39,6 @@ public class Main {
         config.getWriteAggregateStatsDatabase() ?
         config.getRelayDescriptorDatabaseJDBC() : null) : null;
 
-    // Prepare consensus health checker
-    ConsensusHealthChecker chc = config.getWriteConsensusHealth() ?
-        new ConsensusHealthChecker() : null;
-
     // Prepare writing relay descriptor archive to disk
     ArchiveWriter aw = config.getWriteDirectoryArchives() ?
         new ArchiveWriter(
@@ -63,9 +59,8 @@ public class Main {
     RelayDescriptorParser rdp = config.getWriteBridgeStats() ||
         config.getWriteDirectoryArchives() ||
         config.getWriteRelayDescriptorDatabase() ||
-        config.getWriteRelayDescriptorsRawFiles() ||
-        config.getWriteConsensusHealth() ?
-        new RelayDescriptorParser(bsfh, aw, rddi, chc) : null;
+        config.getWriteRelayDescriptorsRawFiles() ?
+        new RelayDescriptorParser(bsfh, aw, rddi) : null;
 
     // Import/download relay descriptors from the various sources
     if (rdp != null) {
@@ -74,8 +69,8 @@ public class Main {
         List<String> dirSources =
             config.getDownloadFromDirectoryAuthorities();
         boolean downloadCurrentConsensus = aw != null || bsfh != null ||
-            rddi != null || chc != null;
-        boolean downloadCurrentVotes = aw != null || chc != null;
+            rddi != null;
+        boolean downloadCurrentVotes = aw != null;
         boolean downloadAllServerDescriptors = aw != null ||
             rddi != null;
         boolean downloadAllExtraInfos = aw != null || rddi != null;
@@ -119,10 +114,6 @@ public class Main {
     }
 
     // Write output to disk that only depends on relay descriptors
-    if (chc != null) {
-      chc.writeStatusWebsite();
-      chc = null;
-    }
     if (aw != null) {
       aw.dumpStats();
       aw = null;
