@@ -44,23 +44,11 @@ public class Main {
         new ArchiveWriter(
         new File(config.getDirectoryArchivesOutputDirectory())) : null;
 
-    // Prepare writing relay descriptors to database
-    RelayDescriptorDatabaseImporter rddi =
-        config.getWriteRelayDescriptorDatabase() ||
-        config.getWriteRelayDescriptorsRawFiles() ?
-        new RelayDescriptorDatabaseImporter(
-        config.getWriteRelayDescriptorDatabase() ?
-        config.getRelayDescriptorDatabaseJDBC() : null,
-        config.getWriteRelayDescriptorsRawFiles() ?
-        config.getRelayDescriptorRawFilesDirectory() : null) : null;
-
     // Prepare relay descriptor parser (only if we are writing stats or
     // directory archives to disk)
     RelayDescriptorParser rdp = config.getWriteBridgeStats() ||
-        config.getWriteDirectoryArchives() ||
-        config.getWriteRelayDescriptorDatabase() ||
-        config.getWriteRelayDescriptorsRawFiles() ?
-        new RelayDescriptorParser(bsfh, aw, rddi) : null;
+        config.getWriteDirectoryArchives() ?
+        new RelayDescriptorParser(bsfh, aw) : null;
 
     // Import/download relay descriptors from the various sources
     if (rdp != null) {
@@ -68,12 +56,10 @@ public class Main {
       if (config.getDownloadRelayDescriptors()) {
         List<String> dirSources =
             config.getDownloadFromDirectoryAuthorities();
-        boolean downloadCurrentConsensus = aw != null || bsfh != null ||
-            rddi != null;
+        boolean downloadCurrentConsensus = aw != null || bsfh != null;
         boolean downloadCurrentVotes = aw != null;
-        boolean downloadAllServerDescriptors = aw != null ||
-            rddi != null;
-        boolean downloadAllExtraInfos = aw != null || rddi != null;
+        boolean downloadAllServerDescriptors = aw != null;
+        boolean downloadAllExtraInfos = aw != null;
         rdd = new RelayDescriptorDownloader(rdp, dirSources,
             downloadCurrentConsensus, downloadCurrentVotes,
             downloadAllServerDescriptors, downloadAllExtraInfos);
@@ -106,11 +92,6 @@ public class Main {
               + "directory authorities");
         }
       }
-    }
-
-    // Close database connection (if active)
-    if (rddi != null)   {
-      rddi.closeConnection();
     }
 
     // Write output to disk that only depends on relay descriptors

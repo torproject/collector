@@ -23,12 +23,9 @@ public class Configuration {
   private boolean importDirectoryArchives = false;
   private String directoryArchivesDirectory = "archives/";
   private boolean keepDirectoryArchiveImportHistory = false;
-  private boolean writeRelayDescriptorDatabase = false;
   private boolean writeAggregateStatsDatabase = false;
   private String relayDescriptorDatabaseJdbc =
       "jdbc:postgresql://localhost/tordir?user=ernie&password=password";
-  private boolean writeRelayDescriptorsRawFiles = false;
-  private String relayDescriptorRawFilesDirectory = "pg-import/";
   private boolean writeSanitizedBridges = false;
   private boolean replaceIPAddressesWithHashes = false;
   private long limitBridgeDescriptorMappings = -1L;
@@ -98,19 +95,11 @@ public class Configuration {
         } else if (line.startsWith("KeepDirectoryArchiveImportHistory")) {
           this.keepDirectoryArchiveImportHistory = Integer.parseInt(
               line.split(" ")[1]) != 0;
-        } else if (line.startsWith("WriteRelayDescriptorDatabase")) {
-          this.writeRelayDescriptorDatabase = Integer.parseInt(
-              line.split(" ")[1]) != 0;
         } else if (line.startsWith("WriteAggregateStatsDatabase")) {
           this.writeAggregateStatsDatabase = Integer.parseInt(
               line.split(" ")[1]) != 0;
         } else if (line.startsWith("RelayDescriptorDatabaseJDBC")) {
           this.relayDescriptorDatabaseJdbc = line.split(" ")[1];
-        } else if (line.startsWith("WriteRelayDescriptorsRawFiles")) {
-          this.writeRelayDescriptorsRawFiles = Integer.parseInt(
-              line.split(" ")[1]) != 0;
-        } else if (line.startsWith("RelayDescriptorRawFilesDirectory")) {
-          this.relayDescriptorRawFilesDirectory = line.split(" ")[1];
         } else if (line.startsWith("WriteSanitizedBridges")) {
           this.writeSanitizedBridges = Integer.parseInt(
               line.split(" ")[1]) != 0;
@@ -199,7 +188,6 @@ public class Configuration {
         !this.importWriteTorperfStats &&
         !this.downloadProcessGetTorStats && !this.downloadExitList &&
         !this.writeDirectoryArchives &&
-        !this.writeRelayDescriptorDatabase &&
         !this.writeAggregateStatsDatabase &&
         !this.writeSanitizedBridges && !this.writeConsensusStats &&
         !this.writeBridgeStats) {
@@ -211,9 +199,7 @@ public class Configuration {
     }
     if ((this.importCachedRelayDescriptors ||
         this.importDirectoryArchives || this.downloadRelayDescriptors) &&
-        !(this.writeDirectoryArchives ||
-        this.writeRelayDescriptorDatabase ||
-        this.writeRelayDescriptorsRawFiles || this.writeConsensusStats ||
+        !(this.writeDirectoryArchives || this.writeConsensusStats ||
         this.writeBridgeStats)) {
       logger.warning("We are configured to import/download relay "
           + "descriptors, but we don't have a single data sink to write "
@@ -221,8 +207,7 @@ public class Configuration {
     }
     if (!(this.importCachedRelayDescriptors ||
         this.importDirectoryArchives || this.downloadRelayDescriptors) &&
-        (this.writeDirectoryArchives ||
-        this.writeRelayDescriptorDatabase)) {
+        this.writeDirectoryArchives) {
       logger.warning("We are configured to write relay descriptor to at "
           + "least one data sink, but we don't have a single data source "
           + "containing relay descriptors.");
@@ -281,20 +266,11 @@ public class Configuration {
   public boolean getKeepDirectoryArchiveImportHistory() {
     return this.keepDirectoryArchiveImportHistory;
   }
-  public boolean getWriteRelayDescriptorDatabase() {
-    return this.writeRelayDescriptorDatabase;
-  }
   public boolean getWriteAggregateStatsDatabase() {
     return this.writeAggregateStatsDatabase;
   }
   public String getRelayDescriptorDatabaseJDBC() {
     return this.relayDescriptorDatabaseJdbc;
-  }
-  public boolean getWriteRelayDescriptorsRawFiles() {
-    return this.writeRelayDescriptorsRawFiles;
-  }
-  public String getRelayDescriptorRawFilesDirectory() {
-    return this.relayDescriptorRawFilesDirectory;
   }
   public boolean getWriteSanitizedBridges() {
     return this.writeSanitizedBridges;
