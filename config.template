@@ -26,18 +26,6 @@
 ## download missing relay descriptors from
 #DownloadFromDirectoryAuthorities 86.59.21.38,194.109.206.212,212.112.245.170
 #
-## Import sanitized bridges from disk, if available
-#ImportSanitizedBridges 0
-#
-## Relative path to directory to import sanitized bridges from
-#SanitizedBridgesDirectory bridges/
-#
-## Keep a history of imported sanitized bridge descriptors. This history
-## can be useful when importing from a changing data source to avoid
-## importing descriptors more than once, but it can be confusing to users
-## who don't know about it.
-#KeepSanitizedBridgesImportHistory 0
-#
 ## Import bridge snapshots from disk, if available
 #ImportBridgeSnapshots 0
 #
@@ -75,10 +63,6 @@
 ## JDBC string for relay descriptor database
 #RelayDescriptorDatabaseJDBC jdbc:postgresql://localhost/tordir?user=ernie&password=password
 #
-## Write statistics about the current consensus and votes to the
-## website
-#WriteConsensusHealth 0
-#
 ## Write sanitized bridges to disk
 #WriteSanitizedBridges 0
 #
@@ -93,10 +77,4 @@
 #
 ## Relative path to directory to write sanitized bridges to
 #SanitizedBridgesWriteDirectory sanitized-bridges/
-#
-## Write consensus stats to disk
-#WriteConsensusStats 0
-#
-## Write bridge stats to disk
-#WriteBridgeStats 0
 

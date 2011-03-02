@@ -13,8 +13,6 @@ import java.util.logging.*;
  * configuration.
  */
 public class Configuration {
-  private boolean writeConsensusStats = false;
-  private boolean writeBridgeStats = false;
   private boolean writeDirectoryArchives = false;
   private String directoryArchivesOutputDirectory = "directory-archive/";
   private boolean importCachedRelayDescriptors = false;
@@ -30,9 +28,6 @@ public class Configuration {
   private boolean replaceIPAddressesWithHashes = false;
   private long limitBridgeDescriptorMappings = -1L;
   private String sanitizedBridgesWriteDirectory = "sanitized-bridges/";
-  private boolean importSanitizedBridges = false;
-  private String sanitizedBridgesDirectory = "bridges/";
-  private boolean keepSanitizedBridgesImportHistory = false;
   private boolean importBridgeSnapshots = false;
   private String bridgeSnapshotsDirectory = "bridge-directories/";
   private boolean importWriteTorperfStats = false;
@@ -67,12 +62,6 @@ public class Configuration {
       while ((line = br.readLine()) != null) {
         if (line.startsWith("#") || line.length() < 1) {
           continue;
-        } else if (line.startsWith("WriteConsensusStats")) {
-          this.writeConsensusStats = Integer.parseInt(
-              line.split(" ")[1]) != 0;
-        } else if (line.startsWith("WriteBridgeStats")) {
-          this.writeBridgeStats = Integer.parseInt(
-              line.split(" ")[1]) != 0;
         } else if (line.startsWith("WriteDirectoryArchives")) {
           this.writeDirectoryArchives = Integer.parseInt(
               line.split(" ")[1]) != 0;
@@ -111,14 +100,6 @@ public class Configuration {
               line.split(" ")[1]);
         } else if (line.startsWith("SanitizedBridgesWriteDirectory")) {
           this.sanitizedBridgesWriteDirectory = line.split(" ")[1];
-        } else if (line.startsWith("ImportSanitizedBridges")) {
-          this.importSanitizedBridges = Integer.parseInt(
-              line.split(" ")[1]) != 0;
-        } else if (line.startsWith("SanitizedBridgesDirectory")) {
-          this.sanitizedBridgesDirectory = line.split(" ")[1];
-        } else if (line.startsWith("KeepSanitizedBridgesImportHistory")) {
-          this.keepSanitizedBridgesImportHistory = Integer.parseInt(
-              line.split(" ")[1]) != 0;
         } else if (line.startsWith("ImportBridgeSnapshots")) {
           this.importBridgeSnapshots = Integer.parseInt(
               line.split(" ")[1]) != 0;
@@ -184,13 +165,11 @@ public class Configuration {
     /** Make some checks if configuration is valid. */
     if (!this.importCachedRelayDescriptors &&
         !this.importDirectoryArchives && !this.downloadRelayDescriptors &&
-        !this.importSanitizedBridges && !this.importBridgeSnapshots &&
-        !this.importWriteTorperfStats &&
+        !this.importBridgeSnapshots && !this.importWriteTorperfStats &&
         !this.downloadProcessGetTorStats && !this.downloadExitList &&
         !this.writeDirectoryArchives &&
         !this.writeAggregateStatsDatabase &&
-        !this.writeSanitizedBridges && !this.writeConsensusStats &&
-        !this.writeBridgeStats) {
+        !this.writeSanitizedBridges) {
       logger.warning("We have not been configured to read data from any "
           + "data source or write data to any data sink. You need to "
           + "edit your config file (" + configFile.getAbsolutePath()
@@ -199,8 +178,7 @@ public class Configuration {
     }
     if ((this.importCachedRelayDescriptors ||
         this.importDirectoryArchives || this.downloadRelayDescriptors) &&
-        !(this.writeDirectoryArchives || this.writeConsensusStats ||
-        this.writeBridgeStats)) {
+        !this.writeDirectoryArchives) {
       logger.warning("We are configured to import/download relay "
           + "descriptors, but we don't have a single data sink to write "
           + "relay descriptors to.");
@@ -212,23 +190,13 @@ public class Configuration {
           + "least one data sink, but we don't have a single data source "
           + "containing relay descriptors.");
     }
-    if (!(this.importCachedRelayDescriptors ||
-        this.importDirectoryArchives || this.downloadRelayDescriptors ||
-        this.importSanitizedBridges || this.importBridgeSnapshots) &&
-        (this.writeBridgeStats || this.writeConsensusStats)) {
-      logger.warning("We are configured to write relay or bridge "
-          + "descriptors to at least one data sink, but we have neither "
-          + "data sources containing relay nor bridge descriptors.");
-    }
-    if ((this.importSanitizedBridges || this.importBridgeSnapshots) &&
-        !(this.writeSanitizedBridges || this.writeConsensusStats ||
-        this.writeBridgeStats || this.writeAggregateStatsDatabase)) {
+    if (this.importBridgeSnapshots && !(this.writeSanitizedBridges ||
+        this.writeAggregateStatsDatabase)) {
       logger.warning("We are configured to import/download bridge "
           + "descriptors, but we don't have a single data sink to write "
           + "bridge descriptors to.");
     }
-    if (!(this.importSanitizedBridges || this.importBridgeSnapshots) &&
-        (this.writeSanitizedBridges)) {
+    if (!this.importBridgeSnapshots && this.writeSanitizedBridges) {
       logger.warning("We are configured to write bridge descriptor to at "
           + "least one data sink, but we don't have a single data source "
           + "containing bridge descriptors.");
@@ -238,12 +206,6 @@ public class Configuration {
       logger.warning("We are configured to download GetTor statistics, "
           + "but not to import them into the database.");
     }
-  }
-  public boolean getWriteConsensusStats() {
-    return this.writeConsensusStats;
-  }
-  public boolean getWriteBridgeStats() {
-    return this.writeBridgeStats;
   }
   public boolean getWriteDirectoryArchives() {
     return this.writeDirectoryArchives;
@@ -283,15 +245,6 @@ public class Configuration {
   }
   public String getSanitizedBridgesWriteDirectory() {
     return this.sanitizedBridgesWriteDirectory;
-  }
-  public boolean getImportSanitizedBridges() {
-    return this.importSanitizedBridges;
-  }
-  public String getSanitizedBridgesDirectory() {
-    return this.sanitizedBridgesDirectory;
-  }
-  public boolean getKeepSanitizedBridgesImportHistory() {
-    return this.keepSanitizedBridgesImportHistory;
   }
   public boolean getImportBridgeSnapshots() {
     return this.importBridgeSnapshots;

@@ -18,11 +18,6 @@ import org.apache.commons.codec.binary.*;
 public class RelayDescriptorParser {
 
   /**
-   * Stats file handler that accepts parse results for bridge statistics.
-   */
-  private BridgeStatsFileHandler bsfh;
-
-  /**
    * File writer that writes descriptor contents to files in a
    * directory-archive directory structure.
    */
@@ -44,9 +39,7 @@ public class RelayDescriptorParser {
   /**
    * Initializes this class.
    */
-  public RelayDescriptorParser(BridgeStatsFileHandler bsfh,
-      ArchiveWriter aw) {
-    this.bsfh = bsfh;
+  public RelayDescriptorParser(ArchiveWriter aw) {
     this.aw = aw;
 
     /* Initialize logger. */
@@ -121,11 +114,6 @@ public class RelayDescriptorParser {
           }
         }
         if (isConsensus) {
-          if (this.bsfh != null) {
-            for (String hashedRelayIdentity : hashedRelayIdentities) {
-              this.bsfh.addHashedRelay(hashedRelayIdentity);
-            }
-          }
           if (this.rdd != null) {
             this.rdd.haveParsedConsensus(validAfterTime, dirSources,
                 serverDescriptors);

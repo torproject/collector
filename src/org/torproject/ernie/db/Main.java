@@ -33,12 +33,6 @@ public class Main {
     // Define stats directory for temporary files
     File statsDirectory = new File("stats");
 
-    // Prepare bridge stats file handler
-    BridgeStatsFileHandler bsfh = config.getWriteBridgeStats() ?
-        new BridgeStatsFileHandler(
-        config.getWriteAggregateStatsDatabase() ?
-        config.getRelayDescriptorDatabaseJDBC() : null) : null;
-
     // Prepare writing relay descriptor archive to disk
     ArchiveWriter aw = config.getWriteDirectoryArchives() ?
         new ArchiveWriter(
@@ -46,9 +40,8 @@ public class Main {
 
     // Prepare relay descriptor parser (only if we are writing stats or
     // directory archives to disk)
-    RelayDescriptorParser rdp = config.getWriteBridgeStats() ||
-        config.getWriteDirectoryArchives() ?
-        new RelayDescriptorParser(bsfh, aw) : null;
+    RelayDescriptorParser rdp = aw != null ?
+        new RelayDescriptorParser(aw) : null;
 
     // Import/download relay descriptors from the various sources
     if (rdp != null) {
@@ -56,7 +49,7 @@ public class Main {
       if (config.getDownloadRelayDescriptors()) {
         List<String> dirSources =
             config.getDownloadFromDirectoryAuthorities();
-        boolean downloadCurrentConsensus = aw != null || bsfh != null;
+        boolean downloadCurrentConsensus = aw != null;
         boolean downloadCurrentVotes = aw != null;
         boolean downloadAllServerDescriptors = aw != null;
         boolean downloadAllExtraInfos = aw != null;
@@ -100,12 +93,6 @@ public class Main {
       aw = null;
     }
 
-    // Prepare consensus stats file handler
-    ConsensusStatsFileHandler csfh = config.getWriteConsensusStats() ?
-        new ConsensusStatsFileHandler(
-        config.getWriteAggregateStatsDatabase() ?
-        config.getRelayDescriptorDatabaseJDBC() : null) : null;
-
     // Prepare sanitized bridge descriptor writer
     SanitizedBridgesWriter sbw = config.getWriteSanitizedBridges() ?
         new SanitizedBridgesWriter(
@@ -114,16 +101,10 @@ public class Main {
         config.getLimitBridgeDescriptorMappings()) : null;
 
     // Prepare bridge descriptor parser
-    BridgeDescriptorParser bdp = config.getWriteConsensusStats() ||
-        config.getWriteBridgeStats() || config.getWriteSanitizedBridges()
-        ? new BridgeDescriptorParser(csfh, bsfh, sbw) : null;
+    BridgeDescriptorParser bdp = config.getWriteSanitizedBridges()
+        ? new BridgeDescriptorParser(sbw) : null;
 
     // Import bridge descriptors
-    if (bdp != null && config.getImportSanitizedBridges()) {
-      new SanitizedBridgesReader(bdp,
-          new File(config.getSanitizedBridgesDirectory()),
-          statsDirectory, config.getKeepSanitizedBridgesImportHistory());
-    }
     if (bdp != null && config.getImportBridgeSnapshots()) {
       new BridgeSnapshotReader(bdp,
           new File(config.getBridgeSnapshotsDirectory()),
@@ -134,16 +115,6 @@ public class Main {
     if (sbw != null) {
       sbw.finishWriting();
       sbw = null;
-    }
-
-    // Write updated stats files to disk
-    if (bsfh != null) {
-      bsfh.writeFiles();
-      bsfh = null;
-    }
-    if (csfh != null) {
-      csfh.writeFiles();
-      csfh = null;
     }
 
     // Import and process torperf stats
