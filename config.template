@@ -32,11 +32,14 @@
 ## Relative path to directory to import bridge descriptor snapshots from
 #BridgeSnapshotsDirectory bridge-directories/
 #
-## Download and process GetTor stats
-#DownloadProcessGetTorStats 0
+## Download GetTor stats
+#DownloadGetTorStats 0
 #
 ## URL to download GetTor stats from
 #GetTorStatsURL http://gettor.torproject.org:8080/~gettor/gettor_stats.txt
+#
+## Relative path to directory to store GetTor stats in
+#GetTorDirectory gettor/
 #
 ## Download exit list and store it to disk
 #DownloadExitList 0
@@ -48,14 +51,6 @@
 #
 ## Relative path to directory to write directory archives to
 #DirectoryArchivesOutputDirectory directory-archive/
-#
-## Write aggregate statistics (bridges and bridge users per day, directory
-## clients per day, torperf results, packages requested from GetTor, etc.)
-## to database for later evaluation
-#WriteAggregateStatsDatabase 0
-#
-## JDBC string for relay descriptor database
-#RelayDescriptorDatabaseJDBC jdbc:postgresql://localhost/tordir?user=ernie&password=password
 #
 ## Write sanitized bridges to disk
 #WriteSanitizedBridges 0

@@ -21,7 +21,6 @@ public class Configuration {
   private boolean importDirectoryArchives = false;
   private String directoryArchivesDirectory = "archives/";
   private boolean keepDirectoryArchiveImportHistory = false;
-  private boolean writeAggregateStatsDatabase = false;
   private String relayDescriptorDatabaseJdbc =
       "jdbc:postgresql://localhost/tordir?user=ernie&password=password";
   private boolean writeSanitizedBridges = false;
@@ -33,9 +32,10 @@ public class Configuration {
   private boolean downloadRelayDescriptors = false;
   private List<String> downloadFromDirectoryAuthorities = Arrays.asList(
       "86.59.21.38,194.109.206.212,80.190.246.100:8180".split(","));
-  private boolean downloadProcessGetTorStats = false;
+  private boolean downloadGetTorStats = false;
   private String getTorStatsUrl = "http://gettor.torproject.org:8080/"
       + "~gettor/gettor_stats.txt";
+  private String getTorDirectory = "gettor/";
   private boolean downloadExitList = false;
   public Configuration() {
 
@@ -82,11 +82,6 @@ public class Configuration {
         } else if (line.startsWith("KeepDirectoryArchiveImportHistory")) {
           this.keepDirectoryArchiveImportHistory = Integer.parseInt(
               line.split(" ")[1]) != 0;
-        } else if (line.startsWith("WriteAggregateStatsDatabase")) {
-          this.writeAggregateStatsDatabase = Integer.parseInt(
-              line.split(" ")[1]) != 0;
-        } else if (line.startsWith("RelayDescriptorDatabaseJDBC")) {
-          this.relayDescriptorDatabaseJdbc = line.split(" ")[1];
         } else if (line.startsWith("WriteSanitizedBridges")) {
           this.writeSanitizedBridges = Integer.parseInt(
               line.split(" ")[1]) != 0;
@@ -119,14 +114,16 @@ public class Configuration {
             new URL("http://" + dir + "/");
             this.downloadFromDirectoryAuthorities.add(dir);
           }
-        } else if (line.startsWith("DownloadProcessGetTorStats")) {
-          this.downloadProcessGetTorStats = Integer.parseInt(
+        } else if (line.startsWith("DownloadGetTorStats")) {
+          this.downloadGetTorStats = Integer.parseInt(
               line.split(" ")[1]) != 0;
         } else if (line.startsWith("GetTorStatsURL")) {
           String newUrl = line.split(" ")[1];
           /* Test if URL has correct format. */
           new URL(newUrl);
           this.getTorStatsUrl = newUrl;
+        } else if (line.startsWith("GetTorDirectory")) {
+          this.getTorDirectory = line.split(" ")[1];
         } else if (line.startsWith("DownloadExitList")) {
           this.downloadExitList = Integer.parseInt(
               line.split(" ")[1]) != 0;
@@ -158,9 +155,8 @@ public class Configuration {
     /** Make some checks if configuration is valid. */
     if (!this.importCachedRelayDescriptors &&
         !this.importDirectoryArchives && !this.downloadRelayDescriptors &&
-        !this.importBridgeSnapshots && !this.downloadProcessGetTorStats &&
+        !this.importBridgeSnapshots && !this.downloadGetTorStats &&
         !this.downloadExitList && !this.writeDirectoryArchives &&
-        !this.writeAggregateStatsDatabase &&
         !this.writeSanitizedBridges) {
       logger.warning("We have not been configured to read data from any "
           + "data source or write data to any data sink. You need to "
@@ -182,8 +178,7 @@ public class Configuration {
           + "least one data sink, but we don't have a single data source "
           + "containing relay descriptors.");
     }
-    if (this.importBridgeSnapshots && !(this.writeSanitizedBridges ||
-        this.writeAggregateStatsDatabase)) {
+    if (this.importBridgeSnapshots && !this.writeSanitizedBridges) {
       logger.warning("We are configured to import/download bridge "
           + "descriptors, but we don't have a single data sink to write "
           + "bridge descriptors to.");
@@ -192,11 +187,6 @@ public class Configuration {
       logger.warning("We are configured to write bridge descriptor to at "
           + "least one data sink, but we don't have a single data source "
           + "containing bridge descriptors.");
-    }
-    if (this.downloadProcessGetTorStats &&
-        !this.writeAggregateStatsDatabase) {
-      logger.warning("We are configured to download GetTor statistics, "
-          + "but not to import them into the database.");
     }
   }
   public boolean getWriteDirectoryArchives() {
@@ -219,12 +209,6 @@ public class Configuration {
   }
   public boolean getKeepDirectoryArchiveImportHistory() {
     return this.keepDirectoryArchiveImportHistory;
-  }
-  public boolean getWriteAggregateStatsDatabase() {
-    return this.writeAggregateStatsDatabase;
-  }
-  public String getRelayDescriptorDatabaseJDBC() {
-    return this.relayDescriptorDatabaseJdbc;
   }
   public boolean getWriteSanitizedBridges() {
     return this.writeSanitizedBridges;
@@ -250,11 +234,14 @@ public class Configuration {
   public List<String> getDownloadFromDirectoryAuthorities() {
     return this.downloadFromDirectoryAuthorities;
   }
-  public boolean getDownloadProcessGetTorStats() {
-    return this.downloadProcessGetTorStats;
+  public boolean getDownloadGetTorStats() {
+    return this.downloadGetTorStats;
   }
   public String getGetTorStatsUrl() {
     return this.getTorStatsUrl;
+  }
+  public String getGetTorDirectory() {
+    return this.getTorDirectory;
   }
   public boolean getDownloadExitList() {
     return this.downloadExitList;

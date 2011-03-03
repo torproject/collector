@@ -118,10 +118,9 @@ public class Main {
     }
 
     // Download and process GetTor stats
-    if (config.getDownloadProcessGetTorStats()) {
-      new GetTorProcessor(config.getGetTorStatsUrl(),
-          config.getWriteAggregateStatsDatabase() ?
-          config.getRelayDescriptorDatabaseJDBC() : null);
+    if (config.getDownloadGetTorStats()) {
+      new GetTorDownloader(config.getGetTorStatsUrl(),
+          new File(config.getGetTorDirectory()));
     }
 
     // Download exit list and store it to disk
