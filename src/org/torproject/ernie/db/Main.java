@@ -117,14 +117,6 @@ public class Main {
       sbw = null;
     }
 
-    // Import and process torperf stats
-    if (config.getImportWriteTorperfStats()) {
-      new TorperfProcessor(new File(config.getTorperfDirectory()),
-          statsDirectory,
-          config.getWriteAggregateStatsDatabase() ?
-          config.getRelayDescriptorDatabaseJDBC() : null);
-    }
-
     // Download and process GetTor stats
     if (config.getDownloadProcessGetTorStats()) {
       new GetTorProcessor(config.getGetTorStatsUrl(),

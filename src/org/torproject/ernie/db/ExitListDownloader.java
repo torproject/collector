@@ -10,7 +10,7 @@ import java.util.logging.*;
 
 public class ExitListDownloader {
   public ExitListDownloader() {
-    Logger logger = Logger.getLogger(TorperfProcessor.class.getName());
+    Logger logger = Logger.getLogger(ExitListDownloader.class.getName());
     try {
       logger.fine("Downloading exit list...");
       String exitAddressesUrl =

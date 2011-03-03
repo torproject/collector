@@ -32,12 +32,6 @@
 ## Relative path to directory to import bridge descriptor snapshots from
 #BridgeSnapshotsDirectory bridge-directories/
 #
-## Import torperf data, if available, and write stats to disk
-#ImportWriteTorperfStats 0
-#
-## Relative path to directory to import torperf results from
-#TorperfDirectory torperf/
-#
 ## Download and process GetTor stats
 #DownloadProcessGetTorStats 0
 #

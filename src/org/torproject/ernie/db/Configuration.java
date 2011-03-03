@@ -30,8 +30,6 @@ public class Configuration {
   private String sanitizedBridgesWriteDirectory = "sanitized-bridges/";
   private boolean importBridgeSnapshots = false;
   private String bridgeSnapshotsDirectory = "bridge-directories/";
-  private boolean importWriteTorperfStats = false;
-  private String torperfDirectory = "torperf/";
   private boolean downloadRelayDescriptors = false;
   private List<String> downloadFromDirectoryAuthorities = Arrays.asList(
       "86.59.21.38,194.109.206.212,80.190.246.100:8180".split(","));
@@ -105,11 +103,6 @@ public class Configuration {
               line.split(" ")[1]) != 0;
         } else if (line.startsWith("BridgeSnapshotsDirectory")) {
           this.bridgeSnapshotsDirectory = line.split(" ")[1];
-        } else if (line.startsWith("ImportWriteTorperfStats")) {
-          this.importWriteTorperfStats = Integer.parseInt(
-              line.split(" ")[1]) != 0;
-        } else if (line.startsWith("TorperfDirectory")) {
-          this.torperfDirectory = line.split(" ")[1];
         } else if (line.startsWith("DownloadRelayDescriptors")) {
           this.downloadRelayDescriptors = Integer.parseInt(
               line.split(" ")[1]) != 0;
@@ -165,9 +158,8 @@ public class Configuration {
     /** Make some checks if configuration is valid. */
     if (!this.importCachedRelayDescriptors &&
         !this.importDirectoryArchives && !this.downloadRelayDescriptors &&
-        !this.importBridgeSnapshots && !this.importWriteTorperfStats &&
-        !this.downloadProcessGetTorStats && !this.downloadExitList &&
-        !this.writeDirectoryArchives &&
+        !this.importBridgeSnapshots && !this.downloadProcessGetTorStats &&
+        !this.downloadExitList && !this.writeDirectoryArchives &&
         !this.writeAggregateStatsDatabase &&
         !this.writeSanitizedBridges) {
       logger.warning("We have not been configured to read data from any "
@@ -251,12 +243,6 @@ public class Configuration {
   }
   public String getBridgeSnapshotsDirectory() {
     return this.bridgeSnapshotsDirectory;
-  }
-  public boolean getImportWriteTorperfStats() {
-    return this.importWriteTorperfStats;
-  }
-  public String getTorperfDirectory() {
-    return this.torperfDirectory;
   }
   public boolean getDownloadRelayDescriptors() {
     return this.downloadRelayDescriptors;

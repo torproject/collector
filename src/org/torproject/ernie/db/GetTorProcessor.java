@@ -10,7 +10,7 @@ import java.util.logging.*;
 
 public class GetTorProcessor {
   public GetTorProcessor(String gettorStatsUrl, String connectionURL) {
-    Logger logger = Logger.getLogger(TorperfProcessor.class.getName());
+    Logger logger = Logger.getLogger(GetTorProcessor.class.getName());
     String unparsed = null;
     try {
       logger.fine("Downloading gettor stats...");
