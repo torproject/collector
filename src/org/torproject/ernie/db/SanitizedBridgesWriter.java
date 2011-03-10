@@ -403,6 +403,7 @@ public class SanitizedBridgesWriter {
       BufferedReader br = new BufferedReader(new StringReader(new String(
           data, "US-ASCII")));
       String line = null;
+      String mostRecentDescPublished = null;
       while ((line = br.readLine()) != null) {
 
         /* r lines contain sensitive information that needs to be removed
@@ -431,6 +432,13 @@ public class SanitizedBridgesWriter {
             mapping = new DescriptorMapping(hashedBridgeIdentityHex.
                 toLowerCase(), descPublicationTime);
             this.bridgeDescriptorMappings.put(mappingKey, mapping);
+          }
+
+          /* Determine most recent descriptor publication time. */
+          if (descPublicationTime.compareTo(publicationTime) <= 0 &&
+              (mostRecentDescPublished == null ||
+              descPublicationTime.compareTo(mostRecentDescPublished) > 0)) {
+            mostRecentDescPublished = descPublicationTime;
           }
 
           /* Write scrubbed r line to buffer. */
@@ -480,6 +488,23 @@ public class SanitizedBridgesWriter {
         scrubbed = new StringBuilder();
       }
 
+      /* Check if we can tell from the descriptor publication times
+       * whether this status is possibly stale. */
+      SimpleDateFormat formatter = new SimpleDateFormat(
+          "yyyy-MM-dd HH:mm:ss");
+      formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+      if (formatter.parse(publicationTime).getTime() -
+          formatter.parse(mostRecentDescPublished).getTime() >
+          60L * 60L * 1000L) {
+        this.logger.warning("The most recent descriptor in the bridge "
+            + "network status published at " + publicationTime + " was "
+            + "published at " + mostRecentDescPublished + " which is "
+            + "more than 1 hour before the status. This is a sign for "
+            + "the status being stale. Please check!");
+      }
+    } catch (ParseException e) {
+      this.logger.log(Level.WARNING, "Could not parse timestamp in "
+          + "bridge network status.", e);
     } catch (IOException e) {
       this.logger.log(Level.WARNING, "Could not parse bridge network "
           + "status.", e);
