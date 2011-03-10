@@ -22,7 +22,7 @@ public class BridgeDescriptorParser {
           new String(allData, "US-ASCII")));
       boolean skip = false;
       String line = br.readLine();
-      if (line != null) {
+      if (line == null) {
         return;
       } else if (line.startsWith("r ")) {
         if (this.sbw != null) {
