@@ -37,6 +37,9 @@ public class Configuration {
       + "~gettor/gettor_stats.txt";
   private String getTorDirectory = "gettor/";
   private boolean downloadExitList = false;
+  private boolean processBridgePoolAssignments = false;
+  private String assignmentsDirectory = "assignments/";
+  private String sanitizedAssignmentsDirectory = "sanitized-assignments/";
   public Configuration() {
 
     /* Initialize logger. */
@@ -127,6 +130,13 @@ public class Configuration {
         } else if (line.startsWith("DownloadExitList")) {
           this.downloadExitList = Integer.parseInt(
               line.split(" ")[1]) != 0;
+        } else if (line.startsWith("ProcessBridgePoolAssignments")) {
+          this.processBridgePoolAssignments = Integer.parseInt(
+              line.split(" ")[1]) != 0;
+        } else if (line.startsWith("AssignmentsDirectory")) {
+          this.assignmentsDirectory = line.split(" ")[1];
+        } else if (line.startsWith("SanitizedAssignmentsDirectory")) {
+          this.sanitizedAssignmentsDirectory = line.split(" ")[1];
         } else {
           logger.severe("Configuration file contains unrecognized "
               + "configuration key in line '" + line + "'! Exiting!");
@@ -156,8 +166,8 @@ public class Configuration {
     if (!this.importCachedRelayDescriptors &&
         !this.importDirectoryArchives && !this.downloadRelayDescriptors &&
         !this.importBridgeSnapshots && !this.downloadGetTorStats &&
-        !this.downloadExitList && !this.writeDirectoryArchives &&
-        !this.writeSanitizedBridges) {
+        !this.downloadExitList && !this.processBridgePoolAssignments &&
+        !this.writeDirectoryArchives && !this.writeSanitizedBridges) {
       logger.warning("We have not been configured to read data from any "
           + "data source or write data to any data sink. You need to "
           + "edit your config file (" + configFile.getAbsolutePath()
@@ -245,6 +255,15 @@ public class Configuration {
   }
   public boolean getDownloadExitList() {
     return this.downloadExitList;
+  }
+  public boolean getProcessBridgePoolAssignments() {
+    return processBridgePoolAssignments;
+  }
+  public String getAssignmentsDirectory() {
+    return assignmentsDirectory;
+  }
+  public String getSanitizedAssignmentsDirectory() {
+    return sanitizedAssignmentsDirectory;
   }
 }
 

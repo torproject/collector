@@ -128,6 +128,13 @@ public class Main {
       new ExitListDownloader();
     }
 
+    // Process bridge pool assignments
+    if (config.getProcessBridgePoolAssignments()) {
+      new BridgePoolAssignmentsProcessor(
+          new File(config.getAssignmentsDirectory()),
+          new File(config.getSanitizedAssignmentsDirectory()));
+    }
+
     // Remove lock file
     lf.releaseLock();
 

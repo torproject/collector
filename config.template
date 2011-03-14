@@ -44,6 +44,13 @@
 ## Download exit list and store it to disk
 #DownloadExitList 0
 #
+## Process bridge pool assignment files by sanitizing bridge fingerprints
+## and sorting sanitized files into subdirectories
+#ProcessBridgePoolAssignments 0
+#
+## Relative path to directory to read bridge pool assignment files from
+#AssignmentsDirectory assignments/
+#
 #### Data sinks ####
 #
 ## Write directory archives to disk
@@ -66,4 +73,8 @@
 #
 ## Relative path to directory to write sanitized bridges to
 #SanitizedBridgesWriteDirectory sanitized-bridges/
+#
+## Relative path to directory to write sanitized bridge pool assignment
+## files to
+#SanitizedAssignmentsDirectory sanitized-assignments/
 
