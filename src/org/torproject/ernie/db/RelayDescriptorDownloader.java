@@ -7,27 +7,29 @@ import java.net.*;
 import java.text.*;
 import java.util.*;
 import java.util.logging.*;
+import java.util.zip.*;
 
 import org.apache.commons.codec.digest.*;
 import org.apache.commons.codec.binary.*;
 
 /**
- * Downloads missing relay descriptors from the directories via HTTP.
+ * Downloads relay descriptors from the directory authorities via HTTP.
  * Keeps a list of missing descriptors that gets updated by parse results
- * from <code>RelayDescriptorParser</code>. Only descriptors on that
- * missing list that we think might be available on the directories are
- * downloaded.
+ * from <code>RelayDescriptorParser</code> and downloads all missing
+ * descriptors that have been published in the last 24 hours. Also
+ * downloads all server and extra-info descriptors known to a directory
+ * authority at most once a day.
  */
 public class RelayDescriptorDownloader {
 
   /**
    * Text file containing the descriptors that we are missing and that we
-   * want to download in <code>downloadMissingDescriptors</code>.
-   * Lines are formatted as:
+   * want to download. Lines are formatted as:
+   *
    * - "consensus,<validafter>,<parsed>",
    * - "vote,<validafter>,<fingerprint>,<parsed>",
    * - "server,<published>,<relayid>,<descid>,<parsed>", or
-   * - "extra,<published>,<relayid>,<descid><parsed>".
+   * - "extra,<published>,<relayid>,<descid>,<parsed>".
    */
   private File missingDescriptorsFile;
 
@@ -35,9 +37,24 @@ public class RelayDescriptorDownloader {
    * Relay descriptors that we are missing and that we want to download
    * either in this execution or write to disk and try next time. Map keys
    * contain comma-separated values as in the missing descriptors files
-   * without the parsed column. Map values contain the parsed column.
+   * without the "parsed" column. Map values contain the "parsed" column.
    */
   private SortedMap<String, String> missingDescriptors;
+
+  /**
+   * Text file containing the IP addresses (and Dir ports if not 80) of
+   * directory authorities and when we last downloaded all server and
+   * extra-info descriptors from them, so that we can avoid downloading
+   * them too often.
+   */
+  private File lastDownloadedAllDescriptorsFile;
+
+  /**
+   * Map of directory authorities and when we last downloaded all server
+   * and extra-info descriptors from them. Map keys are IP addresses (and
+   * Dir ports if not 80), map values are timestamps.
+   */
+  private Map<String, String> lastDownloadedAllDescriptors;
 
   /**
    * <code>RelayDescriptorParser</code> that we will hand over the
@@ -46,14 +63,10 @@ public class RelayDescriptorDownloader {
   private RelayDescriptorParser rdp;
 
   /**
-   * Directories that we will try to download missing descriptors from.
+   * Directory authorities that we will try to download missing
+   * descriptors from.
    */
-  private List<String> dirSources;
-
-  /**
-   * Number of descriptors requested by directory to be included in logs.
-   */
-  private Map<String, Integer> dirRequests;
+  private List<String> authorities;
 
   /**
    * Should we try to download the current consensus if we don't have it?
@@ -66,22 +79,41 @@ public class RelayDescriptorDownloader {
   private boolean downloadCurrentVotes;
 
   /**
-   * Should we try to download all missing server descriptors that have
+   * Should we try to download missing server descriptors that have been
+   * published within the past 24 hours?
+   */
+  private boolean downloadMissingServerDescriptors;
+
+  /**
+   * Should we try to download missing extra-info descriptors that have
    * been published within the past 24 hours?
+   */
+  private boolean downloadMissingExtraInfos;
+
+  /**
+   * Should we try to download all server descriptors from the authorities
+   * once every 24 hours?
    */
   private boolean downloadAllServerDescriptors;
 
   /**
-   * Should we try to download all missing extra-info descriptors that
-   * have been published within the past 24 hours?
+   * Should we try to download all extra-info descriptors from the
+   * authorities once every 24 hours?
    */
   private boolean downloadAllExtraInfos;
 
   /**
+   * Should we download zlib-compressed versions of descriptors by adding
+   * ".z" to URLs?
+   */
+  private boolean downloadCompressed;
+
+  /**
    * valid-after time that we expect the current consensus and votes to
    * have, formatted "yyyy-MM-dd HH:mm:ss". We only expect to find
-   * consensuses and votes with this valid-after time on the directories.
-   * This time is initialized as the beginning of the current hour.
+   * consensuses and votes with this valid-after time on the directory
+   * authorities. This time is initialized as the beginning of the current
+   * hour.
    */
   private String currentValidAfter;
 
@@ -93,77 +125,115 @@ public class RelayDescriptorDownloader {
   private String descriptorCutOff;
 
   /**
-   * Current timestamp that is written to the missing list for descriptors
-   * that we parsed in this execution. This timestamp is most useful for
-   * debugging purposes when looking at the missing list. For execution it
-   * only matters whether the parsed time is "NA" or has some other value.
+   * Cut-off time for downloading all server and extra-info descriptors
+   * from the directory authorities, formatted "yyyy-MM-dd HH:mm:ss". This
+   * time is initialized as the current system time minus 23:30 hours.
    */
-  private String parsedTimestampString;
+  private String downloadAllDescriptorsCutOff;
+
+  /**
+   * Directory authorities that we plan to download all server and
+   * extra-info descriptors from in this execution.
+   */
+  private Set<String> downloadAllDescriptorsFromAuthorities;
+
+  /**
+   * Current timestamp that is written to the missing list for descriptors
+   * that we parsed in this execution and for authorities that we
+   * downloaded all server and extra-info descriptors from.
+   */
+  private String currentTimestamp;
 
   /**
    * Logger for this class.
    */
   private Logger logger;
 
-  private StringBuilder dumpStats;
-  private int newMissingConsensuses = 0, newMissingVotes = 0,
+  /**
+   * Number of descriptors requested by directory authority to be included
+   * in logs.
+   */
+  private Map<String, Integer> requestsByAuthority;
+
+  /**
+   * Counters for descriptors that we had on the missing list at the
+   * beginning of the execution, that we added to the missing list,
+   * that we requested, and that we successfully downloaded in this
+   * execution.
+   */
+  private int oldMissingConsensuses = 0, oldMissingVotes = 0,
+      oldMissingServerDescriptors = 0, oldMissingExtraInfoDescriptors = 0,
+      newMissingConsensuses = 0, newMissingVotes = 0,
       newMissingServerDescriptors = 0, newMissingExtraInfoDescriptors = 0,
-      triedConsensuses = 0, triedVotes = 0, triedServerDescriptors = 0,
-      triedExtraInfoDescriptors = 0, downloadedConsensuses = 0,
-      downloadedVotes = 0, downloadedServerDescriptors = 0,
-      downloadedExtraInfoDescriptors = 0;
+      requestedConsensuses = 0, requestedVotes = 0,
+      requestedMissingServerDescriptors = 0,
+      requestedAllServerDescriptors = 0,
+      requestedMissingExtraInfoDescriptors = 0,
+      requestedAllExtraInfoDescriptors = 0, downloadedConsensuses = 0,
+      downloadedVotes = 0, downloadedMissingServerDescriptors = 0,
+      downloadedAllServerDescriptors = 0,
+      downloadedMissingExtraInfoDescriptors = 0,
+      downloadedAllExtraInfoDescriptors = 0;
+
   /**
    * Initializes this class, including reading in missing descriptors from
-   * <code>stats/missing-relay-descriptors</code>.
+   * <code>stats/missing-relay-descriptors</code> and the times when we
+   * last downloaded all server and extra-info descriptors from
+   * <code>stats/last-downloaded-all-descriptors</code>.
    */
   public RelayDescriptorDownloader(RelayDescriptorParser rdp,
-      List<String> dirSources, boolean downloadCurrentConsensus,
-      boolean downloadCurrentVotes, boolean downloadAllServerDescriptors,
-      boolean downloadAllExtraInfos) {
+      List<String> authorities, boolean downloadCurrentConsensus,
+      boolean downloadCurrentVotes,
+      boolean downloadMissingServerDescriptors,
+      boolean downloadMissingExtraInfos,
+      boolean downloadAllServerDescriptors, boolean downloadAllExtraInfos,
+      boolean downloadCompressed) {
 
     /* Memorize argument values. */
     this.rdp = rdp;
-    this.dirSources = dirSources;
+    this.authorities = new ArrayList<String>(authorities);
     this.downloadCurrentConsensus = downloadCurrentConsensus;
     this.downloadCurrentVotes = downloadCurrentVotes;
+    this.downloadMissingServerDescriptors =
+        downloadMissingServerDescriptors;
+    this.downloadMissingExtraInfos = downloadMissingExtraInfos;
     this.downloadAllServerDescriptors = downloadAllServerDescriptors;
     this.downloadAllExtraInfos = downloadAllExtraInfos;
+    this.downloadCompressed = downloadCompressed;
+
+    /* Shuffle list of authorities for better load balancing over time. */
+    Collections.shuffle(this.authorities);
 
     /* Initialize logger. */
-    this.logger = Logger.getLogger(RelayDescriptorParser.class.getName());
+    this.logger = Logger.getLogger(
+        RelayDescriptorDownloader.class.getName());
 
-    /* Prepare cut-off times and timestamp for missing descriptors
-     * list. */
+    /* Prepare cut-off times and timestamp for the missing descriptors
+     * list and the list of authorities to download all server and
+     * extra-info descriptors from. */
     SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     format.setTimeZone(TimeZone.getTimeZone("UTC"));
     long now = System.currentTimeMillis();
     this.currentValidAfter = format.format((now / (60L * 60L * 1000L)) *
         (60L * 60L * 1000L));
     this.descriptorCutOff = format.format(now - 24L * 60L * 60L * 1000L);
-    this.parsedTimestampString = format.format(now);
-
-    /* Initialize missing list and put current consensus on it if we want
-     * it. */
-    this.missingDescriptors = new TreeMap<String, String>();
-    if (this.downloadCurrentConsensus) {
-      this.missingDescriptors.put("consensus," + this.currentValidAfter,
-          "NA");
-    }
+    this.currentTimestamp = format.format(now);
+    this.downloadAllDescriptorsCutOff = format.format(now
+        - 23L * 60L * 60L * 1000L - 30L * 60L * 1000L);
 
     /* Read list of missing descriptors from disk and memorize those that
      * we are interested in and that are likely to be found on the
-     * directory servers. */
+     * directory authorities. */
+    this.missingDescriptors = new TreeMap<String, String>();
     this.missingDescriptorsFile = new File(
         "stats/missing-relay-descriptors");
-    int missingConsensuses = 0, missingVotes = 0,
-        missingServerDescriptors = 0, missingExtraInfoDescriptors = 0;
     if (this.missingDescriptorsFile.exists()) {
       try {
         this.logger.fine("Reading file "
             + this.missingDescriptorsFile.getAbsolutePath() + "...");
         BufferedReader br = new BufferedReader(new FileReader(
             this.missingDescriptorsFile));
-        String line = null;
+        String line;
         while ((line = br.readLine()) != null) {
           if (line.split(",").length > 2) {
             String published = line.split(",")[1];
@@ -172,17 +242,17 @@ public class RelayDescriptorDownloader {
                 this.currentValidAfter.equals(published)) ||
                 ((line.startsWith("server,") ||
                 line.startsWith("extra,")) &&
-                this.descriptorCutOff.compareTo(published) <= 0)) {
+                this.descriptorCutOff.compareTo(published) < 0)) {
               if (!line.endsWith("NA")) {
                 /* Not missing. */
               } else if (line.startsWith("consensus,")) {
-                missingConsensuses++;
+                oldMissingConsensuses++;
               } else if (line.startsWith("vote,")) {
-                missingVotes++;
+                oldMissingVotes++;
               } else if (line.startsWith("server,")) {
-                missingServerDescriptors++;
+                oldMissingServerDescriptors++;
               } else if (line.startsWith("extra,")) {
-                missingExtraInfoDescriptors++;
+                oldMissingExtraInfoDescriptors++;
               }
               int separateAt = line.lastIndexOf(",");
               this.missingDescriptors.put(line.substring(0,
@@ -205,86 +275,131 @@ public class RelayDescriptorDownloader {
       }
     }
 
-    dumpStats = new StringBuilder();
-    dumpStats.append("Finished downloading relay descriptors from the "
-        + "directory authorities:\nAt the beginning of this execution, "
-        + "we were missing " + missingConsensuses + " consensus(es), "
-        + missingVotes + " vote(s), " + missingServerDescriptors
-        + " server descriptor(s), and " + missingExtraInfoDescriptors
-        + " extra-info descriptor(s).\n");
+    /* Put the current consensus on the missing list, unless we already
+     * have it. */
+    String consensusKey = "consensus," + this.currentValidAfter;
+    if (!this.missingDescriptors.containsKey(consensusKey)) {
+      this.missingDescriptors.put(consensusKey, "NA");
+      this.newMissingConsensuses++;
+    }
 
-    dirRequests = new HashMap<String, Integer>();
-    for (String dirSource : dirSources) {
-      dirRequests.put(dirSource, 0);
+    /* Read list of directory authorities and when we last downloaded all
+     * server and extra-info descriptors from them. */
+    this.lastDownloadedAllDescriptors = new HashMap<String, String>();
+    this.lastDownloadedAllDescriptorsFile = new File(
+        "stats/last-downloaded-all-descriptors");
+    if (this.lastDownloadedAllDescriptorsFile.exists()) {
+      try {
+        this.logger.fine("Reading file "
+            + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
+            + "...");
+        BufferedReader br = new BufferedReader(new FileReader(
+            this.lastDownloadedAllDescriptorsFile));
+        String line;
+        while ((line = br.readLine()) != null) {
+          if (line.split(",").length != 2) {
+            this.logger.fine("Invalid line '" + line + "' in "
+                + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
+                + ". Ignoring.");
+          } else {
+            String[] parts = line.split(",");
+            String authority = parts[0];
+            String lastDownloaded = parts[1];
+            this.lastDownloadedAllDescriptors.put(authority,
+                lastDownloaded);
+          }
+        }
+        br.close();
+        this.logger.fine("Finished reading file "
+            + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
+            + ".");
+      } catch (IOException e) {
+        this.logger.log(Level.WARNING, "Failed to read file "
+            + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
+            + "! This means that we might download all server and "
+            + "extra-info descriptors more often than we should.", e);
+      }
+    }
+
+    /* Make a list of directory authorities that we want to download all
+     * server and extra-info descriptors from. */
+    this.downloadAllDescriptorsFromAuthorities = new HashSet<String>();
+    for (String authority : this.authorities) {
+      if (!this.lastDownloadedAllDescriptors.containsKey(authority) ||
+          this.lastDownloadedAllDescriptors.get(authority).compareTo(
+          this.downloadAllDescriptorsCutOff) < 0) {
+        this.downloadAllDescriptorsFromAuthorities.add(authority);
+      }
+    }
+
+    /* Prepare statistics on this execution. */
+    this.requestsByAuthority = new HashMap<String, Integer>();
+    for (String authority : this.authorities) {
+      this.requestsByAuthority.put(authority, 0);
     }
   }
 
   /**
    * We have parsed a consensus. Take this consensus off the missing list
-   * and add the votes created by the given <code>dirSources</code> and
-   * the <code>serverDescriptors</code> in the format
+   * and add the votes created by the given <code>authorities</code> and
+   * the <code>serverDescriptors</code> which are in the format
    * "<published>,<relayid>,<descid>" to that list.
    */
   public void haveParsedConsensus(String validAfter,
-      Set<String> dirSources, Set<String> serverDescriptors) {
+      Set<String> authorities, Set<String> serverDescriptors) {
 
     /* Mark consensus as parsed. */
     if (this.currentValidAfter.equals(validAfter)) {
       String consensusKey = "consensus," + validAfter;
-      this.missingDescriptors.put(consensusKey,
-          this.parsedTimestampString);
+      this.missingDescriptors.put(consensusKey, this.currentTimestamp);
 
       /* Add votes to missing list. */
-      if (this.downloadCurrentVotes) {
-        for (String dirSource : dirSources) {
-          String voteKey = "vote," + validAfter + "," + dirSource;
-          if (!this.missingDescriptors.containsKey(voteKey)) {
-            this.missingDescriptors.put(voteKey, "NA");
-            this.newMissingVotes++;
-          }
+      for (String authority : authorities) {
+        String voteKey = "vote," + validAfter + "," + authority;
+        if (!this.missingDescriptors.containsKey(voteKey)) {
+          this.missingDescriptors.put(voteKey, "NA");
+          this.newMissingVotes++;
         }
       }
     }
 
     /* Add server descriptors to missing list. */
-    if (this.downloadAllServerDescriptors) {
-      for (String serverDescriptor : serverDescriptors) {
-        String published = serverDescriptor.split(",")[0];
-        if (this.descriptorCutOff.compareTo(published) <= 0) {
-          String serverDescriptorKey = "server," + serverDescriptor;
-          if (!this.missingDescriptors.containsKey(
-              serverDescriptorKey)) {
-            this.missingDescriptors.put(serverDescriptorKey, "NA");
-            this.newMissingServerDescriptors++;
-          }
+    for (String serverDescriptor : serverDescriptors) {
+      String published = serverDescriptor.split(",")[0];
+      if (this.descriptorCutOff.compareTo(published) < 0) {
+        String serverDescriptorKey = "server," + serverDescriptor;
+        if (!this.missingDescriptors.containsKey(
+            serverDescriptorKey)) {
+          this.missingDescriptors.put(serverDescriptorKey, "NA");
+          this.newMissingServerDescriptors++;
         }
       }
     }
   }
 
   /**
-   * We have parsed a vote. Take this vote off the missing list.
+   * We have parsed a vote. Take this vote off the missing list and add
+   * the <code>serverDescriptors</code> which are in the format
+   * "<published>,<relayid>,<descid>" to that list.
    */
   public void haveParsedVote(String validAfter, String fingerprint,
       Set<String> serverDescriptors) {
 
-    /* Mark consensus as parsed. */
+    /* Mark vote as parsed. */
     if (this.currentValidAfter.equals(validAfter)) {
       String voteKey = "vote," + validAfter + "," + fingerprint;
-      this.missingDescriptors.put(voteKey, this.parsedTimestampString);
+      this.missingDescriptors.put(voteKey, this.currentTimestamp);
     }
 
     /* Add server descriptors to missing list. */
-    if (this.downloadAllServerDescriptors) {
-      for (String serverDescriptor : serverDescriptors) {
-        String published = serverDescriptor.split(",")[0];
-        if (this.descriptorCutOff.compareTo(published) < 0) {
-          String serverDescriptorKey = "server," + serverDescriptor;
-          if (!this.missingDescriptors.containsKey(
-              serverDescriptorKey)) {
-            this.missingDescriptors.put(serverDescriptorKey, "NA");
-            this.newMissingServerDescriptors++;
-          }
+    for (String serverDescriptor : serverDescriptors) {
+      String published = serverDescriptor.split(",")[0];
+      if (this.descriptorCutOff.compareTo(published) < 0) {
+        String serverDescriptorKey = "server," + serverDescriptor;
+        if (!this.missingDescriptors.containsKey(
+            serverDescriptorKey)) {
+          this.missingDescriptors.put(serverDescriptorKey, "NA");
+          this.newMissingServerDescriptors++;
         }
       }
     }
@@ -300,14 +415,14 @@ public class RelayDescriptorDownloader {
       String extraInfoDigest) {
 
     /* Mark server descriptor as parsed. */
-    if (this.descriptorCutOff.compareTo(published) <= 0) {
+    if (this.descriptorCutOff.compareTo(published) < 0) {
       String serverDescriptorKey = "server," + published + ","
           + relayIdentity + "," + serverDescriptorDigest;
       this.missingDescriptors.put(serverDescriptorKey,
-          this.parsedTimestampString);
+          this.currentTimestamp);
 
       /* Add extra-info descriptor to missing list. */
-      if (extraInfoDigest != null && this.downloadAllExtraInfos) {
+      if (extraInfoDigest != null) {
         String extraInfoKey = "extra," + published + ","
             + relayIdentity + "," + extraInfoDigest;
         if (!this.missingDescriptors.containsKey(extraInfoKey)) {
@@ -324,253 +439,261 @@ public class RelayDescriptorDownloader {
    */
   public void haveParsedExtraInfoDescriptor(String published,
       String relayIdentity, String extraInfoDigest) {
-    if (this.descriptorCutOff.compareTo(published) <= 0) {
+    if (this.descriptorCutOff.compareTo(published) < 0) {
       String extraInfoKey = "extra," + published + ","
           + relayIdentity + "," + extraInfoDigest;
-      this.missingDescriptors.put(extraInfoKey,
-          this.parsedTimestampString);
+      this.missingDescriptors.put(extraInfoKey, this.currentTimestamp);
     }
   }
 
   /**
    * Downloads missing descriptors that we think might still be available
-   * on the directories.
+   * on the directory authorities as well as all server and extra-info
+   * descriptors once per day.
    */
-  public void downloadMissingDescriptors() {
+  public void downloadDescriptors() {
 
-    /* Update cut-off times to reflect that execution so far might have
-     * taken a few minutes and that some descriptors aren't available on
-     * the directories anymore. */
-    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    format.setTimeZone(TimeZone.getTimeZone("UTC"));
-    long now = System.currentTimeMillis();
-    this.currentValidAfter = format.format((now / (60L * 60L * 1000L)) *
-        (60L * 60L * 1000L));
-    this.descriptorCutOff = format.format(now - 24L * 60L * 60L * 1000L);
+    /* Download descriptors from authorities which are in random order, so
+     * that we distribute the load somewhat fairly over time. */
+    for (String authority : authorities) {
 
-    /* Remember which directories remain as source for downloading
-     * descriptors. */
-    List<String> remainingDirSources =
-        new ArrayList<String>(this.dirSources);
+      /* Make all requests to an authority in a single try block. If
+       * something goes wrong with this authority, we give up on all
+       * downloads and continue with the next authority. */
+      /* TODO Some authorities provide very little bandwidth and could
+       * slow down the entire download process. Ponder adding a timeout of
+       * 3 or 5 minutes per authority to avoid getting in the way of the
+       * next execution. */
+      try {
 
-    /* URLs of descriptors we want to download. */
-    SortedSet<String> urls = new TreeSet<String>();
-
-    /* Complete URLs of authorities and descriptors we have downloaded or
-     * tried to download. Ensures that we're not attempting to download
-     * the same thing from an authority more than once. There are edge
-     * cases when an authority returns a valid response to something we
-     * asked for, but which is not what we wanted (e.g. old consensus). */
-    SortedSet<String> downloaded = new TreeSet<String>();
-
-    /* We might need more than one iteration for downloading descriptors,
-     * because we might learn about descriptors while parsing those that
-     * we got. In every iteration, compile a new list of URLs, remove
-     * those that we tried before, and download the remaining ones. Stop
-     * when there are no new URLs anymore. */
-    while (true) {
-
-      /* Compile list of URLs to download in this iteration. */
-      urls.clear();
-      for (Map.Entry<String, String> e :
-          this.missingDescriptors.entrySet()) {
-        if (e.getValue().equals("NA")) {
-          String[] parts = e.getKey().split(",");
-          if (parts[0].equals("consensus") &&
-              this.downloadCurrentConsensus &&
-              this.currentValidAfter.equals(parts[1])) {
-            urls.add("/tor/status-vote/current/consensus");
-          } else if (parts[0].equals("vote") &&
-              this.downloadCurrentVotes &&
-              this.currentValidAfter.equals(parts[1])) {
-            urls.add("/tor/status-vote/current/" + parts[2]);
-          } else if (parts[0].equals("server") &&
-              this.downloadAllServerDescriptors &&
-              this.descriptorCutOff.compareTo(parts[1]) <= 0) {
-            urls.add("/tor/server/d/" + parts[3]);
-          } else if (parts[0].equals("extra") &&
-              this.downloadAllExtraInfos &&
-              this.descriptorCutOff.compareTo(parts[1]) <= 0) {
-            urls.add("/tor/extra/d/" + parts[3]);
+        /* Start with downloading the current consensus, unless we already
+         * have it. */
+        if (downloadCurrentConsensus) {
+          String consensusKey = "consensus," + this.currentValidAfter;
+          if (this.missingDescriptors.containsKey(consensusKey) &&
+              this.missingDescriptors.get(consensusKey).equals("NA")) {
+            this.requestedConsensuses++;
+            this.downloadedConsensuses +=
+                this.downloadResourceFromAuthority(authority,
+                "/tor/status-vote/current/consensus");
           }
         }
-      }
 
-      /* Stop if we don't have (new) URLs to download. */
-      if (urls.isEmpty()) {
-        break;
-      }
-
-      for (String url : urls) {
-        if (url.endsWith("consensus")) {
-          this.triedConsensuses++;
-        } else if (url.contains("status-vote")) {
-          this.triedVotes++;
-        } else if (url.contains("server")) {
-          this.triedServerDescriptors++;
-        } else if (url.contains("extra")) {
-          this.triedExtraInfoDescriptors++;
-        }
-      }
-
-      /* Log what we're downloading. */
-      StringBuilder sb = new StringBuilder("Downloading " + urls.size()
-          + " descriptors:");
-      for (String url : urls) {
-        sb.append("\n" + url);
-      }
-      this.logger.fine(sb.toString());
-
-      /* We are trying to download these descriptors from each directory
-       * source one after the other until we got it from one. For each
-       * directory source we are removing the URLs from urls and putting
-       * those the we want to retry into retryUrls. Once we are done, we
-       * move the URLs back to urls and try the next directory source. */
-      SortedSet<String> currentDirSources =
-          new TreeSet<String>(remainingDirSources);
-      SortedSet<String> retryUrls = new TreeSet<String>();
-      int numDownloaded = 0;
-      while (!currentDirSources.isEmpty() && !urls.isEmpty()) {
-        String authority = currentDirSources.first();
-        String url = urls.first();
-        urls.remove(url);
-        Set<String> requestedUrls = new HashSet<String>();
-        requestedUrls.add(url);
-        if (url.contains("server")) {
-          StringBuilder combinedUrl = new StringBuilder(url);
-          int descriptors = 1;
-          while (descriptors++ <= 96 && !urls.isEmpty() &&
-              urls.first().contains("server")) {
-            url = urls.first();
-            urls.remove(url);
-            requestedUrls.add(url);
-            combinedUrl.append("+" + url.substring("/tor/server/d/".
-                length()));
-          }
-          url = combinedUrl.toString();
-        } else if (url.contains("extra")) {
-          StringBuilder combinedUrl = new StringBuilder(url);
-          int descriptors = 1;
-          while (descriptors++ <= 96 && !urls.isEmpty() &&
-              urls.first().contains("extra")) {
-            url = urls.first();
-            urls.remove(url);
-            requestedUrls.add(url);
-            combinedUrl.append("+" + url.substring("/tor/extra/d/".
-                length()));
-          }
-          url = combinedUrl.toString();
-        }
-        String fullUrl = "http://" + authority + url;
-        byte[] allData = null;
-        if (!downloaded.contains(fullUrl)) {
-          downloaded.add(fullUrl);
-          numDownloaded++;
-          this.dirRequests.put(authority, dirRequests.get(authority) + 1);
-          try {
-            URL u = new URL(fullUrl);
-            HttpURLConnection huc =
-                (HttpURLConnection) u.openConnection();
-            huc.setRequestMethod("GET");
-            huc.connect();
-            int response = huc.getResponseCode();
-            logger.fine("Downloading http://" + authority + url + " -> "
-                + response);
-            if (response == 200) {
-              BufferedInputStream in = new BufferedInputStream(
-                  huc.getInputStream());
-              ByteArrayOutputStream baos = new ByteArrayOutputStream();
-              int len;
-              byte[] data = new byte[1024];
-              while ((len = in.read(data, 0, 1024)) >= 0) {
-                baos.write(data, 0, len);
-              }
-              in.close();
-              allData = baos.toByteArray();
+        /* Next, try to download current votes that we're missing. */
+        if (downloadCurrentVotes) {
+          String voteKeyPrefix = "vote," + this.currentValidAfter;
+          SortedSet<String> fingerprints = new TreeSet<String>();
+          for (Map.Entry<String, String> e :
+              this.missingDescriptors.entrySet()) {
+            if (e.getValue().equals("NA") &&
+                e.getKey().startsWith(voteKeyPrefix)) {
+              String fingerprint = e.getKey().split(",")[2];
+              fingerprints.add(fingerprint);
             }
-          } catch (IOException e) {
-            remainingDirSources.remove(authority);
-            currentDirSources.remove(authority);
-            if (!remainingDirSources.isEmpty()) {
-              logger.log(Level.FINE, "Failed downloading from "
-                  + authority + "!", e);
+          }
+          for (String fingerprint : fingerprints) {
+            this.requestedVotes++;
+            this.downloadedVotes +=
+                this.downloadResourceFromAuthority(authority, 
+                "/tor/status-vote/current/" + fingerprint);
+          }
+        }
+
+        /* Download either all server and extra-info descriptors or only
+         * those that we're missing. Start with server descriptors, then
+         * request extra-info descriptors. */
+        List<String> types = new ArrayList<String>(Arrays.asList(
+            "server,extra".split(",")));
+        for (String type : types) {
+
+          /* Download all server or extra-info descriptors from this
+           * authority if we haven't done so for 24 hours and if we're
+           * configured to do so. */
+          /* TODO Distribute downloads of all descriptors over the day for
+           * different authorities. Maybe limit the number of these
+           * downloads to 1 or 2 per execution. */
+          if (this.downloadAllDescriptorsFromAuthorities.contains(
+              authority) && ((type.equals("server") &&
+              this.downloadAllServerDescriptors) ||
+              (type.equals("extra") && this.downloadAllExtraInfos))) {
+            int downloadedAllDescriptors =
+                this.downloadResourceFromAuthority(authority, "/tor/"
+                + type + "/all");
+            if (type.equals("server")) {
+              this.requestedAllServerDescriptors++;
+              this.downloadedAllServerDescriptors +=
+                  downloadedAllDescriptors;
             } else {
-              logger.log(Level.WARNING, "Failed downloading from "
-                  + authority + "! We have no authorities left to download "
-                  + "from!", e);
+              this.requestedAllExtraInfoDescriptors++;
+              this.downloadedAllExtraInfoDescriptors +=
+                  downloadedAllDescriptors;
             }
-          }
-        }
-        if (allData != null) {
-          if (url.endsWith("consensus")) {
-            this.rdp.parse(allData);
-            this.downloadedConsensuses++;
-          } else if (url.contains("status-vote")) {
-            this.rdp.parse(allData);
-            this.downloadedVotes++;
-          } else if (url.contains("server") ||
-              url.contains("extra")) {
-            String ascii = null;
-            try {
-              ascii = new String(allData, "US-ASCII");
-            } catch (UnsupportedEncodingException e) {
-            }
-            int start = -1, sig = -1, end = -1;
-            String startToken = url.contains("server") ?
-                "router " : "extra-info ";
-            String sigToken = "\nrouter-signature\n";
-            String endToken = "\n-----END SIGNATURE-----\n";
-            while (end < ascii.length()) {
-              start = ascii.indexOf(startToken, end);
-              if (start < 0) {
-                break;
-              }
-              sig = ascii.indexOf(sigToken, start);
-              if (sig < 0) {
-                break;
-              }
-              sig += sigToken.length();
-              end = ascii.indexOf(endToken, sig);
-              if (end < 0) {
-                break;
-              }
-              end += endToken.length();
-              byte[] descBytes = new byte[end - start];
-              System.arraycopy(allData, start, descBytes, 0, end - start);
-              String digest = Hex.encodeHexString(DigestUtils.sha(
-                  descBytes));
-              this.rdp.parse(descBytes);
-              if (url.contains("server")) {
-                this.downloadedServerDescriptors++;
-                requestedUrls.remove("/tor/server/d/" + digest);
-              } else {
-                this.downloadedExtraInfoDescriptors++;
-                requestedUrls.remove("/tor/extra/d/" + digest);
-              }
-            }
-          }
-        }
-        if (requestedUrls.isEmpty()) {
-          retryUrls.addAll(requestedUrls);
-          logger.fine("Retrying " + requestedUrls.size() + " URLs for "
-              + "which we didn't receive descriptors.");
-        }
-        if (urls.isEmpty()) {
-          currentDirSources.remove(authority);
-          urls.addAll(retryUrls);
-          retryUrls.clear();
-        }
-      }
 
-      /* If we haven't downloaded a single descriptor in this iteration,
-       * we cannot have learned something new, so we're done. */
-      if (numDownloaded < 1) {
-        break;
+          /* Download missing server or extra-info descriptors if we're
+           * configured to do so. */
+          } else if ((type.equals("server") &&
+              this.downloadMissingServerDescriptors) ||
+              (type.equals("extra") && this.downloadMissingExtraInfos)) {
+
+            /* Go through the list of missing descriptors of this type
+             * and combine the descriptor identifiers to a URL of up to
+             * 96 descriptors that we can download at once. */
+            SortedSet<String> descriptorIdentifiers =
+                new TreeSet<String>();
+            for (Map.Entry<String, String> e :
+                this.missingDescriptors.entrySet()) {
+              if (e.getValue().equals("NA") &&
+                  e.getKey().startsWith(type + ",") &&
+                  this.descriptorCutOff.compareTo(
+                  e.getKey().split(",")[1]) < 0) {
+                String descriptorIdentifier = e.getKey().split(",")[3];
+                descriptorIdentifiers.add(descriptorIdentifier);
+              }
+            }
+            StringBuilder combinedResource = null;
+            int descriptorsInCombinedResource = 0,
+                requestedDescriptors = 0, downloadedDescriptors = 0;
+            for (String descriptorIdentifier : descriptorIdentifiers) {
+              if (descriptorsInCombinedResource >= 96) {
+                requestedDescriptors += descriptorsInCombinedResource;
+                downloadedDescriptors +=
+                    this.downloadResourceFromAuthority(authority,
+                    combinedResource.toString());
+                combinedResource = null;
+                descriptorsInCombinedResource = 0;
+              }
+              if (descriptorsInCombinedResource == 0) {
+                combinedResource = new StringBuilder("/tor/" + type
+                    + "/d/" + descriptorIdentifier);
+              } else {
+                combinedResource.append("+" + descriptorIdentifier);
+              }
+              descriptorsInCombinedResource++;
+            }
+            if (descriptorsInCombinedResource > 0) {
+              requestedDescriptors += descriptorsInCombinedResource;
+              downloadedDescriptors +=
+                  this.downloadResourceFromAuthority(authority,
+                  combinedResource.toString());
+            }
+            if (type.equals("server")) {
+              this.requestedMissingServerDescriptors +=
+                  requestedDescriptors;
+              this.downloadedMissingServerDescriptors +=
+                  downloadedDescriptors;
+            } else {
+              this.requestedMissingExtraInfoDescriptors +=
+                  requestedDescriptors;
+              this.downloadedMissingExtraInfoDescriptors +=
+                  downloadedDescriptors;
+            }
+          }
+        }
+
+      /* If a download failed, stop requesting descriptors from this
+       * authority and move on to the next. */
+      } catch (IOException e) {
+        logger.log(Level.FINE, "Failed downloading from " + authority
+            + "!", e);
       }
     }
   }
 
+  /**
+   * Attempts to download one or more descriptors identified by a resource
+   * string from a directory authority and passes the returned
+   * descriptor(s) to the <code>RelayDescriptorParser</code> upon success.
+   * Returns the number of descriptors contained in the reply. Throws an
+   * <code>IOException</code> if something goes wrong while downloading.
+   */
+  private int downloadResourceFromAuthority(String authority,
+      String resource) throws IOException {
+    byte[] allData = null;
+    this.requestsByAuthority.put(authority,
+        this.requestsByAuthority.get(authority) + 1);
+    /* TODO Disable compressed downloads for extra-info descriptors,
+     * because zlib decompression doesn't work correctly. Figure out why
+     * this is and fix it. */
+    String fullUrl = "http://" + authority + resource
+        + (this.downloadCompressed && !resource.startsWith("/tor/extra/")
+        ? ".z" : "");
+    URL u = new URL(fullUrl);
+    HttpURLConnection huc = (HttpURLConnection) u.openConnection();
+    huc.setRequestMethod("GET");
+    huc.connect();
+    int response = huc.getResponseCode();
+    if (response == 200) {
+      BufferedInputStream in = downloadCompressed
+          ? new BufferedInputStream(new InflaterInputStream(
+          huc.getInputStream()))
+          : new BufferedInputStream(huc.getInputStream());
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      int len;
+      byte[] data = new byte[1024];
+      while ((len = in.read(data, 0, 1024)) >= 0) {
+        baos.write(data, 0, len);
+      }
+      in.close();
+      allData = baos.toByteArray();
+    }
+    logger.fine("Downloaded " + fullUrl + " -> " + response + " ("
+        + (allData == null ? 0 : allData.length) + " bytes)");
+    int receivedDescriptors = 0;
+    if (allData != null) {
+      if (resource.startsWith("/tor/status-vote/current/")) {
+        this.rdp.parse(allData);
+        receivedDescriptors = 1;
+      } else if (resource.startsWith("/tor/server/") ||
+          resource.startsWith("/tor/extra/")) {
+        if (resource.equals("/tor/server/all")) {
+          this.lastDownloadedAllDescriptors.put(authority,
+              this.currentTimestamp);
+        }
+        String ascii = null;
+        try {
+          ascii = new String(allData, "US-ASCII");
+        } catch (UnsupportedEncodingException e) {
+          /* No way that US-ASCII is not supported. */
+        }
+        int start = -1, sig = -1, end = -1;
+        String startToken = resource.startsWith("/tor/server/") ?
+            "router " : "extra-info ";
+        String sigToken = "\nrouter-signature\n";
+        String endToken = "\n-----END SIGNATURE-----\n";
+        while (end < ascii.length()) {
+          start = ascii.indexOf(startToken, end);
+          if (start < 0) {
+            break;
+          }
+          sig = ascii.indexOf(sigToken, start);
+          if (sig < 0) {
+            break;
+          }
+          sig += sigToken.length();
+          end = ascii.indexOf(endToken, sig);
+          if (end < 0) {
+            break;
+          }
+          end += endToken.length();
+          byte[] descBytes = new byte[end - start];
+          System.arraycopy(allData, start, descBytes, 0, end - start);
+          String digest = Hex.encodeHexString(DigestUtils.sha(
+              descBytes));
+          this.rdp.parse(descBytes);
+          receivedDescriptors++;
+        }
+      }
+    }
+    return receivedDescriptors;
+  }
+
+  /**
+   * Writes status files to disk and logs statistics about downloading
+   * relay descriptors in this execution.
+   */
   public void writeFile() {
+
+    /* Write missing descriptors file to disk. */
     int missingConsensuses = 0, missingVotes = 0,
         missingServerDescriptors = 0, missingExtraInfoDescriptors = 0;
     try {
@@ -581,8 +704,8 @@ public class RelayDescriptorDownloader {
           this.missingDescriptorsFile));
       for (Map.Entry<String, String> e :
           this.missingDescriptors.entrySet()) {
-        String key = e.getKey();
-        if (!e.getValue().equals("NA")) {
+        String key = e.getKey(), value = e.getValue();
+        if (!value.equals("NA")) {
           /* Not missing. */
         } else if (key.startsWith("consensus,")) {
           missingConsensuses++;
@@ -593,7 +716,7 @@ public class RelayDescriptorDownloader {
         } else if (key.startsWith("extra,")) {
           missingExtraInfoDescriptors++;
         }
-        bw.write(e.getKey() + "," + e.getValue() + "\n");
+        bw.write(key + "," + value + "\n");
       }
       bw.close();
       this.logger.fine("Finished writing file "
@@ -603,35 +726,79 @@ public class RelayDescriptorDownloader {
           + this.missingDescriptorsFile.getAbsolutePath() + "!", e);
     }
 
-    dumpStats.append("During this execution, we added "
+    /* Write text file containing the directory authorities and when we
+     * last downloaded all server and extra-info descriptors from them to
+     * disk. */
+    try {
+      this.logger.fine("Writing file "
+          + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
+          + "...");
+      this.lastDownloadedAllDescriptorsFile.getParentFile().mkdirs();
+      BufferedWriter bw = new BufferedWriter(new FileWriter(
+          this.lastDownloadedAllDescriptorsFile));
+      for (Map.Entry<String, String> e :
+          this.lastDownloadedAllDescriptors.entrySet()) {
+        String authority = e.getKey();
+        String lastDownloaded = e.getValue();
+        bw.write(authority + "," + lastDownloaded + "\n");
+      }
+      bw.close();
+      this.logger.fine("Finished writing file "
+          + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
+          + ".");
+    } catch (IOException e) {
+      this.logger.log(Level.WARNING, "Failed writing "
+          + this.lastDownloadedAllDescriptorsFile.getAbsolutePath() + "!",
+          e);
+    }
+
+    /* Log statistics about this execution. */
+    this.logger.info("Finished downloading relay descriptors from the "
+        + "directory authorities.");
+    this.logger.info("At the beginning of this execution, we were "
+        + "missing " + oldMissingConsensuses + " consensus(es), "
+        + oldMissingVotes + " vote(s), " + oldMissingServerDescriptors
+        + " server descriptor(s), and " + oldMissingExtraInfoDescriptors
+        + " extra-info descriptor(s).");
+    this.logger.info("During this execution, we added "
         + this.newMissingConsensuses + " consensus(es), "
         + this.newMissingVotes + " vote(s), "
         + this.newMissingServerDescriptors + " server descriptor(s), and "
         + this.newMissingExtraInfoDescriptors + " extra-info "
-        + "descriptor(s) to the missing list.\n");
-    dumpStats.append("We attempted to download " + this.triedConsensuses
-        + " consensus(es), " + this.triedVotes + " vote(s), "
-        + this.triedServerDescriptors + " server descriptor(s), and "
-        + this.triedExtraInfoDescriptors + " extra-info descriptor(s) "
-        + "from the directory authorities.\n");
-    dumpStats.append("Requests were sent to these directory "
-        + "authorities:");
-    for (String dirSource : this.dirSources) {
-      dumpStats.append(" " + dirSource + "="
-         + this.dirRequests.get(dirSource));
+        + "descriptor(s) to the missing list, some of which we also "
+        + "requested and removed from the list again.");
+    this.logger.info("We requested " + this.requestedConsensuses
+        + " consensus(es), " + this.requestedVotes + " vote(s), "
+        + this.requestedMissingServerDescriptors + " missing server "
+        + "descriptor(s), " + this.requestedAllServerDescriptors
+        + " times all server descriptors, "
+        + this.requestedMissingExtraInfoDescriptors + " missing "
+        + "extra-info descriptor(s), and "
+        + this.requestedAllExtraInfoDescriptors + " times all extra-info "
+        + "descriptors from the directory authorities.");
+    StringBuilder sb = new StringBuilder();
+    for (String authority : this.authorities) {
+      sb.append(" " + authority + "="
+         + this.requestsByAuthority.get(authority));
     }
-    dumpStats.append("\nWe successfully downloaded "
+    this.logger.info("We sent these numbers of requests to the directory "
+        + "authorities:" + sb.toString());
+    this.logger.info("We successfully downloaded "
         + this.downloadedConsensuses + " consensus(es), "
         + this.downloadedVotes + " vote(s), "
-        + this.downloadedServerDescriptors + " server descriptor(s), and "
-        + this.downloadedExtraInfoDescriptors + " extra-info "
-        + "descriptor(s) from the directory authorities.\n");
-    dumpStats.append("At the end of this execution, "
-      + "we are missing " + missingConsensuses + " consensus(es), "
-      + missingVotes + " vote(s), " + missingServerDescriptors
-      + " server descriptor(s), and " + missingExtraInfoDescriptors
+        + this.downloadedMissingServerDescriptors + " missing server "
+        + "descriptor(s), " + this.downloadedAllServerDescriptors
+        + " server descriptor(s) when downloading all descriptors, "
+        + this.downloadedMissingExtraInfoDescriptors + " missing "
+        + "extra-info descriptor(s) and "
+        + this.downloadedAllExtraInfoDescriptors + " extra-info "
+        + "descriptor(s) when downloading all descriptors.");
+    this.logger.info("At the end of this execution, we are missing "
+      + missingConsensuses + " consensus(es), " + missingVotes
+      + " vote(s), " + missingServerDescriptors + " server "
+      + "descriptor(s), and " + missingExtraInfoDescriptors
       + " extra-info descriptor(s), some of which we may try in the next "
       + "execution.");
-    this.logger.info(dumpStats.toString());
   }
 }
+

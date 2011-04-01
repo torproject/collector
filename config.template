@@ -24,7 +24,32 @@
 #
 ## Comma separated list of directory authority addresses (IP[:port]) to
 ## download missing relay descriptors from
-#DownloadFromDirectoryAuthorities 86.59.21.38,194.109.206.212,212.112.245.170
+#DownloadFromDirectoryAuthorities 86.59.21.38,216.224.124.114:9030,213.115.239.118:443,193.23.244.244,208.83.223.34:443,128.31.0.34:9131,194.109.206.212,212.112.245.170
+#
+## Download the current consensus (only if DownloadRelayDescriptors is 1)
+#DownloadCurrentConsensus 1
+#
+## Download current votes (only if DownloadRelayDescriptors is 1)
+#DownloadCurrentVotes 1
+#
+## Download missing server descriptors (only if DownloadRelayDescriptors
+## is 1)
+#DownloadMissingServerDescriptors 1
+#
+## Download missing extra-info descriptors (only if
+## DownloadRelayDescriptors is 1)
+#DownloadMissingExtraInfoDescriptors 1
+#
+## Download all server descriptors from the directory authorities at most
+## once a day (only if DownloadRelayDescriptors is 1)
+#DownloadAllServerDescriptors 0
+#
+## Download all extra-info descriptors from the directory authorities at
+## most once a day (only if DownloadRelayDescriptors is 1)
+#DownloadAllExtraInfoDescriptors 0
+#
+## Compress relay descriptors downloads by adding .z to the URLs
+#CompressRelayDescriptorDownloads 0
 #
 ## Import bridge snapshots from disk, if available
 #ImportBridgeSnapshots 0

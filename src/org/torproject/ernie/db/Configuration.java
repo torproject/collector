@@ -30,8 +30,17 @@ public class Configuration {
   private boolean importBridgeSnapshots = false;
   private String bridgeSnapshotsDirectory = "bridge-directories/";
   private boolean downloadRelayDescriptors = false;
-  private List<String> downloadFromDirectoryAuthorities = Arrays.asList(
-      "86.59.21.38,194.109.206.212,80.190.246.100:8180".split(","));
+  private List<String> downloadFromDirectoryAuthorities = Arrays.asList((
+      "86.59.21.38,216.224.124.114:9030,213.115.239.118:443,"
+      + "193.23.244.244,208.83.223.34:443,128.31.0.34:9131,"
+      + "194.109.206.212,212.112.245.170").split(","));
+  private boolean downloadCurrentConsensus = true;
+  private boolean downloadCurrentVotes = true;
+  private boolean downloadMissingServerDescriptors = true;
+  private boolean downloadMissingExtraInfoDescriptors = true;
+  private boolean downloadAllServerDescriptors = false;
+  private boolean downloadAllExtraInfoDescriptors = false;
+  private boolean compressRelayDescriptorDownloads;
   private boolean downloadGetTorStats = false;
   private String getTorStatsUrl = "http://gettor.torproject.org:8080/"
       + "~gettor/gettor_stats.txt";
@@ -117,6 +126,28 @@ public class Configuration {
             new URL("http://" + dir + "/");
             this.downloadFromDirectoryAuthorities.add(dir);
           }
+        } else if (line.startsWith("DownloadCurrentConsensus")) {
+          this.downloadCurrentConsensus = Integer.parseInt(
+              line.split(" ")[1]) != 0;
+        } else if (line.startsWith("DownloadCurrentVotes")) {
+          this.downloadCurrentVotes = Integer.parseInt(
+              line.split(" ")[1]) != 0;
+        } else if (line.startsWith("DownloadMissingServerDescriptors")) {
+          this.downloadMissingServerDescriptors = Integer.parseInt(
+              line.split(" ")[1]) != 0;
+        } else if (line.startsWith(
+            "DownloadMissingExtraInfoDescriptors")) {
+          this.downloadMissingExtraInfoDescriptors = Integer.parseInt(
+              line.split(" ")[1]) != 0;
+        } else if (line.startsWith("DownloadAllServerDescriptors")) {
+          this.downloadAllServerDescriptors = Integer.parseInt(
+              line.split(" ")[1]) != 0;
+        } else if (line.startsWith("DownloadAllExtraInfoDescriptors")) {
+          this.downloadAllExtraInfoDescriptors = Integer.parseInt(
+              line.split(" ")[1]) != 0;
+        } else if (line.startsWith("CompressRelayDescriptorDownloads")) {
+          this.compressRelayDescriptorDownloads = Integer.parseInt(
+              line.split(" ")[1]) != 0;
         } else if (line.startsWith("DownloadGetTorStats")) {
           this.downloadGetTorStats = Integer.parseInt(
               line.split(" ")[1]) != 0;
@@ -243,6 +274,27 @@ public class Configuration {
   }
   public List<String> getDownloadFromDirectoryAuthorities() {
     return this.downloadFromDirectoryAuthorities;
+  }
+  public boolean getDownloadCurrentConsensus() {
+    return this.downloadCurrentConsensus;
+  }
+  public boolean getDownloadCurrentVotes() {
+    return this.downloadCurrentVotes;
+  }
+  public boolean getDownloadMissingServerDescriptors() {
+    return this.downloadMissingServerDescriptors;
+  }
+  public boolean getDownloadMissingExtraInfoDescriptors() {
+    return this.downloadMissingExtraInfoDescriptors;
+  }
+  public boolean getDownloadAllServerDescriptors() {
+    return this.downloadAllServerDescriptors;
+  }
+  public boolean getDownloadAllExtraInfoDescriptors() {
+    return this.downloadAllExtraInfoDescriptors;
+  }
+  public boolean getCompressRelayDescriptorDownloads() {
+    return this.compressRelayDescriptorDownloads;
   }
   public boolean getDownloadGetTorStats() {
     return this.downloadGetTorStats;

@@ -49,13 +49,14 @@ public class Main {
       if (config.getDownloadRelayDescriptors()) {
         List<String> dirSources =
             config.getDownloadFromDirectoryAuthorities();
-        boolean downloadCurrentConsensus = aw != null;
-        boolean downloadCurrentVotes = aw != null;
-        boolean downloadAllServerDescriptors = aw != null;
-        boolean downloadAllExtraInfos = aw != null;
         rdd = new RelayDescriptorDownloader(rdp, dirSources,
-            downloadCurrentConsensus, downloadCurrentVotes,
-            downloadAllServerDescriptors, downloadAllExtraInfos);
+            config.getDownloadCurrentConsensus(),
+            config.getDownloadCurrentVotes(),
+            config.getDownloadMissingServerDescriptors(),
+            config.getDownloadMissingExtraInfoDescriptors(),
+            config.getDownloadAllServerDescriptors(),
+            config.getDownloadAllExtraInfoDescriptors(),
+            config.getCompressRelayDescriptorDownloads());
         rdp.setRelayDescriptorDownloader(rdd);
       }
       if (config.getImportCachedRelayDescriptors()) {
@@ -77,7 +78,7 @@ public class Main {
         }
       }
       if (rdd != null) {
-        rdd.downloadMissingDescriptors();
+        rdd.downloadDescriptors();
         rdd.writeFile();
         rdd = null;
         if (aw != null) {
