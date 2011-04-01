@@ -12,7 +12,7 @@ import org.apache.commons.codec.binary.*;
 public class ArchiveWriter {
   private Logger logger;
   private File outputDirectory;
-  private int storedConsensuses = 0, storedVotes = 0,
+  private int storedConsensuses = 0, storedVotes = 0, storedCerts = 0,
       storedServerDescriptors = 0, storedExtraInfoDescriptors = 0;
 
   public ArchiveWriter(File outputDirectory) {
@@ -68,6 +68,18 @@ public class ArchiveWriter {
     }
   }
 
+  public void storeCertificate(byte[] data, String fingerprint,
+      long published) {
+    SimpleDateFormat printFormat = new SimpleDateFormat(
+        "yyyy-MM-dd-HH-mm-ss");
+    printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    String filename = outputDirectory + "/certs/"
+        + fingerprint + "-" + printFormat.format(new Date(published));
+    if (this.store(data, filename)) {
+      this.storedCerts++;
+    }
+  }
+
   public void storeServerDescriptor(byte[] data, String digest,
       long published) {
     SimpleDateFormat printFormat = new SimpleDateFormat("yyyy/MM/");
@@ -99,11 +111,13 @@ public class ArchiveWriter {
   public void intermediateStats(String event) {
     intermediateStats.append("While " + event + ", we stored "
         + this.storedConsensuses + " consensus(es), " + this.storedVotes
-        + " vote(s), " + this.storedServerDescriptors
-        + " server descriptor(s), and " + this.storedExtraInfoDescriptors
+        + " vote(s), " + this.storedCerts + " certificate(s), "
+        + this.storedServerDescriptors + " server descriptor(s), and "
+        + this.storedExtraInfoDescriptors
         + " extra-info descriptor(s) to disk.\n");
     this.storedConsensuses = 0;
     this.storedVotes = 0;
+    this.storedCerts = 0;
     this.storedServerDescriptors = 0;
     this.storedExtraInfoDescriptors = 0;
   }

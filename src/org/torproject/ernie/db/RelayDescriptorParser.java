@@ -77,11 +77,21 @@ public class RelayDescriptorParser {
         boolean isConsensus = true;
         String validAfterTime = null, fingerprint = null,
             dirSource = null;
-        long validAfter = -1L;
+        long validAfter = -1L, dirKeyPublished = -1L;
         SortedSet<String> dirSources = new TreeSet<String>();
         SortedSet<String> serverDescriptors = new TreeSet<String>();
         SortedSet<String> hashedRelayIdentities = new TreeSet<String>();
+        StringBuilder certificateStringBuilder = null;
+        String certificateString = null;
         while ((line = br.readLine()) != null) {
+          if (certificateStringBuilder != null) {
+            if (line.startsWith("r ")) {
+              certificateString = certificateStringBuilder.toString();
+              certificateStringBuilder = null;
+            } else {
+              certificateStringBuilder.append(line + "\n");
+            }
+          }
           if (line.equals("vote-status vote")) {
             isConsensus = false;
           } else if (line.startsWith("valid-after ")) {
@@ -91,8 +101,16 @@ public class RelayDescriptorParser {
             dirSource = line.split(" ")[2];
           } else if (line.startsWith("vote-digest ")) {
             dirSources.add(dirSource);
+          } else if (line.startsWith("dir-key-certificate-version ")) {
+            certificateStringBuilder = new StringBuilder();
+            certificateStringBuilder.append(line + "\n");
           } else if (line.startsWith("fingerprint ")) {
             fingerprint = line.split(" ")[1];
+          } else if (line.startsWith("dir-key-published ")) {
+            String dirKeyPublishedTime = line.substring(
+                "dir-key-published ".length());
+            dirKeyPublished = parseFormat.parse(dirKeyPublishedTime).
+                getTime();
           } else if (line.startsWith("r ")) {
             String[] parts = line.split(" ");
             if (parts.length < 9) {
@@ -137,9 +155,11 @@ public class RelayDescriptorParser {
               byte[] forDigest = new byte[sig - start];
               System.arraycopy(data, start, forDigest, 0, sig - start);
               String digest = DigestUtils.shaHex(forDigest).toUpperCase();
-              if (this.aw != null) {
-                this.aw.storeVote(data, validAfter, dirSource, digest);
-              }
+              this.aw.storeVote(data, validAfter, dirSource, digest);
+            }
+            if (certificateString != null) {
+              this.aw.storeCertificate(certificateString.getBytes(),
+                  dirSource, dirKeyPublished);
             }
           }
         }
