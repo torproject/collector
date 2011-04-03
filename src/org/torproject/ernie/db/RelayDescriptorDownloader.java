@@ -623,7 +623,8 @@ public class RelayDescriptorDownloader {
     huc.connect();
     int response = huc.getResponseCode();
     if (response == 200) {
-      BufferedInputStream in = downloadCompressed
+      BufferedInputStream in = this.downloadCompressed &&
+          !resource.startsWith("/tor/extra/")
           ? new BufferedInputStream(new InflaterInputStream(
           huc.getInputStream()))
           : new BufferedInputStream(huc.getInputStream());
