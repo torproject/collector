@@ -313,14 +313,17 @@ public class RelayDescriptorDownloader {
       }
     }
 
-    /* Make a list of directory authorities that we want to download all
-     * server and extra-info descriptors from. */
+    /* Make a list of at most two directory authorities that we want to
+     * download all server and extra-info descriptors from. */
     this.downloadAllDescriptorsFromAuthorities = new HashSet<String>();
     for (String authority : this.authorities) {
       if (!this.lastDownloadedAllDescriptors.containsKey(authority) ||
           this.lastDownloadedAllDescriptors.get(authority).compareTo(
           this.downloadAllDescriptorsCutOff) < 0) {
         this.downloadAllDescriptorsFromAuthorities.add(authority);
+      }
+      if (this.downloadAllDescriptorsFromAuthorities.size() >= 2) {
+        break;
       }
     }
 
@@ -508,9 +511,6 @@ public class RelayDescriptorDownloader {
           /* Download all server or extra-info descriptors from this
            * authority if we haven't done so for 24 hours and if we're
            * configured to do so. */
-          /* TODO Distribute downloads of all descriptors over the day for
-           * different authorities. Maybe limit the number of these
-           * downloads to 1 or 2 per execution. */
           if (this.downloadAllDescriptorsFromAuthorities.contains(
               authority) && ((type.equals("server") &&
               this.downloadAllServerDescriptors) ||
