@@ -275,14 +275,6 @@ public class RelayDescriptorDownloader {
       }
     }
 
-    /* Put the current consensus on the missing list, unless we already
-     * have it. */
-    String consensusKey = "consensus," + this.currentValidAfter;
-    if (!this.missingDescriptors.containsKey(consensusKey)) {
-      this.missingDescriptors.put(consensusKey, "NA");
-      this.newMissingConsensuses++;
-    }
-
     /* Read list of directory authorities and when we last downloaded all
      * server and extra-info descriptors from them. */
     this.lastDownloadedAllDescriptors = new HashMap<String, String>();
@@ -453,6 +445,14 @@ public class RelayDescriptorDownloader {
    */
   public void downloadDescriptors() {
 
+    /* Put the current consensus on the missing list, unless we already
+     * have it. */
+    String consensusKey = "consensus," + this.currentValidAfter;
+    if (!this.missingDescriptors.containsKey(consensusKey)) {
+      this.missingDescriptors.put(consensusKey, "NA");
+      this.newMissingConsensuses++;
+    }
+
     /* Download descriptors from authorities which are in random order, so
      * that we distribute the load somewhat fairly over time. */
     for (String authority : authorities) {
@@ -469,7 +469,6 @@ public class RelayDescriptorDownloader {
         /* Start with downloading the current consensus, unless we already
          * have it. */
         if (downloadCurrentConsensus) {
-          String consensusKey = "consensus," + this.currentValidAfter;
           if (this.missingDescriptors.containsKey(consensusKey) &&
               this.missingDescriptors.get(consensusKey).equals("NA")) {
             this.requestedConsensuses++;
