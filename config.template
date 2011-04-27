@@ -1,4 +1,4 @@
-#### Data sources ####
+######## Relay descriptors ########
 #
 ## Read cached-* files from a local Tor data directory
 #ImportCachedRelayDescriptors 0
@@ -51,38 +51,20 @@
 ## Compress relay descriptors downloads by adding .z to the URLs
 #CompressRelayDescriptorDownloads 0
 #
-## Import bridge snapshots from disk, if available
-#ImportBridgeSnapshots 0
-#
-## Relative path to directory to import bridge descriptor snapshots from
-#BridgeSnapshotsDirectory bridge-directories/
-#
-## Download GetTor stats
-#DownloadGetTorStats 0
-#
-## URL to download GetTor stats from
-#GetTorStatsURL http://gettor.torproject.org:8080/~gettor/gettor_stats.txt
-#
-## Relative path to directory to store GetTor stats in
-#GetTorDirectory gettor/
-#
-## Download exit list and store it to disk
-#DownloadExitList 0
-#
-## Process bridge pool assignment files by sanitizing bridge fingerprints
-## and sorting sanitized files into subdirectories
-#ProcessBridgePoolAssignments 0
-#
-## Relative path to directory to read bridge pool assignment files from
-#AssignmentsDirectory assignments/
-#
-#### Data sinks ####
-#
 ## Write directory archives to disk
 #WriteDirectoryArchives 0
 #
 ## Relative path to directory to write directory archives to
 #DirectoryArchivesOutputDirectory directory-archive/
+#
+#
+######## Bridge descriptors ########
+#
+## Import bridge snapshots from disk, if available
+#ImportBridgeSnapshots 0
+#
+## Relative path to directory to import bridge descriptor snapshots from
+#BridgeSnapshotsDirectory bridge-directories/
 #
 ## Write sanitized bridges to disk
 #WriteSanitizedBridges 0
@@ -99,7 +81,35 @@
 ## Relative path to directory to write sanitized bridges to
 #SanitizedBridgesWriteDirectory sanitized-bridges/
 #
+#
+######## Bridge pool assignments ########
+#
+## Process bridge pool assignment files by sanitizing bridge fingerprints
+## and sorting sanitized files into subdirectories
+#ProcessBridgePoolAssignments 0
+#
+## Relative path to directory to read bridge pool assignment files from
+#AssignmentsDirectory assignments/
+#
 ## Relative path to directory to write sanitized bridge pool assignment
 ## files to
 #SanitizedAssignmentsDirectory sanitized-assignments/
+#
+#
+######## GetTor download statistics ########
+#
+## Download GetTor stats
+#DownloadGetTorStats 0
+#
+## URL to download GetTor stats from
+#GetTorStatsURL http://gettor.torproject.org:8080/~gettor/gettor_stats.txt
+#
+## Relative path to directory to store GetTor stats in
+#GetTorDirectory gettor/
+#
+#
+######## Exit lists ########
+#
+## Download exit list and store it to disk
+#DownloadExitList 0
 
