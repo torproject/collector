@@ -140,11 +140,7 @@ public class RelayDescriptorParser {
             this.aw.storeConsensus(data, validAfter);
           }
         } else {
-          if (this.rdd != null) {
-            this.rdd.haveParsedVote(validAfterTime, fingerprint,
-                serverDescriptors);
-          }
-          if (this.aw != null) {
+          if (this.aw != null || this.rdd != null) {
             String ascii = new String(data, "US-ASCII");
             String startToken = "network-status-version ";
             String sigToken = "directory-signature ";
@@ -155,11 +151,19 @@ public class RelayDescriptorParser {
               byte[] forDigest = new byte[sig - start];
               System.arraycopy(data, start, forDigest, 0, sig - start);
               String digest = DigestUtils.shaHex(forDigest).toUpperCase();
-              this.aw.storeVote(data, validAfter, dirSource, digest);
+              if (this.aw != null) {
+                this.aw.storeVote(data, validAfter, dirSource, digest);
+              }
+              if (this.rdd != null) {
+                this.rdd.haveParsedVote(validAfterTime, fingerprint,
+                    serverDescriptors);
+              }
             }
             if (certificateString != null) {
-              this.aw.storeCertificate(certificateString.getBytes(),
-                  dirSource, dirKeyPublished);
+              if (this.aw != null) {
+                this.aw.storeCertificate(certificateString.getBytes(),
+                    dirSource, dirKeyPublished);
+              }
             }
           }
         }
