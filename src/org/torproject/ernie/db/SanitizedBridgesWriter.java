@@ -787,6 +787,7 @@ public class SanitizedBridgesWriter {
       String line = null;
       StringBuilder scrubbed = null;
       String hashedBridgeIdentity = null;
+      boolean hasParsedBridgeStatsEndLine = false;
       while ((line = br.readLine()) != null) {
 
         /* When we have parsed both published and fingerprint line, look
@@ -828,14 +829,27 @@ public class SanitizedBridgesWriter {
             this.haveWarnedAboutLimitedMapping = true;
           }
 
+        /* Write bridge-stats lines unmodified to the sanitized
+         * descriptor and make sure that there's always a bridge-stats-end
+         * line preceding the bridge-ips line. */
+        } else if (line.startsWith("bridge-stats-end ")) {
+          scrubbed.append(line + "\n");
+          hasParsedBridgeStatsEndLine = true;
+        } else if (line.startsWith("bridge-ips ")) {
+          if (!hasParsedBridgeStatsEndLine) {
+            this.logger.fine("bridge-ips line without preceding "
+                + "bridge-stats-end line in bridge descriptor.  "
+                + "Skipping.");
+            return;
+          }
+          scrubbed.append(line + "\n");
+
         /* Write the following lines unmodified to the sanitized
          * descriptor. */
         } else if (line.startsWith("write-history ")
             || line.startsWith("read-history ")
             || line.startsWith("geoip-start-time ")
             || line.startsWith("geoip-client-origins ")
-            || line.startsWith("bridge-stats-end ") 
-            || line.startsWith("bridge-ips ")
             || line.startsWith("geoip-db-digest ")) {
           scrubbed.append(line + "\n");
 
