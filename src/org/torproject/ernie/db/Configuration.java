@@ -49,6 +49,8 @@ public class Configuration {
   private boolean processBridgePoolAssignments = false;
   private String assignmentsDirectory = "assignments/";
   private String sanitizedAssignmentsDirectory = "sanitized-assignments/";
+  private boolean provideFilesViaRsync = false;
+  private String rsyncDirectory = "rsync";
   public Configuration() {
 
     /* Initialize logger. */
@@ -168,6 +170,11 @@ public class Configuration {
           this.assignmentsDirectory = line.split(" ")[1];
         } else if (line.startsWith("SanitizedAssignmentsDirectory")) {
           this.sanitizedAssignmentsDirectory = line.split(" ")[1];
+        } else if (line.startsWith("ProvideFilesViaRsync")) {
+          this.provideFilesViaRsync = Integer.parseInt(
+              line.split(" ")[1]) != 0;
+        } else if (line.startsWith("RsyncDirectory")) {
+          this.rsyncDirectory = line.split(" ")[1];
         } else {
           logger.severe("Configuration file contains unrecognized "
               + "configuration key in line '" + line + "'! Exiting!");
@@ -316,6 +323,12 @@ public class Configuration {
   }
   public String getSanitizedAssignmentsDirectory() {
     return sanitizedAssignmentsDirectory;
+  }
+  public boolean getProvideFilesViaRsync() {
+    return this.provideFilesViaRsync;
+  }
+  public String getRsyncDirectory() {
+    return this.rsyncDirectory;
   }
 }
 

@@ -136,6 +136,19 @@ public class Main {
           new File(config.getSanitizedAssignmentsDirectory()));
     }
 
+    // Copy recently published files to a local directory that can then
+    // be served via rsync.
+    if (config.getProvideFilesViaRsync()) {
+      new RsyncDataProvider(
+          config.getDirectoryArchivesOutputDirectory() == null ? null :
+          new File(config.getDirectoryArchivesOutputDirectory()),
+          config.getSanitizedBridgesWriteDirectory() == null ? null :
+          new File(config.getSanitizedBridgesWriteDirectory()),
+          config.getSanitizedAssignmentsDirectory() == null ? null :
+          new File(config.getSanitizedAssignmentsDirectory()),
+          new File(config.getRsyncDirectory()));
+    }
+
     // Remove lock file
     lf.releaseLock();
 

@@ -112,4 +112,14 @@
 #
 ## Download exit list and store it to disk
 #DownloadExitList 0
+#
+#
+######## Rsync directory ########
+#
+## Copy recently published decriptors to another directory to provide them
+## via rsync
+#ProvideFilesViaRsync 0
+#
+## Relative path to the directory that shall be provided via rsync
+#RsyncDirectory rsync/
 
