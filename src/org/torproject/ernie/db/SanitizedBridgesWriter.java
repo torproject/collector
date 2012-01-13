@@ -982,6 +982,13 @@ public class SanitizedBridgesWriter {
       return;
     }
 
+    /* Check if we need to overwrite the status file on disk. */
+    if (new String(data).equals(scrubbed)) {
+      this.logger.fine("The bridge network status published " + published
+          + " has not changed, so we're not attempting to rewrite it.");
+      return;
+    }
+
     try {
       /* Determine file name. */
       String syear = published.substring(0, 4);
