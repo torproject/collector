@@ -123,9 +123,6 @@ public class RsyncDataProvider {
   }
 
   private void copyFile(File from, File to) {
-    if (to.exists()) {
-      return;
-    }
     try {
       to.getParentFile().mkdirs();
       FileInputStream fis = new FileInputStream(from);
@@ -138,6 +135,7 @@ public class RsyncDataProvider {
       }
       bis.close();
       fos.close();
+      to.setLastModified(from.lastModified());
     } catch (IOException e) {
       e.printStackTrace();
     }
