@@ -1,6 +1,6 @@
 /* Copyright 2011 The Tor Project
  * See LICENSE for licensing information */
-package org.torproject.ernie.test;
+package org.torproject.ernie.db;
 
 import org.torproject.ernie.db.*;
 
