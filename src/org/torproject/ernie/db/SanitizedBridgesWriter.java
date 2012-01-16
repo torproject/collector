@@ -229,8 +229,10 @@ public class SanitizedBridgesWriter {
             this.bridgeIpSecretsFile));
         String line;
         while ((line = br.readLine()) != null) {
-          if (line.length() != ("yyyy-MM,".length() + 31 * 2) ||
-              line.split(",").length != 2) {
+          String[] parts = line.split(",");
+          if ((line.length() != ("yyyy-MM,".length() + 31 * 2) &&
+              line.length() != ("yyyy-MM,".length() + 50 * 2)) ||
+              parts.length != 2) {
             this.logger.warning("Invalid line in bridge-ip-secrets file "
                 + "starting with '" + line.substring(0, 7) + "'! "
                 + "Not calculating any IP address hashes in this "
@@ -238,7 +240,6 @@ public class SanitizedBridgesWriter {
             this.persistenceProblemWithSecrets = true;
             break;
           }
-          String[] parts = line.split(",");
           String month = parts[0];
           byte[] secret = Hex.decodeHex(parts[1].toCharArray());
           this.secretsForHashingIPAddresses.put(month, secret);
@@ -315,7 +316,28 @@ public class SanitizedBridgesWriter {
     }
   }
 
-  private String scrubAddress(String address, byte[] fingerprintBytes,
+  private String scrubOrAddress(String orAddress, byte[] fingerprintBytes,
+      String published) throws IOException {
+    if (!orAddress.contains(":")) {
+      /* Malformed or-address or a line. */
+      return null;
+    }
+    String addressPart = orAddress.substring(0,
+        orAddress.lastIndexOf(":"));
+    String portPart = orAddress.substring(orAddress.lastIndexOf(":") + 1);
+    String scrubbedAddressPart = null;
+    if (addressPart.startsWith("[")) {
+      scrubbedAddressPart = this.scrubIpv6Address(addressPart,
+          fingerprintBytes, published);
+    } else {
+      scrubbedAddressPart = this.scrubIpv6Address(addressPart,
+          fingerprintBytes, published);
+    }
+    return (scrubbedAddressPart == null ? null :
+          scrubbedAddressPart + ":" + portPart);
+  }
+
+  private String scrubIpv4Address(String address, byte[] fingerprintBytes,
       String published) throws IOException {
     if (this.replaceIPAddressesWithHashes) {
       if (this.persistenceProblemWithSecrets) {
@@ -330,37 +352,7 @@ public class SanitizedBridgesWriter {
       }
       System.arraycopy(fingerprintBytes, 0, hashInput, 4, 20);
       String month = published.substring(0, "yyyy-MM".length());
-      if (!this.secretsForHashingIPAddresses.containsKey(month)) {
-        byte[] secret = new byte[31];
-        this.secureRandom.nextBytes(secret);
-        if (month.compareTo(
-            this.bridgeDescriptorMappingsCutOffTimestamp) < 0) {
-          this.logger.warning("Generated a secret that we won't make "
-              + "persistent, because it's outside our bridge descriptors "
-              + "mapping interval.");
-        } else {
-          /* Append secret to file on disk immediately before using it, or
-           * we might end with inconsistently sanitized bridges. */
-          try {
-            if (!this.bridgeIpSecretsFile.exists()) {
-              this.bridgeIpSecretsFile.getParentFile().mkdirs();
-            }
-            BufferedWriter bw = new BufferedWriter(new FileWriter(
-                this.bridgeIpSecretsFile,
-                this.bridgeIpSecretsFile.exists()));
-            bw.write(month + "," + Hex.encodeHexString(secret) + "\n");
-            bw.close();
-          } catch (IOException e) {
-            this.logger.log(Level.WARNING, "Could not store new secret "
-                + "to disk! Not calculating any IP address hashes in "
-                + "this execution!", e);
-            this.persistenceProblemWithSecrets = true;
-            throw new IOException(e);
-          }
-        }
-        this.secretsForHashingIPAddresses.put(month, secret);
-      }
-      byte[] secret = this.secretsForHashingIPAddresses.get(month);
+      byte[] secret = this.getSecretForMonth(month);
       System.arraycopy(secret, 0, hashInput, 24, 31);
       byte[] hashOutput = DigestUtils.sha256(hashInput);
       String hashedAddress = "10."
@@ -371,6 +363,119 @@ public class SanitizedBridgesWriter {
     } else {
       return "127.0.0.1";
     }
+  }
+
+  private String scrubIpv6Address(String address, byte[] fingerprintBytes,
+      String published) throws IOException {
+    StringBuilder sb = new StringBuilder("[fd9f:2e19:3bcf::");
+    if (this.replaceIPAddressesWithHashes) {
+      if (this.persistenceProblemWithSecrets) {
+        /* There's a persistence problem, so we shouldn't scrub more IP
+         * addresses in this execution. */
+        return null;
+      }
+      byte[] hashInput = new byte[16 + 20 + 19];
+      StringBuilder hex = new StringBuilder();
+      String[] parts = address.substring(1, address.length() - 1).
+          split(":", -1);
+      if (parts.length < 1 || parts.length > 8) {
+        /* Invalid IPv6 address. */
+        return null;
+      }
+      for (int i = 0; i < parts.length; i++) {
+        String part = parts[i];
+        if (part.contains(".")) {
+          String[] ipParts = part.split("\\.");
+          byte[] ipv4Bytes = new byte[4];
+          if (ipParts.length != 4) {
+            /* Invalid IPv4 part in IPv6 address. */
+            return null;
+          }
+          for (int m = 0; m < 4; m++) {
+            ipv4Bytes[m] = (byte) Integer.parseInt(ipParts[m]);
+          }
+          hex.append(Hex.encodeHexString(ipv4Bytes));
+        } else if (part.length() > 4) {
+          /* Invalid IPv6 address. */
+          return null;
+        } else if (part.length() < 1) {
+          int j = parts.length - 1;
+          if (address.contains(".")) {
+            j++;
+          }
+          for (; j < 8; j++) {
+            hex.append("0000");
+          }
+        } else {
+          for (int k = part.length(); k < 4; k++) {
+            hex.append("0");
+          }
+          hex.append(part);
+        }
+      }
+      byte[] ipBytes = null;
+      try {
+        ipBytes = Hex.decodeHex(hex.toString().toCharArray());
+      } catch (DecoderException e) {
+        /* TODO Invalid IPv6 address. */
+        return null;
+      }
+      if (ipBytes.length != 16) {
+        /* TODO Invalid IPv6 address. */
+        return null;
+      }
+      System.arraycopy(ipBytes, 0, hashInput, 0, 16);
+      System.arraycopy(fingerprintBytes, 0, hashInput, 16, 20);
+      String month = published.substring(0, "yyyy-MM".length());
+      byte[] secret = this.getSecretForMonth(month);
+      System.arraycopy(secret, 31, hashInput, 36, 19);
+      String hashOutput = DigestUtils.sha256Hex(hashInput);
+      sb.append(hashOutput.substring(hashOutput.length() - 6,
+          hashOutput.length() - 4));
+      sb.append(":");
+      sb.append(hashOutput.substring(hashOutput.length() - 4));
+    }
+    sb.append("]");
+    return sb.toString();
+  }
+
+  private byte[] getSecretForMonth(String month) throws IOException {
+    if (!this.secretsForHashingIPAddresses.containsKey(month) ||
+        this.secretsForHashingIPAddresses.get(month).length == 31) {
+      byte[] secret = new byte[50];
+      this.secureRandom.nextBytes(secret);
+      if (this.secretsForHashingIPAddresses.containsKey(month)) {
+        System.arraycopy(this.secretsForHashingIPAddresses.get(month), 0,
+            secret, 0, 31);
+      }
+      if (month.compareTo(
+          this.bridgeDescriptorMappingsCutOffTimestamp) < 0) {
+        this.logger.warning("Generated a secret that we won't make "
+            + "persistent, because it's outside our bridge descriptors "
+            + "mapping interval.");
+      } else {
+        /* Append secret to file on disk immediately before using it, or
+         * we might end with inconsistently sanitized bridges. */
+        try {
+          if (!this.bridgeIpSecretsFile.exists()) {
+            this.bridgeIpSecretsFile.getParentFile().mkdirs();
+          }
+          BufferedWriter bw = new BufferedWriter(new FileWriter(
+              this.bridgeIpSecretsFile,
+              this.bridgeIpSecretsFile.exists()));
+          bw.write(month + "," + Hex.encodeHexString(secret) + "\n");
+          bw.close();
+        } catch (IOException e) {
+          this.logger.log(Level.WARNING, "Could not store new secret "
+              + "to disk! Not calculating any IP address hashes in "
+              + "this execution!", e);
+          this.persistenceProblemWithSecrets = true;
+          throw new IOException(e);
+        }
+      }
+      this.secretsForHashingIPAddresses.put(month, secret);
+    }
+    return this.secretsForHashingIPAddresses.get(month);
   }
 
   /**
@@ -404,6 +509,8 @@ public class SanitizedBridgesWriter {
           data, "US-ASCII")));
       String line = null;
       String mostRecentDescPublished = null;
+      byte[] fingerprintBytes = null;
+      String descPublicationTime = null;
       while ((line = br.readLine()) != null) {
 
         /* r lines contain sensitive information that needs to be removed
@@ -412,8 +519,8 @@ public class SanitizedBridgesWriter {
 
           /* Parse the relevant parts of this r line. */
           String[] parts = line.split(" ");
-          String bridgeIdentity = parts[2];
-          String descPublicationTime = parts[4] + " " + parts[5];
+          fingerprintBytes = Base64.decodeBase64(parts[2] + "==");
+          descPublicationTime = parts[4] + " " + parts[5];
           String address = parts[6];
           String orPort = parts[7];
           String dirPort = parts[8];
@@ -421,8 +528,7 @@ public class SanitizedBridgesWriter {
           /* Look up the descriptor in the descriptor mapping, or add a
            * new mapping entry if there is none. */
           String hashedBridgeIdentityHex = Hex.encodeHexString(
-              DigestUtils.sha(Base64.decodeBase64(bridgeIdentity
-              + "=="))).toLowerCase();
+              DigestUtils.sha(fingerprintBytes)).toLowerCase();
           String mappingKey = hashedBridgeIdentityHex + ","
               + descPublicationTime;
           DescriptorMapping mapping = null;
@@ -443,15 +549,13 @@ public class SanitizedBridgesWriter {
 
           /* Write scrubbed r line to buffer. */
           String hashedBridgeIdentityBase64 = Base64.encodeBase64String(
-              DigestUtils.sha(Base64.decodeBase64(bridgeIdentity
-              + "=="))).substring(0, 27);
+              DigestUtils.sha(fingerprintBytes)).substring(0, 27);
           String sdi = Base64.encodeBase64String(Hex.decodeHex(
                 mapping.serverDescriptorIdentifier.toCharArray())).
                 substring(0, 27);
           String scrubbedAddress = null;
           try {
-            scrubbedAddress = scrubAddress(address,
-                Base64.decodeBase64(bridgeIdentity + "=="),
+            scrubbedAddress = scrubIpv4Address(address, fingerprintBytes,
                 descPublicationTime);
           } catch (IOException e) {
             return;
@@ -465,6 +569,19 @@ public class SanitizedBridgesWriter {
               + hashedBridgeIdentityBase64 + " " + sdi + " "
               + descPublicationTime + " " + scrubbedAddress + " "
               + orPort + " " + dirPort + "\n");
+
+        /* Sanitize any addresses in a lines using the fingerprint and
+         * descriptor publication time from the previous r line. */
+        } else if (line.startsWith("a ")) {
+          String scrubbedOrAddress = scrubOrAddress(
+              line.substring("a ".length()), fingerprintBytes,
+              descPublicationTime);
+          if (scrubbedOrAddress != null) {
+            scrubbed.append("a " + scrubbedOrAddress + "\n");
+          } else {
+            this.logger.warning("Invalid address in line '" + line
+                + "' in bridge network status.  Skipping line!");
+          }
 
         /* Nothing special about s, w, and p lines; just copy them. */
         } else if (line.startsWith("s ") || line.equals("s") ||
@@ -574,6 +691,7 @@ public class SanitizedBridgesWriter {
       StringBuilder scrubbed = new StringBuilder();
       String line = null, hashedBridgeIdentity = null, address = null,
           published = null, routerLine = null, scrubbedAddress = null;
+      List<String> orAddresses = null, scrubbedOrAddresses = null;
       boolean skipCrypto = false;
       while ((line = br.readLine()) != null) {
 
@@ -604,6 +722,14 @@ public class SanitizedBridgesWriter {
           address = line.split(" ")[2];
           routerLine = line;
 
+        /* Store or-address parts in a list and sanitize them when we have
+         * read the fingerprint. */
+        } else if (line.startsWith("or-address ")) {
+          if (orAddresses == null) {
+            orAddresses = new ArrayList<String>();
+          }
+          orAddresses.add(line.substring("or-address ".length()));
+
         /* Parse the publication time and add it to the list of descriptor
          * publication times to re-write network statuses at the end of
          * the sanitizing procedure. */
@@ -632,8 +758,21 @@ public class SanitizedBridgesWriter {
           hashedBridgeIdentity = DigestUtils.shaHex(fingerprintBytes).
               toLowerCase();
           try {
-            scrubbedAddress = scrubAddress(address, fingerprintBytes,
+            scrubbedAddress = scrubIpv4Address(address, fingerprintBytes,
                 published);
+            if (orAddresses != null) {
+              scrubbedOrAddresses = new ArrayList<String>();
+              for (String orAddress : orAddresses) {
+                String scrubbedOrAddress = scrubOrAddress(orAddress,
+                    fingerprintBytes, published);
+                if (scrubbedOrAddress != null) {
+                  scrubbedOrAddresses.add(scrubbedOrAddress);
+                } else {
+                  this.logger.warning("Invalid address in line '" + line
+                      + "' in bridge server descriptor.  Skipping line!");
+                }
+              }
+            }
           } catch (IOException e) {
             /* There's a persistence problem, so we shouldn't scrub more
              * IP addresses in this execution. */
@@ -656,6 +795,12 @@ public class SanitizedBridgesWriter {
           scrubbedDesc = "router Unnamed " + scrubbedAddress + " "
               + routerLineParts[3] + " " + routerLineParts[4] + " "
               + routerLineParts[5] + "\n";
+          if (scrubbedOrAddresses != null) {
+            for (String scrubbedOrAddress : scrubbedOrAddresses) {
+              scrubbedDesc = scrubbedDesc += "or-address "
+                  + scrubbedOrAddress + "\n";
+            }
+          }
           scrubbedDesc += scrubbed.toString();
           break;
 
