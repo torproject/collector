@@ -4,6 +4,7 @@ package org.torproject.ernie.db;
 
 import java.io.*;
 import java.util.*;
+import java.util.logging.*;
 
 /**
  * Copy files published in the last 3 days to a local directory that can
@@ -13,6 +14,9 @@ public class RsyncDataProvider {
   public RsyncDataProvider(File directoryArchivesOutputDirectory,
       File sanitizedBridgesWriteDirectory,
       File sanitizedAssignmentsDirectory, File rsyncDirectory) {
+
+    /* Initialize logger. */
+    Logger logger = Logger.getLogger(RsyncDataProvider.class.getName());
 
     /* Determine the cut-off time for files in rsync/. */
     long cutOffMillis = System.currentTimeMillis()
@@ -36,6 +40,9 @@ public class RsyncDataProvider {
         fileNamesInRsync.add(pop.getName());
       }
     }
+    logger.info("Found " + fileNamesInRsync.size() + " files in "
+        + rsyncDirectory.getAbsolutePath() + " that we're either "
+        + "overwriting or deleting in this execution.");
 
     /* Copy relay descriptors from the last 3 days. */
     if (directoryArchivesOutputDirectory != null) {
@@ -66,6 +73,9 @@ public class RsyncDataProvider {
         }
       }
     }
+    logger.info("After copying relay descriptors, there are still "
+        + fileNamesInRsync.size() + " files left in "
+        + rsyncDirectory.getAbsolutePath() + ".");
 
     /* Copy sanitized bridge descriptors from the last 3 days. */
     if (sanitizedBridgesWriteDirectory != null) {
@@ -93,6 +103,9 @@ public class RsyncDataProvider {
         }
       }
     }
+    logger.info("After copying sanitized bridge descriptors, there are "
+        + "still " + fileNamesInRsync.size() + " files left in "
+        + rsyncDirectory.getAbsolutePath() + ".");
 
     /* Copy sanitized bridge pool assignments from the last 3 days. */
     if (sanitizedAssignmentsDirectory != null) {
@@ -109,6 +122,9 @@ public class RsyncDataProvider {
         }
       }
     }
+    logger.info("After copying sanitized bridge pool assignments, there "
+        + "are still " + fileNamesInRsync.size() + " files left in "
+        + rsyncDirectory.getAbsolutePath() + ".");
 
     /* Delete all files that we didn't (over-)write in this run. */
     files.add(rsyncDirectory);
@@ -117,9 +133,13 @@ public class RsyncDataProvider {
       if (pop.isDirectory()) {
         files.addAll(Arrays.asList(pop.listFiles()));
       } else if (fileNamesInRsync.contains(pop.getName())) {
+        fileNamesInRsync.remove(pop.getName());
         pop.delete();
       }
     }
+    logger.info("After deleting files that we didn't overwrite in this "
+        + "run, there are " + fileNamesInRsync.size() + " files left in "
+        + rsyncDirectory.getAbsolutePath() + ".");
   }
 
   private void copyFile(File from, File to) {
