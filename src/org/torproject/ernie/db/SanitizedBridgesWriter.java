@@ -330,7 +330,7 @@ public class SanitizedBridgesWriter {
       scrubbedAddressPart = this.scrubIpv6Address(addressPart,
           fingerprintBytes, published);
     } else {
-      scrubbedAddressPart = this.scrubIpv6Address(addressPart,
+      scrubbedAddressPart = this.scrubIpv4Address(addressPart,
           fingerprintBytes, published);
     }
     return (scrubbedAddressPart == null ? null :
