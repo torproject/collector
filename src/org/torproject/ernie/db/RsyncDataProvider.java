@@ -13,7 +13,8 @@ import java.util.logging.*;
 public class RsyncDataProvider {
   public RsyncDataProvider(File directoryArchivesOutputDirectory,
       File sanitizedBridgesWriteDirectory,
-      File sanitizedAssignmentsDirectory, File rsyncDirectory) {
+      File sanitizedAssignmentsDirectory,
+      boolean downloadExitList, File rsyncDirectory) {
 
     /* Initialize logger. */
     Logger logger = Logger.getLogger(RsyncDataProvider.class.getName());
@@ -124,6 +125,25 @@ public class RsyncDataProvider {
     }
     logger.info("After copying sanitized bridge pool assignments, there "
         + "are still " + fileNamesInRsync.size() + " files left in "
+        + rsyncDirectory.getAbsolutePath() + ".");
+
+    /* Copy exit lists from the last 3 days. */
+    if (downloadExitList) {
+      files.add(new File("exitlist"));
+      while (!files.isEmpty()) {
+        File pop = files.pop();
+        if (pop.isDirectory()) {
+          files.addAll(Arrays.asList(pop.listFiles()));
+        } else if (pop.lastModified() >= cutOffMillis) {
+          String fileName = pop.getName();
+          this.copyFile(pop, new File(rsyncDirectory,
+              "exit-lists/" + fileName));
+          fileNamesInRsync.remove(pop.getName());
+        }
+      }
+    }
+    logger.info("After copying exit lists, there are still "
+        + fileNamesInRsync.size() + " files left in "
         + rsyncDirectory.getAbsolutePath() + ".");
 
     /* Delete all files that we didn't (over-)write in this run. */

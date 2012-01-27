@@ -146,6 +146,7 @@ public class Main {
           new File(config.getSanitizedBridgesWriteDirectory()),
           config.getSanitizedAssignmentsDirectory() == null ? null :
           new File(config.getSanitizedAssignmentsDirectory()),
+          config.getDownloadExitList(),
           new File(config.getRsyncDirectory()));
     }
 
