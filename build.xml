@@ -1,6 +1,6 @@
 <project default="run" name="ERNIE" basedir=".">
   <property name="sources" value="src/"/>
-  <property name="classes" value="bin/"/>
+  <property name="classes" value="classes/"/>
   <property name="tests" value="test"/>
   <property name="docs" value="javadoc/"/>
   <property name="name" value="ERNIE"/>
