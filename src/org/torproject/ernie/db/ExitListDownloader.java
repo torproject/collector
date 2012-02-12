@@ -14,7 +14,7 @@ public class ExitListDownloader {
     try {
       logger.fine("Downloading exit list...");
       String exitAddressesUrl =
-          "http://exitlist.torproject.org/exitAddresses";
+          "http://exitlist.torproject.org/exit-addresses";
       URL u = new URL(exitAddressesUrl);
       HttpURLConnection huc = (HttpURLConnection) u.openConnection();
       huc.setRequestMethod("GET");
