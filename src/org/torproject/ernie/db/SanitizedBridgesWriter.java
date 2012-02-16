@@ -768,8 +768,9 @@ public class SanitizedBridgesWriter {
                 if (scrubbedOrAddress != null) {
                   scrubbedOrAddresses.add(scrubbedOrAddress);
                 } else {
-                  this.logger.warning("Invalid address in line '" + line
-                      + "' in bridge server descriptor.  Skipping line!");
+                  this.logger.warning("Invalid address in line "
+                      + "'or-address " + orAddress + "' in bridge server "
+                      + "descriptor.  Skipping line!");
                 }
               }
             }
