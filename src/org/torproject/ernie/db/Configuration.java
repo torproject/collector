@@ -49,6 +49,11 @@ public class Configuration {
   private boolean processBridgePoolAssignments = false;
   private String assignmentsDirectory = "assignments/";
   private String sanitizedAssignmentsDirectory = "sanitized-assignments/";
+  private boolean processTorperfFiles = false;
+  private String torperfOutputDirectory = "torperf/";
+  private SortedMap<String, String> torperfSources = null;
+  private SortedMap<String, List<String>> torperfDataFiles = null;
+  private SortedMap<String, List<String>> torperfExtradataFiles = null;
   private boolean provideFilesViaRsync = false;
   private String rsyncDirectory = "rsync";
   public Configuration() {
@@ -170,6 +175,41 @@ public class Configuration {
           this.assignmentsDirectory = line.split(" ")[1];
         } else if (line.startsWith("SanitizedAssignmentsDirectory")) {
           this.sanitizedAssignmentsDirectory = line.split(" ")[1];
+        } else if (line.startsWith("ProcessTorperfFiles")) {
+          this.processTorperfFiles = Integer.parseInt(line.split(" ")[1])
+              != 0;
+        } else if (line.startsWith("TorperfOutputDirectory")) {
+        } else if (line.startsWith("TorperfSource")) {
+          if (this.torperfSources == null) {
+            this.torperfSources = new TreeMap<String, String>();
+          }
+          String[] parts = line.split(" ");
+          String sourceName = parts[1];
+          String baseUrl = parts[2];
+          this.torperfSources.put(sourceName, baseUrl);
+        } else if (line.startsWith("TorperfDataFiles")) {
+          if (this.torperfDataFiles == null) {
+            this.torperfDataFiles = new TreeMap<String, List<String>>();
+          }
+          String[] parts = line.split(" ");
+          String sourceName = parts[1];
+          List<String> dataFiles = new ArrayList<String>();
+          for (int i = 2; i < parts.length; i++) {
+            dataFiles.add(parts[i]);
+          }
+          this.torperfDataFiles.put(sourceName, dataFiles);
+        } else if (line.startsWith("TorperfExtradataFiles")) {
+          if (this.torperfExtradataFiles == null) {
+            this.torperfExtradataFiles =
+                new TreeMap<String, List<String>>();
+          }
+          String[] parts = line.split(" ");
+          String sourceName = parts[1];
+          List<String> extradataFiles = new ArrayList<String>();
+          for (int i = 2; i < parts.length; i++) {
+            extradataFiles.add(parts[i]);
+          }
+          this.torperfExtradataFiles.put(sourceName, extradataFiles);
         } else if (line.startsWith("ProvideFilesViaRsync")) {
           this.provideFilesViaRsync = Integer.parseInt(
               line.split(" ")[1]) != 0;
@@ -205,7 +245,8 @@ public class Configuration {
         !this.importDirectoryArchives && !this.downloadRelayDescriptors &&
         !this.importBridgeSnapshots && !this.downloadGetTorStats &&
         !this.downloadExitList && !this.processBridgePoolAssignments &&
-        !this.writeDirectoryArchives && !this.writeSanitizedBridges) {
+        !this.writeDirectoryArchives && !this.writeSanitizedBridges &&
+        !this.processTorperfFiles) {
       logger.warning("We have not been configured to read data from any "
           + "data source or write data to any data sink. You need to "
           + "edit your config file (" + configFile.getAbsolutePath()
@@ -323,6 +364,21 @@ public class Configuration {
   }
   public String getSanitizedAssignmentsDirectory() {
     return sanitizedAssignmentsDirectory;
+  }
+  public boolean getProcessTorperfFiles() {
+    return this.processTorperfFiles;
+  }
+  public String getTorperfOutputDirectory() {
+    return this.torperfOutputDirectory;
+  }
+  public SortedMap<String, String> getTorperfSources() {
+    return this.torperfSources;
+  }
+  public SortedMap<String, List<String>> getTorperfDataFiles() {
+    return this.torperfDataFiles;
+  }
+  public SortedMap<String, List<String>> getTorperfExtradataFiles() {
+    return this.torperfExtradataFiles;
   }
   public boolean getProvideFilesViaRsync() {
     return this.provideFilesViaRsync;

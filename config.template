@@ -122,4 +122,25 @@
 #
 ## Relative path to the directory that shall be provided via rsync
 #RsyncDirectory rsync/
+#
+#
+######## Torperf downloader ########
+#
+## Download and merge Torperf .data and .extradata files
+#ProcessTorperfFiles 0
+#
+## Relative path to the directory to store Torperf files in
+#TorperfOutputDirectory torperf/
+#
+## Torperf source names and base URLs (option can be contained multiple
+## times)
+#TorperfSource torperf http://torperf.torproject.org/
+#
+## Torperf .data files available on a given source (option can be
+## contained multiple times)
+#TorperfDataFiles torperf 50kb.data 1mb.data 5mb.data
+#
+## Torperf .extradata files available on a given source (option can be
+## contained multiple times)
+#TorperfExtradataFiles torperf 50kb.extradata 1mb.extradata 5mb.extradata
 

@@ -136,6 +136,13 @@ public class Main {
           new File(config.getSanitizedAssignmentsDirectory()));
     }
 
+    // Process Torperf files
+    if (config.getProcessTorperfFiles()) {
+      new TorperfDownloader(new File(config.getTorperfOutputDirectory()),
+          config.getTorperfSources(), config.getTorperfDataFiles(),
+          config.getTorperfExtradataFiles());
+    }
+
     // Copy recently published files to a local directory that can then
     // be served via rsync.
     if (config.getProvideFilesViaRsync()) {

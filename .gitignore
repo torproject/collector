@@ -47,6 +47,9 @@ config
 # Gettor files
 gettor/
 
+# Torperf files
+torperf/
+
 # Files provided via rsync
 rsync/
 
