@@ -58,7 +58,7 @@ public class TorperfDownloader {
     String lastTimestampLine = null;
     int linesAfterLastTimestampLine = 0;
     if (outputFile.exists() && outputFile.lastModified() >
-        System.currentTimeMillis() - 6L * 60L * 60L * 1000L) {
+        System.currentTimeMillis() - 330L * 60L * 1000L) {
       return;
     } else if (outputFile.exists()) {
       try {
