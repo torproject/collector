@@ -3,7 +3,7 @@ archives/
 bridges/
 
 # compiled Java class files
-bin/
+classes/
 
 # generated R input files
 stats/
@@ -44,6 +44,9 @@ dist/
 # Possibly modified config file
 config
 
-# Generated raw database import files
-pg-import/
+# Gettor files
+gettor/
+
+# Files provided via rsync
+rsync/
 
