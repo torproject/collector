@@ -97,8 +97,8 @@ public class BridgePoolAssignmentsProcessor {
             String[] parts = line.split(" ");
             if (parts.length < 2 || parts[0].length() < 40) {
               logger.warning("Unrecognized line '" + line
-                  + "'. Skipping.");
-              continue;
+                  + "'. Aborting.");
+              break;
             }
             String hashedFingerprint = null;
             try {
@@ -106,8 +106,8 @@ public class BridgePoolAssignmentsProcessor {
                   line.split(" ")[0].toCharArray())).toLowerCase();
             } catch (DecoderException e) {
               logger.warning("Unable to decode hex fingerprint in line '"
-                  + line + "'. Skipping.");
-              continue;
+                  + line + "'. Aborting.");
+              break;
             }
             String assignmentDetails = line.substring(40);
             sanitizedAssignments.add(hashedFingerprint
