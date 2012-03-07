@@ -1130,7 +1130,7 @@ public class SanitizedBridgesWriter {
 
     /* Check if we need to overwrite the status file on disk. */
     if (new String(data).equals(scrubbed)) {
-      this.logger.fine("The bridge network status published " + published
+      this.logger.finer("The bridge network status published " + published
           + " has not changed, so we're not attempting to rewrite it.");
       return;
     }
