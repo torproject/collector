@@ -97,6 +97,9 @@ public class TorperfDownloader {
       boolean copyLines = lastTimestampLine == null;
       while ((line = br.readLine()) != null) {
         if (copyLines && linesAfterLastTimestampLine == 0) {
+          if (isDataFile || line.contains(" LAUNCH")) {
+            lastTimestampLine = line;
+          }
           bw.write(line + "\n");
         } else if (copyLines && linesAfterLastTimestampLine > 0) {
           linesAfterLastTimestampLine--;
@@ -110,6 +113,28 @@ public class TorperfDownloader {
       logger.log(Level.WARNING, "Failed downloading and merging '" + url
           + "'.", e);
       return;
+    }
+    if (lastTimestampLine == null) {
+      logger.warning("'" + outputFile.getAbsolutePath() + "' doesn't "
+          + "contain any timestamp lines.  Unable to check whether that "
+          + "file is stale or not.");
+    } else {
+      long lastTimestampMillis = -1L;
+      if (isDataFile) {
+        lastTimestampMillis = Long.parseLong(lastTimestampLine.substring(
+            0, lastTimestampLine.indexOf(" "))) * 1000L;
+      } else {
+        lastTimestampMillis = Long.parseLong(lastTimestampLine.substring(
+            lastTimestampLine.indexOf(" LAUNCH=") + " LAUNCH=".length(),
+            lastTimestampLine.indexOf(".",
+            lastTimestampLine.indexOf(" LAUNCH=")))) * 1000L;
+      }
+      if (lastTimestampMillis < System.currentTimeMillis()
+          - 330L * 60L * 1000L) {
+        logger.warning("The last timestamp in '"
+            + outputFile.getAbsolutePath() + "' is more than 5:30 hours "
+            + "old: " + lastTimestampMillis);
+      }
     }
   }
 }
