@@ -749,7 +749,8 @@ public class SanitizedBridgesWriter {
 
         /* Parse the fingerprint to determine the hashed bridge
          * identity. */
-        } else if (line.startsWith("opt fingerprint ")) {
+        } else if (line.startsWith("opt fingerprint ") ||
+            line.startsWith("fingerprint ")) {
           String fingerprint = line.substring(line.startsWith("opt ") ?
               "opt fingerprint".length() : "fingerprint".length()).
               replaceAll(" ", "").toLowerCase();
@@ -779,7 +780,8 @@ public class SanitizedBridgesWriter {
              * IP addresses in this execution. */
             return;
           }
-          scrubbed.append("opt fingerprint");
+          scrubbed.append((line.startsWith("opt ") ? "opt " : "")
+              + "fingerprint");
           for (int i = 0; i < hashedBridgeIdentity.length() / 4; i++)
             scrubbed.append(" " + hashedBridgeIdentity.substring(4 * i,
                 4 * (i + 1)).toUpperCase());
@@ -808,8 +810,10 @@ public class SanitizedBridgesWriter {
         /* Replace extra-info digest with the one we know from our
          * descriptor mapping (which might be all 0's if we didn't parse
          * the extra-info descriptor before). */
-        } else if (line.startsWith("opt extra-info-digest ")) {
-          scrubbed.append("opt extra-info-digest "
+        } else if (line.startsWith("opt extra-info-digest ") ||
+            line.startsWith("extra-info-digest ")) {
+          scrubbed.append((line.startsWith("opt ") ? "opt " : "")
+              + "extra-info-digest "
               + mapping.extraInfoDescriptorIdentifier.toUpperCase()
               + "\n");
 
@@ -829,12 +833,17 @@ public class SanitizedBridgesWriter {
         } else if (line.startsWith("accept ")
             || line.startsWith("platform ")
             || line.startsWith("opt protocols ")
+            || line.startsWith("protocols ")
             || line.startsWith("uptime ")
             || line.startsWith("bandwidth ")
             || line.startsWith("opt hibernating ")
+            || line.startsWith("hibernating ")
             || line.equals("opt hidden-service-dir")
+            || line.equals("hidden-service-dir")
             || line.equals("opt caches-extra-info")
-            || line.equals("opt allow-single-hop-exits")) {
+            || line.equals("caches-extra-info")
+            || line.equals("opt allow-single-hop-exits")
+            || line.equals("allow-single-hop-exits")) {
           scrubbed.append(line + "\n");
 
         /* Replace node fingerprints in the family line with their hashes
@@ -1202,12 +1211,16 @@ public class SanitizedBridgesWriter {
           }
           sb.append(line2 + "\n");
           this.descriptorPublicationTimes.add(published);
-        } else if (line2.startsWith("opt fingerprint ")) {
-          hashedBridgeIdentity = line2.substring("opt fingerprint".
-              length()).replaceAll(" ", "").toLowerCase();
+        } else if (line2.startsWith("opt fingerprint ") ||
+            line2.startsWith("fingerprint ")) {
+          hashedBridgeIdentity = line2.substring(
+              line2.indexOf("fingerprint") + "fingerprint".length()).
+              replaceAll(" ", "").toLowerCase();
           sb.append(line2 + "\n");
-        } else if (line2.startsWith("opt extra-info-digest ")) {
-          sb.append("opt extra-info-digest "
+        } else if (line2.startsWith("opt extra-info-digest ") ||
+            line2.startsWith("extra-info-digest")) {
+          sb.append((line2.startsWith("opt ") ? "opt " : "")
+              + "extra-info-digest "
               + mapping.extraInfoDescriptorIdentifier.toUpperCase()
               + "\n");
         } else {
