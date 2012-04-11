@@ -24,7 +24,7 @@
 #
 ## Comma separated list of directory authority addresses (IP[:port]) to
 ## download missing relay descriptors from
-#DownloadFromDirectoryAuthorities 86.59.21.38,216.224.124.114:9030,171.25.193.9:443,193.23.244.244,208.83.223.34:443,128.31.0.34:9131,194.109.206.212,212.112.245.170
+#DownloadFromDirectoryAuthorities 86.59.21.38,76.73.17.194:9030,171.25.193.9:443,193.23.244.244,208.83.223.34:443,128.31.0.34:9131,194.109.206.212,212.112.245.170
 #
 ## Download the current consensus (only if DownloadRelayDescriptors is 1)
 #DownloadCurrentConsensus 1
