@@ -163,6 +163,11 @@ public class RsyncDataProvider {
   }
 
   private void copyFile(File from, File to) {
+    if (from.exists() && to.exists() &&
+        from.lastModified() == to.lastModified() &&
+        from.length() == to.length()) {
+      return;
+    }
     try {
       to.getParentFile().mkdirs();
       FileInputStream fis = new FileInputStream(from);
