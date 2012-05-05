@@ -32,7 +32,7 @@ public class BridgePoolAssignmentsProcessor {
       File file = files.pop();
       if (file.isDirectory()) {
         files.addAll(Arrays.asList(file.listFiles()));
-      } else {
+      } else if (!file.getName().endsWith(".gz")) {
         assignmentFiles.add(file);
       }
     }
@@ -49,8 +49,24 @@ public class BridgePoolAssignmentsProcessor {
             assignmentFile));
         String line, bridgePoolAssignmentLine = null;
         SortedSet<String> sanitizedAssignments = new TreeSet<String>();
-        boolean wroteLastLine = false;
+        boolean wroteLastLine = false, skipBefore20120504125947 = true;
         while ((line = br.readLine()) != null || !wroteLastLine) {
+          if (line != null && line.startsWith("bridge-pool-assignment ")) {
+            String[] parts = line.split(" ");
+            if (parts.length != 3) {
+              continue;
+            }
+            /* TODO Take out this temporary hack to ignore all assignments
+             * coming from ponticum when byblos was still the official
+             * BridgeDB host. */
+            if (line.compareTo(
+                "bridge-pool-assignment 2012-05-04 12:59:47") >= 0) {
+              skipBefore20120504125947 = false;
+            }
+          }
+          if (skipBefore20120504125947) {
+            continue;
+          }
           if (line == null ||
               line.startsWith("bridge-pool-assignment ")) {
             if (bridgePoolAssignmentLine != null) {
