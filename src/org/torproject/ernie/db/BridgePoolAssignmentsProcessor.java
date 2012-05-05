@@ -9,6 +9,7 @@ import java.util.logging.*;
 import org.apache.commons.codec.*;
 import org.apache.commons.codec.binary.*;
 import org.apache.commons.codec.digest.*;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 public class BridgePoolAssignmentsProcessor {
 
@@ -32,7 +33,7 @@ public class BridgePoolAssignmentsProcessor {
       File file = files.pop();
       if (file.isDirectory()) {
         files.addAll(Arrays.asList(file.listFiles()));
-      } else if (!file.getName().endsWith(".gz")) {
+      } else {
         assignmentFiles.add(file);
       }
     }
@@ -45,8 +46,14 @@ public class BridgePoolAssignmentsProcessor {
     filenameFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     for (File assignmentFile : assignmentFiles) {
       try {
-        BufferedReader br = new BufferedReader(new FileReader(
-            assignmentFile));
+        BufferedReader br = null;
+        if (assignmentFile.getName().endsWith(".gz")) {
+          br = new BufferedReader(new InputStreamReader(
+              new GzipCompressorInputStream(new FileInputStream(
+                  assignmentFile))));
+        } else {
+          br = new BufferedReader(new FileReader(assignmentFile));
+        }
         String line, bridgePoolAssignmentLine = null;
         SortedSet<String> sanitizedAssignments = new TreeSet<String>();
         boolean wroteLastLine = false, skipBefore20120504125947 = true;
@@ -65,7 +72,11 @@ public class BridgePoolAssignmentsProcessor {
             }
           }
           if (skipBefore20120504125947) {
-            continue;
+            if (line == null) {
+              break;
+            } else {
+              continue;
+            }
           }
           if (line == null ||
               line.startsWith("bridge-pool-assignment ")) {
