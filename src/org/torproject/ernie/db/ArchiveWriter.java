@@ -8,10 +8,14 @@ import java.util.*;
 import java.util.logging.*;
 import org.apache.commons.codec.binary.*;
 
+import org.torproject.descriptor.DescriptorParser;
+import org.torproject.descriptor.DescriptorSourceFactory;
+import org.torproject.descriptor.impl.DescriptorParseException;
 
 public class ArchiveWriter {
   private Logger logger;
   private File outputDirectory;
+  private DescriptorParser descriptorParser;
   private int storedConsensuses = 0, storedVotes = 0, storedCerts = 0,
       storedServerDescriptors = 0, storedExtraInfoDescriptors = 0;
 
@@ -23,6 +27,8 @@ public class ArchiveWriter {
 
     this.logger = Logger.getLogger(ArchiveWriter.class.getName());
     this.outputDirectory = outputDirectory;
+    this.descriptorParser =
+        DescriptorSourceFactory.createDescriptorParser();
   }
 
   private boolean store(byte[] data, String filename) {
@@ -30,6 +36,12 @@ public class ArchiveWriter {
       File file = new File(filename);
       if (!file.exists()) {
         this.logger.finer("Storing " + filename);
+        if (this.descriptorParser.parseDescriptors(data, filename).size()
+            != 1) {
+          this.logger.info("Relay descriptor file " + filename
+              + " doesn't contain exactly one descriptor.  Not storing.");
+          return false;
+        }
         file.getParentFile().mkdirs();
         BufferedOutputStream bos = new BufferedOutputStream(
             new FileOutputStream(file));
@@ -37,6 +49,9 @@ public class ArchiveWriter {
         bos.close();
         return true;
       }
+    } catch (DescriptorParseException e) {
+      this.logger.log(Level.WARNING, "Could not parse relay descriptor "
+          + filename + " before storing it to disk.  Skipping.", e);
     } catch (IOException e) {
       this.logger.log(Level.WARNING, "Could not store relay descriptor "
           + filename, e);
