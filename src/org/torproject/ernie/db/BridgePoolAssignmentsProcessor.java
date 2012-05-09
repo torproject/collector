@@ -33,7 +33,7 @@ public class BridgePoolAssignmentsProcessor {
       File file = files.pop();
       if (file.isDirectory()) {
         files.addAll(Arrays.asList(file.listFiles()));
-      } else {
+      } else if (!file.getName().endsWith(".gz")) {
         assignmentFiles.add(file);
       }
     }
@@ -45,6 +45,8 @@ public class BridgePoolAssignmentsProcessor {
         new SimpleDateFormat("yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
     filenameFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     for (File assignmentFile : assignmentFiles) {
+      logger.info("Processing bridge pool assignment file '"
+          + assignmentFile.getAbsolutePath() + "'...");
       try {
         BufferedReader br = null;
         if (assignmentFile.getName().endsWith(".gz")) {
