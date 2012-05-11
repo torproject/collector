@@ -31,7 +31,8 @@ public class ArchiveWriter {
         DescriptorSourceFactory.createDescriptorParser();
   }
 
-  private boolean store(byte[] data, String filename) {
+  private boolean store(byte[] typeAnnotation, byte[] data,
+      String filename) {
     try {
       File file = new File(filename);
       if (!file.exists()) {
@@ -45,6 +46,9 @@ public class ArchiveWriter {
         file.getParentFile().mkdirs();
         BufferedOutputStream bos = new BufferedOutputStream(
             new FileOutputStream(file));
+        if (data.length > 0 && data[0] != '@') {
+          bos.write(typeAnnotation, 0, typeAnnotation.length);
+        }
         bos.write(data, 0, data.length);
         bos.close();
         return true;
@@ -59,17 +63,21 @@ public class ArchiveWriter {
     return false;
   }
 
+  private static final byte[] CONSENSUS_ANNOTATION =
+      "@type network-status-consensus-3 1.0\n".getBytes();
   public void storeConsensus(byte[] data, long validAfter) {
     SimpleDateFormat printFormat = new SimpleDateFormat(
         "yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
     printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     String filename = outputDirectory + "/consensus/"
         + printFormat.format(new Date(validAfter)) + "-consensus";
-    if (this.store(data, filename)) {
+    if (this.store(CONSENSUS_ANNOTATION, data, filename)) {
       this.storedConsensuses++;
     }
   }
 
+  private static final byte[] VOTE_ANNOTATION =
+      "@type network-status-vote-3 1.0\n".getBytes();
   public void storeVote(byte[] data, long validAfter,
       String fingerprint, String digest) {
     SimpleDateFormat printFormat = new SimpleDateFormat(
@@ -78,11 +86,13 @@ public class ArchiveWriter {
     String filename = outputDirectory + "/vote/"
         + printFormat.format(new Date(validAfter)) + "-vote-"
         + fingerprint + "-" + digest;
-    if (this.store(data, filename)) {
+    if (this.store(VOTE_ANNOTATION, data, filename)) {
       this.storedVotes++;
     }
   }
 
+  private static final byte[] CERTIFICATE_ANNOTATION =
+      "@type dir-key-certificate-3 1.0\n".getBytes();
   public void storeCertificate(byte[] data, String fingerprint,
       long published) {
     SimpleDateFormat printFormat = new SimpleDateFormat(
@@ -90,11 +100,13 @@ public class ArchiveWriter {
     printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     String filename = outputDirectory + "/certs/"
         + fingerprint + "-" + printFormat.format(new Date(published));
-    if (this.store(data, filename)) {
+    if (this.store(CERTIFICATE_ANNOTATION, data, filename)) {
       this.storedCerts++;
     }
   }
 
+  private static final byte[] SERVER_DESCRIPTOR_ANNOTATION =
+      "@type server-descriptor 1.0\n".getBytes();
   public void storeServerDescriptor(byte[] data, String digest,
       long published) {
     SimpleDateFormat printFormat = new SimpleDateFormat("yyyy/MM/");
@@ -103,11 +115,13 @@ public class ArchiveWriter {
         + printFormat.format(new Date(published))
         + digest.substring(0, 1) + "/" + digest.substring(1, 2) + "/"
         + digest;
-    if (this.store(data, filename)) {
+    if (this.store(SERVER_DESCRIPTOR_ANNOTATION, data, filename)) {
       this.storedServerDescriptors++;
     }
   }
 
+  private static final byte[] EXTRA_INFO_ANNOTATION =
+      "@type extra-info 1.0\n".getBytes();
   public void storeExtraInfoDescriptor(byte[] data,
       String extraInfoDigest, long published) {
     SimpleDateFormat descriptorFormat = new SimpleDateFormat("yyyy/MM/");
@@ -117,7 +131,7 @@ public class ArchiveWriter {
         + extraInfoDigest.substring(0, 1) + "/"
         + extraInfoDigest.substring(1, 2) + "/"
         + extraInfoDigest;
-    if (this.store(data, filename)) {
+    if (this.store(EXTRA_INFO_ANNOTATION, data, filename)) {
       this.storedExtraInfoDescriptors++;
     }
   }
