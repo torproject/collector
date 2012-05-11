@@ -1,3 +1,6 @@
+# .jar files
+lib/*.jar
+
 # Input directories for descriptors to parse
 archives/
 bridges/
