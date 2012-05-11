@@ -1,11 +1,20 @@
-/* Copyright 2010 The Tor Project
+/* Copyright 2010--2012 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.ernie.db;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import java.util.logging.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Initialize configuration with hard-coded defaults, overwrite with
@@ -21,8 +30,6 @@ public class Configuration {
   private boolean importDirectoryArchives = false;
   private String directoryArchivesDirectory = "archives/";
   private boolean keepDirectoryArchiveImportHistory = false;
-  private String relayDescriptorDatabaseJdbc =
-      "jdbc:postgresql://localhost/tordir?user=ernie&password=password";
   private boolean writeSanitizedBridges = false;
   private boolean replaceIPAddressesWithHashes = false;
   private long limitBridgeDescriptorMappings = -1L;

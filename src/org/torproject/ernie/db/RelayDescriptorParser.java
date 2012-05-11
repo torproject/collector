@@ -1,13 +1,21 @@
-/* Copyright 2010 The Tor Project
+/* Copyright 2010--2012 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.ernie.db;
 
-import java.io.*;
-import java.text.*;
-import java.util.*;
-import java.util.logging.*;
-import org.apache.commons.codec.digest.*;
-import org.apache.commons.codec.binary.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.SortedSet;
+import java.util.TimeZone;
+import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * Parses relay descriptors including network status consensuses and
@@ -168,13 +176,8 @@ public class RelayDescriptorParser {
           }
         }
       } else if (line.startsWith("router ")) {
-        String publishedLine = null, publishedTime = null,
-            extraInfoDigest = null, relayIdentifier = null;
-        String[] parts = line.split(" ");
-        String nickname = parts[1];
-        String address = parts[2];
-        int orPort = Integer.parseInt(parts[3]);
-        int dirPort = Integer.parseInt(parts[4]);
+        String publishedTime = null, extraInfoDigest = null,
+            relayIdentifier = null;
         long published = -1L;
         while ((line = br.readLine()) != null) {
           if (line.startsWith("published ")) {
@@ -213,7 +216,6 @@ public class RelayDescriptorParser {
       } else if (line.startsWith("extra-info ")) {
         String publishedTime = null, relayIdentifier = line.split(" ")[2];
         long published = -1L;
-        boolean skip = false;
         while ((line = br.readLine()) != null) {
           if (line.startsWith("published ")) {
             publishedTime = line.substring("published ".length());

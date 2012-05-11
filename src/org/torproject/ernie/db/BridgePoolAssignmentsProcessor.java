@@ -1,14 +1,30 @@
-/* Copyright 2011 The Tor Project
+/* Copyright 2011--2012 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.ernie.db;
 
-import java.io.*;
-import java.text.*;
-import java.util.*;
-import java.util.logging.*;
-import org.apache.commons.codec.*;
-import org.apache.commons.codec.binary.*;
-import org.apache.commons.codec.digest.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.Stack;
+import java.util.TimeZone;
+import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 public class BridgePoolAssignmentsProcessor {

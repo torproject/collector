@@ -1,16 +1,35 @@
-/* Copyright 2010 The Tor Project
+/* Copyright 2010--2012 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.ernie.db;
 
-import java.io.*;
-import java.net.*;
-import java.text.*;
-import java.util.*;
-import java.util.logging.*;
-import java.util.zip.*;
-
-import org.apache.commons.codec.digest.*;
-import org.apache.commons.codec.binary.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TimeZone;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.zip.InflaterInputStream;
 
 /**
  * Downloads relay descriptors from the directory authorities via HTTP.
@@ -677,8 +696,6 @@ public class RelayDescriptorDownloader {
           end += endToken.length();
           byte[] descBytes = new byte[end - start];
           System.arraycopy(allData, start, descBytes, 0, end - start);
-          String digest = Hex.encodeHexString(DigestUtils.sha(
-              descBytes));
           this.rdp.parse(descBytes);
           receivedDescriptors++;
         }

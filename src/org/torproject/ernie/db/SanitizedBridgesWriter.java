@@ -1,4 +1,4 @@
-/* Copyright 2010 The Tor Project
+/* Copyright 2010--2012 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.ernie.db;
 
@@ -164,8 +164,6 @@ public class SanitizedBridgesWriter {
    */
   private File sanitizedBridgesDirectory;
 
-  private File statsDirectory;
-
   private boolean replaceIPAddressesWithHashes;
 
   private boolean persistenceProblemWithSecrets;
@@ -194,7 +192,6 @@ public class SanitizedBridgesWriter {
 
     /* Memorize argument values. */
     this.sanitizedBridgesDirectory = sanitizedBridgesDirectory;
-    this.statsDirectory = statsDirectory;
     this.replaceIPAddressesWithHashes = replaceIPAddressesWithHashes;
 
     /* Initialize logger. */

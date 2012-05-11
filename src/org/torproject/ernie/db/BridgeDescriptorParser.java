@@ -1,12 +1,12 @@
-/* Copyright 2010 The Tor Project
+/* Copyright 2010--2012 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.ernie.db;
 
-import java.io.*;
-import java.text.*;
-import java.util.*;
-import java.util.logging.*;
-import org.apache.commons.codec.digest.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class BridgeDescriptorParser {
   private SanitizedBridgesWriter sbw;
@@ -20,7 +20,6 @@ public class BridgeDescriptorParser {
     try {
       BufferedReader br = new BufferedReader(new StringReader(
           new String(allData, "US-ASCII")));
-      boolean skip = false;
       String line = br.readLine();
       if (line == null) {
         return;
@@ -30,12 +29,6 @@ public class BridgeDescriptorParser {
             this.sbw.storeSanitizedNetworkStatus(allData, dateTime);
           } else {
             this.sbw.sanitizeAndStoreNetworkStatus(allData, dateTime);
-          }
-        }
-        int runningBridges = 0;
-        while ((line = br.readLine()) != null) {
-          if (line.startsWith("s ") && line.contains(" Running")) {
-            runningBridges++;
           }
         }
       } else if (line.startsWith("router ")) {

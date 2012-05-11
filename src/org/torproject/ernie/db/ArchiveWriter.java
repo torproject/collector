@@ -1,13 +1,25 @@
-/* Copyright 2010 The Tor Project
+/* Copyright 2010--2012 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.ernie.db;
 
-import java.io.*;
-import java.text.*;
-import java.util.*;
-import java.util.logging.*;
-import org.apache.commons.codec.binary.*;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.SortedSet;
+import java.util.Stack;
+import java.util.TimeZone;
+import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
 import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
 import org.torproject.descriptor.impl.DescriptorParseException;

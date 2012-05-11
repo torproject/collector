@@ -1,16 +1,29 @@
-/* Copyright 2010 The Tor Project
+/* Copyright 2010--2012 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.ernie.db;
 
-import java.io.*;
-import java.util.*;
-import java.util.logging.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.Stack;
+import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import org.apache.commons.codec.binary.*;
-import org.apache.commons.codec.digest.*;
-
-import org.apache.commons.compress.compressors.gzip.*;
-import org.apache.commons.compress.archivers.tar.*;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 /**
  * Reads the half-hourly snapshots of bridge descriptors from Tonga.

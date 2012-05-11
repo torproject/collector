@@ -2,9 +2,16 @@
  * See LICENSE for licensing information */
 package org.torproject.ernie.db;
 
-import java.io.*;
-import java.util.*;
-import java.util.logging.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Stack;
+import java.util.logging.Logger;
 
 /**
  * Copy files published in the last 3 days to a local directory that can

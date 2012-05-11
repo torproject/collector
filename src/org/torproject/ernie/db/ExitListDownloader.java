@@ -1,12 +1,22 @@
-/* Copyright 2010 The Tor Project
+/* Copyright 2010--2012 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.ernie.db;
 
-import java.io.*;
-import java.net.*;
-import java.text.*;
-import java.util.*;
-import java.util.logging.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.SortedSet;
+import java.util.Stack;
+import java.util.TimeZone;
+import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ExitListDownloader {
   public ExitListDownloader() {
