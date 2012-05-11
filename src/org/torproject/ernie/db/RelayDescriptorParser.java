@@ -69,7 +69,10 @@ public class RelayDescriptorParser {
        * anyway. */
       BufferedReader br = new BufferedReader(new StringReader(new String(
           data, "US-ASCII")));
-      String line = br.readLine();
+      String line;
+      do {
+        line = br.readLine();
+      } while (line != null && line.startsWith("@"));
       if (line == null) {
         this.logger.fine("We were given an empty descriptor for "
             + "parsing. Ignoring.");
@@ -227,6 +230,15 @@ public class RelayDescriptorParser {
         String sigToken = "\nrouter-signature\n";
         String digest = null;
         int start = ascii.indexOf(startToken);
+        if (start > 0) {
+          /* Do not confuse "extra-info " in "@type extra-info 1.0" with
+           * "extra-info 0000...".  TODO This is a hack that should be
+           * solved by using metrics-lib some day. */
+          start = ascii.indexOf("\n" + startToken);
+          if (start > 0) {
+            start++;
+          }
+        }
         int sig = ascii.indexOf(sigToken) + sigToken.length();
         if (start >= 0 || sig >= 0 || sig > start) {
           byte[] forDigest = new byte[sig - start];
