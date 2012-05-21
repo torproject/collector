@@ -16,7 +16,7 @@ public class BridgeDescriptorParser {
     this.logger =
         Logger.getLogger(BridgeDescriptorParser.class.getName());
   }
-  public void parse(byte[] allData, String dateTime, boolean sanitized) {
+  public void parse(byte[] allData, String dateTime) {
     try {
       BufferedReader br = new BufferedReader(new StringReader(
           new String(allData, "US-ASCII")));
@@ -25,27 +25,15 @@ public class BridgeDescriptorParser {
         return;
       } else if (line.startsWith("r ")) {
         if (this.sbw != null) {
-          if (sanitized) {
-            this.sbw.storeSanitizedNetworkStatus(allData, dateTime);
-          } else {
-            this.sbw.sanitizeAndStoreNetworkStatus(allData, dateTime);
-          }
+          this.sbw.sanitizeAndStoreNetworkStatus(allData, dateTime);
         }
       } else if (line.startsWith("router ")) {
         if (this.sbw != null) {
-          if (sanitized) {
-            this.sbw.storeSanitizedServerDescriptor(allData);
-          } else {
-            this.sbw.sanitizeAndStoreServerDescriptor(allData);
-          }
+          this.sbw.sanitizeAndStoreServerDescriptor(allData);
         }
       } else if (line.startsWith("extra-info ")) {
         if (this.sbw != null) {
-          if (sanitized) {
-            this.sbw.storeSanitizedExtraInfoDescriptor(allData);
-          } else {
-            this.sbw.sanitizeAndStoreExtraInfoDescriptor(allData);
-          }
+          this.sbw.sanitizeAndStoreExtraInfoDescriptor(allData);
         }
       }
     } catch (IOException e) {

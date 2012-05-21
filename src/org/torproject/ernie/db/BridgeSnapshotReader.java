@@ -119,7 +119,7 @@ public class BridgeSnapshotReader {
                   }
                 }
                 if (firstLine.startsWith("r ")) {
-                  bdp.parse(allData, dateTime, false);
+                  bdp.parse(allData, dateTime);
                   parsedStatuses++;
                 } else if (descriptorImportHistory.contains(fileDigest)) {
                   /* Skip server descriptors or extra-info descriptors if
@@ -155,7 +155,7 @@ public class BridgeSnapshotReader {
                         DigestUtils.sha(descBytes));
                     if (!descriptorImportHistory.contains(
                         descriptorDigest)) {
-                      bdp.parse(descBytes, dateTime, false);
+                      bdp.parse(descBytes, dateTime);
                       descriptorImportHistory.add(descriptorDigest);
                       if (firstLine.startsWith("router ")) {
                         parsedServerDescriptors++;
