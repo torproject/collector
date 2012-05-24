@@ -59,8 +59,7 @@ public class Configuration {
   private boolean processTorperfFiles = false;
   private String torperfOutputDirectory = "torperf/";
   private SortedMap<String, String> torperfSources = null;
-  private SortedMap<String, List<String>> torperfDataFiles = null;
-  private SortedMap<String, List<String>> torperfExtradataFiles = null;
+  private List<String> torperfFiles = null;
   private boolean provideFilesViaRsync = false;
   private String rsyncDirectory = "rsync";
   public Configuration() {
@@ -194,29 +193,18 @@ public class Configuration {
           String sourceName = parts[1];
           String baseUrl = parts[2];
           this.torperfSources.put(sourceName, baseUrl);
-        } else if (line.startsWith("TorperfDataFiles")) {
-          if (this.torperfDataFiles == null) {
-            this.torperfDataFiles = new TreeMap<String, List<String>>();
+        } else if (line.startsWith("TorperfFiles")) {
+          if (this.torperfFiles == null) {
+            this.torperfFiles = new ArrayList<String>();
           }
           String[] parts = line.split(" ");
-          String sourceName = parts[1];
-          List<String> dataFiles = new ArrayList<String>();
-          for (int i = 2; i < parts.length; i++) {
-            dataFiles.add(parts[i]);
+          if (parts.length != 5) {
+            logger.severe("Configuration file contains TorperfFiles "
+                + "option with wrong number of values in line '" + line
+                + "'! Exiting!");
+            System.exit(1);
           }
-          this.torperfDataFiles.put(sourceName, dataFiles);
-        } else if (line.startsWith("TorperfExtradataFiles")) {
-          if (this.torperfExtradataFiles == null) {
-            this.torperfExtradataFiles =
-                new TreeMap<String, List<String>>();
-          }
-          String[] parts = line.split(" ");
-          String sourceName = parts[1];
-          List<String> extradataFiles = new ArrayList<String>();
-          for (int i = 2; i < parts.length; i++) {
-            extradataFiles.add(parts[i]);
-          }
-          this.torperfExtradataFiles.put(sourceName, extradataFiles);
+          this.torperfFiles.add(line);
         } else if (line.startsWith("ProvideFilesViaRsync")) {
           this.provideFilesViaRsync = Integer.parseInt(
               line.split(" ")[1]) != 0;
@@ -381,11 +369,8 @@ public class Configuration {
   public SortedMap<String, String> getTorperfSources() {
     return this.torperfSources;
   }
-  public SortedMap<String, List<String>> getTorperfDataFiles() {
-    return this.torperfDataFiles;
-  }
-  public SortedMap<String, List<String>> getTorperfExtradataFiles() {
-    return this.torperfExtradataFiles;
+  public List<String> getTorperfFiles() {
+    return this.torperfFiles;
   }
   public boolean getProvideFilesViaRsync() {
     return this.provideFilesViaRsync;

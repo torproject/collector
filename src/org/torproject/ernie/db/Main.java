@@ -139,8 +139,7 @@ public class Main {
     // Process Torperf files
     if (config.getProcessTorperfFiles()) {
       new TorperfDownloader(new File(config.getTorperfOutputDirectory()),
-          config.getTorperfSources(), config.getTorperfDataFiles(),
-          config.getTorperfExtradataFiles());
+          config.getTorperfSources(), config.getTorperfFiles());
     }
 
     // Copy recently published files to a local directory that can then

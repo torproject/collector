@@ -136,11 +136,9 @@
 ## times)
 #TorperfSource torperf http://torperf.torproject.org/
 #
-## Torperf .data files available on a given source (option can be
-## contained multiple times)
-#TorperfDataFiles torperf 50kb.data 1mb.data 5mb.data
-#
-## Torperf .extradata files available on a given source (option can be
-## contained multiple times)
-#TorperfExtradataFiles torperf 50kb.extradata 1mb.extradata 5mb.extradata
+## Torperf measurement file size in bytes, .data file, and .extradata file
+## available on a given source (option can be contained multiple times)
+#TorperfFiles torperf 51200 50kb.data 50kb.extradata
+#TorperfFiles torperf 1048576 1mb.data 1mb.extradata
+#TorperfFiles torperf 5242880 5mb.data 5mb.extradata
 
