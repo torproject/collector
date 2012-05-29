@@ -226,6 +226,13 @@ public class TorperfDownloader {
       }
       bw.close();
       br.close();
+      if (!copyLines) {
+        this.logger.warning("The last timestamp line in '"
+            + outputFile.getAbsolutePath() + "' is not contained in the "
+            + "new file downloaded from '" + url + "'.  Cannot append "
+            + "new lines without possibly leaving a gap.  Skipping.");
+        return false;
+      }
     } catch (IOException e) {
       this.logger.log(Level.WARNING, "Failed downloading and/or merging '"
           + url + "'.", e);
