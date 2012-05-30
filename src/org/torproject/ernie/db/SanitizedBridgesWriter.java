@@ -771,6 +771,7 @@ public class SanitizedBridgesWriter {
             || line.startsWith("bridge-")
             || line.startsWith("dirreq-")
             || line.startsWith("cell-")
+            || line.startsWith("entry-")
             || line.startsWith("exit-")) {
           scrubbed.append(line + "\n");
 
