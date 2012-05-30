@@ -286,15 +286,15 @@ public class TorperfDownloader {
        * format, either with additional information from the .extradata
        * file or without it. */
       if (lineD.isEmpty()) {
-        this.logger.finer("Skipping empty line " + dataFile.getName() + ":"
-            + d++ + ".");
+        this.logger.finer("Skipping empty line " + dataFile.getName()
+            + ":" + d++ + ".");
         lineD = brD.readLine();
         continue;
       }
       SortedMap<String, String> data = this.parseDataLine(lineD);
       if (data == null) {
-        this.logger.warning("Skipping illegal line .data:" + d++ + " '"
-            + lineD + "'.");
+        this.logger.finer("Skipping illegal line " + dataFile.getName()
+            + ":" + d++ + " '" + lineD + "'.");
         lineD = brD.readLine();
         continue;
       }
@@ -332,8 +332,9 @@ public class TorperfDownloader {
         }
         extradata = this.parseExtradataLine(lineE);
         if (extradata == null) {
-          this.logger.warning("Skipping Illegal line .extradata:" + e++
-              + " '" + lineE + "'.");
+          this.logger.finer("Skipping Illegal line "
+              + extradataFile.getName() + ":" + e++ + " '" + lineE
+              + "'.");
           lineE = brE.readLine();
           continue;
         }
@@ -364,8 +365,8 @@ public class TorperfDownloader {
           break;
         } else {
           this.logger.finer("Skipping " + extradataFile.getName() + ":"
-              + e++ + " which is too old to be merged with .data:" + d
-              + ".");
+              + e++ + " which is too old to be merged with "
+              + dataFile.getName() + ":" + d + ".");
           lineE = brE.readLine();
           continue;
         }
