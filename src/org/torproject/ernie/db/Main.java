@@ -146,11 +146,11 @@ public class Main {
     // be served via rsync.
     if (config.getProvideFilesViaRsync()) {
       new RsyncDataProvider(
-          config.getDirectoryArchivesOutputDirectory() == null ? null :
+          !config.getWriteDirectoryArchives() ? null :
           new File(config.getDirectoryArchivesOutputDirectory()),
-          config.getSanitizedBridgesWriteDirectory() == null ? null :
+          !config.getWriteSanitizedBridges() ? null :
           new File(config.getSanitizedBridgesWriteDirectory()),
-          config.getSanitizedAssignmentsDirectory() == null ? null :
+          !config.getProcessBridgePoolAssignments() ? null :
           new File(config.getSanitizedAssignmentsDirectory()),
           config.getDownloadExitList(),
           !config.getDownloadGetTorStats() ? null :
