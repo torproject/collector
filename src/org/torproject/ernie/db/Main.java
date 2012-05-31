@@ -153,6 +153,8 @@ public class Main {
           config.getSanitizedAssignmentsDirectory() == null ? null :
           new File(config.getSanitizedAssignmentsDirectory()),
           config.getDownloadExitList(),
+          !config.getDownloadGetTorStats() ? null :
+          new File(config.getGetTorDirectory()),
           new File(config.getRsyncDirectory()));
     }
 

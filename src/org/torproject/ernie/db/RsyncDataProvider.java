@@ -21,7 +21,8 @@ public class RsyncDataProvider {
   public RsyncDataProvider(File directoryArchivesOutputDirectory,
       File sanitizedBridgesWriteDirectory,
       File sanitizedAssignmentsDirectory,
-      boolean downloadExitList, File rsyncDirectory) {
+      boolean downloadExitList, File getTorDirectory,
+      File rsyncDirectory) {
 
     /* Initialize logger. */
     Logger logger = Logger.getLogger(RsyncDataProvider.class.getName());
@@ -150,6 +151,22 @@ public class RsyncDataProvider {
       }
     }
     logger.info("After copying exit lists, there are still "
+        + fileNamesInRsync.size() + " files left in "
+        + rsyncDirectory.getAbsolutePath() + ".");
+
+    /* Copy GetTor stats. */
+    if (getTorDirectory != null) {
+      String getTorFileName = "gettor_stats.txt";
+      File getTorFile = new File(getTorDirectory, getTorFileName);
+      if (getTorFile.exists() &&
+          getTorFile.lastModified() >= cutOffMillis) {
+        this.copyFile(getTorFile, new File(rsyncDirectory, "gettor/"
+            + getTorFileName));
+        fileNamesInRsync.remove(getTorFileName);
+      }
+    }
+
+    logger.info("After copying the GetTor stats file, there are still "
         + fileNamesInRsync.size() + " files left in "
         + rsyncDirectory.getAbsolutePath() + ".");
 
