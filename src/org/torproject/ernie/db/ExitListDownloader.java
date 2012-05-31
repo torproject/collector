@@ -40,11 +40,18 @@ public class ExitListDownloader {
       SimpleDateFormat printFormat =
           new SimpleDateFormat("yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
       printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+      Date downloadedDate = new Date();
       File exitListFile = new File("exitlist/" + printFormat.format(
-          new Date()));
+          downloadedDate));
       exitListFile.getParentFile().mkdirs();
+      SimpleDateFormat dateTimeFormat =
+          new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+      dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       BufferedWriter bw = new BufferedWriter(new FileWriter(
           exitListFile));
+      bw.write("@type tordnsel 1.0\n");
+      bw.write("Downloaded " + dateTimeFormat.format(downloadedDate)
+          + "\n");
       int len;
       byte[] data = new byte[1024];
       while ((len = in.read(data, 0, 1024)) >= 0) {
