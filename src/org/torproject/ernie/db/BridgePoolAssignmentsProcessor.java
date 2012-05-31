@@ -110,6 +110,7 @@ public class BridgePoolAssignmentsProcessor {
                   sanitizedAssignmentsFile.getParentFile().mkdirs();
                   BufferedWriter bw = new BufferedWriter(new FileWriter(
                       sanitizedAssignmentsFile));
+                  bw.write("@type bridge-pool-assignment 1.0\n");
                   bw.write(bridgePoolAssignmentLine + "\n");
                   for (String assignmentLine : sanitizedAssignments) {
                     bw.write(assignmentLine + "\n");
