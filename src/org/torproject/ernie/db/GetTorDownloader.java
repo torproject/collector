@@ -33,6 +33,9 @@ public class GetTorDownloader {
             getTorFile));
         String line = null;
         while ((line = br.readLine()) != null) {
+          if (line.startsWith("@type gettor 1.")) {
+            continue;
+          }
           String date = line.split(" ")[0];
           getTorStats.put(date, line);
         }
@@ -92,6 +95,7 @@ public class GetTorDownloader {
         getTorDirectory.mkdirs();
       }
       BufferedWriter bw = new BufferedWriter(new FileWriter(getTorFile));
+      bw.write("@type gettor 1.0\n");
       for (String line : getTorStats.values()) {
         bw.write(line + "\n");
       }
