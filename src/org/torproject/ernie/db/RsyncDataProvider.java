@@ -22,7 +22,7 @@ public class RsyncDataProvider {
       File sanitizedBridgesWriteDirectory,
       File sanitizedAssignmentsDirectory,
       boolean downloadExitList, File getTorDirectory,
-      File rsyncDirectory) {
+      File torperfOutputDirectory, File rsyncDirectory) {
 
     /* Initialize logger. */
     Logger logger = Logger.getLogger(RsyncDataProvider.class.getName());
@@ -154,6 +154,26 @@ public class RsyncDataProvider {
         + fileNamesInRsync.size() + " files left in "
         + rsyncDirectory.getAbsolutePath() + ".");
 
+    /* Copy Torperf files. */
+    if (torperfOutputDirectory != null) {
+      files.add(torperfOutputDirectory);
+      while (!files.isEmpty()) {
+        File pop = files.pop();
+        if (pop.isDirectory()) {
+          files.addAll(Arrays.asList(pop.listFiles()));
+        } else if (pop.getName().endsWith(".tpf") &&
+            pop.lastModified() >= cutOffMillis) {
+          String fileName = pop.getName();
+          this.copyFile(pop, new File(rsyncDirectory,
+              "torperf/" + fileName));
+          fileNamesInRsync.remove(pop.getName());
+        }
+      }
+    }
+    logger.info("After copying Torperf files, there are still "
+        + fileNamesInRsync.size() + " files left in "
+        + rsyncDirectory.getAbsolutePath() + ".");
+
     /* Copy GetTor stats. */
     if (getTorDirectory != null) {
       String getTorFileName = "gettor_stats.txt";
@@ -165,7 +185,6 @@ public class RsyncDataProvider {
         fileNamesInRsync.remove(getTorFileName);
       }
     }
-
     logger.info("After copying the GetTor stats file, there are still "
         + fileNamesInRsync.size() + " files left in "
         + rsyncDirectory.getAbsolutePath() + ".");

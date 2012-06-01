@@ -155,6 +155,8 @@ public class Main {
           config.getDownloadExitList(),
           !config.getDownloadGetTorStats() ? null :
           new File(config.getGetTorDirectory()),
+          !config.getProcessTorperfFiles() ? null :
+          new File(config.getTorperfOutputDirectory()),
           new File(config.getRsyncDirectory()));
     }
 
