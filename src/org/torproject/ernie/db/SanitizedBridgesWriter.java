@@ -849,7 +849,7 @@ public class SanitizedBridgesWriter {
     try {
       newFile.getParentFile().mkdirs();
       BufferedWriter bw = new BufferedWriter(new FileWriter(newFile));
-      bw.write("@type bridge-extra-info 1.0\n");
+      bw.write("@type bridge-extra-info 1.1\n");
       bw.write(scrubbedDesc);
       bw.write("router-digest " + descriptorDigest.toUpperCase() + "\n");
       bw.close();
