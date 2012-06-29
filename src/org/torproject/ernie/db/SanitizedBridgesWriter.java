@@ -760,6 +760,19 @@ public class SanitizedBridgesWriter {
           scrubbed.append(line + "\n");
           published = line.substring("published ".length());
 
+        /* Remove everything from transport lines except the transport
+         * name. */
+        } else if (line.startsWith("transport ")) {
+          if (parts.length < 3) {
+            this.logger.fine("Illegal line in extra-info descriptor: '"
+                + line + "'.  Skipping descriptor.");
+            return;
+          }
+          scrubbed.append("transport " + parts[1] + "\n");
+
+        /* Skip transport-info lines entirely. */
+        } else if (line.startsWith("transport-info ")) {
+
         /* Write the following lines unmodified to the sanitized
          * descriptor. */
         } else if (line.startsWith("write-history ")
