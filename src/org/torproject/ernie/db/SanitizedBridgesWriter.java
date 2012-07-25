@@ -109,6 +109,7 @@ public class SanitizedBridgesWriter {
           byte[] secret = Hex.decodeHex(parts[1].toCharArray());
           this.secretsForHashingIPAddresses.put(month, secret);
         }
+        br.close();
         if (!this.persistenceProblemWithSecrets) {
           this.logger.fine("Read "
               + this.secretsForHashingIPAddresses.size() + " secrets for "

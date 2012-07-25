@@ -174,6 +174,7 @@ public class BridgeSnapshotReader {
                 descriptorImportHistory.add(fileDigest);
                 parsedFiles++;
               }
+              bis.close();
             }
             in.close();
 

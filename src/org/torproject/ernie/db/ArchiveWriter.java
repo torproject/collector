@@ -317,6 +317,7 @@ public class ArchiveWriter {
             }
           }
         }
+        br.close();
         sb.append(String.format("%nC, %s, %d/%d (%.1f%%), "
             + "%d/%d (%.1f%%), %d/%d (%.1f%%)",
             validAfterTime, foundVotes, allVotes,
