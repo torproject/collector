@@ -48,10 +48,6 @@ public class Configuration {
   private boolean downloadAllServerDescriptors = false;
   private boolean downloadAllExtraInfoDescriptors = false;
   private boolean compressRelayDescriptorDownloads;
-  private boolean downloadGetTorStats = false;
-  private String getTorStatsUrl = "http://gettor.torproject.org:8080/"
-      + "~gettor/gettor_stats.txt";
-  private String getTorDirectory = "gettor/";
   private boolean downloadExitList = false;
   private boolean processBridgePoolAssignments = false;
   private String assignmentsDirectory = "assignments/";
@@ -161,16 +157,6 @@ public class Configuration {
         } else if (line.startsWith("CompressRelayDescriptorDownloads")) {
           this.compressRelayDescriptorDownloads = Integer.parseInt(
               line.split(" ")[1]) != 0;
-        } else if (line.startsWith("DownloadGetTorStats")) {
-          this.downloadGetTorStats = Integer.parseInt(
-              line.split(" ")[1]) != 0;
-        } else if (line.startsWith("GetTorStatsURL")) {
-          String newUrl = line.split(" ")[1];
-          /* Test if URL has correct format. */
-          new URL(newUrl);
-          this.getTorStatsUrl = newUrl;
-        } else if (line.startsWith("GetTorDirectory")) {
-          this.getTorDirectory = line.split(" ")[1];
         } else if (line.startsWith("DownloadExitList")) {
           this.downloadExitList = Integer.parseInt(
               line.split(" ")[1]) != 0;
@@ -238,7 +224,7 @@ public class Configuration {
     /** Make some checks if configuration is valid. */
     if (!this.importCachedRelayDescriptors &&
         !this.importDirectoryArchives && !this.downloadRelayDescriptors &&
-        !this.importBridgeSnapshots && !this.downloadGetTorStats &&
+        !this.importBridgeSnapshots &&
         !this.downloadExitList && !this.processBridgePoolAssignments &&
         !this.writeDirectoryArchives && !this.writeSanitizedBridges &&
         !this.processTorperfFiles) {
@@ -338,15 +324,6 @@ public class Configuration {
   }
   public boolean getCompressRelayDescriptorDownloads() {
     return this.compressRelayDescriptorDownloads;
-  }
-  public boolean getDownloadGetTorStats() {
-    return this.downloadGetTorStats;
-  }
-  public String getGetTorStatsUrl() {
-    return this.getTorStatsUrl;
-  }
-  public String getGetTorDirectory() {
-    return this.getTorDirectory;
   }
   public boolean getDownloadExitList() {
     return this.downloadExitList;

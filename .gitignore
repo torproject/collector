@@ -16,7 +16,6 @@ website/graphs/bridge-users/*.png
 website/graphs/descriptors/*.png
 website/graphs/direct-users/*.png
 website/graphs/exit/*.png
-website/graphs/gettor/*.png
 website/graphs/networksize/*.png
 website/graphs/new-users/*.png
 website/graphs/torperf/*.png
@@ -46,9 +45,6 @@ dist/
 
 # Possibly modified config file
 config
-
-# Gettor files
-gettor/
 
 # Torperf files
 torperf/

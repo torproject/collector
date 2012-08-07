@@ -118,12 +118,6 @@ public class Main {
       sbw = null;
     }
 
-    // Download and process GetTor stats
-    if (config.getDownloadGetTorStats()) {
-      new GetTorDownloader(config.getGetTorStatsUrl(),
-          new File(config.getGetTorDirectory()));
-    }
-
     // Download exit list and store it to disk
     if (config.getDownloadExitList()) {
       new ExitListDownloader();
@@ -153,8 +147,6 @@ public class Main {
           !config.getProcessBridgePoolAssignments() ? null :
           new File(config.getSanitizedAssignmentsDirectory()),
           config.getDownloadExitList(),
-          !config.getDownloadGetTorStats() ? null :
-          new File(config.getGetTorDirectory()),
           !config.getProcessTorperfFiles() ? null :
           new File(config.getTorperfOutputDirectory()),
           new File(config.getRsyncDirectory()));

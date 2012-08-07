@@ -96,18 +96,6 @@
 #SanitizedAssignmentsDirectory sanitized-assignments/
 #
 #
-######## GetTor download statistics ########
-#
-## Download GetTor stats
-#DownloadGetTorStats 0
-#
-## URL to download GetTor stats from
-#GetTorStatsURL http://gettor.torproject.org:8080/~gettor/gettor_stats.txt
-#
-## Relative path to directory to store GetTor stats in
-#GetTorDirectory gettor/
-#
-#
 ######## Exit lists ########
 #
 ## Download exit list and store it to disk
