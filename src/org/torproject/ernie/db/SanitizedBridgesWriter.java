@@ -201,43 +201,53 @@ public class SanitizedBridgesWriter {
         return null;
       }
       byte[] hashInput = new byte[16 + 20 + 19];
-      StringBuilder hex = new StringBuilder();
-      String[] parts = address.substring(1, address.length() - 1).
-          split(":", -1);
-      if (parts.length < 1 || parts.length > 8) {
+      String[] doubleColonSeparatedParts = address.substring(1,
+          address.length() - 1).split("::", -1);
+      if (doubleColonSeparatedParts.length > 2) {
         /* Invalid IPv6 address. */
         return null;
       }
-      for (int i = 0; i < parts.length; i++) {
-        String part = parts[i];
-        if (part.contains(".")) {
-          String[] ipParts = part.split("\\.");
-          byte[] ipv4Bytes = new byte[4];
-          if (ipParts.length != 4) {
-            /* Invalid IPv4 part in IPv6 address. */
-            return null;
-          }
-          for (int m = 0; m < 4; m++) {
-            ipv4Bytes[m] = (byte) Integer.parseInt(ipParts[m]);
-          }
-          hex.append(Hex.encodeHexString(ipv4Bytes));
-        } else if (part.length() > 4) {
+      List<String> hexParts = new ArrayList<String>();
+      for (String doubleColonSeparatedPart : doubleColonSeparatedParts) {
+        StringBuilder hexPart = new StringBuilder();
+        String[] parts = doubleColonSeparatedPart.split(":", -1);
+        if (parts.length < 1 || parts.length > 8) {
           /* Invalid IPv6 address. */
           return null;
-        } else if (part.length() < 1) {
-          int j = parts.length - 1;
-          if (address.contains(".")) {
-            j++;
-          }
-          for (; j < 8; j++) {
-            hex.append("0000");
-          }
-        } else {
-          for (int k = part.length(); k < 4; k++) {
-            hex.append("0");
-          }
-          hex.append(part);
         }
+        for (int i = 0; i < parts.length; i++) {
+          String part = parts[i];
+          if (part.contains(".")) {
+            String[] ipParts = part.split("\\.");
+            byte[] ipv4Bytes = new byte[4];
+            if (ipParts.length != 4) {
+              /* Invalid IPv4 part in IPv6 address. */
+              return null;
+            }
+            for (int m = 0; m < 4; m++) {
+              ipv4Bytes[m] = (byte) Integer.parseInt(ipParts[m]);
+            }
+            hexPart.append(Hex.encodeHexString(ipv4Bytes));
+          } else if (part.length() > 4) {
+            /* Invalid IPv6 address. */
+            return null;
+          } else {
+            for (int k = part.length(); k < 4; k++) {
+              hexPart.append("0");
+            }
+            hexPart.append(part);
+          }
+        }
+        hexParts.add(hexPart.toString());
+      }
+      StringBuilder hex = new StringBuilder();
+      hex.append(hexParts.get(0));
+      if (hexParts.size() == 2) {
+        for (int i = 32 - hexParts.get(0).length()
+            - hexParts.get(1).length(); i > 0; i--) {
+          hex.append("0");
+        }
+        hex.append(hexParts.get(1));
       }
       byte[] ipBytes = null;
       try {
