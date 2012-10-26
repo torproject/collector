@@ -1,7 +1,6 @@
 <project default="run" name="ERNIE" basedir=".">
   <property name="sources" value="src/"/>
   <property name="classes" value="classes/"/>
-  <property name="tests" value="test"/>
   <property name="docs" value="javadoc/"/>
   <property name="name" value="ERNIE"/>
   <path id="classpath">
@@ -27,7 +26,7 @@
   <target name="run" depends="compile">
     <java fork="true"
           maxmemory="2048m"
-          classname="org.torproject.ernie.db.Main">
+          classname="org.torproject.ernie.db.main.Main">
       <classpath refid="classpath"/>
     </java>
   </target>
@@ -37,27 +36,6 @@
       <classpath refid="classpath"/>
       <fileset dir="${sources}/" includes="**/*.java" />
     </javadoc>
-  </target>
-  <target name="test" depends="compile">
-    <javac destdir="${classes}"
-           srcdir="${tests}"
-           source="1.5"
-           target="1.5"
-           debug="true"
-           deprecation="true"
-           optimize="false"
-           failonerror="true"
-           includeantruntime="false">
-      <classpath refid="classpath"/>
-    </javac>
-    <junit haltonfailure="true" printsummary="off">
-      <classpath refid="classpath"/>
-      <formatter type="plain" usefile="false"/>
-      <batchtest>
-        <fileset dir="${classes}"
-                 includes="**/*Test.class"/>
-      </batchtest>
-    </junit>
   </target>
 </project>
 

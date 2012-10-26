@@ -1,6 +1,6 @@
 /* Copyright 2010--2012 The Tor Project
  * See LICENSE for licensing information */
-package org.torproject.ernie.db;
+package org.torproject.ernie.db.exitlists;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;

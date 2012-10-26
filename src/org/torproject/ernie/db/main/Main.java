@@ -1,10 +1,22 @@
 /* Copyright 2010--2012 The Tor Project
  * See LICENSE for licensing information */
-package org.torproject.ernie.db;
+package org.torproject.ernie.db.main;
 
 import java.io.File;
 import java.util.List;
 import java.util.logging.Logger;
+
+import org.torproject.ernie.db.bridgedescs.BridgeDescriptorParser;
+import org.torproject.ernie.db.bridgedescs.BridgeSnapshotReader;
+import org.torproject.ernie.db.bridgedescs.SanitizedBridgesWriter;
+import org.torproject.ernie.db.bridgepools.BridgePoolAssignmentsProcessor;
+import org.torproject.ernie.db.exitlists.ExitListDownloader;
+import org.torproject.ernie.db.relaydescs.ArchiveReader;
+import org.torproject.ernie.db.relaydescs.ArchiveWriter;
+import org.torproject.ernie.db.relaydescs.CachedRelayDescriptorReader;
+import org.torproject.ernie.db.relaydescs.RelayDescriptorDownloader;
+import org.torproject.ernie.db.relaydescs.RelayDescriptorParser;
+import org.torproject.ernie.db.torperf.TorperfDownloader;
 
 /**
  * Coordinate downloading and parsing of descriptors and extraction of

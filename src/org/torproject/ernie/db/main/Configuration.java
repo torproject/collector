@@ -1,6 +1,6 @@
 /* Copyright 2010--2012 The Tor Project
  * See LICENSE for licensing information */
-package org.torproject.ernie.db;
+package org.torproject.ernie.db.main;
 
 import java.io.BufferedReader;
 import java.io.File;
