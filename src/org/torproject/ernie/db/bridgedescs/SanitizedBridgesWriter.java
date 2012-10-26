@@ -2,16 +2,31 @@
  * See LICENSE for licensing information */
 package org.torproject.ernie.db.bridgedescs;
 
-import java.io.*;
-import java.security.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.security.GeneralSecurityException;
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.logging.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TimeZone;
+import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.digest.*;
-import org.apache.commons.codec.binary.*;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * Sanitizes bridge descriptors, i.e., removes all possibly sensitive
