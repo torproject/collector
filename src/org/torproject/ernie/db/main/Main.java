@@ -51,7 +51,7 @@ public class Main {
 
     // Download exit list and store it to disk
     if (config.getDownloadExitList()) {
-      new ExitListDownloader();
+      new ExitListDownloader(config);
     }
 
     // Process bridge pool assignments
@@ -62,22 +62,6 @@ public class Main {
     // Process Torperf files
     if (config.getProcessTorperfFiles()) {
       new TorperfDownloader(config);
-    }
-
-    // Copy recently published files to a local directory that can then
-    // be served via rsync.
-    if (config.getProvideFilesViaRsync()) {
-      new RsyncDataProvider(
-          !config.getWriteDirectoryArchives() ? null :
-          new File(config.getDirectoryArchivesOutputDirectory()),
-          !config.getWriteSanitizedBridges() ? null :
-          new File(config.getSanitizedBridgesWriteDirectory()),
-          !config.getProcessBridgePoolAssignments() ? null :
-          new File(config.getSanitizedAssignmentsDirectory()),
-          config.getDownloadExitList(),
-          !config.getProcessTorperfFiles() ? null :
-          new File(config.getTorperfOutputDirectory()),
-          new File(config.getRsyncDirectory()));
     }
 
     // Remove lock file

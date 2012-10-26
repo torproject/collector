@@ -18,29 +18,38 @@ import java.util.logging.Logger;
  * then be served via rsync.
  */
 public class RsyncDataProvider {
-  public RsyncDataProvider(File directoryArchivesOutputDirectory,
-      File sanitizedBridgesWriteDirectory,
-      File sanitizedAssignmentsDirectory,
-      boolean downloadExitList,
-      File torperfOutputDirectory, File rsyncDirectory) {
+
+  private Logger logger;
+
+  private long cutOffMillis;
+
+  private File rsyncDirectory;
+
+  public RsyncDataProvider(File rsyncDirectory) {
 
     /* Initialize logger. */
-    Logger logger = Logger.getLogger(RsyncDataProvider.class.getName());
+    this.logger = Logger.getLogger(RsyncDataProvider.class.getName());
 
     /* Determine the cut-off time for files in rsync/. */
-    long cutOffMillis = System.currentTimeMillis()
+    this.cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
 
     /* Create rsync/ directory if it doesn't exist. */
     if (!rsyncDirectory.exists()) {
       rsyncDirectory.mkdirs();
     }
+    this.rsyncDirectory = rsyncDirectory;
+  }
 
-    /* Make a list of all files in the rsync/ directory to delete those
+  public void copyFiles(File fromDirectory, String toRsyncSubDirectory) {
+
+    File toDirectory = new File(this.rsyncDirectory, toRsyncSubDirectory);
+
+    /* Make a list of all files in the rsync/ subdirectory to delete those
      * that we didn't copy in this run. */
     Set<String> fileNamesInRsync = new HashSet<String>();
     Stack<File> files = new Stack<File>();
-    files.add(rsyncDirectory);
+    files.add(toDirectory);
     while (!files.isEmpty()) {
       File pop = files.pop();
       if (pop.isDirectory()) {
@@ -50,132 +59,24 @@ public class RsyncDataProvider {
       }
     }
     logger.info("Found " + fileNamesInRsync.size() + " files in "
-        + rsyncDirectory.getAbsolutePath() + " that we're either "
+        + toDirectory.getAbsolutePath() + " that we're either "
         + "overwriting or deleting in this execution.");
 
-    /* Copy relay descriptors from the last 3 days. */
-    if (directoryArchivesOutputDirectory != null) {
-      files.add(directoryArchivesOutputDirectory);
-      while (!files.isEmpty()) {
-        File pop = files.pop();
-        if (pop.isDirectory()) {
-          files.addAll(Arrays.asList(pop.listFiles()));
-        } else if (pop.lastModified() >= cutOffMillis) {
-          String fileName = pop.getName();
-          if (pop.getAbsolutePath().contains("/consensus/")) {
-            this.copyFile(pop, new File(rsyncDirectory,
-                "relay-descriptors/consensuses/" + fileName));
-          } else if (pop.getAbsolutePath().contains("/vote/")) {
-            this.copyFile(pop, new File(rsyncDirectory,
-                "relay-descriptors/votes/" + fileName));
-          } else if (pop.getAbsolutePath().contains(
-                "/server-descriptor/")) {
-            this.copyFile(pop, new File(rsyncDirectory,
-                "relay-descriptors/server-descriptors/" + fileName));
-          } else if (pop.getAbsolutePath().contains("/extra-info/")) {
-            this.copyFile(pop, new File(rsyncDirectory,
-                "relay-descriptors/extra-infos/" + fileName));
-          } else {
-            continue;
-          }
-          fileNamesInRsync.remove(pop.getName());
-        }
+    /* Copy files modified in the last 3 days. */
+    files.add(fromDirectory);
+    while (!files.isEmpty()) {
+      File pop = files.pop();
+      if (pop.isDirectory()) {
+        files.addAll(Arrays.asList(pop.listFiles()));
+      } else if (pop.lastModified() >= this.cutOffMillis) {
+        String fileName = pop.getName();
+        this.copyFile(pop, new File(toDirectory, fileName));
+        fileNamesInRsync.remove(fileName);
       }
     }
-    logger.info("After copying relay descriptors, there are still "
-        + fileNamesInRsync.size() + " files left in "
-        + rsyncDirectory.getAbsolutePath() + ".");
-
-    /* Copy sanitized bridge descriptors from the last 3 days. */
-    if (sanitizedBridgesWriteDirectory != null) {
-      files.add(sanitizedBridgesWriteDirectory);
-      while (!files.isEmpty()) {
-        File pop = files.pop();
-        if (pop.isDirectory()) {
-          files.addAll(Arrays.asList(pop.listFiles()));
-        } else if (pop.lastModified() >= cutOffMillis) {
-          String fileName = pop.getName();
-          if (pop.getAbsolutePath().contains("/statuses/")) {
-            this.copyFile(pop, new File(rsyncDirectory,
-                "bridge-descriptors/statuses/" + fileName));
-          } else if (pop.getAbsolutePath().contains(
-                "/server-descriptors/")) {
-            this.copyFile(pop, new File(rsyncDirectory,
-                "bridge-descriptors/server-descriptors/" + fileName));
-          } else if (pop.getAbsolutePath().contains("/extra-infos/")) {
-            this.copyFile(pop, new File(rsyncDirectory,
-                "bridge-descriptors/extra-infos/" + fileName));
-          } else {
-            continue;
-          }
-          fileNamesInRsync.remove(pop.getName());
-        }
-      }
-    }
-    logger.info("After copying sanitized bridge descriptors, there are "
-        + "still " + fileNamesInRsync.size() + " files left in "
-        + rsyncDirectory.getAbsolutePath() + ".");
-
-    /* Copy sanitized bridge pool assignments from the last 3 days. */
-    if (sanitizedAssignmentsDirectory != null) {
-      files.add(sanitizedAssignmentsDirectory);
-      while (!files.isEmpty()) {
-        File pop = files.pop();
-        if (pop.isDirectory()) {
-          files.addAll(Arrays.asList(pop.listFiles()));
-        } else if (pop.lastModified() >= cutOffMillis) {
-          String fileName = pop.getName();
-          this.copyFile(pop, new File(rsyncDirectory,
-              "bridge-pool-assignments/" + fileName));
-          fileNamesInRsync.remove(pop.getName());
-        }
-      }
-    }
-    logger.info("After copying sanitized bridge pool assignments, there "
-        + "are still " + fileNamesInRsync.size() + " files left in "
-        + rsyncDirectory.getAbsolutePath() + ".");
-
-    /* Copy exit lists from the last 3 days. */
-    if (downloadExitList) {
-      files.add(new File("exitlist"));
-      while (!files.isEmpty()) {
-        File pop = files.pop();
-        if (pop.isDirectory()) {
-          files.addAll(Arrays.asList(pop.listFiles()));
-        } else if (pop.lastModified() >= cutOffMillis) {
-          String fileName = pop.getName();
-          this.copyFile(pop, new File(rsyncDirectory,
-              "exit-lists/" + fileName));
-          fileNamesInRsync.remove(pop.getName());
-        }
-      }
-    }
-    logger.info("After copying exit lists, there are still "
-        + fileNamesInRsync.size() + " files left in "
-        + rsyncDirectory.getAbsolutePath() + ".");
-
-    /* Copy Torperf files. */
-    if (torperfOutputDirectory != null) {
-      files.add(torperfOutputDirectory);
-      while (!files.isEmpty()) {
-        File pop = files.pop();
-        if (pop.isDirectory()) {
-          files.addAll(Arrays.asList(pop.listFiles()));
-        } else if (pop.getName().endsWith(".tpf") &&
-            pop.lastModified() >= cutOffMillis) {
-          String fileName = pop.getName();
-          this.copyFile(pop, new File(rsyncDirectory,
-              "torperf/" + fileName));
-          fileNamesInRsync.remove(pop.getName());
-        }
-      }
-    }
-    logger.info("After copying Torperf files, there are still "
-        + fileNamesInRsync.size() + " files left in "
-        + rsyncDirectory.getAbsolutePath() + ".");
 
     /* Delete all files that we didn't (over-)write in this run. */
-    files.add(rsyncDirectory);
+    files.add(toDirectory);
     while (!files.isEmpty()) {
       File pop = files.pop();
       if (pop.isDirectory()) {
@@ -187,7 +88,7 @@ public class RsyncDataProvider {
     }
     logger.info("After deleting files that we didn't overwrite in this "
         + "run, there are " + fileNamesInRsync.size() + " files left in "
-        + rsyncDirectory.getAbsolutePath() + ".");
+        + toDirectory.getAbsolutePath() + ".");
   }
 
   private void copyFile(File from, File to) {

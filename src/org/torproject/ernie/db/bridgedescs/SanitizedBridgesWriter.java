@@ -28,6 +28,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.torproject.ernie.db.main.Configuration;
+import org.torproject.ernie.db.main.RsyncDataProvider;
 
 /**
  * Sanitizes bridge descriptors, i.e., removes all possibly sensitive
@@ -178,6 +179,20 @@ public class SanitizedBridgesWriter {
 
     // Finish writing sanitized bridge descriptors to disk
     this.finishWriting();
+
+    // Copy sanitized bridge descriptors from the last 3 days to rsync
+    // directory.
+    if (config.getProvideFilesViaRsync()) {
+      RsyncDataProvider rdp = new RsyncDataProvider(
+          new File(config.getRsyncDirectory()));
+      rdp.copyFiles(new File(sanitizedBridgesDirectory, "statuses"),
+          "bridge-descriptors/statuses");
+      rdp.copyFiles(
+          new File(sanitizedBridgesDirectory, "server-descriptor"),
+          "bridge-descriptors/server-descriptors");
+      rdp.copyFiles(new File(sanitizedBridgesDirectory, "extra-info"),
+          "bridge-descriptors/extra-infos");
+    }
   }
 
   private String scrubOrAddress(String orAddress, byte[] fingerprintBytes,

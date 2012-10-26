@@ -25,6 +25,7 @@ import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
 import org.torproject.descriptor.impl.DescriptorParseException;
 import org.torproject.ernie.db.main.Configuration;
+import org.torproject.ernie.db.main.RsyncDataProvider;
 
 public class ArchiveWriter {
   private Logger logger;
@@ -84,6 +85,25 @@ public class ArchiveWriter {
 
     // Write output to disk that only depends on relay descriptors
     this.dumpStats();
+
+    /* Copy relay descriptors from the last 3 days to the rsync
+     * directory. */
+    if (config.getProvideFilesViaRsync()) {
+      RsyncDataProvider rsdp = new RsyncDataProvider(
+          new File(config.getRsyncDirectory()));
+      rsdp.copyFiles(
+          new File(outputDirectory, "consensus"),
+          "relay-descriptors/consensuses");
+      rsdp.copyFiles(
+          new File(outputDirectory, "vote"),
+          "relay-descriptors/votes");
+      rsdp.copyFiles(
+          new File(outputDirectory, "server-descriptor"),
+          "relay-descriptors/server-descriptors");
+      rsdp.copyFiles(
+          new File(outputDirectory, "extra-info"),
+          "relay-descriptors/extra-infos");
+    }
   }
 
   private boolean store(byte[] typeAnnotation, byte[] data,

@@ -21,6 +21,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.torproject.ernie.db.main.Configuration;
+import org.torproject.ernie.db.main.RsyncDataProvider;
 
 /* Download possibly truncated Torperf .data and .extradata files from
  * configured sources, append them to the files we already have, and merge
@@ -54,6 +55,13 @@ public class TorperfDownloader {
       this.downloadAndMergeFiles(torperfFilesLine);
     }
     this.writeLastMergedTimestamps();
+
+    /* Copy Torperf files from the last 3 days to the rsync directory. */
+    if (config.getProvideFilesViaRsync()) {
+      RsyncDataProvider rdp = new RsyncDataProvider(
+          new File(config.getRsyncDirectory()));
+      rdp.copyFiles(torperfOutputDirectory, "torperf");
+    }
   }
 
   private File torperfLastMergedFile =

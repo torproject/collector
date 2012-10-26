@@ -18,8 +18,11 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.torproject.ernie.db.main.Configuration;
+import org.torproject.ernie.db.main.RsyncDataProvider;
+
 public class ExitListDownloader {
-  public ExitListDownloader() {
+  public ExitListDownloader(Configuration config) {
     Logger logger = Logger.getLogger(ExitListDownloader.class.getName());
     try {
       logger.fine("Downloading exit list...");
@@ -95,6 +98,13 @@ public class ExitListDownloader {
       dumpStats.append("\n" + f.getName());
     }
     logger.info(dumpStats.toString());
+
+    /* Copy exit lists from the last 3 days to the rsync directory. */
+    if (config.getProvideFilesViaRsync()) {
+      RsyncDataProvider rdp = new RsyncDataProvider(
+          new File(config.getRsyncDirectory()));
+      rdp.copyFiles(new File("exitlist"), "exit-lists");
+    }
   }
 }
 

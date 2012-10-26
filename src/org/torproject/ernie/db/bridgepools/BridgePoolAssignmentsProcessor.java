@@ -27,6 +27,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.torproject.ernie.db.main.Configuration;
+import org.torproject.ernie.db.main.RsyncDataProvider;
 
 public class BridgePoolAssignmentsProcessor {
 
@@ -170,6 +171,15 @@ public class BridgePoolAssignmentsProcessor {
             + "file '" + assignmentFile.getAbsolutePath()
             + "'. Skipping.", e);
       }
+    }
+
+    // Copy sanitized bridge pool assignments from the last 3 days to the
+    // rsync directory.
+    if (config.getProvideFilesViaRsync()) {
+      RsyncDataProvider rdp = new RsyncDataProvider(
+          new File(config.getRsyncDirectory()));
+      rdp.copyFiles(sanitizedAssignmentsDirectory,
+          "bridge-pool-assignments");
     }
 
     logger.info("Finished processing bridge pool assignment file(s).");
