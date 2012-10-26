@@ -38,6 +38,13 @@ public class BridgePoolAssignmentsProcessor extends Thread {
   }
 
   public void run() {
+
+    if (((System.currentTimeMillis() / 60000L) % 60L) > 30L) {
+      /* Don't start in second half of an hour, when we only want to
+       * process other data. */
+      return;
+    }
+
     File assignmentsDirectory =
         new File(config.getAssignmentsDirectory());
     File sanitizedAssignmentsDirectory =

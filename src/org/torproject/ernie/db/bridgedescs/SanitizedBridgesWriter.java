@@ -81,6 +81,13 @@ public class SanitizedBridgesWriter extends Thread {
   private SecureRandom secureRandom;
 
   public void run() {
+
+    if (((System.currentTimeMillis() / 60000L) % 60L) > 30L) {
+      /* Don't start in second half of an hour, when we only want to
+       * process other data. */
+      return;
+    }
+
     File bridgeDirectoriesDirectory =
         new File(config.getBridgeSnapshotsDirectory());
     File sanitizedBridgesDirectory =

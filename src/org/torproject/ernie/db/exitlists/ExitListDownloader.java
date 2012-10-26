@@ -27,6 +27,13 @@ public class ExitListDownloader extends Thread {
   }
 
   public void run() {
+
+    if (((System.currentTimeMillis() / 60000L) % 60L) > 30L) {
+      /* Don't start in second half of an hour, when we only want to
+       * process other data. */
+      return;
+    }
+
     Logger logger = Logger.getLogger(ExitListDownloader.class.getName());
     try {
       logger.fine("Downloading exit list...");
