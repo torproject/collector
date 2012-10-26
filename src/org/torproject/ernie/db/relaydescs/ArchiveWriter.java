@@ -88,22 +88,19 @@ public class ArchiveWriter {
 
     /* Copy relay descriptors from the last 3 days to the rsync
      * directory. */
-    if (config.getProvideFilesViaRsync()) {
-      RsyncDataProvider rsdp = new RsyncDataProvider(
-          new File(config.getRsyncDirectory()));
-      rsdp.copyFiles(
-          new File(outputDirectory, "consensus"),
-          "relay-descriptors/consensuses");
-      rsdp.copyFiles(
-          new File(outputDirectory, "vote"),
-          "relay-descriptors/votes");
-      rsdp.copyFiles(
-          new File(outputDirectory, "server-descriptor"),
-          "relay-descriptors/server-descriptors");
-      rsdp.copyFiles(
-          new File(outputDirectory, "extra-info"),
-          "relay-descriptors/extra-infos");
-    }
+    RsyncDataProvider rsdp = new RsyncDataProvider();
+    rsdp.copyFiles(
+        new File(outputDirectory, "consensus"),
+        "relay-descriptors/consensuses");
+    rsdp.copyFiles(
+        new File(outputDirectory, "vote"),
+        "relay-descriptors/votes");
+    rsdp.copyFiles(
+        new File(outputDirectory, "server-descriptor"),
+        "relay-descriptors/server-descriptors");
+    rsdp.copyFiles(
+        new File(outputDirectory, "extra-info"),
+        "relay-descriptors/extra-infos");
   }
 
   private boolean store(byte[] typeAnnotation, byte[] data,

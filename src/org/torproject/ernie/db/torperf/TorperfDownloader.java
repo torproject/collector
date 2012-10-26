@@ -57,11 +57,8 @@ public class TorperfDownloader {
     this.writeLastMergedTimestamps();
 
     /* Copy Torperf files from the last 3 days to the rsync directory. */
-    if (config.getProvideFilesViaRsync()) {
-      RsyncDataProvider rdp = new RsyncDataProvider(
-          new File(config.getRsyncDirectory()));
-      rdp.copyFiles(torperfOutputDirectory, "torperf");
-    }
+    RsyncDataProvider rdp = new RsyncDataProvider();
+    rdp.copyFiles(torperfOutputDirectory, "torperf");
   }
 
   private File torperfLastMergedFile =

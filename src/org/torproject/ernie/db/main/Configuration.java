@@ -56,8 +56,6 @@ public class Configuration {
   private String torperfOutputDirectory = "torperf/";
   private SortedMap<String, String> torperfSources = null;
   private List<String> torperfFiles = null;
-  private boolean provideFilesViaRsync = false;
-  private String rsyncDirectory = "rsync";
   public Configuration() {
 
     /* Initialize logger. */
@@ -191,11 +189,6 @@ public class Configuration {
             System.exit(1);
           }
           this.torperfFiles.add(line);
-        } else if (line.startsWith("ProvideFilesViaRsync")) {
-          this.provideFilesViaRsync = Integer.parseInt(
-              line.split(" ")[1]) != 0;
-        } else if (line.startsWith("RsyncDirectory")) {
-          this.rsyncDirectory = line.split(" ")[1];
         } else {
           logger.severe("Configuration file contains unrecognized "
               + "configuration key in line '" + line + "'! Exiting!");
@@ -348,12 +341,6 @@ public class Configuration {
   }
   public List<String> getTorperfFiles() {
     return this.torperfFiles;
-  }
-  public boolean getProvideFilesViaRsync() {
-    return this.provideFilesViaRsync;
-  }
-  public String getRsyncDirectory() {
-    return this.rsyncDirectory;
   }
 }
 

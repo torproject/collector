@@ -175,12 +175,9 @@ public class BridgePoolAssignmentsProcessor {
 
     // Copy sanitized bridge pool assignments from the last 3 days to the
     // rsync directory.
-    if (config.getProvideFilesViaRsync()) {
-      RsyncDataProvider rdp = new RsyncDataProvider(
-          new File(config.getRsyncDirectory()));
-      rdp.copyFiles(sanitizedAssignmentsDirectory,
-          "bridge-pool-assignments");
-    }
+    RsyncDataProvider rdp = new RsyncDataProvider();
+    rdp.copyFiles(sanitizedAssignmentsDirectory,
+        "bridge-pool-assignments");
 
     logger.info("Finished processing bridge pool assignment file(s).");
   }

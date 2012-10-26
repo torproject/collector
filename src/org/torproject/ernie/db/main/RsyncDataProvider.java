@@ -25,7 +25,7 @@ public class RsyncDataProvider {
 
   private File rsyncDirectory;
 
-  public RsyncDataProvider(File rsyncDirectory) {
+  public RsyncDataProvider() {
 
     /* Initialize logger. */
     this.logger = Logger.getLogger(RsyncDataProvider.class.getName());
@@ -35,10 +35,10 @@ public class RsyncDataProvider {
         - 3L * 24L * 60L * 60L * 1000L;
 
     /* Create rsync/ directory if it doesn't exist. */
+    this.rsyncDirectory = new File("rsync");
     if (!rsyncDirectory.exists()) {
       rsyncDirectory.mkdirs();
     }
-    this.rsyncDirectory = rsyncDirectory;
   }
 
   public void copyFiles(File fromDirectory, String toRsyncSubDirectory) {

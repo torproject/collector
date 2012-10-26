@@ -100,11 +100,8 @@ public class ExitListDownloader {
     logger.info(dumpStats.toString());
 
     /* Copy exit lists from the last 3 days to the rsync directory. */
-    if (config.getProvideFilesViaRsync()) {
-      RsyncDataProvider rdp = new RsyncDataProvider(
-          new File(config.getRsyncDirectory()));
-      rdp.copyFiles(new File("exitlist"), "exit-lists");
-    }
+    RsyncDataProvider rdp = new RsyncDataProvider();
+    rdp.copyFiles(new File("exitlist"), "exit-lists");
   }
 }
 
