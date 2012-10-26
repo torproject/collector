@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TimeZone;
@@ -23,6 +24,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
 import org.torproject.descriptor.impl.DescriptorParseException;
+import org.torproject.ernie.db.main.Configuration;
 
 public class ArchiveWriter {
   private Logger logger;
@@ -31,16 +33,57 @@ public class ArchiveWriter {
   private int storedConsensuses = 0, storedVotes = 0, storedCerts = 0,
       storedServerDescriptors = 0, storedExtraInfoDescriptors = 0;
 
-  public ArchiveWriter(File outputDirectory) {
+  public ArchiveWriter(Configuration config, File statsDirectory) {
 
-    if (outputDirectory == null) {
-      throw new IllegalArgumentException();
-    }
+    File outputDirectory =
+        new File(config.getDirectoryArchivesOutputDirectory());
 
     this.logger = Logger.getLogger(ArchiveWriter.class.getName());
     this.outputDirectory = outputDirectory;
     this.descriptorParser =
         DescriptorSourceFactory.createDescriptorParser();
+
+    // Prepare relay descriptor parser
+    RelayDescriptorParser rdp = new RelayDescriptorParser(this);
+
+    RelayDescriptorDownloader rdd = null;
+    if (config.getDownloadRelayDescriptors()) {
+      List<String> dirSources =
+          config.getDownloadFromDirectoryAuthorities();
+      rdd = new RelayDescriptorDownloader(rdp, dirSources,
+          config.getDownloadCurrentConsensus(),
+          config.getDownloadCurrentVotes(),
+          config.getDownloadMissingServerDescriptors(),
+          config.getDownloadMissingExtraInfoDescriptors(),
+          config.getDownloadAllServerDescriptors(),
+          config.getDownloadAllExtraInfoDescriptors(),
+          config.getCompressRelayDescriptorDownloads());
+      rdp.setRelayDescriptorDownloader(rdd);
+    }
+    if (config.getImportCachedRelayDescriptors()) {
+      new CachedRelayDescriptorReader(rdp,
+          config.getCachedRelayDescriptorDirectory(), statsDirectory);
+      this.intermediateStats("importing relay descriptors from local "
+          + "Tor data directories");
+    }
+    if (config.getImportDirectoryArchives()) {
+      new ArchiveReader(rdp,
+          new File(config.getDirectoryArchivesDirectory()),
+          statsDirectory,
+          config.getKeepDirectoryArchiveImportHistory());
+      this.intermediateStats("importing relay descriptors from local "
+          + "directory");
+    }
+    if (rdd != null) {
+      rdd.downloadDescriptors();
+      rdd.writeFile();
+      rdd = null;
+      this.intermediateStats("downloading relay descriptors from the "
+          + "directory authorities");
+    }
+
+    // Write output to disk that only depends on relay descriptors
+    this.dumpStats();
   }
 
   private boolean store(byte[] typeAnnotation, byte[] data,

@@ -3,19 +3,12 @@
 package org.torproject.ernie.db.main;
 
 import java.io.File;
-import java.util.List;
 import java.util.logging.Logger;
 
-import org.torproject.ernie.db.bridgedescs.BridgeDescriptorParser;
-import org.torproject.ernie.db.bridgedescs.BridgeSnapshotReader;
 import org.torproject.ernie.db.bridgedescs.SanitizedBridgesWriter;
 import org.torproject.ernie.db.bridgepools.BridgePoolAssignmentsProcessor;
 import org.torproject.ernie.db.exitlists.ExitListDownloader;
-import org.torproject.ernie.db.relaydescs.ArchiveReader;
 import org.torproject.ernie.db.relaydescs.ArchiveWriter;
-import org.torproject.ernie.db.relaydescs.CachedRelayDescriptorReader;
-import org.torproject.ernie.db.relaydescs.RelayDescriptorDownloader;
-import org.torproject.ernie.db.relaydescs.RelayDescriptorParser;
 import org.torproject.ernie.db.torperf.TorperfDownloader;
 
 /**
@@ -45,89 +38,15 @@ public class Main {
     // Define stats directory for temporary files
     File statsDirectory = new File("stats");
 
-    // Prepare writing relay descriptor archive to disk
-    ArchiveWriter aw = config.getWriteDirectoryArchives() ?
-        new ArchiveWriter(
-        new File(config.getDirectoryArchivesOutputDirectory())) : null;
-
-    // Prepare relay descriptor parser (only if we are writing stats or
-    // directory archives to disk)
-    RelayDescriptorParser rdp = aw != null ?
-        new RelayDescriptorParser(aw) : null;
-
     // Import/download relay descriptors from the various sources
-    if (rdp != null) {
-      RelayDescriptorDownloader rdd = null;
-      if (config.getDownloadRelayDescriptors()) {
-        List<String> dirSources =
-            config.getDownloadFromDirectoryAuthorities();
-        rdd = new RelayDescriptorDownloader(rdp, dirSources,
-            config.getDownloadCurrentConsensus(),
-            config.getDownloadCurrentVotes(),
-            config.getDownloadMissingServerDescriptors(),
-            config.getDownloadMissingExtraInfoDescriptors(),
-            config.getDownloadAllServerDescriptors(),
-            config.getDownloadAllExtraInfoDescriptors(),
-            config.getCompressRelayDescriptorDownloads());
-        rdp.setRelayDescriptorDownloader(rdd);
-      }
-      if (config.getImportCachedRelayDescriptors()) {
-        new CachedRelayDescriptorReader(rdp,
-            config.getCachedRelayDescriptorDirectory(), statsDirectory);
-        if (aw != null) {
-          aw.intermediateStats("importing relay descriptors from local "
-              + "Tor data directories");
-        }
-      }
-      if (config.getImportDirectoryArchives()) {
-        new ArchiveReader(rdp,
-            new File(config.getDirectoryArchivesDirectory()),
-            statsDirectory,
-            config.getKeepDirectoryArchiveImportHistory());
-        if (aw != null) {
-          aw.intermediateStats("importing relay descriptors from local "
-              + "directory");
-        }
-      }
-      if (rdd != null) {
-        rdd.downloadDescriptors();
-        rdd.writeFile();
-        rdd = null;
-        if (aw != null) {
-          aw.intermediateStats("downloading relay descriptors from the "
-              + "directory authorities");
-        }
-      }
+    if (config.getWriteDirectoryArchives()) {
+      new ArchiveWriter(config, statsDirectory);
     }
 
-    // Write output to disk that only depends on relay descriptors
-    if (aw != null) {
-      aw.dumpStats();
-      aw = null;
-    }
-
-    // Prepare sanitized bridge descriptor writer
-    SanitizedBridgesWriter sbw = config.getWriteSanitizedBridges() ?
-        new SanitizedBridgesWriter(
-        new File(config.getSanitizedBridgesWriteDirectory()),
-        statsDirectory, config.getReplaceIPAddressesWithHashes(),
-        config.getLimitBridgeDescriptorMappings()) : null;
-
-    // Prepare bridge descriptor parser
-    BridgeDescriptorParser bdp = config.getWriteSanitizedBridges()
-        ? new BridgeDescriptorParser(sbw) : null;
-
-    // Import bridge descriptors
-    if (bdp != null && config.getImportBridgeSnapshots()) {
-      new BridgeSnapshotReader(bdp,
-          new File(config.getBridgeSnapshotsDirectory()),
-          statsDirectory);
-    }
-
-    // Finish writing sanitized bridge descriptors to disk
-    if (sbw != null) {
-      sbw.finishWriting();
-      sbw = null;
+    // Sanitize bridge descriptors
+    if (config.getImportBridgeSnapshots() &&
+        config.getWriteSanitizedBridges()) {
+      new SanitizedBridgesWriter(config, statsDirectory);
     }
 
     // Download exit list and store it to disk
@@ -137,15 +56,12 @@ public class Main {
 
     // Process bridge pool assignments
     if (config.getProcessBridgePoolAssignments()) {
-      new BridgePoolAssignmentsProcessor(
-          new File(config.getAssignmentsDirectory()),
-          new File(config.getSanitizedAssignmentsDirectory()));
+      new BridgePoolAssignmentsProcessor(config);
     }
 
     // Process Torperf files
     if (config.getProcessTorperfFiles()) {
-      new TorperfDownloader(new File(config.getTorperfOutputDirectory()),
-          config.getTorperfSources(), config.getTorperfFiles());
+      new TorperfDownloader(config);
     }
 
     // Copy recently published files to a local directory that can then

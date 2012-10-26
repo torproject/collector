@@ -26,11 +26,15 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.torproject.ernie.db.main.Configuration;
 
 public class BridgePoolAssignmentsProcessor {
 
-  public BridgePoolAssignmentsProcessor(File assignmentsDirectory,
-        File sanitizedAssignmentsDirectory) {
+  public BridgePoolAssignmentsProcessor(Configuration config) {
+    File assignmentsDirectory =
+        new File(config.getAssignmentsDirectory());
+    File sanitizedAssignmentsDirectory =
+        new File(config.getSanitizedAssignmentsDirectory());
 
     Logger logger =
         Logger.getLogger(BridgePoolAssignmentsProcessor.class.getName());

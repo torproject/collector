@@ -20,6 +20,8 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.torproject.ernie.db.main.Configuration;
+
 /* Download possibly truncated Torperf .data and .extradata files from
  * configured sources, append them to the files we already have, and merge
  * the two files into the .tpf format. */
@@ -31,12 +33,13 @@ public class TorperfDownloader {
   private Logger logger = null;
   private SimpleDateFormat dateFormat;
 
-  public TorperfDownloader(File torperfOutputDirectory,
-      SortedMap<String, String> torperfSources,
-      List<String> torperfFilesLines) {
-    if (torperfOutputDirectory == null) {
-      throw new IllegalArgumentException();
-    }
+  public TorperfDownloader(Configuration config) {
+
+    File torperfOutputDirectory =
+        new File(config.getTorperfOutputDirectory());
+    SortedMap<String, String> torperfSources = config.getTorperfSources();
+    List<String> torperfFilesLines = config.getTorperfFiles();
+
     this.torperfOutputDirectory = torperfOutputDirectory;
     this.torperfSources = torperfSources;
     this.torperfFilesLines = torperfFilesLines;

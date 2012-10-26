@@ -27,6 +27,7 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.torproject.ernie.db.main.Configuration;
 
 /**
  * Sanitizes bridge descriptors, i.e., removes all possibly sensitive
@@ -47,6 +48,8 @@ public class SanitizedBridgesWriter {
    * Logger for this class.
    */
   private Logger logger;
+
+  private File bridgeDirectoriesDirectory;
 
   /**
    * Output directory for writing sanitized bridge descriptors.
@@ -70,15 +73,25 @@ public class SanitizedBridgesWriter {
   /**
    * Initializes this class.
    */
-  public SanitizedBridgesWriter(File sanitizedBridgesDirectory,
-      File statsDirectory, boolean replaceIPAddressesWithHashes,
-      long limitBridgeSanitizingInterval) {
+  public SanitizedBridgesWriter(Configuration config,
+      File statsDirectory) {
 
-    if (sanitizedBridgesDirectory == null || statsDirectory == null) {
+    File bridgeDirectoriesDirectory =
+        new File(config.getBridgeSnapshotsDirectory());
+    File sanitizedBridgesDirectory =
+        new File(config.getSanitizedBridgesWriteDirectory());
+    boolean replaceIPAddressesWithHashes =
+        config.getReplaceIPAddressesWithHashes();
+    long limitBridgeSanitizingInterval =
+        config.getLimitBridgeDescriptorMappings();
+
+    if (bridgeDirectoriesDirectory == null ||
+        sanitizedBridgesDirectory == null || statsDirectory == null) {
       throw new IllegalArgumentException();
     }
 
     /* Memorize argument values. */
+    this.bridgeDirectoriesDirectory = bridgeDirectoriesDirectory;
     this.sanitizedBridgesDirectory = sanitizedBridgesDirectory;
     this.replaceIPAddressesWithHashes = replaceIPAddressesWithHashes;
 
@@ -155,6 +168,16 @@ public class SanitizedBridgesWriter {
     } else {
       this.bridgeSanitizingCutOffTimestamp = "1999-12-31 23:59:59";
     }
+
+    // Prepare bridge descriptor parser
+    BridgeDescriptorParser bdp = new BridgeDescriptorParser(this);
+
+    // Import bridge descriptors
+    new BridgeSnapshotReader(bdp, this.bridgeDirectoriesDirectory,
+        statsDirectory);
+
+    // Finish writing sanitized bridge descriptors to disk
+    this.finishWriting();
   }
 
   private String scrubOrAddress(String orAddress, byte[] fingerprintBytes,
