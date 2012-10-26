@@ -2,7 +2,6 @@
  * See LICENSE for licensing information */
 package org.torproject.ernie.db.main;
 
-import java.io.File;
 import java.util.logging.Logger;
 
 import org.torproject.ernie.db.bridgedescs.SanitizedBridgesWriter;
@@ -35,33 +34,30 @@ public class Main {
       System.exit(1);
     }
 
-    // Define stats directory for temporary files
-    File statsDirectory = new File("stats");
-
     // Import/download relay descriptors from the various sources
     if (config.getWriteDirectoryArchives()) {
-      new ArchiveWriter(config, statsDirectory);
+      new ArchiveWriter(config).start();
     }
 
     // Sanitize bridge descriptors
     if (config.getImportBridgeSnapshots() &&
         config.getWriteSanitizedBridges()) {
-      new SanitizedBridgesWriter(config, statsDirectory);
+      new SanitizedBridgesWriter(config).start();
     }
 
     // Download exit list and store it to disk
     if (config.getDownloadExitList()) {
-      new ExitListDownloader(config);
+      new ExitListDownloader(config).start();
     }
 
     // Process bridge pool assignments
     if (config.getProcessBridgePoolAssignments()) {
-      new BridgePoolAssignmentsProcessor(config);
+      new BridgePoolAssignmentsProcessor(config).start();
     }
 
     // Process Torperf files
     if (config.getProcessTorperfFiles()) {
-      new TorperfDownloader(config);
+      new TorperfDownloader(config).start();
     }
 
     // Remove lock file

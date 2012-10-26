@@ -43,7 +43,16 @@ import org.torproject.ernie.db.main.RsyncDataProvider;
  * by the bridge to advertise their capabilities), and extra-info
  * descriptors (published by the bridge, mainly for statistical analysis).
  */
-public class SanitizedBridgesWriter {
+public class SanitizedBridgesWriter extends Thread {
+
+  private Configuration config;
+
+  /**
+   * Initializes this class.
+   */
+  public SanitizedBridgesWriter(Configuration config) {
+    this.config = config;
+  }
 
   /**
    * Logger for this class.
@@ -71,12 +80,7 @@ public class SanitizedBridgesWriter {
 
   private SecureRandom secureRandom;
 
-  /**
-   * Initializes this class.
-   */
-  public SanitizedBridgesWriter(Configuration config,
-      File statsDirectory) {
-
+  public void run() {
     File bridgeDirectoriesDirectory =
         new File(config.getBridgeSnapshotsDirectory());
     File sanitizedBridgesDirectory =
@@ -85,6 +89,7 @@ public class SanitizedBridgesWriter {
         config.getReplaceIPAddressesWithHashes();
     long limitBridgeSanitizingInterval =
         config.getLimitBridgeDescriptorMappings();
+    File statsDirectory = new File("stats");
 
     if (bridgeDirectoriesDirectory == null ||
         sanitizedBridgesDirectory == null || statsDirectory == null) {

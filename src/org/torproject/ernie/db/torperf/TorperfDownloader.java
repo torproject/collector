@@ -26,7 +26,13 @@ import org.torproject.ernie.db.main.RsyncDataProvider;
 /* Download possibly truncated Torperf .data and .extradata files from
  * configured sources, append them to the files we already have, and merge
  * the two files into the .tpf format. */
-public class TorperfDownloader {
+public class TorperfDownloader extends Thread {
+
+  private Configuration config;
+
+  public TorperfDownloader(Configuration config) {
+    this.config = config;
+  }
 
   private File torperfOutputDirectory = null;
   private SortedMap<String, String> torperfSources = null;
@@ -34,7 +40,7 @@ public class TorperfDownloader {
   private Logger logger = null;
   private SimpleDateFormat dateFormat;
 
-  public TorperfDownloader(Configuration config) {
+  public void run() {
 
     File torperfOutputDirectory =
         new File(config.getTorperfOutputDirectory());

@@ -27,17 +27,25 @@ import org.torproject.descriptor.impl.DescriptorParseException;
 import org.torproject.ernie.db.main.Configuration;
 import org.torproject.ernie.db.main.RsyncDataProvider;
 
-public class ArchiveWriter {
+public class ArchiveWriter extends Thread {
+
+  private Configuration config;
+
+  public ArchiveWriter(Configuration config) {
+    this.config = config;
+  }
+
   private Logger logger;
   private File outputDirectory;
   private DescriptorParser descriptorParser;
   private int storedConsensuses = 0, storedVotes = 0, storedCerts = 0,
       storedServerDescriptors = 0, storedExtraInfoDescriptors = 0;
 
-  public ArchiveWriter(Configuration config, File statsDirectory) {
+  public void run() {
 
     File outputDirectory =
         new File(config.getDirectoryArchivesOutputDirectory());
+    File statsDirectory = new File("stats");
 
     this.logger = Logger.getLogger(ArchiveWriter.class.getName());
     this.outputDirectory = outputDirectory;

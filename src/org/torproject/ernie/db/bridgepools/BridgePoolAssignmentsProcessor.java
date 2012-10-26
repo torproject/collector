@@ -29,9 +29,15 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.torproject.ernie.db.main.Configuration;
 import org.torproject.ernie.db.main.RsyncDataProvider;
 
-public class BridgePoolAssignmentsProcessor {
+public class BridgePoolAssignmentsProcessor extends Thread {
+
+  private Configuration config;
 
   public BridgePoolAssignmentsProcessor(Configuration config) {
+    this.config = config;
+  }
+
+  public void run() {
     File assignmentsDirectory =
         new File(config.getAssignmentsDirectory());
     File sanitizedAssignmentsDirectory =

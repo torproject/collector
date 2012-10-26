@@ -21,8 +21,12 @@ import java.util.logging.Logger;
 import org.torproject.ernie.db.main.Configuration;
 import org.torproject.ernie.db.main.RsyncDataProvider;
 
-public class ExitListDownloader {
+public class ExitListDownloader extends Thread {
+
   public ExitListDownloader(Configuration config) {
+  }
+
+  public void run() {
     Logger logger = Logger.getLogger(ExitListDownloader.class.getName());
     try {
       logger.fine("Downloading exit list...");
