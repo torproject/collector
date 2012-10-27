@@ -2,6 +2,8 @@
  * See LICENSE for licensing information */
 package org.torproject.ernie.db.main;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.torproject.ernie.db.bridgedescs.SanitizedBridgesWriter;
@@ -34,30 +36,45 @@ public class Main {
       System.exit(1);
     }
 
+    // Keep a list of all threads, so that we can join them all before
+    // exiting.
+    List<Thread> threads = new ArrayList<Thread>();
+
     // Import/download relay descriptors from the various sources
     if (config.getWriteDirectoryArchives()) {
-      new ArchiveWriter(config).start();
+      threads.add(new ArchiveWriter(config));
     }
 
     // Sanitize bridge descriptors
     if (config.getImportBridgeSnapshots() &&
         config.getWriteSanitizedBridges()) {
-      new SanitizedBridgesWriter(config).start();
+      threads.add(new SanitizedBridgesWriter(config));
     }
 
     // Download exit list and store it to disk
     if (config.getDownloadExitList()) {
-      new ExitListDownloader(config).start();
+      threads.add(new ExitListDownloader(config));
     }
 
     // Process bridge pool assignments
     if (config.getProcessBridgePoolAssignments()) {
-      new BridgePoolAssignmentsProcessor(config).start();
+      threads.add(new BridgePoolAssignmentsProcessor(config));
     }
 
     // Process Torperf files
     if (config.getProcessTorperfFiles()) {
-      new TorperfDownloader(config).start();
+      threads.add(new TorperfDownloader(config));
+    }
+
+    // Run threads
+    for (Thread thread : threads) {
+      thread.start();
+    }
+    for (Thread thread : threads) {
+      try {
+        thread.join();
+      } catch (InterruptedException e) {
+      }
     }
 
     // Remove lock file
