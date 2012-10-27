@@ -27,7 +27,6 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.torproject.ernie.db.main.Configuration;
-import org.torproject.ernie.db.main.RsyncDataProvider;
 
 public class BridgePoolAssignmentsProcessor extends Thread {
 
@@ -121,19 +120,26 @@ public class BridgePoolAssignmentsProcessor extends Thread {
                 long bridgePoolAssignmentTime = assignmentFormat.parse(
                     bridgePoolAssignmentLine.substring(
                     "bridge-pool-assignment ".length())).getTime();
-                File sanitizedAssignmentsFile = new File(
+                File tarballFile = new File(
                     sanitizedAssignmentsDirectory, filenameFormat.format(
                     bridgePoolAssignmentTime));
-                if (!sanitizedAssignmentsFile.exists()) {
-                  sanitizedAssignmentsFile.getParentFile().mkdirs();
-                  BufferedWriter bw = new BufferedWriter(new FileWriter(
-                      sanitizedAssignmentsFile));
-                  bw.write("@type bridge-pool-assignment 1.0\n");
-                  bw.write(bridgePoolAssignmentLine + "\n");
-                  for (String assignmentLine : sanitizedAssignments) {
-                    bw.write(assignmentLine + "\n");
+                File rsyncFile = new File(
+                    "rsync/bridge-pool-assignments/"
+                    + tarballFile.getName());
+                File[] outputFiles = new File[] { tarballFile,
+                    rsyncFile };
+                for (File outputFile : outputFiles) {
+                  if (!outputFile.exists()) {
+                    outputFile.getParentFile().mkdirs();
+                    BufferedWriter bw = new BufferedWriter(new FileWriter(
+                        outputFile));
+                    bw.write("@type bridge-pool-assignment 1.0\n");
+                    bw.write(bridgePoolAssignmentLine + "\n");
+                    for (String assignmentLine : sanitizedAssignments) {
+                      bw.write(assignmentLine + "\n");
+                    }
+                    bw.close();
                   }
-                  bw.close();
                 }
               } catch (IOException e) {
                 logger.log(Level.WARNING, "Could not write sanitized "
@@ -186,13 +192,26 @@ public class BridgePoolAssignmentsProcessor extends Thread {
       }
     }
 
-    // Copy sanitized bridge pool assignments from the last 3 days to the
-    // rsync directory.
-    RsyncDataProvider rdp = new RsyncDataProvider();
-    rdp.copyFiles(sanitizedAssignmentsDirectory,
-        "bridge-pool-assignments");
+    this.cleanUpRsyncDirectory();
 
     logger.info("Finished processing bridge pool assignment file(s).");
+  }
+
+  /* Delete all files from the rsync directory that have not been modified
+   * in the last three days. */
+  public void cleanUpRsyncDirectory() {
+    long cutOffMillis = System.currentTimeMillis()
+        - 3L * 24L * 60L * 60L * 1000L;
+    Stack<File> allFiles = new Stack<File>();
+    allFiles.add(new File("rsync/bridge-pool-assignments"));
+    while (!allFiles.isEmpty()) {
+      File file = allFiles.pop();
+      if (file.isDirectory()) {
+        allFiles.addAll(Arrays.asList(file.listFiles()));
+      } else if (file.lastModified() < cutOffMillis) {
+        file.delete();
+      }
+    }
   }
 }
 

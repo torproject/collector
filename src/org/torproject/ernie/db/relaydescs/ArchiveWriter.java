@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.SortedSet;
@@ -25,7 +26,6 @@ import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
 import org.torproject.descriptor.impl.DescriptorParseException;
 import org.torproject.ernie.db.main.Configuration;
-import org.torproject.ernie.db.main.RsyncDataProvider;
 
 public class ArchiveWriter extends Thread {
 
@@ -94,51 +94,36 @@ public class ArchiveWriter extends Thread {
     // Write output to disk that only depends on relay descriptors
     this.dumpStats();
 
-    /* Copy relay descriptors from the last 3 days to the rsync
-     * directory. */
-    RsyncDataProvider rsdp = new RsyncDataProvider();
-    rsdp.copyFiles(
-        new File(outputDirectory, "consensus"),
-        "relay-descriptors/consensuses");
-    rsdp.copyFiles(
-        new File(outputDirectory, "vote"),
-        "relay-descriptors/votes");
-    rsdp.copyFiles(
-        new File(outputDirectory, "server-descriptor"),
-        "relay-descriptors/server-descriptors");
-    rsdp.copyFiles(
-        new File(outputDirectory, "extra-info"),
-        "relay-descriptors/extra-infos");
+    this.cleanUpRsyncDirectory();
   }
 
   private boolean store(byte[] typeAnnotation, byte[] data,
-      String filename) {
+      File[] outputFiles) {
     try {
-      File file = new File(filename);
-      if (!file.exists()) {
-        this.logger.finer("Storing " + filename);
-        if (this.descriptorParser.parseDescriptors(data, filename).size()
-            != 1) {
-          this.logger.info("Relay descriptor file " + filename
-              + " doesn't contain exactly one descriptor.  Not storing.");
-          return false;
-        }
-        file.getParentFile().mkdirs();
+      this.logger.finer("Storing " + outputFiles[0]);
+      if (this.descriptorParser.parseDescriptors(data,
+          outputFiles[0].getName()).size() != 1) {
+        this.logger.info("Relay descriptor file " + outputFiles[0]
+            + " doesn't contain exactly one descriptor.  Not storing.");
+        return false;
+      }
+      for (File outputFile : outputFiles) {
+        outputFile.getParentFile().mkdirs();
         BufferedOutputStream bos = new BufferedOutputStream(
-            new FileOutputStream(file));
+            new FileOutputStream(outputFile));
         if (data.length > 0 && data[0] != '@') {
           bos.write(typeAnnotation, 0, typeAnnotation.length);
         }
         bos.write(data, 0, data.length);
         bos.close();
-        return true;
       }
+      return true;
     } catch (DescriptorParseException e) {
       this.logger.log(Level.WARNING, "Could not parse relay descriptor "
-          + filename + " before storing it to disk.  Skipping.", e);
+          + outputFiles[0] + " before storing it to disk.  Skipping.", e);
     } catch (IOException e) {
       this.logger.log(Level.WARNING, "Could not store relay descriptor "
-          + filename, e);
+          + outputFiles[0], e);
     }
     return false;
   }
@@ -149,9 +134,12 @@ public class ArchiveWriter extends Thread {
     SimpleDateFormat printFormat = new SimpleDateFormat(
         "yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
     printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    String filename = outputDirectory + "/consensus/"
-        + printFormat.format(new Date(validAfter)) + "-consensus";
-    if (this.store(CONSENSUS_ANNOTATION, data, filename)) {
+    File tarballFile = new File(this.outputDirectory + "/consensus/"
+        + printFormat.format(new Date(validAfter)) + "-consensus");
+    File rsyncFile = new File("rsync/relay-descriptors/consensuses/"
+        + tarballFile.getName());
+    File[] outputFiles = new File[] { tarballFile, rsyncFile };
+    if (this.store(CONSENSUS_ANNOTATION, data, outputFiles)) {
       this.storedConsensuses++;
     }
   }
@@ -163,10 +151,13 @@ public class ArchiveWriter extends Thread {
     SimpleDateFormat printFormat = new SimpleDateFormat(
         "yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
     printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    String filename = outputDirectory + "/vote/"
+    File tarballFile = new File(this.outputDirectory + "/vote/"
         + printFormat.format(new Date(validAfter)) + "-vote-"
-        + fingerprint + "-" + digest;
-    if (this.store(VOTE_ANNOTATION, data, filename)) {
+        + fingerprint + "-" + digest);
+    File rsyncFile = new File("rsync/relay-descriptors/votes/"
+        + tarballFile.getName());
+    File[] outputFiles = new File[] { tarballFile, rsyncFile };
+    if (this.store(VOTE_ANNOTATION, data, outputFiles)) {
       this.storedVotes++;
     }
   }
@@ -178,9 +169,10 @@ public class ArchiveWriter extends Thread {
     SimpleDateFormat printFormat = new SimpleDateFormat(
         "yyyy-MM-dd-HH-mm-ss");
     printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    String filename = outputDirectory + "/certs/"
-        + fingerprint + "-" + printFormat.format(new Date(published));
-    if (this.store(CERTIFICATE_ANNOTATION, data, filename)) {
+    File tarballFile = new File(this.outputDirectory + "/certs/"
+        + fingerprint + "-" + printFormat.format(new Date(published)));
+    File[] outputFiles = new File[] { tarballFile };
+    if (this.store(CERTIFICATE_ANNOTATION, data, outputFiles)) {
       this.storedCerts++;
     }
   }
@@ -191,11 +183,14 @@ public class ArchiveWriter extends Thread {
       long published) {
     SimpleDateFormat printFormat = new SimpleDateFormat("yyyy/MM/");
     printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    String filename = outputDirectory + "/server-descriptor/"
-        + printFormat.format(new Date(published))
+    File tarballFile = new File(this.outputDirectory
+        + "/server-descriptor/" + printFormat.format(new Date(published))
         + digest.substring(0, 1) + "/" + digest.substring(1, 2) + "/"
-        + digest;
-    if (this.store(SERVER_DESCRIPTOR_ANNOTATION, data, filename)) {
+        + digest);
+    File rsyncFile = new File(
+        "rsync/relay-descriptors/server-descriptors/" + digest);
+    File[] outputFiles = new File[] { tarballFile, rsyncFile };
+    if (this.store(SERVER_DESCRIPTOR_ANNOTATION, data, outputFiles)) {
       this.storedServerDescriptors++;
     }
   }
@@ -206,12 +201,15 @@ public class ArchiveWriter extends Thread {
       String extraInfoDigest, long published) {
     SimpleDateFormat descriptorFormat = new SimpleDateFormat("yyyy/MM/");
     descriptorFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    String filename = outputDirectory + "/extra-info/"
+    File tarballFile = new File(this.outputDirectory + "/extra-info/"
         + descriptorFormat.format(new Date(published))
         + extraInfoDigest.substring(0, 1) + "/"
         + extraInfoDigest.substring(1, 2) + "/"
-        + extraInfoDigest;
-    if (this.store(EXTRA_INFO_ANNOTATION, data, filename)) {
+        + extraInfoDigest);
+    File rsyncFile = new File("rsync/relay-descriptors/extra-infos/"
+        + extraInfoDigest);
+    File[] outputFiles = new File[] { tarballFile, rsyncFile };
+    if (this.store(EXTRA_INFO_ANNOTATION, data, outputFiles)) {
       this.storedExtraInfoDescriptors++;
     }
   }
@@ -402,6 +400,23 @@ public class ArchiveWriter extends Thread {
     } catch (ParseException e) {
       this.logger.log(Level.WARNING, "Could not dump statistics to disk.",
           e);
+    }
+  }
+
+  /* Delete all files from the rsync directory that have not been modified
+   * in the last three days. */
+  public void cleanUpRsyncDirectory() {
+    long cutOffMillis = System.currentTimeMillis()
+        - 3L * 24L * 60L * 60L * 1000L;
+    Stack<File> allFiles = new Stack<File>();
+    allFiles.add(new File("rsync/relay-descriptors"));
+    while (!allFiles.isEmpty()) {
+      File file = allFiles.pop();
+      if (file.isDirectory()) {
+        allFiles.addAll(Arrays.asList(file.listFiles()));
+      } else if (file.lastModified() < cutOffMillis) {
+        file.delete();
+      }
     }
   }
 }

@@ -12,16 +12,17 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.Stack;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.torproject.ernie.db.main.Configuration;
-import org.torproject.ernie.db.main.RsyncDataProvider;
 
 /* Download possibly truncated Torperf .data and .extradata files from
  * configured sources, append them to the files we already have, and merge
@@ -68,9 +69,7 @@ public class TorperfDownloader extends Thread {
     }
     this.writeLastMergedTimestamps();
 
-    /* Copy Torperf files from the last 3 days to the rsync directory. */
-    RsyncDataProvider rdp = new RsyncDataProvider();
-    rdp.copyFiles(torperfOutputDirectory, "torperf");
+    this.cleanUpRsyncDirectory();
   }
 
   private File torperfLastMergedFile =
@@ -572,22 +571,43 @@ public class TorperfDownloader extends Thread {
         this.cachedStartDate == null || this.cachedTpfLines == null) {
       return;
     }
-    File tpfFile = new File(torperfOutputDirectory,
+    File tarballFile = new File(torperfOutputDirectory,
         this.cachedStartDate.replaceAll("-", "/")
         + "/" + this.cachedSource + "-"
         + String.valueOf(this.cachedFileSize) + "-"
         + this.cachedStartDate + ".tpf");
-    tpfFile.getParentFile().mkdirs();
-    BufferedWriter bw = new BufferedWriter(new FileWriter(tpfFile));
-    bw.write("@type torperf 1.0\n");
-    for (String line : this.cachedTpfLines.values()) {
-      bw.write(line + "\n");
+    File rsyncFile = new File("rsync/torperf/" + tarballFile.getName());
+    File[] outputFiles = new File[] { tarballFile, rsyncFile };
+    for (File outputFile : outputFiles) {
+      outputFile.getParentFile().mkdirs();
+      BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
+      bw.write("@type torperf 1.0\n");
+      for (String line : this.cachedTpfLines.values()) {
+        bw.write(line + "\n");
+      }
+      bw.close();
     }
-    bw.close();
     this.cachedSource = null;
     this.cachedFileSize = 0;
     this.cachedStartDate = null;
     this.cachedTpfLines = null;
+  }
+
+  /* Delete all files from the rsync directory that have not been modified
+   * in the last three days. */
+  public void cleanUpRsyncDirectory() {
+    long cutOffMillis = System.currentTimeMillis()
+        - 3L * 24L * 60L * 60L * 1000L;
+    Stack<File> allFiles = new Stack<File>();
+    allFiles.add(new File("rsync/torperf"));
+    while (!allFiles.isEmpty()) {
+      File file = allFiles.pop();
+      if (file.isDirectory()) {
+        allFiles.addAll(Arrays.asList(file.listFiles()));
+      } else if (file.lastModified() < cutOffMillis) {
+        file.delete();
+      }
+    }
   }
 }
 

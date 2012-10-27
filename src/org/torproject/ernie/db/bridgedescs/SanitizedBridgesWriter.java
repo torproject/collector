@@ -15,9 +15,11 @@ import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.Stack;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -28,7 +30,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.torproject.ernie.db.main.Configuration;
-import org.torproject.ernie.db.main.RsyncDataProvider;
 
 /**
  * Sanitizes bridge descriptors, i.e., removes all possibly sensitive
@@ -192,16 +193,7 @@ public class SanitizedBridgesWriter extends Thread {
     // Finish writing sanitized bridge descriptors to disk
     this.finishWriting();
 
-    // Copy sanitized bridge descriptors from the last 3 days to the rsync
-    // directory.
-    RsyncDataProvider rdp = new RsyncDataProvider();
-    rdp.copyFiles(new File(sanitizedBridgesDirectory, "statuses"),
-        "bridge-descriptors/statuses");
-    rdp.copyFiles(
-        new File(sanitizedBridgesDirectory, "server-descriptor"),
-        "bridge-descriptors/server-descriptors");
-    rdp.copyFiles(new File(sanitizedBridgesDirectory, "extra-info"),
-        "bridge-descriptors/extra-infos");
+    this.cleanUpRsyncDirectory();
   }
 
   private String scrubOrAddress(String orAddress, byte[] fingerprintBytes,
@@ -519,32 +511,31 @@ public class SanitizedBridgesWriter extends Thread {
 
     /* Write the sanitized network status to disk. */
     try {
-
-      /* Determine file name. */
       String syear = publicationTime.substring(0, 4);
       String smonth = publicationTime.substring(5, 7);
       String sday = publicationTime.substring(8, 10);
       String stime = publicationTime.substring(11, 13)
           + publicationTime.substring(14, 16)
           + publicationTime.substring(17, 19);
-      File statusFile = new File(
+      File tarballFile = new File(
           this.sanitizedBridgesDirectory.getAbsolutePath() + "/" + syear
           + "/" + smonth + "/statuses/" + sday + "/" + syear + smonth
           + sday + "-" + stime + "-"
           + "4A0CCD2DDC7995083D73F5D667100C8A5831F16D");
-
-      /* Create all parent directories to write this network status. */
-      statusFile.getParentFile().mkdirs();
-
-      /* Write sanitized network status to disk. */
-      BufferedWriter bw = new BufferedWriter(new FileWriter(statusFile));
-      bw.write("@type bridge-network-status 1.0\n");
-      bw.write("published " + publicationTime + "\n");
-      for (String scrubbed : scrubbedLines.values()) {
-        bw.write(scrubbed);
+      File rsyncFile = new File("rsync/bridge-descriptors/statuses/"
+          + tarballFile.getName());
+      File[] outputFiles = new File[] { tarballFile, rsyncFile };
+      for (File outputFile : outputFiles) {
+        outputFile.getParentFile().mkdirs();
+        BufferedWriter bw = new BufferedWriter(new FileWriter(
+            outputFile));
+        bw.write("@type bridge-network-status 1.0\n");
+        bw.write("published " + publicationTime + "\n");
+        for (String scrubbed : scrubbedLines.values()) {
+          bw.write(scrubbed);
+        }
+        bw.close();
       }
-      bw.close();
-
     } catch (IOException e) {
       this.logger.log(Level.WARNING, "Could not write sanitized bridge "
           + "network status to disk.", e);
@@ -781,22 +772,26 @@ public class SanitizedBridgesWriter extends Thread {
     }
     String dyear = published.substring(0, 4);
     String dmonth = published.substring(5, 7);
-    File newFile = new File(
+    File tarballFile = new File(
         this.sanitizedBridgesDirectory.getAbsolutePath() + "/"
         + dyear + "/" + dmonth + "/server-descriptors/"
         + "/" + descriptorDigest.charAt(0) + "/"
         + descriptorDigest.charAt(1) + "/"
         + descriptorDigest);
-
-    /* Write sanitized server descriptor to disk, including all its parent
-     * directories. */
+    File rsyncFile = new File(
+        "rsync/bridge-descriptors/server-descriptors/"
+        + tarballFile.getName());
+    File[] outputFiles = new File[] { tarballFile, rsyncFile };
     try {
-      newFile.getParentFile().mkdirs();
-      BufferedWriter bw = new BufferedWriter(new FileWriter(newFile));
-      bw.write("@type bridge-server-descriptor 1.0\n");
-      bw.write(scrubbedDesc);
-      bw.write("router-digest " + descriptorDigest.toUpperCase() + "\n");
-      bw.close();
+      for (File outputFile : outputFiles) {
+        outputFile.getParentFile().mkdirs();
+        BufferedWriter bw = new BufferedWriter(new FileWriter(
+            outputFile));
+        bw.write("@type bridge-server-descriptor 1.0\n");
+        bw.write(scrubbedDesc);
+        bw.write("router-digest " + descriptorDigest.toUpperCase() + "\n");
+        bw.close();
+      }
     } catch (IOException e) {
       this.logger.log(Level.WARNING, "Could not write sanitized server "
           + "descriptor to disk.", e);
@@ -910,22 +905,25 @@ public class SanitizedBridgesWriter extends Thread {
     }
     String dyear = published.substring(0, 4);
     String dmonth = published.substring(5, 7);
-    File newFile = new File(
+    File tarballFile = new File(
         this.sanitizedBridgesDirectory.getAbsolutePath() + "/"
         + dyear + "/" + dmonth + "/extra-infos/"
         + descriptorDigest.charAt(0) + "/"
         + descriptorDigest.charAt(1) + "/"
         + descriptorDigest);
-
-    /* Write sanitized extra-info descriptor to disk, including all its
-     * parent directories. */
+    File rsyncFile = new File("rsync/bridge-descriptors/extra-infos/"
+        + tarballFile.getName());
+    File[] outputFiles = new File[] { tarballFile, rsyncFile };
     try {
-      newFile.getParentFile().mkdirs();
-      BufferedWriter bw = new BufferedWriter(new FileWriter(newFile));
-      bw.write("@type bridge-extra-info 1.1\n");
-      bw.write(scrubbedDesc);
-      bw.write("router-digest " + descriptorDigest.toUpperCase() + "\n");
-      bw.close();
+      for (File outputFile : outputFiles) {
+        outputFile.getParentFile().mkdirs();
+        BufferedWriter bw = new BufferedWriter(new FileWriter(
+            outputFile));
+        bw.write("@type bridge-extra-info 1.1\n");
+        bw.write(scrubbedDesc);
+        bw.write("router-digest " + descriptorDigest.toUpperCase() + "\n");
+        bw.close();
+      }
     } catch (Exception e) {
       this.logger.log(Level.WARNING, "Could not write sanitized "
           + "extra-info descriptor to disk.", e);
@@ -966,6 +964,23 @@ public class SanitizedBridgesWriter extends Thread {
         this.logger.log(Level.WARNING, "Could not store reduced set of "
             + "secrets to disk! This is a bad sign, better check what's "
             + "going on!", e);
+      }
+    }
+  }
+
+  /* Delete all files from the rsync directory that have not been modified
+   * in the last three days. */
+  public void cleanUpRsyncDirectory() {
+    long cutOffMillis = System.currentTimeMillis()
+        - 3L * 24L * 60L * 60L * 1000L;
+    Stack<File> allFiles = new Stack<File>();
+    allFiles.add(new File("rsync/bridge-descriptors"));
+    while (!allFiles.isEmpty()) {
+      File file = allFiles.pop();
+      if (file.isDirectory()) {
+        allFiles.addAll(Arrays.asList(file.listFiles()));
+      } else if (file.lastModified() < cutOffMillis) {
+        file.delete();
       }
     }
   }

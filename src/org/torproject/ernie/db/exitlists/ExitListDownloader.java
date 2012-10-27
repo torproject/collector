@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.SortedSet;
 import java.util.Stack;
@@ -19,7 +20,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.torproject.ernie.db.main.Configuration;
-import org.torproject.ernie.db.main.RsyncDataProvider;
 
 public class ExitListDownloader extends Thread {
 
@@ -55,24 +55,33 @@ public class ExitListDownloader extends Thread {
           new SimpleDateFormat("yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
       printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       Date downloadedDate = new Date();
-      File exitListFile = new File("exitlist/" + printFormat.format(
+      File tarballFile = new File("exitlist/" + printFormat.format(
           downloadedDate));
-      exitListFile.getParentFile().mkdirs();
+      tarballFile.getParentFile().mkdirs();
+      File rsyncFile = new File("rsync/exit-lists/"
+          + tarballFile.getName());
+      rsyncFile.getParentFile().mkdirs();
       SimpleDateFormat dateTimeFormat =
           new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-      dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-      BufferedWriter bw = new BufferedWriter(new FileWriter(
-          exitListFile));
-      bw.write("@type tordnsel 1.0\n");
-      bw.write("Downloaded " + dateTimeFormat.format(downloadedDate)
+      BufferedWriter bwT = new BufferedWriter(new FileWriter(
+          tarballFile));
+      BufferedWriter bwR = new BufferedWriter(new FileWriter(
+          rsyncFile));
+      bwT.write("@type tordnsel 1.0\n");
+      bwT.write("Downloaded " + dateTimeFormat.format(downloadedDate)
+          + "\n");
+      bwR.write("@type tordnsel 1.0\n");
+      bwR.write("Downloaded " + dateTimeFormat.format(downloadedDate)
           + "\n");
       int len;
       byte[] data = new byte[1024];
       while ((len = in.read(data, 0, 1024)) >= 0) {
-        bw.write(new String(data, 0, len));
+        bwT.write(new String(data, 0, len));
+        bwR.write(new String(data, 0, len));
       }   
       in.close();
-      bw.close();
+      bwT.close();
+      bwR.close();
       logger.fine("Finished downloading exit list.");
     } catch (IOException e) {
       logger.log(Level.WARNING, "Failed downloading exit list", e);
@@ -110,9 +119,24 @@ public class ExitListDownloader extends Thread {
     }
     logger.info(dumpStats.toString());
 
-    /* Copy exit lists from the last 3 days to the rsync directory. */
-    RsyncDataProvider rdp = new RsyncDataProvider();
-    rdp.copyFiles(new File("exitlist"), "exit-lists");
+    this.cleanUpRsyncDirectory();
+  }
+
+  /* Delete all files from the rsync directory that have not been modified
+   * in the last three days. */
+  public void cleanUpRsyncDirectory() {
+    long cutOffMillis = System.currentTimeMillis()
+        - 3L * 24L * 60L * 60L * 1000L;
+    Stack<File> allFiles = new Stack<File>();
+    allFiles.add(new File("rsync/exit-lists"));
+    while (!allFiles.isEmpty()) {
+      File file = allFiles.pop();
+      if (file.isDirectory()) {
+        allFiles.addAll(Arrays.asList(file.listFiles()));
+      } else if (file.lastModified() < cutOffMillis) {
+        file.delete();
+      }
+    }
   }
 }
 
