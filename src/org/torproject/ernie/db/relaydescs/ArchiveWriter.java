@@ -60,6 +60,7 @@ public class ArchiveWriter extends Thread {
       List<String> dirSources =
           config.getDownloadFromDirectoryAuthorities();
       rdd = new RelayDescriptorDownloader(rdp, dirSources,
+          config.getDownloadVotesByFingerprint(),
           config.getDownloadCurrentConsensus(),
           config.getDownloadCurrentVotes(),
           config.getDownloadMissingServerDescriptors(),

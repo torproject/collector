@@ -88,6 +88,12 @@ public class RelayDescriptorDownloader {
   private List<String> authorities;
 
   /**
+   * Fingerprints of directory authorities that we will use to download
+   * votes without requiring a successfully downloaded consensus.
+   */
+  private List<String> authorityFingerprints;
+
+  /**
    * Should we try to download the current consensus if we don't have it?
    */
   private boolean downloadCurrentConsensus;
@@ -201,7 +207,8 @@ public class RelayDescriptorDownloader {
    * <code>stats/last-downloaded-all-descriptors</code>.
    */
   public RelayDescriptorDownloader(RelayDescriptorParser rdp,
-      List<String> authorities, boolean downloadCurrentConsensus,
+      List<String> authorities, List<String> authorityFingerprints,
+      boolean downloadCurrentConsensus,
       boolean downloadCurrentVotes,
       boolean downloadMissingServerDescriptors,
       boolean downloadMissingExtraInfos,
@@ -211,6 +218,8 @@ public class RelayDescriptorDownloader {
     /* Memorize argument values. */
     this.rdp = rdp;
     this.authorities = new ArrayList<String>(authorities);
+    this.authorityFingerprints = new ArrayList<String>(
+        authorityFingerprints);
     this.downloadCurrentConsensus = downloadCurrentConsensus;
     this.downloadCurrentVotes = downloadCurrentVotes;
     this.downloadMissingServerDescriptors =
@@ -467,12 +476,19 @@ public class RelayDescriptorDownloader {
    */
   public void downloadDescriptors() {
 
-    /* Put the current consensus on the missing list, unless we already
-     * have it. */
+    /* Put the current consensus and votes on the missing list, unless we
+     * already have them. */
     String consensusKey = "consensus," + this.currentValidAfter;
     if (!this.missingDescriptors.containsKey(consensusKey)) {
       this.missingDescriptors.put(consensusKey, "NA");
       this.newMissingConsensuses++;
+    }
+    for (String authority : authorityFingerprints) {
+      String voteKey = "vote," + this.currentValidAfter + "," + authority;
+      if (!this.missingDescriptors.containsKey(voteKey)) {
+        this.missingDescriptors.put(voteKey, "NA");
+        this.newMissingVotes++;
+      }
     }
 
     /* Download descriptors from authorities which are in random order, so

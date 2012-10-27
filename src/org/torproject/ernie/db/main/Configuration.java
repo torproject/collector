@@ -41,6 +41,16 @@ public class Configuration {
       "86.59.21.38,76.73.17.194:9030,213.115.239.118:443,"
       + "193.23.244.244,208.83.223.34:443,128.31.0.34:9131,"
       + "194.109.206.212,212.112.245.170").split(","));
+  private List<String> downloadVotesByFingerprint = Arrays.asList((
+      "14C131DFC5C6F93646BE72FA1401C02A8DF2E8B4,"
+      + "27B6B5996C426270A5C95488AA5BCEB6BCC86956,"
+      + "49015F787433103580E3B66A1707A00E60F2D15B,"
+      + "585769C78764D58426B8B52B6651A5A71137189A,"
+      + "80550987E1D626E3EBA5E5E75A458DE0626D088C,"
+      + "D586D18309DED4CD6D57C18FDB97EFA96D330566,"
+      + "E8A9C45EDE6D711294FADF8E7951F4DE6CA56B58,"
+      + "ED03BB616EB2F60BEC80151114BB25CEF515B226,"
+      + "EFCBE720AB3A82B99F9E953CD5BF50F7EEFC7B97").split(","));
   private boolean downloadCurrentConsensus = true;
   private boolean downloadCurrentVotes = true;
   private boolean downloadMissingServerDescriptors = true;
@@ -132,6 +142,11 @@ public class Configuration {
             }
             new URL("http://" + dir + "/");
             this.downloadFromDirectoryAuthorities.add(dir);
+          }
+        } else if (line.startsWith("DownloadVotesByFingerprint")) {
+          this.downloadVotesByFingerprint = new ArrayList<String>();
+          for (String fingerprint : line.split(" ")[1].split(",")) {
+            this.downloadVotesByFingerprint.add(fingerprint);
           }
         } else if (line.startsWith("DownloadCurrentConsensus")) {
           this.downloadCurrentConsensus = Integer.parseInt(
@@ -296,6 +311,9 @@ public class Configuration {
   }
   public List<String> getDownloadFromDirectoryAuthorities() {
     return this.downloadFromDirectoryAuthorities;
+  }
+  public List<String> getDownloadVotesByFingerprint() {
+    return this.downloadVotesByFingerprint;
   }
   public boolean getDownloadCurrentConsensus() {
     return this.downloadCurrentConsensus;
