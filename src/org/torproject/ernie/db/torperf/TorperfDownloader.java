@@ -117,6 +117,7 @@ public class TorperfDownloader extends Thread {
 
   private void writeLastMergedTimestamps() {
     try {
+      this.torperfLastMergedFile.getParentFile().mkdirs();
       BufferedWriter bw = new BufferedWriter(new FileWriter(
           this.torperfLastMergedFile));
       for (Map.Entry<String, String> e :
