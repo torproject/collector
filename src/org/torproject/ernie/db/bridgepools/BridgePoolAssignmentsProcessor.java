@@ -77,6 +77,7 @@ public class BridgePoolAssignmentsProcessor extends Thread {
     SimpleDateFormat filenameFormat =
         new SimpleDateFormat("yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
     filenameFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    long maxBridgePoolAssignmentTime = 0L;
     for (File assignmentFile : assignmentFiles) {
       logger.info("Processing bridge pool assignment file '"
           + assignmentFile.getAbsolutePath() + "'...");
@@ -120,6 +121,9 @@ public class BridgePoolAssignmentsProcessor extends Thread {
                 long bridgePoolAssignmentTime = assignmentFormat.parse(
                     bridgePoolAssignmentLine.substring(
                     "bridge-pool-assignment ".length())).getTime();
+                maxBridgePoolAssignmentTime = Math.max(
+                    maxBridgePoolAssignmentTime,
+                    bridgePoolAssignmentTime);
                 File tarballFile = new File(
                     sanitizedAssignmentsDirectory, filenameFormat.format(
                     bridgePoolAssignmentTime));
@@ -190,6 +194,18 @@ public class BridgePoolAssignmentsProcessor extends Thread {
             + "file '" + assignmentFile.getAbsolutePath()
             + "'. Skipping.", e);
       }
+    }
+
+    if (maxBridgePoolAssignmentTime > 0L &&
+        maxBridgePoolAssignmentTime + 330L * 60L * 1000L
+        < System.currentTimeMillis()) {
+      SimpleDateFormat dateTimeFormat = new SimpleDateFormat(
+          "yyyy-MM-dd HH:mm:ss");
+      dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+      logger.warning("The last known bridge pool assignment list was "
+          + "published at "
+          + dateTimeFormat.format(maxBridgePoolAssignmentTime)
+          + ", which is more than 5:30 hours in the past.");
     }
 
     this.cleanUpRsyncDirectory();

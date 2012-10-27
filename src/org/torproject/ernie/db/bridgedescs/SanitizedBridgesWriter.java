@@ -193,6 +193,8 @@ public class SanitizedBridgesWriter extends Thread {
     // Finish writing sanitized bridge descriptors to disk
     this.finishWriting();
 
+    this.checkStaleDescriptors();
+
     this.cleanUpRsyncDirectory();
   }
 
@@ -368,6 +370,8 @@ public class SanitizedBridgesWriter extends Thread {
     return this.secretsForHashingIPAddresses.get(month);
   }
 
+  private String maxNetworkStatusPublishedTime = "1970-01-01 00:00:00";
+
   /**
    * Sanitizes a network status and writes it to disk.
    */
@@ -378,6 +382,10 @@ public class SanitizedBridgesWriter extends Thread {
       /* There's a persistence problem, so we shouldn't scrub more IP
        * addresses in this execution. */
       return;
+    }
+
+    if (publicationTime.compareTo(maxNetworkStatusPublishedTime) > 0) {
+      maxNetworkStatusPublishedTime = publicationTime;
     }
 
     if (this.bridgeSanitizingCutOffTimestamp.
@@ -543,6 +551,8 @@ public class SanitizedBridgesWriter extends Thread {
     }
   }
 
+  private String maxServerDescriptorPublishedTime = "1970-01-01 00:00:00";
+
   /**
    * Sanitizes a bridge server descriptor and writes it to disk.
    */
@@ -590,6 +600,9 @@ public class SanitizedBridgesWriter extends Thread {
          * sanitizing interval. */
         } else if (line.startsWith("published ")) {
           published = line.substring("published ".length());
+          if (published.compareTo(maxServerDescriptorPublishedTime) > 0) {
+            maxServerDescriptorPublishedTime = published;
+          }
           if (this.bridgeSanitizingCutOffTimestamp.
               compareTo(published) > 0) {
             this.logger.log(!this.haveWarnedAboutInterval
@@ -799,6 +812,9 @@ public class SanitizedBridgesWriter extends Thread {
     }
   }
 
+  private String maxExtraInfoDescriptorPublishedTime =
+      "1970-01-01 00:00:00";
+
   /**
    * Sanitizes an extra-info descriptor and writes it to disk.
    */
@@ -827,6 +843,10 @@ public class SanitizedBridgesWriter extends Thread {
         } else if (line.startsWith("published ")) {
           scrubbed.append(line + "\n");
           published = line.substring("published ".length());
+          if (published.compareTo(maxExtraInfoDescriptorPublishedTime)
+              > 0) {
+            maxExtraInfoDescriptorPublishedTime = published;
+          }
 
         /* Remove everything from transport lines except the transport
          * name. */
@@ -965,6 +985,44 @@ public class SanitizedBridgesWriter extends Thread {
             + "secrets to disk! This is a bad sign, better check what's "
             + "going on!", e);
       }
+    }
+  }
+
+  private void checkStaleDescriptors() {
+    SimpleDateFormat dateTimeFormat = new SimpleDateFormat(
+        "yyyy-MM-dd HH:mm:ss");
+    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    long tooOldMillis = System.currentTimeMillis() - 330L * 60L * 1000L;
+    try {
+      long maxNetworkStatusPublishedMillis =
+          dateTimeFormat.parse(maxNetworkStatusPublishedTime).getTime();
+      if (maxNetworkStatusPublishedMillis > 0L &&
+          maxNetworkStatusPublishedMillis < tooOldMillis) {
+        this.logger.warning("The last known bridge network status was "
+            + "published " + maxNetworkStatusPublishedTime + ", which is "
+            + "more than 5:30 hours in the past.");
+      }
+      long maxServerDescriptorPublishedMillis =
+          dateTimeFormat.parse(maxServerDescriptorPublishedTime).
+          getTime();
+      if (maxServerDescriptorPublishedMillis > 0L &&
+          maxServerDescriptorPublishedMillis < tooOldMillis) {
+        this.logger.warning("The last known bridge server descriptor was "
+            + "published " + maxServerDescriptorPublishedTime + ", which "
+            + "is more than 5:30 hours in the past.");
+      }
+      long maxExtraInfoDescriptorPublishedMillis =
+          dateTimeFormat.parse(maxExtraInfoDescriptorPublishedTime).
+          getTime();
+      if (maxExtraInfoDescriptorPublishedMillis > 0L &&
+          maxExtraInfoDescriptorPublishedMillis < tooOldMillis) {
+        this.logger.warning("The last known bridge extra-info descriptor "
+            + "was published " + maxExtraInfoDescriptorPublishedTime
+            + ", which is more than 5:30 hours in the past.");
+      }
+    } catch (ParseException e) {
+      this.logger.log(Level.WARNING, "Unable to parse timestamp for "
+          + "stale check.", e);
     }
   }
 

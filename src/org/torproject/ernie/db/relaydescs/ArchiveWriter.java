@@ -94,6 +94,8 @@ public class ArchiveWriter extends Thread {
     // Write output to disk that only depends on relay descriptors
     this.dumpStats();
 
+    this.checkStaledescriptors();
+
     this.cleanUpRsyncDirectory();
   }
 
@@ -128,9 +130,12 @@ public class ArchiveWriter extends Thread {
     return false;
   }
 
+  private long maxConsensusValidAfter = 0L;
   private static final byte[] CONSENSUS_ANNOTATION =
       "@type network-status-consensus-3 1.0\n".getBytes();
   public void storeConsensus(byte[] data, long validAfter) {
+    this.maxConsensusValidAfter = Math.max(this.maxConsensusValidAfter,
+        validAfter);
     SimpleDateFormat printFormat = new SimpleDateFormat(
         "yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
     printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -144,10 +149,12 @@ public class ArchiveWriter extends Thread {
     }
   }
 
+  private long maxVoteValidAfter = 0L;
   private static final byte[] VOTE_ANNOTATION =
       "@type network-status-vote-3 1.0\n".getBytes();
   public void storeVote(byte[] data, long validAfter,
       String fingerprint, String digest) {
+    this.maxVoteValidAfter = Math.max(this.maxVoteValidAfter, validAfter);
     SimpleDateFormat printFormat = new SimpleDateFormat(
         "yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
     printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -177,10 +184,13 @@ public class ArchiveWriter extends Thread {
     }
   }
 
+  private long maxServerDescriptorPublished = 0L;
   private static final byte[] SERVER_DESCRIPTOR_ANNOTATION =
       "@type server-descriptor 1.0\n".getBytes();
   public void storeServerDescriptor(byte[] data, String digest,
       long published) {
+    this.maxServerDescriptorPublished = Math.max(
+        this.maxServerDescriptorPublished, published);
     SimpleDateFormat printFormat = new SimpleDateFormat("yyyy/MM/");
     printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     File tarballFile = new File(this.outputDirectory
@@ -195,10 +205,13 @@ public class ArchiveWriter extends Thread {
     }
   }
 
+  private long maxExtraInfoDescriptorPublished = 0L;
   private static final byte[] EXTRA_INFO_ANNOTATION =
       "@type extra-info 1.0\n".getBytes();
   public void storeExtraInfoDescriptor(byte[] data,
       String extraInfoDigest, long published) {
+    this.maxExtraInfoDescriptorPublished = Math.max(
+        this.maxExtraInfoDescriptorPublished, published);
     SimpleDateFormat descriptorFormat = new SimpleDateFormat("yyyy/MM/");
     descriptorFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     File tarballFile = new File(this.outputDirectory + "/extra-info/"
@@ -400,6 +413,39 @@ public class ArchiveWriter extends Thread {
     } catch (ParseException e) {
       this.logger.log(Level.WARNING, "Could not dump statistics to disk.",
           e);
+    }
+  }
+
+  private void checkStaledescriptors() {
+    SimpleDateFormat dateTimeFormat = new SimpleDateFormat(
+        "yyyy-MM-dd HH:mm:ss");
+    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    long tooOldMillis = System.currentTimeMillis() - 330L * 60L * 1000L;
+    if (maxConsensusValidAfter > 0L &&
+        maxConsensusValidAfter < tooOldMillis) {
+      this.logger.warning("The last known relay network status "
+          + "consensus was valid after "
+          + dateTimeFormat.format(maxConsensusValidAfter)
+          + ", which is more than 5:30 hours in the past.");
+    }
+    if (maxVoteValidAfter > 0L && maxVoteValidAfter < tooOldMillis) {
+      this.logger.warning("The last known relay network status vote "
+          + "was valid after " + dateTimeFormat.format(maxVoteValidAfter)
+          + ", which is more than 5:30 hours in the past.");
+    }
+    if (maxServerDescriptorPublished > 0L &&
+        maxServerDescriptorPublished < tooOldMillis) {
+      this.logger.warning("The last known relay server descriptor was "
+          + "published at "
+          + dateTimeFormat.format(maxServerDescriptorPublished)
+          + ", which is more than 5:30 hours in the past.");
+    }
+    if (maxExtraInfoDescriptorPublished > 0L &&
+        maxExtraInfoDescriptorPublished < tooOldMillis) {
+      this.logger.warning("The last known relay extra-info descriptor "
+          + "was published at "
+          + dateTimeFormat.format(maxExtraInfoDescriptorPublished)
+          + ", which is more than 5:30 hours in the past.");
     }
   }
 

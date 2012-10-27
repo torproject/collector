@@ -12,6 +12,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TimeZone;
@@ -19,6 +20,12 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.torproject.descriptor.Descriptor;
+import org.torproject.descriptor.DescriptorParser;
+import org.torproject.descriptor.DescriptorSourceFactory;
+import org.torproject.descriptor.ExitList;
+import org.torproject.descriptor.ExitListEntry;
+import org.torproject.descriptor.impl.DescriptorParseException;
 import org.torproject.ernie.db.main.Configuration;
 
 public class ExitListDownloader extends Thread {
@@ -35,8 +42,19 @@ public class ExitListDownloader extends Thread {
     }
 
     Logger logger = Logger.getLogger(ExitListDownloader.class.getName());
+
+    SimpleDateFormat dateTimeFormat =
+        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+    Date downloadedDate = new Date();
+    String downloadedExitList = null;
     try {
       logger.fine("Downloading exit list...");
+      StringBuilder sb = new StringBuilder();
+      sb.append("@type tordnsel 1.0\n");
+      sb.append("Downloaded " + dateTimeFormat.format(downloadedDate)
+          + "\n");
       String exitAddressesUrl =
           "http://exitlist.torproject.org/exit-addresses";
       URL u = new URL(exitAddressesUrl);
@@ -51,41 +69,71 @@ public class ExitListDownloader extends Thread {
       }
       BufferedInputStream in = new BufferedInputStream(
           huc.getInputStream());
-      SimpleDateFormat printFormat =
-          new SimpleDateFormat("yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
-      printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-      Date downloadedDate = new Date();
-      File tarballFile = new File("exitlist/" + printFormat.format(
-          downloadedDate));
-      tarballFile.getParentFile().mkdirs();
-      File rsyncFile = new File("rsync/exit-lists/"
-          + tarballFile.getName());
-      rsyncFile.getParentFile().mkdirs();
-      SimpleDateFormat dateTimeFormat =
-          new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-      BufferedWriter bwT = new BufferedWriter(new FileWriter(
-          tarballFile));
-      BufferedWriter bwR = new BufferedWriter(new FileWriter(
-          rsyncFile));
-      bwT.write("@type tordnsel 1.0\n");
-      bwT.write("Downloaded " + dateTimeFormat.format(downloadedDate)
-          + "\n");
-      bwR.write("@type tordnsel 1.0\n");
-      bwR.write("Downloaded " + dateTimeFormat.format(downloadedDate)
-          + "\n");
       int len;
       byte[] data = new byte[1024];
       while ((len = in.read(data, 0, 1024)) >= 0) {
-        bwT.write(new String(data, 0, len));
-        bwR.write(new String(data, 0, len));
+        sb.append(new String(data, 0, len));
       }   
       in.close();
-      bwT.close();
-      bwR.close();
+      downloadedExitList = sb.toString();
       logger.fine("Finished downloading exit list.");
     } catch (IOException e) {
       logger.log(Level.WARNING, "Failed downloading exit list", e);
       return;
+    }
+    if (downloadedExitList == null) {
+      logger.warning("Failed downloading exit list");
+      return;
+    }
+
+    SimpleDateFormat tarballFormat =
+        new SimpleDateFormat("yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
+    tarballFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    File tarballFile = new File("exitlist/" + tarballFormat.format(
+        downloadedDate));
+
+    long maxScanMillis = 0L;
+    try {
+      DescriptorParser descriptorParser =
+          DescriptorSourceFactory.createDescriptorParser();
+      List<Descriptor> parsedDescriptors =
+          descriptorParser.parseDescriptors(downloadedExitList.getBytes(),
+          tarballFile.getName());
+      if (parsedDescriptors.size() != 1 ||
+          !(parsedDescriptors.get(0) instanceof ExitList)) {
+        logger.warning("Could not parse downloaded exit list");
+        return;
+      }
+      ExitList parsedExitList = (ExitList) parsedDescriptors.get(0);
+      for (ExitListEntry entry : parsedExitList.getExitListEntries()) {
+        maxScanMillis = Math.max(maxScanMillis, entry.getScanMillis());
+      }
+    } catch (DescriptorParseException e) {
+      logger.log(Level.WARNING, "Could not parse downloaded exit list",
+          e);
+    }
+    if (maxScanMillis > 0L &&
+        maxScanMillis + 330L * 60L * 1000L < System.currentTimeMillis()) {
+      logger.warning("The last reported scan in the downloaded exit list "
+          + "took place at " + dateTimeFormat.format(maxScanMillis)
+          + ", which is more than 5:30 hours in the past.");
+  }
+
+    /* Write to disk. */
+    File rsyncFile = new File("rsync/exit-lists/"
+        + tarballFile.getName());
+    File[] outputFiles = new File[] { tarballFile, rsyncFile };
+    for (File outputFile : outputFiles) {
+      try {
+        outputFile.getParentFile().mkdirs();
+        BufferedWriter bw = new BufferedWriter(new FileWriter(
+            outputFile));
+        bw.write(downloadedExitList);
+        bw.close();
+      } catch (IOException e) {
+        logger.log(Level.WARNING, "Could not write downloaded exit list "
+            + "to " + outputFile.getAbsolutePath(), e);
+      }
     }
 
     /* Write stats. */
