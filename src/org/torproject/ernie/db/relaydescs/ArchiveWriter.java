@@ -4,24 +4,29 @@ package org.torproject.ernie.db.relaydescs;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TimeZone;
-import java.util.TreeSet;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.Hex;
 import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
 import org.torproject.descriptor.impl.DescriptorParseException;
@@ -35,11 +40,141 @@ public class ArchiveWriter extends Thread {
     this.config = config;
   }
 
+  private long now = System.currentTimeMillis();
   private Logger logger;
   private File outputDirectory;
   private DescriptorParser descriptorParser;
-  private int storedConsensuses = 0, storedVotes = 0, storedCerts = 0,
-      storedServerDescriptors = 0, storedExtraInfoDescriptors = 0;
+  private int storedConsensusesCounter = 0, storedVotesCounter = 0,
+      storedCertsCounter = 0, storedServerDescriptorsCounter = 0,
+      storedExtraInfoDescriptorsCounter = 0;
+
+  private SortedMap<Long, SortedSet<String>> storedConsensuses =
+      new TreeMap<Long, SortedSet<String>>();
+  private SortedMap<Long, Integer> expectedVotes =
+      new TreeMap<Long, Integer>();
+  private SortedMap<Long, SortedMap<String, SortedSet<String>>>
+      storedVotes =
+      new TreeMap<Long, SortedMap<String, SortedSet<String>>>();
+  private SortedMap<Long, Map<String, String>> storedServerDescriptors =
+      new TreeMap<Long, Map<String, String>>();
+  private SortedMap<Long, Set<String>> storedExtraInfoDescriptors =
+      new TreeMap<Long, Set<String>>();
+
+  private File storedServerDescriptorsFile = new File(
+      "stats/stored-server-descriptors");
+  private File storedExtraInfoDescriptorsFile = new File(
+      "stats/stored-extra-info-descriptors");
+
+  private void loadDescriptorDigests() {
+    SimpleDateFormat dateTimeFormat = new SimpleDateFormat(
+        "yyyy-MM-dd HH:mm:ss");
+    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    try {
+      if (this.storedServerDescriptorsFile.exists()) {
+        BufferedReader br = new BufferedReader(new FileReader(
+            this.storedServerDescriptorsFile));
+        String line;
+        while ((line = br.readLine()) != null) {
+          String[] parts = line.split(",");
+          if (parts.length != 3) {
+            this.logger.warning("Could not load server descriptor "
+                + "digests because of illegal line '" + line + "'.  We "
+                + "might not be able to correctly check descriptors for "
+                + "completeness.");
+            break;
+          }
+          long published = dateTimeFormat.parse(parts[0]).getTime();
+          if (published < this.now - 48L * 60L * 60L * 1000L) {
+            continue;
+          }
+          if (!this.storedServerDescriptors.containsKey(published)) {
+            this.storedServerDescriptors.put(published,
+                new HashMap<String, String>());
+          }
+          String serverDescriptorDigest = parts[1];
+          String extraInfoDescriptorDigest = parts[2].equals("NA") ? null
+              : parts[2];
+          this.storedServerDescriptors.get(published).put(
+              serverDescriptorDigest, extraInfoDescriptorDigest);
+        }
+        br.close();
+      }
+      if (this.storedExtraInfoDescriptorsFile.exists()) {
+        BufferedReader br = new BufferedReader(new FileReader(
+            this.storedExtraInfoDescriptorsFile));
+        String line;
+        while ((line = br.readLine()) != null) {
+          String[] parts = line.split(",");
+          if (parts.length != 2) {
+            this.logger.warning("Could not load extra-info descriptor "
+                + "digests because of illegal line '" + line + "'.  We "
+                + "might not be able to correctly check descriptors for "
+                + "completeness.");
+            break;
+          }
+          long published = dateTimeFormat.parse(parts[0]).getTime();
+          if (published < this.now - 48L * 60L * 60L * 1000L) {
+            continue;
+          }
+          if (!this.storedExtraInfoDescriptors.containsKey(published)) {
+            this.storedExtraInfoDescriptors.put(published,
+                new HashSet<String>());
+          }
+          String extraInfoDescriptorDigest = parts[1];
+          this.storedExtraInfoDescriptors.get(published).add(
+              extraInfoDescriptorDigest);
+        }
+        br.close();
+      }
+    } catch (ParseException e) {
+      this.logger.log(Level.WARNING, "Could not load descriptor "
+          + "digests.  We might not be able to correctly check "
+          + "descriptors for completeness.", e);
+    } catch (IOException e) {
+      this.logger.log(Level.WARNING, "Could not load descriptor "
+          + "digests.  We might not be able to correctly check "
+          + "descriptors for completeness.", e);
+    }
+  }
+
+  private void saveDescriptorDigests() {
+    SimpleDateFormat dateTimeFormat = new SimpleDateFormat(
+        "yyyy-MM-dd HH:mm:ss");
+    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    try {
+      this.storedServerDescriptorsFile.getParentFile().mkdirs();
+      BufferedWriter bw = new BufferedWriter(new FileWriter(
+          this.storedServerDescriptorsFile));
+      for (Map.Entry<Long, Map<String, String>> e :
+          this.storedServerDescriptors.entrySet()) {
+        String published = dateTimeFormat.format(e.getKey());
+        for (Map.Entry<String, String> f : e.getValue().entrySet()) {
+          String serverDescriptorDigest = f.getKey();
+          String extraInfoDescriptorDigest = f.getValue() == null ? "NA"
+              : f.getValue();
+          bw.write(String.format("%s,%s,%s%n", published,
+              serverDescriptorDigest, extraInfoDescriptorDigest));
+        }
+      }
+      bw.close();
+      this.storedExtraInfoDescriptorsFile.getParentFile().mkdirs();
+      bw = new BufferedWriter(new FileWriter(
+          this.storedExtraInfoDescriptorsFile));
+      for (Map.Entry<Long, Set<String>> e :
+          this.storedExtraInfoDescriptors.entrySet()) {
+        String published = dateTimeFormat.format(e.getKey());
+        for (String extraInfoDescriptorDigest : e.getValue()) {
+          bw.write(String.format("%s,%s%n", published,
+              extraInfoDescriptorDigest));
+        }
+      }
+      bw.close();
+    } catch (IOException e) {
+      this.logger.log(Level.WARNING, "Could not save descriptor "
+          + "digests.  We might not be able to correctly check "
+          + "descriptors for completeness in the next run.", e);
+    }
+  }
 
   public void run() {
 
@@ -51,6 +186,8 @@ public class ArchiveWriter extends Thread {
     this.outputDirectory = outputDirectory;
     this.descriptorParser =
         DescriptorSourceFactory.createDescriptorParser();
+
+    this.loadDescriptorDigests();
 
     // Prepare relay descriptor parser
     RelayDescriptorParser rdp = new RelayDescriptorParser(this);
@@ -92,12 +229,13 @@ public class ArchiveWriter extends Thread {
           + "directory authorities");
     }
 
-    // Write output to disk that only depends on relay descriptors
-    this.dumpStats();
+    this.checkMissingDescriptors();
 
     this.checkStaledescriptors();
 
     this.cleanUpRsyncDirectory();
+
+    this.saveDescriptorDigests();
   }
 
   private boolean store(byte[] typeAnnotation, byte[] data,
@@ -131,12 +269,11 @@ public class ArchiveWriter extends Thread {
     return false;
   }
 
-  private long maxConsensusValidAfter = 0L;
   private static final byte[] CONSENSUS_ANNOTATION =
       "@type network-status-consensus-3 1.0\n".getBytes();
-  public void storeConsensus(byte[] data, long validAfter) {
-    this.maxConsensusValidAfter = Math.max(this.maxConsensusValidAfter,
-        validAfter);
+  public void storeConsensus(byte[] data, long validAfter,
+      SortedSet<String> dirSources,
+      SortedSet<String> serverDescriptorDigests) {
     SimpleDateFormat printFormat = new SimpleDateFormat(
         "yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
     printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -146,16 +283,22 @@ public class ArchiveWriter extends Thread {
         + tarballFile.getName());
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
     if (this.store(CONSENSUS_ANNOTATION, data, outputFiles)) {
-      this.storedConsensuses++;
+      this.storedConsensusesCounter++;
+    }
+    SimpleDateFormat dateTimeFormat =
+        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    if (this.now - validAfter < 3L * 60L * 60L * 1000L) {
+      this.storedConsensuses.put(validAfter, serverDescriptorDigests);
+      this.expectedVotes.put(validAfter, dirSources.size());
     }
   }
 
-  private long maxVoteValidAfter = 0L;
   private static final byte[] VOTE_ANNOTATION =
       "@type network-status-vote-3 1.0\n".getBytes();
   public void storeVote(byte[] data, long validAfter,
-      String fingerprint, String digest) {
-    this.maxVoteValidAfter = Math.max(this.maxVoteValidAfter, validAfter);
+      String fingerprint, String digest,
+      SortedSet<String> serverDescriptorDigests) {
     SimpleDateFormat printFormat = new SimpleDateFormat(
         "yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
     printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -166,7 +309,18 @@ public class ArchiveWriter extends Thread {
         + tarballFile.getName());
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
     if (this.store(VOTE_ANNOTATION, data, outputFiles)) {
-      this.storedVotes++;
+      this.storedVotesCounter++;
+    }
+    SimpleDateFormat dateTimeFormat =
+        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    if (this.now - validAfter < 3L * 60L * 60L * 1000L) {
+      if (!this.storedVotes.containsKey(validAfter)) {
+        this.storedVotes.put(validAfter,
+            new TreeMap<String, SortedSet<String>>());
+      }
+      this.storedVotes.get(validAfter).put(fingerprint,
+          serverDescriptorDigests);
     }
   }
 
@@ -181,17 +335,14 @@ public class ArchiveWriter extends Thread {
         + fingerprint + "-" + printFormat.format(new Date(published)));
     File[] outputFiles = new File[] { tarballFile };
     if (this.store(CERTIFICATE_ANNOTATION, data, outputFiles)) {
-      this.storedCerts++;
+      this.storedCertsCounter++;
     }
   }
 
-  private long maxServerDescriptorPublished = 0L;
   private static final byte[] SERVER_DESCRIPTOR_ANNOTATION =
       "@type server-descriptor 1.0\n".getBytes();
   public void storeServerDescriptor(byte[] data, String digest,
-      long published) {
-    this.maxServerDescriptorPublished = Math.max(
-        this.maxServerDescriptorPublished, published);
+      long published, String extraInfoDigest) {
     SimpleDateFormat printFormat = new SimpleDateFormat("yyyy/MM/");
     printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     File tarballFile = new File(this.outputDirectory
@@ -202,17 +353,25 @@ public class ArchiveWriter extends Thread {
         "rsync/relay-descriptors/server-descriptors/" + digest);
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
     if (this.store(SERVER_DESCRIPTOR_ANNOTATION, data, outputFiles)) {
-      this.storedServerDescriptors++;
+      this.storedServerDescriptorsCounter++;
+    }
+    SimpleDateFormat dateTimeFormat =
+        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    if (this.now - published < 48L * 60L * 60L * 1000L) {
+      if (!this.storedServerDescriptors.containsKey(published)) {
+        this.storedServerDescriptors.put(published,
+            new HashMap<String, String>());
+      }
+      this.storedServerDescriptors.get(published).put(digest,
+          extraInfoDigest);
     }
   }
 
-  private long maxExtraInfoDescriptorPublished = 0L;
   private static final byte[] EXTRA_INFO_ANNOTATION =
       "@type extra-info 1.0\n".getBytes();
   public void storeExtraInfoDescriptor(byte[] data,
       String extraInfoDigest, long published) {
-    this.maxExtraInfoDescriptorPublished = Math.max(
-        this.maxExtraInfoDescriptorPublished, published);
     SimpleDateFormat descriptorFormat = new SimpleDateFormat("yyyy/MM/");
     descriptorFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     File tarballFile = new File(this.outputDirectory + "/extra-info/"
@@ -224,196 +383,143 @@ public class ArchiveWriter extends Thread {
         + extraInfoDigest);
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
     if (this.store(EXTRA_INFO_ANNOTATION, data, outputFiles)) {
-      this.storedExtraInfoDescriptors++;
+      this.storedExtraInfoDescriptorsCounter++;
+    }
+    if (this.now - published < 48L * 60L * 60L * 1000L) {
+      if (!this.storedExtraInfoDescriptors.containsKey(published)) {
+        this.storedExtraInfoDescriptors.put(published,
+            new HashSet<String>());
+      }
+      this.storedExtraInfoDescriptors.get(published).add(extraInfoDigest);
     }
   }
 
   private StringBuilder intermediateStats = new StringBuilder();
   public void intermediateStats(String event) {
     intermediateStats.append("While " + event + ", we stored "
-        + this.storedConsensuses + " consensus(es), " + this.storedVotes
-        + " vote(s), " + this.storedCerts + " certificate(s), "
-        + this.storedServerDescriptors + " server descriptor(s), and "
-        + this.storedExtraInfoDescriptors
+        + this.storedConsensusesCounter + " consensus(es), "
+        + this.storedVotesCounter + " vote(s), " + this.storedCertsCounter
+        + " certificate(s), " + this.storedServerDescriptorsCounter
+        + " server descriptor(s), and "
+        + this.storedExtraInfoDescriptorsCounter
         + " extra-info descriptor(s) to disk.\n");
-    this.storedConsensuses = 0;
-    this.storedVotes = 0;
-    this.storedCerts = 0;
-    this.storedServerDescriptors = 0;
-    this.storedExtraInfoDescriptors = 0;
+    this.storedConsensusesCounter = 0;
+    this.storedVotesCounter = 0;
+    this.storedCertsCounter = 0;
+    this.storedServerDescriptorsCounter = 0;
+    this.storedExtraInfoDescriptorsCounter = 0;
   }
-  /**
-   * Dump some statistics on the completeness of descriptors to the logs
-   * on level INFO.
-   */
-  public void dumpStats() {
+
+  private void checkMissingDescriptors() {
     StringBuilder sb = new StringBuilder("Finished writing relay "
         + "descriptors to disk.\n");
     sb.append(intermediateStats.toString());
     sb.append("Statistics on the completeness of written relay "
         + "descriptors of the last 3 consensuses (Consensus/Vote, "
         + "valid-after, votes, server descriptors, extra-infos):");
-    try {
-      SimpleDateFormat validAfterFormat =
-          new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-      validAfterFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-      SimpleDateFormat consensusVoteFormat =
-          new SimpleDateFormat("yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
-      consensusVoteFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-      SimpleDateFormat descriptorFormat =
-          new SimpleDateFormat("yyyy/MM/");
-      descriptorFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-      SortedSet<File> consensuses = new TreeSet<File>();
-      Stack<File> leftToParse = new Stack<File>();
-      leftToParse.add(new File(outputDirectory + "/consensus"));
-      while (!leftToParse.isEmpty()) {
-        File pop = leftToParse.pop();
-        if (pop.isDirectory()) {
-          for (File f : pop.listFiles()) {
-            leftToParse.add(f);
+    SimpleDateFormat dateTimeFormat =
+        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    Map<String, String> knownServerDescriptors =
+        new HashMap<String, String>();
+    for (Map<String, String> descriptors :
+        this.storedServerDescriptors.values()) {
+      knownServerDescriptors.putAll(descriptors);
+    }
+    Set<String> knownExtraInfoDescriptors = new HashSet<String>();
+    for (Set<String> descriptors :
+        this.storedExtraInfoDescriptors.values()) {
+      knownExtraInfoDescriptors.addAll(descriptors);
+    }
+    boolean missingDescriptors = false, missingVotes = false;
+    for (Map.Entry<Long, SortedSet<String>> c :
+        this.storedConsensuses.entrySet()) {
+      long validAfterMillis = c.getKey();
+      String validAfterTime = dateTimeFormat.format(validAfterMillis);
+      int allVotes = this.expectedVotes.containsKey(validAfterMillis)
+          ? this.expectedVotes.get(validAfterMillis) : 0;
+      int foundVotes = 0;
+      if (this.storedVotes.containsKey(validAfterMillis)) {
+        foundVotes = this.storedVotes.get(validAfterMillis).size();
+        for (Map.Entry<String, SortedSet<String>> v :
+            this.storedVotes.get(validAfterMillis).entrySet()) {
+          int voteFoundServerDescs = 0, voteAllServerDescs = 0,
+              voteFoundExtraInfos = 0, voteAllExtraInfos = 0;
+          for (String serverDescriptorDigest : v.getValue()) {
+            voteAllServerDescs++;
+            if (knownServerDescriptors.containsKey(
+                serverDescriptorDigest)) {
+              voteFoundServerDescs++;
+              if (knownServerDescriptors.get(serverDescriptorDigest)
+                  != null) {
+                String extraInfoDescriptorDigest =
+                    knownServerDescriptors.get(serverDescriptorDigest);
+                voteAllExtraInfos++;
+                if (knownExtraInfoDescriptors.contains(
+                    extraInfoDescriptorDigest)) {
+                  voteFoundExtraInfos++;
+                }
+              }
+            }
           }
-        } else if (pop.length() > 0) {
-          consensuses.add(pop);
-        }
-        while (consensuses.size() > 3) {
-          consensuses.remove(consensuses.first());
+          sb.append(String.format("%nV, %s, NA, %d/%d (%.1f%%), "
+              + "%d/%d (%.1f%%)", validAfterTime,
+              voteFoundServerDescs, voteAllServerDescs,
+              100.0D * (double) voteFoundServerDescs /
+                (double) voteAllServerDescs,
+              voteFoundExtraInfos, voteAllExtraInfos,
+              100.0D * (double) voteFoundExtraInfos /
+                (double) voteAllExtraInfos));
+          if (voteFoundServerDescs * 1000 < voteAllServerDescs * 999 ||
+              voteFoundExtraInfos * 1000 < voteAllExtraInfos * 999) {
+            missingDescriptors = true;
+          }
         }
       }
-      for (File f : consensuses) {
-        BufferedReader br = new BufferedReader(new FileReader(f));
-        String line = null, validAfterTime = null,
-            voteFilenamePrefix = null, dirSource = null;
-        int allVotes = 0, foundVotes = 0,
-            allServerDescs = 0, foundServerDescs = 0,
-            allExtraInfos = 0, foundExtraInfos = 0;
-        while ((line = br.readLine()) != null) {
-          if (line.startsWith("valid-after ")) {
-            validAfterTime = line.substring("valid-after ".length());
-            long validAfter = validAfterFormat.parse(
-                validAfterTime).getTime();
-            voteFilenamePrefix = outputDirectory + "/vote/"
-                + consensusVoteFormat.format(new Date(validAfter))
-                + "-vote-";
-          } else if (line.startsWith("dir-source ")) {
-            dirSource = line.split(" ")[2];
-          } else if (line.startsWith("vote-digest ")) {
-            allVotes++;
-            File voteFile = new File(voteFilenamePrefix + dirSource + "-"
-                + line.split(" ")[1]);
-            if (voteFile.exists()) {
-              foundVotes++;
-              BufferedReader vbr = new BufferedReader(new FileReader(
-                  voteFile));
-              String line3 = null;
-              int voteAllServerDescs = 0, voteFoundServerDescs = 0,
-                  voteAllExtraInfos = 0, voteFoundExtraInfos = 0;
-              while ((line3 = vbr.readLine()) != null) {
-                if (line3.startsWith("r ")) {
-                  voteAllServerDescs++;
-                  String digest = Hex.encodeHexString(Base64.decodeBase64(
-                      line3.split(" ")[3] + "=")).toLowerCase();
-                  long published = validAfterFormat.parse(
-                      line3.split(" ")[4] + " "
-                      + line3.split(" ")[5]).getTime();
-                  String filename = outputDirectory
-                      + "/server-descriptor/"
-                      + descriptorFormat.format(new Date(published))
-                      + digest.substring(0, 1) + "/"
-                      + digest.substring(1, 2) + "/" + digest;
-                  if (new File(filename).exists()) {
-                    BufferedReader sbr = new BufferedReader(new FileReader(
-                        new File(filename)));
-                    String line2 = null;
-                    while ((line2 = sbr.readLine()) != null) {
-                      if (line2.startsWith("opt extra-info-digest ") ||
-                          line2.startsWith("extra-info-digest ")) {
-                        voteAllExtraInfos++;
-                        String extraInfoDigest = line2.startsWith("opt ") ?
-                            line2.split(" ")[2].toLowerCase() :
-                            line2.split(" ")[1].toLowerCase();
-                        String filename2 =
-                            outputDirectory.getAbsolutePath()
-                            + "/extra-info/"
-                            + descriptorFormat.format(new Date(published))
-                            + extraInfoDigest.substring(0, 1) + "/"
-                            + extraInfoDigest.substring(1, 2) + "/"
-                            + extraInfoDigest;
-                        if (new File(filename2).exists()) {
-                          voteFoundExtraInfos++;
-                        }
-                      }
-                    }
-                    sbr.close();
-                    voteFoundServerDescs++;
-                  }
-                }
-              }
-              vbr.close();
-              sb.append(String.format("%nV, %s, NA, %d/%d (%.1f%%), "
-                  + "%d/%d (%.1f%%)", validAfterTime,
-                  voteFoundServerDescs, voteAllServerDescs,
-                  100.0D * (double) voteFoundServerDescs /
-                    (double) voteAllServerDescs,
-                  voteFoundExtraInfos, voteAllExtraInfos,
-                  100.0D * (double) voteFoundExtraInfos /
-                    (double) voteAllExtraInfos));
-            }
-          } else if (line.startsWith("r ")) {
-            allServerDescs++;
-            String digest = Hex.encodeHexString(Base64.decodeBase64(
-                line.split(" ")[3] + "=")).toLowerCase();
-            long published = validAfterFormat.parse(
-                line.split(" ")[4] + " " + line.split(" ")[5]).getTime();
-            String filename = outputDirectory.getAbsolutePath()
-                + "/server-descriptor/"
-                + descriptorFormat.format(new Date(published))
-                + digest.substring(0, 1) + "/"
-                + digest.substring(1, 2) + "/" + digest;
-            if (new File (filename).exists()) {
-              BufferedReader sbr = new BufferedReader(new FileReader(
-                  new File(filename)));
-              String line2 = null;
-              while ((line2 = sbr.readLine()) != null) {
-                if (line2.startsWith("opt extra-info-digest ") ||
-                    line2.startsWith("extra-info-digest ")) {
-                  allExtraInfos++;
-                  String extraInfoDigest = line2.startsWith("opt ") ?
-                      line2.split(" ")[2].toLowerCase() :
-                      line2.split(" ")[1].toLowerCase();
-                  String filename2 = outputDirectory.getAbsolutePath()
-                      + "/extra-info/"
-                      + descriptorFormat.format(new Date(published))
-                      + extraInfoDigest.substring(0, 1) + "/"
-                      + extraInfoDigest.substring(1, 2) + "/"
-                      + extraInfoDigest;
-                  if (new File (filename2).exists()) {
-                    foundExtraInfos++;
-                  }
-                }
-              }
-              sbr.close();
-              foundServerDescs++;
+      int foundServerDescs = 0, allServerDescs = 0, foundExtraInfos = 0,
+          allExtraInfos = 0;
+      for (String serverDescriptorDigest : c.getValue()) {
+        allServerDescs++;
+        if (knownServerDescriptors.containsKey(
+            serverDescriptorDigest)) {
+          foundServerDescs++;
+          if (knownServerDescriptors.get(
+              serverDescriptorDigest) != null) {
+            allExtraInfos++;
+            String extraInfoDescriptorDigest =
+                knownServerDescriptors.get(serverDescriptorDigest);
+            if (knownExtraInfoDescriptors.contains(
+                extraInfoDescriptorDigest)) {
+              foundExtraInfos++;
             }
           }
         }
-        br.close();
-        sb.append(String.format("%nC, %s, %d/%d (%.1f%%), "
-            + "%d/%d (%.1f%%), %d/%d (%.1f%%)",
-            validAfterTime, foundVotes, allVotes,
-            100.0D * (double) foundVotes / (double) allVotes,
-            foundServerDescs, allServerDescs,
-            100.0D * (double) foundServerDescs / (double) allServerDescs,
-            foundExtraInfos, allExtraInfos,
-            100.0D * (double) foundExtraInfos / (double) allExtraInfos));
       }
-      this.logger.info(sb.toString());
-    } catch (IOException e) {
-      this.logger.log(Level.WARNING, "Could not dump statistics to disk.",
-          e);
-    } catch (ParseException e) {
-      this.logger.log(Level.WARNING, "Could not dump statistics to disk.",
-          e);
+      sb.append(String.format("%nC, %s, %d/%d (%.1f%%), "
+          + "%d/%d (%.1f%%), %d/%d (%.1f%%)",
+          validAfterTime, foundVotes, allVotes,
+          100.0D * (double) foundVotes / (double) allVotes,
+          foundServerDescs, allServerDescs,
+          100.0D * (double) foundServerDescs / (double) allServerDescs,
+          foundExtraInfos, allExtraInfos,
+          100.0D * (double) foundExtraInfos / (double) allExtraInfos));
+      if (foundServerDescs * 1000 < allServerDescs * 999 ||
+          foundExtraInfos * 1000 < allExtraInfos * 999) {
+        missingDescriptors = true;
+      }
+      if (foundVotes < allVotes) {
+        missingVotes = true;
+      }
+    }
+    this.logger.info(sb.toString());
+    if (missingDescriptors) {
+      this.logger.warning("We are missing at least 0.1% of server or "
+          + "extra-info descriptors referenced from a consensus or "
+          + "vote.");
+    }
+    if (missingVotes) {
+      this.logger.warning("We are missing at least one vote that was "
+          + "referenced from a consensus.");
     }
   }
 
@@ -421,31 +527,33 @@ public class ArchiveWriter extends Thread {
     SimpleDateFormat dateTimeFormat = new SimpleDateFormat(
         "yyyy-MM-dd HH:mm:ss");
     dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    long tooOldMillis = System.currentTimeMillis() - 330L * 60L * 1000L;
-    if (maxConsensusValidAfter > 0L &&
-        maxConsensusValidAfter < tooOldMillis) {
+    long tooOldMillis = this.now - 330L * 60L * 1000L;
+    if (!this.storedConsensuses.isEmpty() &&
+        this.storedConsensuses.lastKey() < tooOldMillis) {
       this.logger.warning("The last known relay network status "
           + "consensus was valid after "
-          + dateTimeFormat.format(maxConsensusValidAfter)
+          + dateTimeFormat.format(this.storedConsensuses.lastKey())
           + ", which is more than 5:30 hours in the past.");
     }
-    if (maxVoteValidAfter > 0L && maxVoteValidAfter < tooOldMillis) {
+    if (!this.storedVotes.isEmpty() &&
+        this.storedVotes.lastKey() < tooOldMillis) {
       this.logger.warning("The last known relay network status vote "
-          + "was valid after " + dateTimeFormat.format(maxVoteValidAfter)
-          + ", which is more than 5:30 hours in the past.");
+          + "was valid after " + dateTimeFormat.format(
+          this.storedVotes.lastKey()) + ", which is more than 5:30 hours "
+          + "in the past.");
     }
-    if (maxServerDescriptorPublished > 0L &&
-        maxServerDescriptorPublished < tooOldMillis) {
+    if (!this.storedServerDescriptors.isEmpty() &&
+        this.storedServerDescriptors.lastKey() < tooOldMillis) {
       this.logger.warning("The last known relay server descriptor was "
           + "published at "
-          + dateTimeFormat.format(maxServerDescriptorPublished)
+          + dateTimeFormat.format(this.storedServerDescriptors.lastKey())
           + ", which is more than 5:30 hours in the past.");
     }
-    if (maxExtraInfoDescriptorPublished > 0L &&
-        maxExtraInfoDescriptorPublished < tooOldMillis) {
+    if (!this.storedExtraInfoDescriptors.isEmpty() &&
+        this.storedExtraInfoDescriptors.lastKey() < tooOldMillis) {
       this.logger.warning("The last known relay extra-info descriptor "
-          + "was published at "
-          + dateTimeFormat.format(maxExtraInfoDescriptorPublished)
+          + "was published at " + dateTimeFormat.format(
+          this.storedExtraInfoDescriptors.lastKey())
           + ", which is more than 5:30 hours in the past.");
     }
   }

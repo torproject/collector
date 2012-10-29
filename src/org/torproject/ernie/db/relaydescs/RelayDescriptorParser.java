@@ -82,16 +82,13 @@ public class RelayDescriptorParser {
           new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
       parseFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       if (line.equals("network-status-version 3")) {
-        // TODO when parsing the current consensus, check the fresh-until
-        // time to see when we switch from hourly to half-hourly
-        // consensuses
         boolean isConsensus = true;
         String validAfterTime = null, fingerprint = null,
             dirSource = null;
         long validAfter = -1L, dirKeyPublished = -1L;
         SortedSet<String> dirSources = new TreeSet<String>();
         SortedSet<String> serverDescriptors = new TreeSet<String>();
-        SortedSet<String> hashedRelayIdentities = new TreeSet<String>();
+        SortedSet<String> serverDescriptorDigests = new TreeSet<String>();
         StringBuilder certificateStringBuilder = null;
         String certificateString = null;
         while ((line = br.readLine()) != null) {
@@ -137,9 +134,7 @@ public class RelayDescriptorParser {
                 parts[3] + "=")).toLowerCase();
             serverDescriptors.add(publishedTime + "," + relayIdentity
                 + "," + serverDesc);
-            hashedRelayIdentities.add(DigestUtils.shaHex(
-                Base64.decodeBase64(parts[2] + "=")).
-                toUpperCase());
+            serverDescriptorDigests.add(serverDesc);
           }
         }
         if (isConsensus) {
@@ -148,7 +143,8 @@ public class RelayDescriptorParser {
                 serverDescriptors);
           }
           if (this.aw != null) {
-            this.aw.storeConsensus(data, validAfter);
+            this.aw.storeConsensus(data, validAfter, dirSources,
+                serverDescriptorDigests);
           }
         } else {
           if (this.aw != null || this.rdd != null) {
@@ -163,7 +159,8 @@ public class RelayDescriptorParser {
               System.arraycopy(data, start, forDigest, 0, sig - start);
               String digest = DigestUtils.shaHex(forDigest).toUpperCase();
               if (this.aw != null) {
-                this.aw.storeVote(data, validAfter, dirSource, digest);
+                this.aw.storeVote(data, validAfter, dirSource, digest,
+                    serverDescriptorDigests);
               }
               if (this.rdd != null) {
                 this.rdd.haveParsedVote(validAfterTime, fingerprint,
@@ -210,7 +207,8 @@ public class RelayDescriptorParser {
           digest = DigestUtils.shaHex(forDigest);
         }
         if (this.aw != null && digest != null) {
-          this.aw.storeServerDescriptor(data, digest, published);
+          this.aw.storeServerDescriptor(data, digest, published,
+              extraInfoDigest);
         }
         if (this.rdd != null && digest != null) {
           this.rdd.haveParsedServerDescriptor(publishedTime,
