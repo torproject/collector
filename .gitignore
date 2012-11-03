@@ -1,21 +1,15 @@
 .classpath
 .project
-assignments
-bridge-directories
-cacheddesc/
 classes/
 config
 data/
-directory-archive/
+in/
+out/
 doc/manual.aux
 doc/manual.log
-exitlist/
 lib/
 log.*
 rsync/
-sanitized-assignments/
-sanitized-bridges/
 stats/
 tarballs/
-torperf/
 
