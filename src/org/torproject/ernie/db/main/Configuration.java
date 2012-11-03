@@ -189,6 +189,7 @@ public class Configuration {
           this.processTorperfFiles = Integer.parseInt(line.split(" ")[1])
               != 0;
         } else if (line.startsWith("TorperfOutputDirectory")) {
+          this.torperfOutputDirectory = line.split(" ")[1];
         } else if (line.startsWith("TorperfSource")) {
           if (this.torperfSources == null) {
             this.torperfSources = new TreeMap<String, String>();
