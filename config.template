@@ -5,13 +5,13 @@
 #
 ## Relative path to Tor data directory to read cached-* files from (can be
 ## specified multiple times)
-#CachedRelayDescriptorsDirectory cacheddesc/
+#CachedRelayDescriptorsDirectory in/relay-descriptors/cacheddesc/
 #
 ## Import directory archives from disk, if available
 #ImportDirectoryArchives 0
 #
 ## Relative path to directory to import directory archives from
-#DirectoryArchivesDirectory archives/
+#DirectoryArchivesDirectory in/relay-descriptors/archives/
 #
 ## Keep a history of imported directory archive files to know which files
 ## have been imported before. This history can be useful when importing
@@ -68,7 +68,7 @@
 #ImportBridgeSnapshots 0
 #
 ## Relative path to directory to import bridge descriptor snapshots from
-#BridgeSnapshotsDirectory bridge-directories/
+#BridgeSnapshotsDirectory in/bridge-descriptors/
 #
 ## Write sanitized bridges to disk
 #WriteSanitizedBridges 0
@@ -93,7 +93,7 @@
 #ProcessBridgePoolAssignments 0
 #
 ## Relative path to directory to read bridge pool assignment files from
-#AssignmentsDirectory assignments/
+#AssignmentsDirectory in/bridge-assignments/
 #
 ## Relative path to directory to write sanitized bridge pool assignment
 ## files to

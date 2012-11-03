@@ -26,16 +26,18 @@ public class Configuration {
   private String directoryArchivesOutputDirectory = "directory-archive/";
   private boolean importCachedRelayDescriptors = false;
   private List<String> cachedRelayDescriptorsDirectory =
-      new ArrayList<String>(Arrays.asList("cacheddesc/".split(",")));
+      new ArrayList<String>(Arrays.asList(
+      "in/relay-descriptors/cacheddesc/".split(",")));
   private boolean importDirectoryArchives = false;
-  private String directoryArchivesDirectory = "archives/";
+  private String directoryArchivesDirectory =
+      "in/relay-descriptors/archives/";
   private boolean keepDirectoryArchiveImportHistory = false;
   private boolean writeSanitizedBridges = false;
   private boolean replaceIPAddressesWithHashes = false;
   private long limitBridgeDescriptorMappings = -1L;
   private String sanitizedBridgesWriteDirectory = "sanitized-bridges/";
   private boolean importBridgeSnapshots = false;
-  private String bridgeSnapshotsDirectory = "bridge-directories/";
+  private String bridgeSnapshotsDirectory = "in/bridge-descriptors/";
   private boolean downloadRelayDescriptors = false;
   private List<String> downloadFromDirectoryAuthorities = Arrays.asList((
       "86.59.21.38,76.73.17.194:9030,213.115.239.118:443,"
@@ -60,7 +62,7 @@ public class Configuration {
   private boolean compressRelayDescriptorDownloads;
   private boolean downloadExitList = false;
   private boolean processBridgePoolAssignments = false;
-  private String assignmentsDirectory = "assignments/";
+  private String assignmentsDirectory = "in/bridge-assignments/";
   private String sanitizedAssignmentsDirectory = "sanitized-assignments/";
   private boolean processTorperfFiles = false;
   private String torperfOutputDirectory = "torperf/";

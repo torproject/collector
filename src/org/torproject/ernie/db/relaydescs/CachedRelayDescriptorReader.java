@@ -14,10 +14,14 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.Stack;
 import java.util.TimeZone;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -73,7 +77,18 @@ public class CachedRelayDescriptorReader {
       }
       logger.fine("Reading " + cachedDescDir.getAbsolutePath()
           + " directory.");
-      for (File f : cachedDescDir.listFiles()) {
+      SortedSet<File> cachedDescFiles = new TreeSet<File>();
+      Stack<File> files = new Stack<File>();
+      files.add(cachedDescDir);
+      while (!files.isEmpty()) {
+        File file = files.pop();
+        if (file.isDirectory()) {
+          files.addAll(Arrays.asList(file.listFiles()));
+        } else {
+          cachedDescFiles.add(file);
+        }
+      }
+      for (File f : cachedDescFiles) {
         try {
           // descriptors may contain non-ASCII chars; read as bytes to
           // determine digests
