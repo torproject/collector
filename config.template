@@ -59,7 +59,7 @@
 #WriteDirectoryArchives 0
 #
 ## Relative path to directory to write directory archives to
-#DirectoryArchivesOutputDirectory directory-archive/
+#DirectoryArchivesOutputDirectory out/relay-descriptors/
 #
 #
 ######## Bridge descriptors ########
@@ -83,7 +83,7 @@
 #LimitBridgeDescriptorMappings -1
 #
 ## Relative path to directory to write sanitized bridges to
-#SanitizedBridgesWriteDirectory sanitized-bridges/
+#SanitizedBridgesWriteDirectory out/bridge-descriptors/
 #
 #
 ######## Bridge pool assignments ########
@@ -93,11 +93,11 @@
 #ProcessBridgePoolAssignments 0
 #
 ## Relative path to directory to read bridge pool assignment files from
-#AssignmentsDirectory in/bridge-assignments/
+#AssignmentsDirectory in/bridge-pool-assignments/
 #
 ## Relative path to directory to write sanitized bridge pool assignment
 ## files to
-#SanitizedAssignmentsDirectory sanitized-assignments/
+#SanitizedAssignmentsDirectory out/bridge-pool-assignments/
 #
 #
 ######## Exit lists ########
@@ -112,7 +112,7 @@
 #ProcessTorperfFiles 0
 #
 ## Relative path to the directory to store Torperf files in
-#TorperfOutputDirectory torperf/
+#TorperfOutputDirectory out/torperf/
 #
 ## Torperf source names and base URLs (option can be contained multiple
 ## times)

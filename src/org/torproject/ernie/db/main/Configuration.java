@@ -23,7 +23,8 @@ import java.util.logging.Logger;
  */
 public class Configuration {
   private boolean writeDirectoryArchives = false;
-  private String directoryArchivesOutputDirectory = "directory-archive/";
+  private String directoryArchivesOutputDirectory =
+      "out/relay-descriptors/";
   private boolean importCachedRelayDescriptors = false;
   private List<String> cachedRelayDescriptorsDirectory =
       new ArrayList<String>(Arrays.asList(
@@ -35,7 +36,8 @@ public class Configuration {
   private boolean writeSanitizedBridges = false;
   private boolean replaceIPAddressesWithHashes = false;
   private long limitBridgeDescriptorMappings = -1L;
-  private String sanitizedBridgesWriteDirectory = "sanitized-bridges/";
+  private String sanitizedBridgesWriteDirectory =
+      "out/bridge-descriptors/";
   private boolean importBridgeSnapshots = false;
   private String bridgeSnapshotsDirectory = "in/bridge-descriptors/";
   private boolean downloadRelayDescriptors = false;
@@ -62,10 +64,11 @@ public class Configuration {
   private boolean compressRelayDescriptorDownloads;
   private boolean downloadExitList = false;
   private boolean processBridgePoolAssignments = false;
-  private String assignmentsDirectory = "in/bridge-assignments/";
-  private String sanitizedAssignmentsDirectory = "sanitized-assignments/";
+  private String assignmentsDirectory = "in/bridge-pool-assignments/";
+  private String sanitizedAssignmentsDirectory =
+      "out/bridge-pool-assignments/";
   private boolean processTorperfFiles = false;
-  private String torperfOutputDirectory = "torperf/";
+  private String torperfOutputDirectory = "out/torperf/";
   private SortedMap<String, String> torperfSources = null;
   private List<String> torperfFiles = null;
   public Configuration() {

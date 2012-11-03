@@ -89,7 +89,7 @@ public class ExitListDownloader extends Thread {
     SimpleDateFormat tarballFormat =
         new SimpleDateFormat("yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
     tarballFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    File tarballFile = new File("exitlist/" + tarballFormat.format(
+    File tarballFile = new File("out/exit-lists/" + tarballFormat.format(
         downloadedDate));
 
     long maxScanMillis = 0L;
