@@ -470,8 +470,8 @@ public class ArchiveWriter extends Thread {
               voteFoundExtraInfos, voteAllExtraInfos,
               100.0D * (double) voteFoundExtraInfos /
                 (double) voteAllExtraInfos));
-          if (voteFoundServerDescs * 1000 < voteAllServerDescs * 999 ||
-              voteFoundExtraInfos * 1000 < voteAllExtraInfos * 999) {
+          if (voteFoundServerDescs * 1000 < voteAllServerDescs * 995 ||
+              voteFoundExtraInfos * 1000 < voteAllExtraInfos * 995) {
             missingDescriptors = true;
           }
         }
@@ -503,8 +503,8 @@ public class ArchiveWriter extends Thread {
           100.0D * (double) foundServerDescs / (double) allServerDescs,
           foundExtraInfos, allExtraInfos,
           100.0D * (double) foundExtraInfos / (double) allExtraInfos));
-      if (foundServerDescs * 1000 < allServerDescs * 999 ||
-          foundExtraInfos * 1000 < allExtraInfos * 999) {
+      if (foundServerDescs * 1000 < allServerDescs * 995 ||
+          foundExtraInfos * 1000 < allExtraInfos * 995) {
         missingDescriptors = true;
       }
       if (foundVotes < allVotes) {
@@ -513,7 +513,7 @@ public class ArchiveWriter extends Thread {
     }
     this.logger.info(sb.toString());
     if (missingDescriptors) {
-      this.logger.warning("We are missing at least 0.1% of server or "
+      this.logger.warning("We are missing at least 0.5% of server or "
           + "extra-info descriptors referenced from a consensus or "
           + "vote.");
     }
