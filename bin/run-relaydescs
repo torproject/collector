@@ -1,5 +1,3 @@
 #!/bin/sh
-
-# TODO is there a better way to suppress Ant's output?
-ant relaydescs -q | grep -Ev "^$|^BUILD SUCCESSFUL|^Total time: "
+ant relaydescs | grep "\[java\]"
 
