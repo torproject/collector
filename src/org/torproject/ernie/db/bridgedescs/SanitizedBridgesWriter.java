@@ -892,6 +892,7 @@ public class SanitizedBridgesWriter extends Thread {
             || line.startsWith("geoip-start-time ")
             || line.startsWith("geoip-client-origins ")
             || line.startsWith("geoip-db-digest ")
+            || line.startsWith("geoip6-db-digest ")
             || line.startsWith("conn-bi-direct ")
             || line.startsWith("bridge-")
             || line.startsWith("dirreq-")
