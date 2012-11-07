@@ -50,9 +50,7 @@ public class TorperfDownloader extends Thread {
     }
 
     // Process Torperf files
-    if (config.getProcessTorperfFiles()) {
-      new TorperfDownloader(config).run();
-    }
+    new TorperfDownloader(config).run();
 
     // Remove lock file
     lf.releaseLock();

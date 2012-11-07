@@ -55,9 +55,7 @@ public class ArchiveWriter extends Thread {
     }
 
     // Import/download relay descriptors from the various sources
-    if (config.getWriteDirectoryArchives()) {
-      new ArchiveWriter(config).run();
-    }
+    new ArchiveWriter(config).run();
 
     // Remove lock file
     lf.releaseLock();

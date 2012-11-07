@@ -68,10 +68,7 @@ public class SanitizedBridgesWriter extends Thread {
     }
 
     // Sanitize bridge descriptors
-    if (config.getImportBridgeSnapshots() &&
-        config.getWriteSanitizedBridges()) {
-      new SanitizedBridgesWriter(config).run();
-    }
+    new SanitizedBridgesWriter(config).run();
 
     // Remove lock file
     lf.releaseLock();

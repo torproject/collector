@@ -51,9 +51,7 @@ public class ExitListDownloader extends Thread {
     }
 
     // Download exit list and store it to disk
-    if (config.getDownloadExitList()) {
-      new ExitListDownloader(config).run();
-    }
+    new ExitListDownloader(config).run();
 
     // Remove lock file
     lf.releaseLock();

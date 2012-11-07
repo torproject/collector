@@ -22,7 +22,6 @@ import java.util.logging.Logger;
  * configuration.
  */
 public class Configuration {
-  private boolean writeDirectoryArchives = false;
   private String directoryArchivesOutputDirectory =
       "out/relay-descriptors/";
   private boolean importCachedRelayDescriptors = false;
@@ -33,12 +32,10 @@ public class Configuration {
   private String directoryArchivesDirectory =
       "in/relay-descriptors/archives/";
   private boolean keepDirectoryArchiveImportHistory = false;
-  private boolean writeSanitizedBridges = false;
   private boolean replaceIPAddressesWithHashes = false;
   private long limitBridgeDescriptorMappings = -1L;
   private String sanitizedBridgesWriteDirectory =
       "out/bridge-descriptors/";
-  private boolean importBridgeSnapshots = false;
   private String bridgeSnapshotsDirectory = "in/bridge-descriptors/";
   private boolean downloadRelayDescriptors = false;
   private List<String> downloadFromDirectoryAuthorities = Arrays.asList((
@@ -62,12 +59,9 @@ public class Configuration {
   private boolean downloadAllServerDescriptors = false;
   private boolean downloadAllExtraInfoDescriptors = false;
   private boolean compressRelayDescriptorDownloads;
-  private boolean downloadExitList = false;
-  private boolean processBridgePoolAssignments = false;
   private String assignmentsDirectory = "in/bridge-pool-assignments/";
   private String sanitizedAssignmentsDirectory =
       "out/bridge-pool-assignments/";
-  private boolean processTorperfFiles = false;
   private String torperfOutputDirectory = "out/torperf/";
   private SortedMap<String, String> torperfSources = null;
   private List<String> torperfFiles = null;
@@ -94,9 +88,6 @@ public class Configuration {
       while ((line = br.readLine()) != null) {
         if (line.startsWith("#") || line.length() < 1) {
           continue;
-        } else if (line.startsWith("WriteDirectoryArchives")) {
-          this.writeDirectoryArchives = Integer.parseInt(
-              line.split(" ")[1]) != 0;
         } else if (line.startsWith("DirectoryArchivesOutputDirectory")) {
           this.directoryArchivesOutputDirectory = line.split(" ")[1];
         } else if (line.startsWith("ImportCachedRelayDescriptors")) {
@@ -116,9 +107,6 @@ public class Configuration {
         } else if (line.startsWith("KeepDirectoryArchiveImportHistory")) {
           this.keepDirectoryArchiveImportHistory = Integer.parseInt(
               line.split(" ")[1]) != 0;
-        } else if (line.startsWith("WriteSanitizedBridges")) {
-          this.writeSanitizedBridges = Integer.parseInt(
-              line.split(" ")[1]) != 0;
         } else if (line.startsWith("ReplaceIPAddressesWithHashes")) {
           this.replaceIPAddressesWithHashes = Integer.parseInt(
               line.split(" ")[1]) != 0;
@@ -127,9 +115,6 @@ public class Configuration {
               line.split(" ")[1]);
         } else if (line.startsWith("SanitizedBridgesWriteDirectory")) {
           this.sanitizedBridgesWriteDirectory = line.split(" ")[1];
-        } else if (line.startsWith("ImportBridgeSnapshots")) {
-          this.importBridgeSnapshots = Integer.parseInt(
-              line.split(" ")[1]) != 0;
         } else if (line.startsWith("BridgeSnapshotsDirectory")) {
           this.bridgeSnapshotsDirectory = line.split(" ")[1];
         } else if (line.startsWith("DownloadRelayDescriptors")) {
@@ -175,19 +160,10 @@ public class Configuration {
         } else if (line.startsWith("CompressRelayDescriptorDownloads")) {
           this.compressRelayDescriptorDownloads = Integer.parseInt(
               line.split(" ")[1]) != 0;
-        } else if (line.startsWith("DownloadExitList")) {
-          this.downloadExitList = Integer.parseInt(
-              line.split(" ")[1]) != 0;
-        } else if (line.startsWith("ProcessBridgePoolAssignments")) {
-          this.processBridgePoolAssignments = Integer.parseInt(
-              line.split(" ")[1]) != 0;
         } else if (line.startsWith("AssignmentsDirectory")) {
           this.assignmentsDirectory = line.split(" ")[1];
         } else if (line.startsWith("SanitizedAssignmentsDirectory")) {
           this.sanitizedAssignmentsDirectory = line.split(" ")[1];
-        } else if (line.startsWith("ProcessTorperfFiles")) {
-          this.processTorperfFiles = Integer.parseInt(line.split(" ")[1])
-              != 0;
         } else if (line.startsWith("TorperfOutputDirectory")) {
           this.torperfOutputDirectory = line.split(" ")[1];
         } else if (line.startsWith("TorperfSource")) {
@@ -234,47 +210,6 @@ public class Configuration {
           + "file! Exiting!", e);
       System.exit(1);
     }
-
-    /** Make some checks if configuration is valid. */
-    if (!this.importCachedRelayDescriptors &&
-        !this.importDirectoryArchives && !this.downloadRelayDescriptors &&
-        !this.importBridgeSnapshots &&
-        !this.downloadExitList && !this.processBridgePoolAssignments &&
-        !this.writeDirectoryArchives && !this.writeSanitizedBridges &&
-        !this.processTorperfFiles) {
-      logger.warning("We have not been configured to read data from any "
-          + "data source or write data to any data sink. You need to "
-          + "edit your config file (" + configFile.getAbsolutePath()
-          + ") and provide at least one data source and one data sink. "
-          + "Refer to the manual for more information.");
-    }
-    if ((this.importCachedRelayDescriptors ||
-        this.importDirectoryArchives || this.downloadRelayDescriptors) &&
-        !this.writeDirectoryArchives) {
-      logger.warning("We are configured to import/download relay "
-          + "descriptors, but we don't have a single data sink to write "
-          + "relay descriptors to.");
-    }
-    if (!(this.importCachedRelayDescriptors ||
-        this.importDirectoryArchives || this.downloadRelayDescriptors) &&
-        this.writeDirectoryArchives) {
-      logger.warning("We are configured to write relay descriptor to at "
-          + "least one data sink, but we don't have a single data source "
-          + "containing relay descriptors.");
-    }
-    if (this.importBridgeSnapshots && !this.writeSanitizedBridges) {
-      logger.warning("We are configured to import/download bridge "
-          + "descriptors, but we don't have a single data sink to write "
-          + "bridge descriptors to.");
-    }
-    if (!this.importBridgeSnapshots && this.writeSanitizedBridges) {
-      logger.warning("We are configured to write bridge descriptor to at "
-          + "least one data sink, but we don't have a single data source "
-          + "containing bridge descriptors.");
-    }
-  }
-  public boolean getWriteDirectoryArchives() {
-    return this.writeDirectoryArchives;
   }
   public String getDirectoryArchivesOutputDirectory() {
     return this.directoryArchivesOutputDirectory;
@@ -294,9 +229,6 @@ public class Configuration {
   public boolean getKeepDirectoryArchiveImportHistory() {
     return this.keepDirectoryArchiveImportHistory;
   }
-  public boolean getWriteSanitizedBridges() {
-    return this.writeSanitizedBridges;
-  }
   public boolean getReplaceIPAddressesWithHashes() {
     return this.replaceIPAddressesWithHashes;
   }
@@ -305,9 +237,6 @@ public class Configuration {
   }
   public String getSanitizedBridgesWriteDirectory() {
     return this.sanitizedBridgesWriteDirectory;
-  }
-  public boolean getImportBridgeSnapshots() {
-    return this.importBridgeSnapshots;
   }
   public String getBridgeSnapshotsDirectory() {
     return this.bridgeSnapshotsDirectory;
@@ -342,20 +271,11 @@ public class Configuration {
   public boolean getCompressRelayDescriptorDownloads() {
     return this.compressRelayDescriptorDownloads;
   }
-  public boolean getDownloadExitList() {
-    return this.downloadExitList;
-  }
-  public boolean getProcessBridgePoolAssignments() {
-    return processBridgePoolAssignments;
-  }
   public String getAssignmentsDirectory() {
-    return assignmentsDirectory;
+    return this.assignmentsDirectory;
   }
   public String getSanitizedAssignmentsDirectory() {
-    return sanitizedAssignmentsDirectory;
-  }
-  public boolean getProcessTorperfFiles() {
-    return this.processTorperfFiles;
+    return this.sanitizedAssignmentsDirectory;
   }
   public String getTorperfOutputDirectory() {
     return this.torperfOutputDirectory;

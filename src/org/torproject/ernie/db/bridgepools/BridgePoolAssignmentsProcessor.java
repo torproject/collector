@@ -52,9 +52,7 @@ public class BridgePoolAssignmentsProcessor extends Thread {
     }
 
     // Process bridge pool assignments
-    if (config.getProcessBridgePoolAssignments()) {
-      new BridgePoolAssignmentsProcessor(config).run();
-    }
+    new BridgePoolAssignmentsProcessor(config).run();
 
     // Remove lock file
     lf.releaseLock();

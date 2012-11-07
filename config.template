@@ -55,23 +55,14 @@
 ## Compress relay descriptors downloads by adding .z to the URLs
 #CompressRelayDescriptorDownloads 0
 #
-## Write directory archives to disk
-#WriteDirectoryArchives 0
-#
 ## Relative path to directory to write directory archives to
 #DirectoryArchivesOutputDirectory out/relay-descriptors/
 #
 #
 ######## Bridge descriptors ########
 #
-## Import bridge snapshots from disk, if available
-#ImportBridgeSnapshots 0
-#
 ## Relative path to directory to import bridge descriptor snapshots from
 #BridgeSnapshotsDirectory in/bridge-descriptors/
-#
-## Write sanitized bridges to disk
-#WriteSanitizedBridges 0
 #
 ## Replace IP addresses in sanitized bridge descriptors with 10.x.y.z
 ## where x.y.z = H(IP address | bridge identity | secret)[:3], so that we
@@ -88,10 +79,6 @@
 #
 ######## Bridge pool assignments ########
 #
-## Process bridge pool assignment files by sanitizing bridge fingerprints
-## and sorting sanitized files into subdirectories
-#ProcessBridgePoolAssignments 0
-#
 ## Relative path to directory to read bridge pool assignment files from
 #AssignmentsDirectory in/bridge-pool-assignments/
 #
@@ -102,14 +89,10 @@
 #
 ######## Exit lists ########
 #
-## Download exit list and store it to disk
-#DownloadExitList 0
+## (No options available)
 #
 #
 ######## Torperf downloader ########
-#
-## Download and merge Torperf .data and .extradata files
-#ProcessTorperfFiles 0
 #
 ## Relative path to the directory to store Torperf files in
 #TorperfOutputDirectory out/torperf/
