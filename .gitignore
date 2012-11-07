@@ -8,7 +8,7 @@ out/
 doc/manual.aux
 doc/manual.log
 lib/
-log.*
+log/
 rsync/
 stats/
 tarballs/

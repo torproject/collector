@@ -1,4 +1,4 @@
-<project default="run" name="ERNIE" basedir=".">
+<project default="compile" name="ERNIE" basedir=".">
   <property name="sources" value="src/"/>
   <property name="classes" value="classes/"/>
   <property name="docs" value="javadoc/"/>
@@ -23,19 +23,47 @@
       <classpath refid="classpath"/>
     </javac>
   </target>
-  <target name="run" depends="compile">
-    <java fork="true"
-          maxmemory="2048m"
-          classname="org.torproject.ernie.db.main.Main">
-      <classpath refid="classpath"/>
-    </java>
-  </target>
   <target name="docs">
     <mkdir dir="${docs}"/>
     <javadoc destdir="${docs}">
       <classpath refid="classpath"/>
       <fileset dir="${sources}/" includes="**/*.java" />
     </javadoc>
+  </target>
+  <target name="bridgedescs" depends="compile">
+    <java fork="true"
+          maxmemory="2048m"
+          classname="org.torproject.ernie.db.bridgedescs.SanitizedBridgesWriter">
+      <classpath refid="classpath"/>
+    </java>
+  </target>
+  <target name="bridgepools" depends="compile">
+    <java fork="true"
+          maxmemory="2048m"
+          classname="org.torproject.ernie.db.bridgepools.BridgePoolAssignmentProcessor">
+      <classpath refid="classpath"/>
+    </java>
+  </target>
+  <target name="exitlists" depends="compile">
+    <java fork="true"
+          maxmemory="2048m"
+          classname="org.torproject.ernie.db.exitlists.ExitListDownloader">
+      <classpath refid="classpath"/>
+    </java>
+  </target>
+  <target name="relaydescs" depends="compile">
+    <java fork="true"
+          maxmemory="2048m"
+          classname="org.torproject.ernie.db.relaydescs.ArchiveWriter">
+      <classpath refid="classpath"/>
+    </java>
+  </target>
+  <target name="torperf" depends="compile">
+    <java fork="true"
+          maxmemory="2048m"
+          classname="org.torproject.ernie.db.torperf.TorperfDownloader">
+      <classpath refid="classpath"/>
+    </java>
   </target>
 </project>
 

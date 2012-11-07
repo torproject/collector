@@ -27,19 +27,44 @@ import org.torproject.descriptor.ExitList;
 import org.torproject.descriptor.ExitListEntry;
 import org.torproject.descriptor.impl.DescriptorParseException;
 import org.torproject.ernie.db.main.Configuration;
+import org.torproject.ernie.db.main.LockFile;
+import org.torproject.ernie.db.main.LoggingConfiguration;
 
 public class ExitListDownloader extends Thread {
+
+  public static void main(String[] args) {
+
+    /* Initialize logging configuration. */
+    new LoggingConfiguration("exit-lists");
+    Logger logger = Logger.getLogger(ExitListDownloader.class.getName());
+    logger.info("Starting exit-lists module of ERNIE.");
+
+    // Initialize configuration
+    Configuration config = new Configuration();
+
+    // Use lock file to avoid overlapping runs
+    LockFile lf = new LockFile("exit-lists");
+    if (!lf.acquireLock()) {
+      logger.severe("Warning: ERNIE is already running or has not exited "
+          + "cleanly! Exiting!");
+      System.exit(1);
+    }
+
+    // Download exit list and store it to disk
+    if (config.getDownloadExitList()) {
+      new ExitListDownloader(config).run();
+    }
+
+    // Remove lock file
+    lf.releaseLock();
+
+    logger.info("Terminating exit-lists module of ERNIE.");
+  }
 
   public ExitListDownloader(Configuration config) {
   }
 
   public void run() {
-
-    if (((System.currentTimeMillis() / 60000L) % 60L) > 30L) {
-      /* Don't start in second half of an hour, when we only want to
-       * process other data. */
-      return;
-    }
 
     Logger logger = Logger.getLogger(ExitListDownloader.class.getName());
 

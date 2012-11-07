@@ -15,8 +15,8 @@ public class LockFile {
   private File lockFile;
   private Logger logger;
 
-  public LockFile() {
-    this.lockFile = new File("lock");
+  public LockFile(String moduleName) {
+    this.lockFile = new File("lock/" + moduleName);
     this.logger = Logger.getLogger(LockFile.class.getName());
   }
 
@@ -24,14 +24,17 @@ public class LockFile {
     this.logger.fine("Trying to acquire lock...");
     try {
       if (this.lockFile.exists()) {
-        BufferedReader br = new BufferedReader(new FileReader("lock"));
+        BufferedReader br = new BufferedReader(new FileReader(
+            this.lockFile));
         long runStarted = Long.parseLong(br.readLine());
         br.close();
         if (System.currentTimeMillis() - runStarted < 55L * 60L * 1000L) {
           return false;
         }
       }
-      BufferedWriter bw = new BufferedWriter(new FileWriter("lock"));
+      this.lockFile.getParentFile().mkdirs();
+      BufferedWriter bw = new BufferedWriter(new FileWriter(
+          this.lockFile));
       bw.append("" + System.currentTimeMillis() + "\n");
       bw.close();
       this.logger.fine("Acquired lock.");

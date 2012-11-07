@@ -27,8 +27,40 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.torproject.ernie.db.main.Configuration;
+import org.torproject.ernie.db.main.LockFile;
+import org.torproject.ernie.db.main.LoggingConfiguration;
 
 public class BridgePoolAssignmentsProcessor extends Thread {
+
+  public static void main(String[] args) {
+
+    /* Initialize logging configuration. */
+    new LoggingConfiguration("bridge-pool-assignments");
+    Logger logger = Logger.getLogger(
+        BridgePoolAssignmentsProcessor.class.getName());
+    logger.info("Starting bridge-pool-assignments module of ERNIE.");
+
+    // Initialize configuration
+    Configuration config = new Configuration();
+
+    // Use lock file to avoid overlapping runs
+    LockFile lf = new LockFile("bridge-pool-assignments");
+    if (!lf.acquireLock()) {
+      logger.severe("Warning: ERNIE is already running or has not exited "
+          + "cleanly! Exiting!");
+      System.exit(1);
+    }
+
+    // Process bridge pool assignments
+    if (config.getProcessBridgePoolAssignments()) {
+      new BridgePoolAssignmentsProcessor(config).run();
+    }
+
+    // Remove lock file
+    lf.releaseLock();
+
+    logger.info("Terminating bridge-pool-assignments module of ERNIE.");
+  }
 
   private Configuration config;
 
@@ -37,12 +69,6 @@ public class BridgePoolAssignmentsProcessor extends Thread {
   }
 
   public void run() {
-
-    if (((System.currentTimeMillis() / 60000L) % 60L) > 30L) {
-      /* Don't start in second half of an hour, when we only want to
-       * process other data. */
-      return;
-    }
 
     File assignmentsDirectory =
         new File(config.getAssignmentsDirectory());

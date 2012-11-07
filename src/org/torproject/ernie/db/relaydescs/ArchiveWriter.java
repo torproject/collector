@@ -31,8 +31,39 @@ import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
 import org.torproject.descriptor.impl.DescriptorParseException;
 import org.torproject.ernie.db.main.Configuration;
+import org.torproject.ernie.db.main.LockFile;
+import org.torproject.ernie.db.main.LoggingConfiguration;
 
 public class ArchiveWriter extends Thread {
+
+  public static void main(String[] args) {
+
+    /* Initialize logging configuration. */
+    new LoggingConfiguration("relay-descriptors");
+    Logger logger = Logger.getLogger(ArchiveWriter.class.getName());
+    logger.info("Starting relay-descriptors module of ERNIE.");
+
+    // Initialize configuration
+    Configuration config = new Configuration();
+
+    // Use lock file to avoid overlapping runs
+    LockFile lf = new LockFile("relay-descriptors");
+    if (!lf.acquireLock()) {
+      logger.severe("Warning: ERNIE is already running or has not exited "
+          + "cleanly! Exiting!");
+      System.exit(1);
+    }
+
+    // Import/download relay descriptors from the various sources
+    if (config.getWriteDirectoryArchives()) {
+      new ArchiveWriter(config).run();
+    }
+
+    // Remove lock file
+    lf.releaseLock();
+
+    logger.info("Terminating relay-descriptors module of ERNIE.");
+  }
 
   private Configuration config;
 

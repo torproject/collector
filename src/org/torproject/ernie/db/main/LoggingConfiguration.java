@@ -2,6 +2,7 @@
  * See LICENSE for licensing information */
 package org.torproject.ernie.db.main;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -32,7 +33,7 @@ import java.util.logging.Logger;
  * - FINEST: Most detailed debug messages. Not used.
  */
 public class LoggingConfiguration {
-  public LoggingConfiguration() {
+  public LoggingConfiguration(String moduleName) {
 
     /* Remove default console handler. */
     for (Handler h : Logger.getLogger("").getHandlers()) {
@@ -77,7 +78,9 @@ public class LoggingConfiguration {
       }
     };
     try {
-      FileHandler fh = new FileHandler("log", 5000000, 5, true);
+      new File("log").mkdirs();
+      FileHandler fh = new FileHandler("log/" + moduleName, 5000000, 5,
+          true);
       fh.setFormatter(ff);
       fh.setLevel(Level.FINE);
       Logger.getLogger("").addHandler(fh);

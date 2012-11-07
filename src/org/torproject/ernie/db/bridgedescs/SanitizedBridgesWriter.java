@@ -30,6 +30,8 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.torproject.ernie.db.main.Configuration;
+import org.torproject.ernie.db.main.LockFile;
+import org.torproject.ernie.db.main.LoggingConfiguration;
 
 /**
  * Sanitizes bridge descriptors, i.e., removes all possibly sensitive
@@ -45,6 +47,37 @@ import org.torproject.ernie.db.main.Configuration;
  * descriptors (published by the bridge, mainly for statistical analysis).
  */
 public class SanitizedBridgesWriter extends Thread {
+
+  public static void main(String[] args) {
+
+    /* Initialize logging configuration. */
+    new LoggingConfiguration("bridge-descriptors");
+    Logger logger = Logger.getLogger(
+        SanitizedBridgesWriter.class.getName());
+    logger.info("Starting bridge-descriptors module of ERNIE.");
+
+    // Initialize configuration
+    Configuration config = new Configuration();
+
+    // Use lock file to avoid overlapping runs
+    LockFile lf = new LockFile("bridge-descriptors");
+    if (!lf.acquireLock()) {
+      logger.severe("Warning: ERNIE is already running or has not exited "
+          + "cleanly! Exiting!");
+      System.exit(1);
+    }
+
+    // Sanitize bridge descriptors
+    if (config.getImportBridgeSnapshots() &&
+        config.getWriteSanitizedBridges()) {
+      new SanitizedBridgesWriter(config).run();
+    }
+
+    // Remove lock file
+    lf.releaseLock();
+
+    logger.info("Terminating bridge-descriptors module of ERNIE.");
+  }
 
   private Configuration config;
 
@@ -82,12 +115,6 @@ public class SanitizedBridgesWriter extends Thread {
   private SecureRandom secureRandom;
 
   public void run() {
-
-    if (((System.currentTimeMillis() / 60000L) % 60L) > 30L) {
-      /* Don't start in second half of an hour, when we only want to
-       * process other data. */
-      return;
-    }
 
     File bridgeDirectoriesDirectory =
         new File(config.getBridgeSnapshotsDirectory());

@@ -23,11 +23,42 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.torproject.ernie.db.main.Configuration;
+import org.torproject.ernie.db.main.LockFile;
+import org.torproject.ernie.db.main.LoggingConfiguration;
 
 /* Download possibly truncated Torperf .data and .extradata files from
  * configured sources, append them to the files we already have, and merge
  * the two files into the .tpf format. */
 public class TorperfDownloader extends Thread {
+
+  public static void main(String[] args) {
+
+    /* Initialize logging configuration. */
+    new LoggingConfiguration("torperf");
+    Logger logger = Logger.getLogger(TorperfDownloader.class.getName());
+    logger.info("Starting torperf module of ERNIE.");
+
+    // Initialize configuration
+    Configuration config = new Configuration();
+
+    // Use lock file to avoid overlapping runs
+    LockFile lf = new LockFile("torperf");
+    if (!lf.acquireLock()) {
+      logger.severe("Warning: ERNIE is already running or has not exited "
+          + "cleanly! Exiting!");
+      System.exit(1);
+    }
+
+    // Process Torperf files
+    if (config.getProcessTorperfFiles()) {
+      new TorperfDownloader(config).run();
+    }
+
+    // Remove lock file
+    lf.releaseLock();
+
+    logger.info("Terminating torperf module of ERNIE.");
+  }
 
   private Configuration config;
 
@@ -42,12 +73,6 @@ public class TorperfDownloader extends Thread {
   private SimpleDateFormat dateFormat;
 
   public void run() {
-
-    if (((System.currentTimeMillis() / 60000L) % 60L) > 30L) {
-      /* Don't start in second half of an hour, when we only want to
-       * process other data. */
-      return;
-    }
 
     File torperfOutputDirectory =
         new File(config.getTorperfOutputDirectory());
