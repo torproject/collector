@@ -40,7 +40,7 @@
   <target name="bridgepools" depends="compile">
     <java fork="true"
           maxmemory="2048m"
-          classname="org.torproject.ernie.db.bridgepools.BridgePoolAssignmentProcessor">
+          classname="org.torproject.ernie.db.bridgepools.BridgePoolAssignmentsProcessor">
       <classpath refid="classpath"/>
     </java>
   </target>
