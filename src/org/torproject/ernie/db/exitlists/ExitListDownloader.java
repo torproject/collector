@@ -163,7 +163,7 @@ public class ExitListDownloader extends Thread {
     StringBuilder dumpStats = new StringBuilder("Finished downloading "
         + "exit list.\nLast three exit lists are:");
     Stack<File> filesInInputDir = new Stack<File>();
-    filesInInputDir.add(new File("exitlist"));
+    filesInInputDir.add(new File("out/exit-lists"));
     SortedSet<File> lastThreeExitLists = new TreeSet<File>();
     while (!filesInInputDir.isEmpty()) {
       File pop = filesInInputDir.pop();
