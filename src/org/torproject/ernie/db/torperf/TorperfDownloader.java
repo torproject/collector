@@ -217,10 +217,7 @@ public class TorperfDownloader extends Thread {
      * first to append to it. */
     String lastTimestampLine = null;
     int linesAfterLastTimestampLine = 0;
-    if (outputFile.exists() && outputFile.lastModified() >
-        System.currentTimeMillis() - 330L * 60L * 1000L) {
-      return false;
-    } else if (outputFile.exists()) {
+    if (outputFile.exists()) {
       try {
         BufferedReader br = new BufferedReader(new FileReader(
             outputFile));
