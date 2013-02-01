@@ -733,6 +733,7 @@ public class SanitizedBridgesWriter extends Thread {
             || line.startsWith("bandwidth ")
             || line.startsWith("opt hibernating ")
             || line.startsWith("hibernating ")
+            || line.startsWith("ntor-onion-key ")
             || line.equals("opt hidden-service-dir")
             || line.equals("hidden-service-dir")
             || line.equals("opt caches-extra-info")
@@ -964,7 +965,7 @@ public class SanitizedBridgesWriter extends Thread {
         outputFile.getParentFile().mkdirs();
         BufferedWriter bw = new BufferedWriter(new FileWriter(
             outputFile));
-        bw.write("@type bridge-extra-info 1.1\n");
+        bw.write("@type bridge-extra-info 1.2\n");
         bw.write(scrubbedDesc);
         bw.write("router-digest " + descriptorDigest.toUpperCase() + "\n");
         bw.close();
