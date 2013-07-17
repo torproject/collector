@@ -14,7 +14,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TimeZone;
@@ -101,6 +103,7 @@ public class BridgePoolAssignmentsProcessor extends Thread {
     SimpleDateFormat filenameFormat =
         new SimpleDateFormat("yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
     filenameFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    String duplicateFingerprint = null;
     long maxBridgePoolAssignmentTime = 0L;
     for (File assignmentFile : assignmentFiles) {
       logger.info("Processing bridge pool assignment file '"
@@ -117,6 +120,7 @@ public class BridgePoolAssignmentsProcessor extends Thread {
         String line, bridgePoolAssignmentLine = null;
         SortedSet<String> sanitizedAssignments = new TreeSet<String>();
         boolean wroteLastLine = false, skipBefore20120504125947 = true;
+        Set<String> hashedFingerprints = null;
         while ((line = br.readLine()) != null || !wroteLastLine) {
           if (line != null && line.startsWith("bridge-pool-assignment ")) {
             String[] parts = line.split(" ");
@@ -190,6 +194,7 @@ public class BridgePoolAssignmentsProcessor extends Thread {
               wroteLastLine = true;
             } else {
               bridgePoolAssignmentLine = line;
+              hashedFingerprints = new HashSet<String>();
             }
           } else {
             String[] parts = line.split(" ");
@@ -207,6 +212,10 @@ public class BridgePoolAssignmentsProcessor extends Thread {
                   + line + "'. Aborting.");
               break;
             }
+            if (hashedFingerprints.contains(hashedFingerprint)) {
+              duplicateFingerprint = bridgePoolAssignmentLine;
+            }
+            hashedFingerprints.add(hashedFingerprint);
             String assignmentDetails = line.substring(40);
             sanitizedAssignments.add(hashedFingerprint
                 + assignmentDetails);
@@ -218,6 +227,12 @@ public class BridgePoolAssignmentsProcessor extends Thread {
             + "file '" + assignmentFile.getAbsolutePath()
             + "'. Skipping.", e);
       }
+    }
+
+    if (duplicateFingerprint != null) {
+      logger.warning("At least one bridge pool assignment list contained "
+          + "duplicate fingerprints.  Last found in assignment list "
+          + "starting with '" + duplicateFingerprint + "'.");
     }
 
     if (maxBridgePoolAssignmentTime > 0L &&
