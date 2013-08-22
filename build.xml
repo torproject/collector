@@ -5,10 +5,10 @@
   <property name="name" value="ERNIE"/>
   <path id="classpath">
     <pathelement path="${classes}"/>
-    <pathelement location="lib/commons-codec-1.4.jar"/>
-    <pathelement location="lib/commons-compress-1.3.jar"/>
-    <pathelement location="lib/junit-4.8.2.jar"/>
-    <pathelement location="lib/descriptor.jar"/>
+    <fileset dir="/usr/share/java">
+      <include name="commons-codec.jar"/>
+      <include name="commons-compress.jar"/>
+    </fileset>
   </path>
   <target name="init">
     <mkdir dir="${classes}"/>
