@@ -7,7 +7,6 @@ in/
 out/
 doc/manual.aux
 doc/manual.log
-lib/
 log/
 rsync/
 stats/
