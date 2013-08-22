@@ -9,12 +9,18 @@
       <include name="commons-codec.jar"/>
       <include name="commons-compress.jar"/>
     </fileset>
+    <fileset dir="deps/metrics-lib">
+      <include name="descriptor.jar"/>
+    </fileset>
   </path>
   <target name="init">
     <mkdir dir="${classes}"/>
     <copy file="config.template" tofile="config"/>
   </target>
-  <target name="compile" depends="init"> 
+  <target name="metrics-lib">
+    <ant dir="deps/metrics-lib"/>
+  </target>
+  <target name="compile" depends="metrics-lib,init">
     <javac srcdir="${sources}"
            destdir="${classes}"
            excludes="org/torproject/ernie/web/"
