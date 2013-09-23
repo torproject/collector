@@ -776,7 +776,8 @@ public class SanitizedBridgesWriter extends Thread {
          * that we need to remove or replace for the sanitized descriptor
          * version. */
         } else {
-          this.logger.fine("Unrecognized line '" + line + "'. Skipping.");
+          this.logger.warning("Unrecognized line '" + line
+              + "'. Skipping.");
           return;
         }
       }
@@ -913,7 +914,8 @@ public class SanitizedBridgesWriter extends Thread {
          * that we need to remove or replace for the sanitized descriptor
          * version. */
         } else {
-          this.logger.fine("Unrecognized line '" + line + "'. Skipping.");
+          this.logger.warning("Unrecognized line '" + line
+              + "'. Skipping.");
           return;
         }
       }
