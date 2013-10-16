@@ -422,6 +422,7 @@ public class SanitizedBridgesWriter extends Thread {
     }
 
     /* Parse the given network status line by line. */
+    StringBuilder header = new StringBuilder();
     SortedMap<String, String> scrubbedLines =
         new TreeMap<String, String>();
     try {
@@ -435,9 +436,13 @@ public class SanitizedBridgesWriter extends Thread {
       String hashedBridgeIdentityHex = null;
       while ((line = br.readLine()) != null) {
 
+        /* Header lines don't have to be cleaned up. */
+        if (line.startsWith("flag-thresholds ")) {
+          header.append(line + "\n");
+
         /* r lines contain sensitive information that needs to be removed
          * or replaced. */
-        if (line.startsWith("r ")) {
+        } else if (line.startsWith("r ")) {
 
           /* Clear buffer from previously scrubbed lines. */
           if (scrubbed.length() > 0) {
@@ -563,6 +568,7 @@ public class SanitizedBridgesWriter extends Thread {
             outputFile));
         bw.write("@type bridge-network-status 1.0\n");
         bw.write("published " + publicationTime + "\n");
+        bw.write(header.toString());
         for (String scrubbed : scrubbedLines.values()) {
           bw.write(scrubbed);
         }

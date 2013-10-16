@@ -23,10 +23,6 @@ public class BridgeDescriptorParser {
       String line = br.readLine();
       if (line == null) {
         return;
-      } else if (line.startsWith("r ")) {
-        if (this.sbw != null) {
-          this.sbw.sanitizeAndStoreNetworkStatus(allData, dateTime);
-        }
       } else if (line.startsWith("router ")) {
         if (this.sbw != null) {
           this.sbw.sanitizeAndStoreServerDescriptor(allData);
@@ -34,6 +30,10 @@ public class BridgeDescriptorParser {
       } else if (line.startsWith("extra-info ")) {
         if (this.sbw != null) {
           this.sbw.sanitizeAndStoreExtraInfoDescriptor(allData);
+        }
+      } else {
+        if (this.sbw != null) {
+          this.sbw.sanitizeAndStoreNetworkStatus(allData, dateTime);
         }
       }
     } catch (IOException e) {
