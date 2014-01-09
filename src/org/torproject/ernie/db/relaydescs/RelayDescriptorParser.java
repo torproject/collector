@@ -1,4 +1,4 @@
-/* Copyright 2010--2012 The Tor Project
+/* Copyright 2010--2014 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.ernie.db.relaydescs;
 
@@ -31,6 +31,8 @@ public class RelayDescriptorParser {
    */
   private ArchiveWriter aw;
 
+  private ArchiveReader ar;
+
   /**
    * Missing descriptor downloader that uses the parse results to learn
    * which descriptors we are missing and want to download.
@@ -62,7 +64,12 @@ public class RelayDescriptorParser {
     this.rdd = rdd;
   }
 
-  public void parse(byte[] data) {
+  public void setArchiveReader(ArchiveReader ar) {
+    this.ar = ar;
+  }
+
+  public boolean parse(byte[] data) {
+    boolean stored = false;
     try {
       /* Convert descriptor to ASCII for parsing. This means we'll lose
        * the non-ASCII chars, but we don't care about them for parsing
@@ -76,21 +83,27 @@ public class RelayDescriptorParser {
       if (line == null) {
         this.logger.fine("We were given an empty descriptor for "
             + "parsing. Ignoring.");
-        return;
+        return false;
       }
       SimpleDateFormat parseFormat =
           new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
       parseFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-      if (line.equals("network-status-version 3")) {
-        boolean isConsensus = true;
+      if (line.startsWith("network-status-version 3")) {
+        String statusType = "consensus";
+        if (line.equals("network-status-version 3 microdesc")) {
+          statusType = "consensus-microdesc";
+        }
         String validAfterTime = null, fingerprint = null,
             dirSource = null;
         long validAfter = -1L, dirKeyPublished = -1L;
         SortedSet<String> dirSources = new TreeSet<String>();
         SortedSet<String> serverDescriptors = new TreeSet<String>();
         SortedSet<String> serverDescriptorDigests = new TreeSet<String>();
+        SortedSet<String> microdescriptorKeys = new TreeSet<String>();
+        SortedSet<String> microdescriptorDigests = new TreeSet<String>();
         StringBuilder certificateStringBuilder = null;
         String certificateString = null;
+        String lastRelayIdentity = null;
         while ((line = br.readLine()) != null) {
           if (certificateStringBuilder != null) {
             if (line.startsWith("r ")) {
@@ -101,7 +114,7 @@ public class RelayDescriptorParser {
             }
           }
           if (line.equals("vote-status vote")) {
-            isConsensus = false;
+            statusType = "vote";
           } else if (line.startsWith("valid-after ")) {
             validAfterTime = line.substring("valid-after ".length());
             validAfter = parseFormat.parse(validAfterTime).getTime();
@@ -121,23 +134,43 @@ public class RelayDescriptorParser {
                 getTime();
           } else if (line.startsWith("r ")) {
             String[] parts = line.split(" ");
-            if (parts.length < 9) {
+            if (parts.length == 8) {
+              lastRelayIdentity = Hex.encodeHexString(Base64.decodeBase64(
+                  parts[2] + "=")).toLowerCase();
+            } else if (parts.length == 9) {
+              lastRelayIdentity = Hex.encodeHexString(Base64.decodeBase64(
+                  parts[2] + "=")).toLowerCase();
+              String serverDesc = Hex.encodeHexString(Base64.decodeBase64(
+                  parts[3] + "=")).toLowerCase();
+              String publishedTime = parts[4] + " " + parts[5];
+              serverDescriptors.add(publishedTime + ","
+                  + lastRelayIdentity + "," + serverDesc);
+              serverDescriptorDigests.add(serverDesc);
+            } else {
               this.logger.log(Level.WARNING, "Could not parse r line '"
                   + line + "' in descriptor. Skipping.");
               break;
             }
-            String publishedTime = parts[4] + " " + parts[5];
-            String relayIdentity = Hex.encodeHexString(
-                Base64.decodeBase64(parts[2] + "=")).
-                toLowerCase();
-            String serverDesc = Hex.encodeHexString(Base64.decodeBase64(
-                parts[3] + "=")).toLowerCase();
-            serverDescriptors.add(publishedTime + "," + relayIdentity
-                + "," + serverDesc);
-            serverDescriptorDigests.add(serverDesc);
+          } else if (line.startsWith("m ")) {
+            String[] parts = line.split(" ");
+            if (parts.length == 2 && parts[1].length() == 43) {
+              String digest256Base64 = parts[1];
+              microdescriptorKeys.add(validAfterTime + ","
+                  + lastRelayIdentity + "," + digest256Base64);
+              String digest256Hex = Hex.encodeHexString(
+                  Base64.decodeBase64(digest256Base64 + "=")).
+                  toLowerCase();
+              microdescriptorDigests.add(digest256Hex);
+            } else if (parts.length != 3 ||
+                !parts[2].startsWith("sha256=") ||
+                parts[2].length() != 50) {
+              this.logger.log(Level.WARNING, "Could not parse m line '"
+                  + line + "' in descriptor. Skipping.");
+              break;
+            }
           }
         }
-        if (isConsensus) {
+        if (statusType.equals("consensus")) {
           if (this.rdd != null) {
             this.rdd.haveParsedConsensus(validAfterTime, dirSources,
                 serverDescriptors);
@@ -145,6 +178,21 @@ public class RelayDescriptorParser {
           if (this.aw != null) {
             this.aw.storeConsensus(data, validAfter, dirSources,
                 serverDescriptorDigests);
+            stored = true;
+          }
+        } else if (statusType.equals("consensus-microdesc")) {
+          if (this.rdd != null) {
+            this.rdd.haveParsedMicrodescConsensus(validAfterTime,
+                microdescriptorKeys);
+          }
+          if (this.ar != null) {
+            this.ar.haveParsedMicrodescConsensus(validAfterTime,
+                microdescriptorDigests);
+          }
+          if (this.aw != null) {
+            this.aw.storeMicrodescConsensus(data, validAfter,
+                microdescriptorDigests);
+            stored = true;
           }
         } else {
           if (this.aw != null || this.rdd != null) {
@@ -161,6 +209,7 @@ public class RelayDescriptorParser {
               if (this.aw != null) {
                 this.aw.storeVote(data, validAfter, dirSource, digest,
                     serverDescriptorDigests);
+                stored = true;
               }
               if (this.rdd != null) {
                 this.rdd.haveParsedVote(validAfterTime, fingerprint,
@@ -171,6 +220,7 @@ public class RelayDescriptorParser {
               if (this.aw != null) {
                 this.aw.storeCertificate(certificateString.getBytes(),
                     dirSource, dirKeyPublished);
+                stored = true;
               }
             }
           }
@@ -209,6 +259,7 @@ public class RelayDescriptorParser {
         if (this.aw != null && digest != null) {
           this.aw.storeServerDescriptor(data, digest, published,
               extraInfoDigest);
+          stored = true;
         }
         if (this.rdd != null && digest != null) {
           this.rdd.haveParsedServerDescriptor(publishedTime,
@@ -238,25 +289,43 @@ public class RelayDescriptorParser {
           }
         }
         int sig = ascii.indexOf(sigToken) + sigToken.length();
-        if (start >= 0 || sig >= 0 || sig > start) {
+        if (start >= 0 && sig >= 0 && sig > start) {
           byte[] forDigest = new byte[sig - start];
           System.arraycopy(data, start, forDigest, 0, sig - start);
           digest = DigestUtils.shaHex(forDigest);
         }
         if (this.aw != null && digest != null) {
           this.aw.storeExtraInfoDescriptor(data, digest, published);
+          stored = true;
         }
         if (this.rdd != null && digest != null) {
           this.rdd.haveParsedExtraInfoDescriptor(publishedTime,
               relayIdentifier.toLowerCase(), digest);
         }
+      } else if (line.equals("onion-key")) {
+        /* Cannot store microdescriptors without knowing valid-after
+         * time(s) of microdesc consensuses containing them, because we
+         * don't know which month directories to put them in.  Have to use
+         * storeMicrodescriptor below. */
       }
+      br.close();
     } catch (IOException e) {
       this.logger.log(Level.WARNING, "Could not parse descriptor. "
           + "Skipping.", e);
     } catch (ParseException e) {
       this.logger.log(Level.WARNING, "Could not parse descriptor. "
           + "Skipping.", e);
+    }
+    return stored;
+  }
+
+  public void storeMicrodescriptor(byte[] data, String digest256Hex,
+      String digest256Base64, long validAfter) {
+    if (this.aw != null) {
+      this.aw.storeMicrodescriptor(data, digest256Hex, validAfter);
+    }
+    if (this.rdd != null) {
+      this.rdd.haveParsedMicrodescriptor(digest256Base64);
     }
   }
 }

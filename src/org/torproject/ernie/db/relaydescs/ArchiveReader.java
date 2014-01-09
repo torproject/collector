@@ -1,4 +1,4 @@
-/* Copyright 2010--2012 The Tor Project
+/* Copyright 2010--2014 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.ernie.db.relaydescs;
 
@@ -11,14 +11,25 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.Stack;
+import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 
 /**
@@ -34,6 +45,7 @@ public class ArchiveReader {
       throw new IllegalArgumentException();
     }
 
+    rdp.setArchiveReader(this);
     int parsedFiles = 0, ignoredFiles = 0;
     Logger logger = Logger.getLogger(ArchiveReader.class.getName());
     SortedSet<String> archivesImportHistory = new TreeSet<String>();
@@ -59,6 +71,7 @@ public class ArchiveReader {
       Stack<File> filesInInputDir = new Stack<File>();
       filesInInputDir.add(archivesDirectory);
       List<File> problems = new ArrayList<File>();
+      Set<File> filesToRetry = new HashSet<File>();
       while (!filesInInputDir.isEmpty()) {
         File pop = filesInInputDir.pop();
         if (pop.isDirectory()) {
@@ -86,9 +99,6 @@ public class ArchiveReader {
                 FileInputStream fis = new FileInputStream(pop);
                 bis = new BufferedInputStream(fis);
               }
-              if (keepImportHistory) {
-                archivesImportHistory.add(pop.getName());
-              }
               ByteArrayOutputStream baos = new ByteArrayOutputStream();
               int len;
               byte[] data = new byte[1024];
@@ -97,13 +107,123 @@ public class ArchiveReader {
               }
               bis.close();
               byte[] allData = baos.toByteArray();
-              rdp.parse(allData);
+              boolean stored = rdp.parse(allData);
+              if (!stored) {
+                filesToRetry.add(pop);
+                continue;
+              }
+              if (keepImportHistory) {
+                archivesImportHistory.add(pop.getName());
+              }
               parsedFiles++;
             } catch (IOException e) {
               problems.add(pop);
               if (problems.size() > 3) {
                 break;
               }
+            }
+          }
+        }
+      }
+      for (File pop : filesToRetry) {
+        /* TODO We need to parse microdescriptors ourselves, rather than
+         * RelayDescriptorParser, because only we know the valid-after
+         * time(s) of microdesc consensus(es) containing this
+         * microdescriptor.  However, this breaks functional abstraction
+         * pretty badly. */
+        if (rdp != null) {
+          try {
+            BufferedInputStream bis = null;
+            if (pop.getName().endsWith(".bz2")) {
+              FileInputStream fis = new FileInputStream(pop);
+              BZip2CompressorInputStream bcis =
+                  new BZip2CompressorInputStream(fis);
+              bis = new BufferedInputStream(bcis);
+            } else {
+              FileInputStream fis = new FileInputStream(pop);
+              bis = new BufferedInputStream(fis);
+            }
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            int len;
+            byte[] data = new byte[1024];
+            while ((len = bis.read(data, 0, 1024)) >= 0) {
+              baos.write(data, 0, len);
+            }
+            bis.close();
+            byte[] allData = baos.toByteArray();
+            BufferedReader br = new BufferedReader(new StringReader(
+                new String(allData, "US-ASCII")));
+            String line;
+            do {
+              line = br.readLine();
+            } while (line != null && line.startsWith("@"));
+            br.close();
+            if (line == null) {
+              logger.fine("We were given an empty descriptor for "
+                  + "parsing. Ignoring.");
+              continue;
+            }
+            if (!line.equals("onion-key")) {
+              logger.fine("Skipping non-recognized descriptor.");
+              continue;
+            }
+            SimpleDateFormat parseFormat =
+                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            parseFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            String ascii = null;
+            try {
+              ascii = new String(allData, "US-ASCII");
+            } catch (UnsupportedEncodingException e) {
+              /* No way that US-ASCII is not supported. */
+            }
+            int start = -1, end = -1;
+            String startToken = "onion-key\n";
+            while (end < ascii.length()) {
+              start = ascii.indexOf(startToken, end);
+              if (start < 0) {
+                break;
+              }
+              end = ascii.indexOf(startToken, start + 1);
+              if (end < 0) {
+                end = ascii.length();
+                if (end <= start) {
+                  break;
+                }
+              }
+              byte[] descBytes = new byte[end - start];
+              System.arraycopy(allData, start, descBytes, 0, end - start);
+              String digest256Base64 = Base64.encodeBase64String(
+                  DigestUtils.sha256(descBytes)).replaceAll("=", "");
+              String digest256Hex = DigestUtils.sha256Hex(descBytes);
+              if (!this.microdescriptorValidAfterTimes.containsKey(
+                  digest256Hex)) {
+                logger.fine("Could not store microdescriptor '"
+                  + digest256Hex + "', which was not contained in a "
+                  + "microdesc consensus.");
+                continue;
+              }
+              for (String validAfterTime :
+                  this.microdescriptorValidAfterTimes.get(digest256Hex)) {
+                try {
+                  long validAfter =
+                      parseFormat.parse(validAfterTime).getTime();
+                  rdp.storeMicrodescriptor(descBytes, digest256Hex,
+                      digest256Base64, validAfter);
+                } catch (ParseException e) {
+                  logger.log(Level.WARNING, "Could not parse "
+                      + "valid-after time '" + validAfterTime + "'. Not "
+                      + "storing microdescriptor.", e);
+                }
+              }
+            }
+            if (keepImportHistory) {
+              archivesImportHistory.add(pop.getName());
+            }
+            parsedFiles++;
+          } catch (IOException e) {
+            problems.add(pop);
+            if (problems.size() > 3) {
+              break;
             }
           }
         }
@@ -141,6 +261,21 @@ public class ArchiveReader {
     logger.info("Finished importing relay descriptors from local "
         + "directory:\nParsed " + parsedFiles + ", ignored "
         + ignoredFiles + " files.");
+  }
+
+  private Map<String, Set<String>> microdescriptorValidAfterTimes =
+      new HashMap<String, Set<String>>();
+  public void haveParsedMicrodescConsensus(String validAfterTime,
+      SortedSet<String> microdescriptorDigests) {
+    for (String microdescriptor : microdescriptorDigests) {
+      if (!this.microdescriptorValidAfterTimes.containsKey(
+          microdescriptor)) {
+        this.microdescriptorValidAfterTimes.put(microdescriptor,
+            new HashSet<String>());
+      }
+      this.microdescriptorValidAfterTimes.get(microdescriptor).add(
+          validAfterTime);
+    }
   }
 }
 

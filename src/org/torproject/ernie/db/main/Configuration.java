@@ -53,9 +53,11 @@ public class Configuration {
       + "ED03BB616EB2F60BEC80151114BB25CEF515B226,"
       + "EFCBE720AB3A82B99F9E953CD5BF50F7EEFC7B97").split(","));
   private boolean downloadCurrentConsensus = true;
+  private boolean downloadCurrentMicrodescConsensus = true;
   private boolean downloadCurrentVotes = true;
   private boolean downloadMissingServerDescriptors = true;
   private boolean downloadMissingExtraInfoDescriptors = true;
+  private boolean downloadMissingMicrodescriptors = true;
   private boolean downloadAllServerDescriptors = false;
   private boolean downloadAllExtraInfoDescriptors = false;
   private boolean compressRelayDescriptorDownloads;
@@ -141,6 +143,9 @@ public class Configuration {
         } else if (line.startsWith("DownloadCurrentConsensus")) {
           this.downloadCurrentConsensus = Integer.parseInt(
               line.split(" ")[1]) != 0;
+        } else if (line.startsWith("DownloadCurrentMicrodescConsensus")) {
+          this.downloadCurrentMicrodescConsensus = Integer.parseInt(
+              line.split(" ")[1]) != 0;
         } else if (line.startsWith("DownloadCurrentVotes")) {
           this.downloadCurrentVotes = Integer.parseInt(
               line.split(" ")[1]) != 0;
@@ -150,6 +155,9 @@ public class Configuration {
         } else if (line.startsWith(
             "DownloadMissingExtraInfoDescriptors")) {
           this.downloadMissingExtraInfoDescriptors = Integer.parseInt(
+              line.split(" ")[1]) != 0;
+        } else if (line.startsWith("DownloadMissingMicrodescriptors")) {
+          this.downloadMissingMicrodescriptors = Integer.parseInt(
               line.split(" ")[1]) != 0;
         } else if (line.startsWith("DownloadAllServerDescriptors")) {
           this.downloadAllServerDescriptors = Integer.parseInt(
@@ -253,6 +261,9 @@ public class Configuration {
   public boolean getDownloadCurrentConsensus() {
     return this.downloadCurrentConsensus;
   }
+  public boolean getDownloadCurrentMicrodescConsensus() {
+    return this.downloadCurrentMicrodescConsensus;
+  }
   public boolean getDownloadCurrentVotes() {
     return this.downloadCurrentVotes;
   }
@@ -261,6 +272,9 @@ public class Configuration {
   }
   public boolean getDownloadMissingExtraInfoDescriptors() {
     return this.downloadMissingExtraInfoDescriptors;
+  }
+  public boolean getDownloadMissingMicrodescriptors() {
+    return this.downloadMissingMicrodescriptors;
   }
   public boolean getDownloadAllServerDescriptors() {
     return this.downloadAllServerDescriptors;

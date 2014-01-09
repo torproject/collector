@@ -1,4 +1,4 @@
-/* Copyright 2010--2012 The Tor Project
+/* Copyright 2010--2014 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.ernie.db.relaydescs;
 
@@ -73,11 +73,15 @@ public class ArchiveWriter extends Thread {
   private Logger logger;
   private File outputDirectory;
   private DescriptorParser descriptorParser;
-  private int storedConsensusesCounter = 0, storedVotesCounter = 0,
+  private int storedConsensusesCounter = 0,
+      storedMicrodescConsensusesCounter = 0, storedVotesCounter = 0,
       storedCertsCounter = 0, storedServerDescriptorsCounter = 0,
-      storedExtraInfoDescriptorsCounter = 0;
+      storedExtraInfoDescriptorsCounter = 0,
+      storedMicrodescriptorsCounter = 0;
 
   private SortedMap<Long, SortedSet<String>> storedConsensuses =
+      new TreeMap<Long, SortedSet<String>>();
+  private SortedMap<Long, SortedSet<String>> storedMicrodescConsensuses =
       new TreeMap<Long, SortedSet<String>>();
   private SortedMap<Long, Integer> expectedVotes =
       new TreeMap<Long, Integer>();
@@ -88,11 +92,15 @@ public class ArchiveWriter extends Thread {
       new TreeMap<Long, Map<String, String>>();
   private SortedMap<Long, Set<String>> storedExtraInfoDescriptors =
       new TreeMap<Long, Set<String>>();
+  private SortedMap<Long, Set<String>> storedMicrodescriptors =
+      new TreeMap<Long, Set<String>>();
 
   private File storedServerDescriptorsFile = new File(
       "stats/stored-server-descriptors");
   private File storedExtraInfoDescriptorsFile = new File(
       "stats/stored-extra-info-descriptors");
+  private File storedMicrodescriptorsFile = new File(
+      "stats/stored-microdescriptors");
 
   private void loadDescriptorDigests() {
     SimpleDateFormat dateTimeFormat = new SimpleDateFormat(
@@ -155,6 +163,33 @@ public class ArchiveWriter extends Thread {
         }
         br.close();
       }
+      if (this.storedMicrodescriptorsFile.exists()) {
+        BufferedReader br = new BufferedReader(new FileReader(
+            this.storedMicrodescriptorsFile));
+        String line;
+        while ((line = br.readLine()) != null) {
+          String[] parts = line.split(",");
+          if (parts.length != 2) {
+            this.logger.warning("Could not load microdescriptor digests "
+                + "because of illegal line '" + line + "'.  We might not "
+                + "be able to correctly check descriptors for "
+                + "completeness.");
+            break;
+          }
+          long validAfter = dateTimeFormat.parse(parts[0]).getTime();
+          if (validAfter < this.now - 48L * 60L * 60L * 1000L) {
+            continue;
+          }
+          if (!this.storedMicrodescriptors.containsKey(validAfter)) {
+            this.storedMicrodescriptors.put(validAfter,
+                new HashSet<String>());
+          }
+          String microdescriptorDigest = parts[1];
+          this.storedMicrodescriptors.get(validAfter).add(
+              microdescriptorDigest);
+        }
+        br.close();
+      }
     } catch (ParseException e) {
       this.logger.log(Level.WARNING, "Could not load descriptor "
           + "digests.  We might not be able to correctly check "
@@ -198,6 +233,18 @@ public class ArchiveWriter extends Thread {
         }
       }
       bw.close();
+      this.storedMicrodescriptorsFile.getParentFile().mkdirs();
+      bw = new BufferedWriter(new FileWriter(
+          this.storedMicrodescriptorsFile));
+      for (Map.Entry<Long, Set<String>> e :
+          this.storedMicrodescriptors.entrySet()) {
+        String validAfter = dateTimeFormat.format(e.getKey());
+        for (String microdescriptorDigest : e.getValue()) {
+          bw.write(String.format("%s,%s%n", validAfter,
+              microdescriptorDigest));
+        }
+      }
+      bw.close();
     } catch (IOException e) {
       this.logger.log(Level.WARNING, "Could not save descriptor "
           + "digests.  We might not be able to correctly check "
@@ -228,9 +275,11 @@ public class ArchiveWriter extends Thread {
       rdd = new RelayDescriptorDownloader(rdp, dirSources,
           config.getDownloadVotesByFingerprint(),
           config.getDownloadCurrentConsensus(),
+          config.getDownloadCurrentMicrodescConsensus(),
           config.getDownloadCurrentVotes(),
           config.getDownloadMissingServerDescriptors(),
           config.getDownloadMissingExtraInfoDescriptors(),
+          config.getDownloadMissingMicrodescriptors(),
           config.getDownloadAllServerDescriptors(),
           config.getDownloadAllExtraInfoDescriptors(),
           config.getCompressRelayDescriptorDownloads());
@@ -314,12 +363,36 @@ public class ArchiveWriter extends Thread {
     if (this.store(CONSENSUS_ANNOTATION, data, outputFiles)) {
       this.storedConsensusesCounter++;
     }
-    SimpleDateFormat dateTimeFormat =
-        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     if (this.now - validAfter < 3L * 60L * 60L * 1000L) {
       this.storedConsensuses.put(validAfter, serverDescriptorDigests);
       this.expectedVotes.put(validAfter, dirSources.size());
+    }
+  }
+
+  private static final byte[] MICRODESCCONSENSUS_ANNOTATION =
+      "@type network-status-microdesc-consensus-3 1.0\n".getBytes();
+  public void storeMicrodescConsensus(byte[] data, long validAfter,
+      SortedSet<String> microdescriptorDigests) {
+    SimpleDateFormat yearMonthDirectoryFormat = new SimpleDateFormat(
+        "yyyy/MM");
+    yearMonthDirectoryFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    SimpleDateFormat dayDirectoryFileFormat = new SimpleDateFormat(
+        "dd/yyyy-MM-dd-HH-mm-ss");
+    dayDirectoryFileFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    File tarballFile = new File(this.outputDirectory
+        + "/microdesc/" + yearMonthDirectoryFormat.format(validAfter)
+        + "/consensus-microdesc/"
+        + dayDirectoryFileFormat.format(validAfter)
+        + "-consensus-microdesc");
+    File rsyncFile = new File("rsync/relay-descriptors/microdescs/"
+        + "consensus-microdesc/" + tarballFile.getName());
+    File[] outputFiles = new File[] { tarballFile, rsyncFile };
+    if (this.store(MICRODESCCONSENSUS_ANNOTATION, data, outputFiles)) {
+      this.storedMicrodescConsensusesCounter++;
+    }
+    if (this.now - validAfter < 3L * 60L * 60L * 1000L) {
+      this.storedMicrodescConsensuses.put(validAfter,
+          microdescriptorDigests);
     }
   }
 
@@ -340,9 +413,6 @@ public class ArchiveWriter extends Thread {
     if (this.store(VOTE_ANNOTATION, data, outputFiles)) {
       this.storedVotesCounter++;
     }
-    SimpleDateFormat dateTimeFormat =
-        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     if (this.now - validAfter < 3L * 60L * 60L * 1000L) {
       if (!this.storedVotes.containsKey(validAfter)) {
         this.storedVotes.put(validAfter,
@@ -384,9 +454,6 @@ public class ArchiveWriter extends Thread {
     if (this.store(SERVER_DESCRIPTOR_ANNOTATION, data, outputFiles)) {
       this.storedServerDescriptorsCounter++;
     }
-    SimpleDateFormat dateTimeFormat =
-        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     if (this.now - published < 48L * 60L * 60L * 1000L) {
       if (!this.storedServerDescriptors.containsKey(published)) {
         this.storedServerDescriptors.put(published,
@@ -423,20 +490,57 @@ public class ArchiveWriter extends Thread {
     }
   }
 
+  private static final byte[] MICRODESCRIPTOR_ANNOTATION =
+      "@type microdescriptor 1.0\n".getBytes();
+  public void storeMicrodescriptor(byte[] data,
+      String microdescriptorDigest, long validAfter) {
+    /* TODO We could check here whether we already stored the
+     * microdescriptor in the same valid-after month.  This can happen,
+     * e.g., when two relays share the same microdescriptor.  In that case
+     * this method gets called twice and the second call overwrites the
+     * file written in the first call.  However, this method must be
+     * called twice to store the same microdescriptor in two different
+     * valid-after months. */
+    SimpleDateFormat descriptorFormat = new SimpleDateFormat("yyyy/MM/");
+    descriptorFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    File tarballFile = new File(this.outputDirectory + "/microdesc/"
+        + descriptorFormat.format(validAfter) + "micro/"
+        + microdescriptorDigest.substring(0, 1) + "/"
+        + microdescriptorDigest.substring(1, 2) + "/"
+        + microdescriptorDigest);
+    File rsyncFile = new File("rsync/relay-descriptors/microdescs/micro/"
+        + microdescriptorDigest);
+    File[] outputFiles = new File[] { tarballFile, rsyncFile };
+    if (this.store(MICRODESCRIPTOR_ANNOTATION, data, outputFiles)) {
+      this.storedMicrodescriptorsCounter++;
+    }
+    if (this.now - validAfter < 48L * 60L * 60L * 1000L) {
+      if (!this.storedMicrodescriptors.containsKey(validAfter)) {
+        this.storedMicrodescriptors.put(validAfter, new HashSet<String>());
+      }
+      this.storedMicrodescriptors.get(validAfter).add(
+          microdescriptorDigest);
+    }
+  }
+
   private StringBuilder intermediateStats = new StringBuilder();
   public void intermediateStats(String event) {
     intermediateStats.append("While " + event + ", we stored "
         + this.storedConsensusesCounter + " consensus(es), "
-        + this.storedVotesCounter + " vote(s), " + this.storedCertsCounter
-        + " certificate(s), " + this.storedServerDescriptorsCounter
-        + " server descriptor(s), and "
-        + this.storedExtraInfoDescriptorsCounter
-        + " extra-info descriptor(s) to disk.\n");
+        + this.storedMicrodescConsensusesCounter + " microdesc "
+        + "consensus(es), " + this.storedVotesCounter + " vote(s), "
+        + this.storedCertsCounter + " certificate(s), "
+        + this.storedServerDescriptorsCounter + " server descriptor(s), "
+        + this.storedExtraInfoDescriptorsCounter + " extra-info "
+        + "descriptor(s), and " + this.storedMicrodescriptorsCounter
+        + " microdescriptor(s) to disk.\n");
     this.storedConsensusesCounter = 0;
+    this.storedMicrodescConsensusesCounter = 0;
     this.storedVotesCounter = 0;
     this.storedCertsCounter = 0;
     this.storedServerDescriptorsCounter = 0;
     this.storedExtraInfoDescriptorsCounter = 0;
+    this.storedMicrodescriptorsCounter = 0;
   }
 
   private void checkMissingDescriptors() {
@@ -444,8 +548,7 @@ public class ArchiveWriter extends Thread {
         + "descriptors to disk.\n");
     sb.append(intermediateStats.toString());
     sb.append("Statistics on the completeness of written relay "
-        + "descriptors of the last 3 consensuses (Consensus/Vote, "
-        + "valid-after, votes, server descriptors, extra-infos):");
+        + "descriptors:");
     SimpleDateFormat dateTimeFormat =
         new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -460,7 +563,12 @@ public class ArchiveWriter extends Thread {
         this.storedExtraInfoDescriptors.values()) {
       knownExtraInfoDescriptors.addAll(descriptors);
     }
-    boolean missingDescriptors = false, missingVotes = false;
+    Set<String> knownMicrodescriptors = new HashSet<String>();
+    for (Set<String> descriptors : this.storedMicrodescriptors.values()) {
+      knownMicrodescriptors.addAll(descriptors);
+    }
+    boolean missingDescriptors = false, missingVotes = false,
+        missingMicrodescConsensus = false;
     for (Map.Entry<Long, SortedSet<String>> c :
         this.storedConsensuses.entrySet()) {
       long validAfterMillis = c.getKey();
@@ -491,14 +599,23 @@ public class ArchiveWriter extends Thread {
               }
             }
           }
-          sb.append(String.format("%nV, %s, NA, %d/%d (%.1f%%), "
-              + "%d/%d (%.1f%%)", validAfterTime,
-              voteFoundServerDescs, voteAllServerDescs,
-              100.0D * (double) voteFoundServerDescs /
-                (double) voteAllServerDescs,
-              voteFoundExtraInfos, voteAllExtraInfos,
-              100.0D * (double) voteFoundExtraInfos /
-                (double) voteAllExtraInfos));
+          sb.append("\nV, " + validAfterTime);
+          if (voteAllServerDescs > 0) {
+            sb.append(String.format(", %d/%d S (%.1f%%)",
+                voteFoundServerDescs, voteAllServerDescs,
+                100.0D * (double) voteFoundServerDescs /
+                  (double) voteAllServerDescs));
+          } else {
+            sb.append(", 0/0 S");
+          }
+          if (voteAllExtraInfos > 0) {
+            sb.append(String.format(", %d/%d E (%.1f%%)",
+                voteFoundExtraInfos, voteAllExtraInfos,
+                100.0D * (double) voteFoundExtraInfos /
+                  (double) voteAllExtraInfos));
+          } else {
+            sb.append(", 0/0 E");
+          }
           if (voteFoundServerDescs * 1000 < voteAllServerDescs * 995 ||
               voteFoundExtraInfos * 1000 < voteAllExtraInfos * 995) {
             missingDescriptors = true;
@@ -506,7 +623,8 @@ public class ArchiveWriter extends Thread {
         }
       }
       int foundServerDescs = 0, allServerDescs = 0, foundExtraInfos = 0,
-          allExtraInfos = 0;
+          allExtraInfos = 0, foundMicrodescriptors = 0,
+          allMicrodescriptors = 0;
       for (String serverDescriptorDigest : c.getValue()) {
         allServerDescs++;
         if (knownServerDescriptors.containsKey(
@@ -524,16 +642,50 @@ public class ArchiveWriter extends Thread {
           }
         }
       }
-      sb.append(String.format("%nC, %s, %d/%d (%.1f%%), "
-          + "%d/%d (%.1f%%), %d/%d (%.1f%%)",
-          validAfterTime, foundVotes, allVotes,
-          100.0D * (double) foundVotes / (double) allVotes,
-          foundServerDescs, allServerDescs,
-          100.0D * (double) foundServerDescs / (double) allServerDescs,
-          foundExtraInfos, allExtraInfos,
-          100.0D * (double) foundExtraInfos / (double) allExtraInfos));
+      sb.append("\nC, " + validAfterTime);
+      if (allVotes > 0) {
+        sb.append(String.format(", %d/%d V (%.1f%%)", foundVotes, allVotes,
+            100.0D * (double) foundVotes / (double) allVotes));
+      } else {
+        sb.append(", 0/0 V");
+      }
+      if (allServerDescs > 0) {
+        sb.append(String.format(", %d/%d S (%.1f%%)", foundServerDescs,
+            allServerDescs, 100.0D * (double) foundServerDescs /
+            (double) allServerDescs));
+      } else {
+        sb.append(", 0/0 S");
+      }
+      if (allExtraInfos > 0) {
+        sb.append(String.format(", %d/%d E (%.1f%%)", foundExtraInfos,
+            allExtraInfos, 100.0D * (double) foundExtraInfos /
+            (double) allExtraInfos));
+      } else {
+        sb.append(", 0/0 E");
+      }
+      if (this.storedMicrodescConsensuses.containsKey(validAfterMillis)) {
+        for (String microdescriptorDigest :
+            this.storedMicrodescConsensuses.get(validAfterMillis)) {
+          allMicrodescriptors++;
+          if (knownMicrodescriptors.contains(microdescriptorDigest)) {
+            foundMicrodescriptors++;
+          }
+        }
+        sb.append("\nM, " + validAfterTime);
+        if (allMicrodescriptors > 0) {
+          sb.append(String.format(", %d/%d M (%.1f%%)",
+              foundMicrodescriptors, allMicrodescriptors,
+              100.0D * (double) foundMicrodescriptors /
+              (double) allMicrodescriptors));
+        } else {
+          sb.append(", 0/0 M");
+        }
+      } else {
+        missingMicrodescConsensus = true;
+      }
       if (foundServerDescs * 1000 < allServerDescs * 995 ||
-          foundExtraInfos * 1000 < allExtraInfos * 995) {
+          foundExtraInfos * 1000 < allExtraInfos * 995 ||
+          foundMicrodescriptors * 1000 < allMicrodescriptors * 995) {
         missingDescriptors = true;
       }
       if (foundVotes < allVotes) {
@@ -544,11 +696,21 @@ public class ArchiveWriter extends Thread {
     if (missingDescriptors) {
       this.logger.warning("We are missing at least 0.5% of server or "
           + "extra-info descriptors referenced from a consensus or "
-          + "vote.");
+          + "vote or at least 0.5% of microdescriptors referenced from a "
+          + "microdesc consensus.");
     }
     if (missingVotes) {
+      /* TODO Shouldn't warn if we're not trying to archive votes at
+       * all. */
       this.logger.warning("We are missing at least one vote that was "
           + "referenced from a consensus.");
+    }
+    if (missingMicrodescConsensus) {
+      /* TODO Shouldn't warn if we're not trying to archive microdesc
+       * consensuses at all. */
+      this.logger.warning("We are missing at least one microdesc "
+          + "consensus that was published together with a known "
+          + "consensus.");
     }
   }
 
@@ -562,6 +724,14 @@ public class ArchiveWriter extends Thread {
       this.logger.warning("The last known relay network status "
           + "consensus was valid after "
           + dateTimeFormat.format(this.storedConsensuses.lastKey())
+          + ", which is more than 5:30 hours in the past.");
+    }
+    if (!this.storedMicrodescConsensuses.isEmpty() &&
+        this.storedMicrodescConsensuses.lastKey() < tooOldMillis) {
+      this.logger.warning("The last known relay network status "
+          + "microdesc consensus was valid after "
+          + dateTimeFormat.format(
+          this.storedMicrodescConsensuses.lastKey())
           + ", which is more than 5:30 hours in the past.");
     }
     if (!this.storedVotes.isEmpty() &&
@@ -583,6 +753,13 @@ public class ArchiveWriter extends Thread {
       this.logger.warning("The last known relay extra-info descriptor "
           + "was published at " + dateTimeFormat.format(
           this.storedExtraInfoDescriptors.lastKey())
+          + ", which is more than 5:30 hours in the past.");
+    }
+    if (!this.storedMicrodescriptors.isEmpty() &&
+        this.storedMicrodescriptors.lastKey() < tooOldMillis) {
+      this.logger.warning("The last known relay microdescriptor was "
+          + "contained in a microdesc consensus that was valid after "
+          + dateTimeFormat.format(this.storedMicrodescriptors.lastKey())
           + ", which is more than 5:30 hours in the past.");
     }
   }

@@ -1,4 +1,4 @@
-/* Copyright 2010--2012 The Tor Project
+/* Copyright 2010--2014 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.ernie.db.relaydescs;
 
@@ -13,9 +13,9 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,6 +30,9 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.InflaterInputStream;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * Downloads relay descriptors from the directory authorities via HTTP.
@@ -46,9 +49,11 @@ public class RelayDescriptorDownloader {
    * want to download. Lines are formatted as:
    *
    * - "consensus,<validafter>,<parsed>",
+   * - "consensus-microdesc,<validafter>,<parsed>",
    * - "vote,<validafter>,<fingerprint>,<parsed>",
-   * - "server,<published>,<relayid>,<descid>,<parsed>", or
-   * - "extra,<published>,<relayid>,<descid>,<parsed>".
+   * - "server,<published>,<relayid>,<descid>,<parsed>",
+   * - "extra,<published>,<relayid>,<descid>,<parsed>", or
+   * - "micro,<validafter>,<relayid>,<descid>,<parsed>".
    */
   private File missingDescriptorsFile;
 
@@ -59,6 +64,27 @@ public class RelayDescriptorDownloader {
    * without the "parsed" column. Map values contain the "parsed" column.
    */
   private SortedMap<String, String> missingDescriptors;
+
+  /**
+   * Map from base64 microdescriptor digests to keys in missingDescriptors
+   * ("micro,<validafter>,<relayid>,<descid>"). We need this map, because
+   * we can't learn <validafter> or <relayid> from parsing
+   * microdescriptors, but we need to know <validafter> to store
+   * microdescriptors to disk and both <validafter> and <relayid> to
+   * remove microdescriptors from the missing list. There are potentially
+   * many matching keys in missingDescriptors for the same microdescriptor
+   * digest. Also, in rare cases relays share the same microdescriptor
+   * (which is only possible if they share the same onion key), and then
+   * we don't have to download their microdescriptor more than once.
+   */
+  private Map<String, Set<String>> microdescriptorKeys;
+
+  /**
+   * Set of microdescriptor digests that are currently missing. Used for
+   * logging statistics instead of "micro,<validafter>,..." keys which may
+   * contain the same microdescriptor digest multiple times.
+   */
+  private Set<String> missingMicrodescriptors;
 
   /**
    * Text file containing the IP addresses (and Dir ports if not 80) of
@@ -99,6 +125,12 @@ public class RelayDescriptorDownloader {
   private boolean downloadCurrentConsensus;
 
   /**
+   * Should we try to download the current microdesc consensus if we don't
+   * have it?
+   */
+  private boolean downloadCurrentMicrodescConsensus;
+
+  /**
    * Should we try to download current votes if we don't have them?
    */
   private boolean downloadCurrentVotes;
@@ -114,6 +146,12 @@ public class RelayDescriptorDownloader {
    * been published within the past 24 hours?
    */
   private boolean downloadMissingExtraInfos;
+
+  /**
+   * Should we try to download missing microdescriptors that have been
+   * published within the past 24 hours?
+   */
+  private boolean downloadMissingMicrodescriptors;
 
   /**
    * Should we try to download all server descriptors from the authorities
@@ -134,11 +172,11 @@ public class RelayDescriptorDownloader {
   private boolean downloadCompressed;
 
   /**
-   * valid-after time that we expect the current consensus and votes to
-   * have, formatted "yyyy-MM-dd HH:mm:ss". We only expect to find
-   * consensuses and votes with this valid-after time on the directory
-   * authorities. This time is initialized as the beginning of the current
-   * hour.
+   * valid-after time that we expect the current consensus,
+   * microdescriptor consensus, and votes to have, formatted
+   * "yyyy-MM-dd HH:mm:ss". We only expect to find documents with this
+   * valid-after time on the directory authorities. This time is
+   * initialized as the beginning of the current hour.
    */
   private String currentValidAfter;
 
@@ -186,19 +224,25 @@ public class RelayDescriptorDownloader {
    * that we requested, and that we successfully downloaded in this
    * execution.
    */
-  private int oldMissingConsensuses = 0, oldMissingVotes = 0,
+  private int oldMissingConsensuses = 0,
+      oldMissingMicrodescConsensuses = 0, oldMissingVotes = 0,
       oldMissingServerDescriptors = 0, oldMissingExtraInfoDescriptors = 0,
-      newMissingConsensuses = 0, newMissingVotes = 0,
+      oldMissingMicrodescriptors = 0, newMissingConsensuses = 0,
+      newMissingMicrodescConsensuses = 0, newMissingVotes = 0,
       newMissingServerDescriptors = 0, newMissingExtraInfoDescriptors = 0,
-      requestedConsensuses = 0, requestedVotes = 0,
+      newMissingMicrodescriptors = 0, requestedConsensuses = 0,
+      requestedMicrodescConsensuses = 0, requestedVotes = 0,
       requestedMissingServerDescriptors = 0,
       requestedAllServerDescriptors = 0,
       requestedMissingExtraInfoDescriptors = 0,
-      requestedAllExtraInfoDescriptors = 0, downloadedConsensuses = 0,
-      downloadedVotes = 0, downloadedMissingServerDescriptors = 0,
+      requestedAllExtraInfoDescriptors = 0,
+      requestedMissingMicrodescriptors = 0, downloadedConsensuses = 0,
+      downloadedMicrodescConsensuses = 0, downloadedVotes = 0,
+      downloadedMissingServerDescriptors = 0,
       downloadedAllServerDescriptors = 0,
       downloadedMissingExtraInfoDescriptors = 0,
-      downloadedAllExtraInfoDescriptors = 0;
+      downloadedAllExtraInfoDescriptors = 0,
+      downloadedMissingMicrodescriptors = 0;
 
   /**
    * Initializes this class, including reading in missing descriptors from
@@ -209,9 +253,11 @@ public class RelayDescriptorDownloader {
   public RelayDescriptorDownloader(RelayDescriptorParser rdp,
       List<String> authorities, List<String> authorityFingerprints,
       boolean downloadCurrentConsensus,
+      boolean downloadCurrentMicrodescConsensus,
       boolean downloadCurrentVotes,
       boolean downloadMissingServerDescriptors,
       boolean downloadMissingExtraInfos,
+      boolean downloadMissingMicrodescriptors,
       boolean downloadAllServerDescriptors, boolean downloadAllExtraInfos,
       boolean downloadCompressed) {
 
@@ -221,10 +267,14 @@ public class RelayDescriptorDownloader {
     this.authorityFingerprints = new ArrayList<String>(
         authorityFingerprints);
     this.downloadCurrentConsensus = downloadCurrentConsensus;
+    this.downloadCurrentMicrodescConsensus =
+        downloadCurrentMicrodescConsensus;
     this.downloadCurrentVotes = downloadCurrentVotes;
     this.downloadMissingServerDescriptors =
         downloadMissingServerDescriptors;
     this.downloadMissingExtraInfos = downloadMissingExtraInfos;
+    this.downloadMissingMicrodescriptors =
+        downloadMissingMicrodescriptors;
     this.downloadAllServerDescriptors = downloadAllServerDescriptors;
     this.downloadAllExtraInfos = downloadAllExtraInfos;
     this.downloadCompressed = downloadCompressed;
@@ -253,6 +303,8 @@ public class RelayDescriptorDownloader {
      * we are interested in and that are likely to be found on the
      * directory authorities. */
     this.missingDescriptors = new TreeMap<String, String>();
+    this.microdescriptorKeys = new HashMap<String, Set<String>>();
+    this.missingMicrodescriptors = new HashSet<String>();
     this.missingDescriptorsFile = new File(
         "stats/missing-relay-descriptors");
     if (this.missingDescriptorsFile.exists()) {
@@ -266,15 +318,19 @@ public class RelayDescriptorDownloader {
           if (line.split(",").length > 2) {
             String published = line.split(",")[1];
             if (((line.startsWith("consensus,") ||
+                line.startsWith("consensus-microdesc,") ||
                 line.startsWith("vote,")) &&
                 this.currentValidAfter.equals(published)) ||
                 ((line.startsWith("server,") ||
-                line.startsWith("extra,")) &&
+                line.startsWith("extra,") ||
+                line.startsWith("micro,")) &&
                 this.descriptorCutOff.compareTo(published) < 0)) {
               if (!line.endsWith("NA")) {
                 /* Not missing. */
               } else if (line.startsWith("consensus,")) {
                 oldMissingConsensuses++;
+              } else if (line.startsWith("consensus-microdesc,")) {
+                oldMissingMicrodescConsensuses++;
               } else if (line.startsWith("vote,")) {
                 oldMissingVotes++;
               } else if (line.startsWith("server,")) {
@@ -285,6 +341,23 @@ public class RelayDescriptorDownloader {
               int separateAt = line.lastIndexOf(",");
               this.missingDescriptors.put(line.substring(0,
                   separateAt), line.substring(separateAt + 1));
+              if (line.startsWith("micro,")) {
+                String microdescriptorDigest = line.split(",")[3];
+                String microdescriptorKey = line.substring(0,
+                    line.lastIndexOf(","));
+                if (!this.microdescriptorKeys.containsKey(
+                    microdescriptorDigest)) {
+                  this.microdescriptorKeys.put(
+                      microdescriptorDigest, new HashSet<String>());
+                }
+                this.microdescriptorKeys.get(microdescriptorDigest).add(
+                    microdescriptorKey);
+                if (line.endsWith("NA") && !this.missingMicrodescriptors.
+                    contains(microdescriptorDigest)) {
+                  this.missingMicrodescriptors.add(microdescriptorDigest);
+                  oldMissingMicrodescriptors++;
+                }
+              }
             }
           } else {
             this.logger.fine("Invalid line '" + line + "' in "
@@ -401,6 +474,65 @@ public class RelayDescriptorDownloader {
   }
 
   /**
+   * We have parsed a microdesc consensus. Take this microdesc consensus
+   * off the missing list and add the <code>microdescriptors</code> which
+   * are in the format "<validafter>,<relayid>,<descid>" to that
+   * list.
+   */
+  public void haveParsedMicrodescConsensus(String validAfter,
+      Set<String> microdescriptors) {
+
+    /* Mark microdesc consensus as parsed. */
+    if (this.currentValidAfter.equals(validAfter)) {
+      String microdescConsensusKey = "consensus-microdesc," + validAfter;
+      this.missingDescriptors.put(microdescConsensusKey,
+          this.currentTimestamp);
+    }
+
+    /* Add microdescriptors to missing list. Exclude those that we already
+     * downloaded this month. (We download each microdescriptor at least
+     * once per month to keep the storage logic sane; otherwise we'd have
+     * to copy microdescriptors from the earlier month to the current
+     * month, and that gets messy.) */
+    if (this.descriptorCutOff.compareTo(validAfter) < 0) {
+      String validAfterYearMonth = validAfter.substring(0,
+          "YYYY-MM".length());
+      for (String microdescriptor : microdescriptors) {
+        String microdescriptorKey = "micro," + microdescriptor;
+        String parsed = "NA";
+        String microdescriptorDigest = microdescriptor.split(",")[2];
+        if (this.microdescriptorKeys.containsKey(microdescriptorDigest)) {
+          for (String otherMicrodescriptorKey :
+              this.microdescriptorKeys.get(microdescriptorDigest)) {
+            String otherValidAfter =
+                otherMicrodescriptorKey.split(",")[1];
+            if (!otherValidAfter.startsWith(validAfterYearMonth)) {
+              continue;
+            }
+            String otherParsed = this.missingDescriptors.get(
+                otherMicrodescriptorKey);
+            if (otherParsed != null && !otherParsed.equals("NA")) {
+              parsed = otherParsed;
+              break;
+            }
+          }
+        } else {
+          this.microdescriptorKeys.put(
+              microdescriptorDigest, new HashSet<String>());
+        }
+        this.microdescriptorKeys.get(microdescriptorDigest).add(
+            microdescriptorKey);
+        this.missingDescriptors.put(microdescriptorKey, parsed);
+        if (parsed.equals("NA") &&
+            !this.missingMicrodescriptors.contains(microdescriptorDigest)) {
+          this.missingMicrodescriptors.add(microdescriptorDigest);
+          this.newMissingMicrodescriptors++;
+        }
+      }
+    }
+  }
+
+  /**
    * We have parsed a vote. Take this vote off the missing list and add
    * the <code>serverDescriptors</code> which are in the format
    * "<published>,<relayid>,<descid>" to that list.
@@ -470,6 +602,23 @@ public class RelayDescriptorDownloader {
   }
 
   /**
+   * We have parsed a microdescriptor. Take it off the missing list.
+   */
+  public void haveParsedMicrodescriptor(String descriptorDigest) {
+    if (this.microdescriptorKeys.containsKey(descriptorDigest)) {
+      for (String microdescriptorKey :
+          this.microdescriptorKeys.get(descriptorDigest)) {
+        String validAfter = microdescriptorKey.split(",")[0];
+        if (this.descriptorCutOff.compareTo(validAfter) < 0) {
+          this.missingDescriptors.put(microdescriptorKey,
+              this.currentTimestamp);
+        }
+      }
+      this.missingMicrodescriptors.remove(descriptorDigest);
+    }
+  }
+
+  /**
    * Downloads missing descriptors that we think might still be available
    * on the directory authorities as well as all server and extra-info
    * descriptors once per day.
@@ -482,6 +631,12 @@ public class RelayDescriptorDownloader {
     if (!this.missingDescriptors.containsKey(consensusKey)) {
       this.missingDescriptors.put(consensusKey, "NA");
       this.newMissingConsensuses++;
+    }
+    String microdescConsensusKey = "consensus-microdesc,"
+        + this.currentValidAfter;
+    if (!this.missingDescriptors.containsKey(microdescConsensusKey)) {
+      this.missingDescriptors.put(microdescConsensusKey, "NA");
+      this.newMissingMicrodescConsensuses++;
     }
     for (String authority : authorityFingerprints) {
       String voteKey = "vote," + this.currentValidAfter + "," + authority;
@@ -516,6 +671,19 @@ public class RelayDescriptorDownloader {
           }
         }
 
+        /* Then try to download the microdesc consensus. */
+        if (downloadCurrentMicrodescConsensus) {
+          if (this.missingDescriptors.containsKey(
+              microdescConsensusKey) &&
+              this.missingDescriptors.get(microdescConsensusKey).
+              equals("NA")) {
+            this.requestedMicrodescConsensuses++;
+            this.downloadedMicrodescConsensuses +=
+                this.downloadResourceFromAuthority(authority,
+                "/tor/status-vote/current/consensus-microdesc");
+          }
+        }
+
         /* Next, try to download current votes that we're missing. */
         if (downloadCurrentVotes) {
           String voteKeyPrefix = "vote," + this.currentValidAfter;
@@ -538,10 +706,9 @@ public class RelayDescriptorDownloader {
 
         /* Download either all server and extra-info descriptors or only
          * those that we're missing. Start with server descriptors, then
-         * request extra-info descriptors. */
-        List<String> types = new ArrayList<String>(Arrays.asList(
-            "server,extra".split(",")));
-        for (String type : types) {
+         * request extra-info descriptors. Finally, request missing
+         * microdescriptors. */
+        for (String type : new String[] { "server", "extra", "micro" }) {
 
           /* Download all server or extra-info descriptors from this
            * authority if we haven't done so for 24 hours and if we're
@@ -557,21 +724,24 @@ public class RelayDescriptorDownloader {
               this.requestedAllServerDescriptors++;
               this.downloadedAllServerDescriptors +=
                   downloadedAllDescriptors;
-            } else {
+            } else if (type.equals("extra")) {
               this.requestedAllExtraInfoDescriptors++;
               this.downloadedAllExtraInfoDescriptors +=
                   downloadedAllDescriptors;
             }
 
-          /* Download missing server or extra-info descriptors if we're
-           * configured to do so. */
+          /* Download missing server descriptors, extra-info descriptors,
+           * and microdescriptors if we're configured to do so. */
           } else if ((type.equals("server") &&
               this.downloadMissingServerDescriptors) ||
-              (type.equals("extra") && this.downloadMissingExtraInfos)) {
+              (type.equals("extra") && this.downloadMissingExtraInfos) ||
+              (type.equals("micro") &&
+              this.downloadMissingMicrodescriptors)) {
 
             /* Go through the list of missing descriptors of this type
              * and combine the descriptor identifiers to a URL of up to
-             * 96 descriptors that we can download at once. */
+             * 96 server or extra-info descriptors or 92 microdescriptors
+             * that we can download at once. */
             SortedSet<String> descriptorIdentifiers =
                 new TreeSet<String>();
             for (Map.Entry<String, String> e :
@@ -587,8 +757,12 @@ public class RelayDescriptorDownloader {
             StringBuilder combinedResource = null;
             int descriptorsInCombinedResource = 0,
                 requestedDescriptors = 0, downloadedDescriptors = 0;
+            int maxDescriptorsInCombinedResource =
+                type.equals("micro") ? 92 : 96;
+            String separator = type.equals("micro") ? "-" : "+";
             for (String descriptorIdentifier : descriptorIdentifiers) {
-              if (descriptorsInCombinedResource >= 96) {
+              if (descriptorsInCombinedResource >=
+                  maxDescriptorsInCombinedResource) {
                 requestedDescriptors += descriptorsInCombinedResource;
                 downloadedDescriptors +=
                     this.downloadResourceFromAuthority(authority,
@@ -600,7 +774,7 @@ public class RelayDescriptorDownloader {
                 combinedResource = new StringBuilder("/tor/" + type
                     + "/d/" + descriptorIdentifier);
               } else {
-                combinedResource.append("+" + descriptorIdentifier);
+                combinedResource.append(separator + descriptorIdentifier);
               }
               descriptorsInCombinedResource++;
             }
@@ -615,10 +789,15 @@ public class RelayDescriptorDownloader {
                   requestedDescriptors;
               this.downloadedMissingServerDescriptors +=
                   downloadedDescriptors;
-            } else {
+            } else if (type.equals("extra")) {
               this.requestedMissingExtraInfoDescriptors +=
                   requestedDescriptors;
               this.downloadedMissingExtraInfoDescriptors +=
+                  downloadedDescriptors;
+            } else if (type.equals("micro")) {
+              this.requestedMissingMicrodescriptors +=
+                  requestedDescriptors;
+              this.downloadedMissingMicrodescriptors +=
                   downloadedDescriptors;
             }
           }
@@ -680,7 +859,8 @@ public class RelayDescriptorDownloader {
         receivedDescriptors = 1;
       } else if (resource.startsWith("/tor/server/") ||
           resource.startsWith("/tor/extra/")) {
-        if (resource.equals("/tor/server/all")) {
+        if (resource.equals("/tor/server/all") ||
+            resource.equals("/tor/extra/all")) {
           this.lastDownloadedAllDescriptors.put(authority,
               this.currentTimestamp);
         }
@@ -715,6 +895,60 @@ public class RelayDescriptorDownloader {
           this.rdp.parse(descBytes);
           receivedDescriptors++;
         }
+      } else if (resource.startsWith("/tor/micro/")) {
+        /* TODO We need to parse microdescriptors ourselves, rather than
+         * RelayDescriptorParser, because only we know the valid-after
+         * time(s) of microdesc consensus(es) containing this
+         * microdescriptor.  However, this breaks functional abstraction
+         * pretty badly. */
+        SimpleDateFormat parseFormat =
+            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        parseFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String ascii = null;
+        try {
+          ascii = new String(allData, "US-ASCII");
+        } catch (UnsupportedEncodingException e) {
+          /* No way that US-ASCII is not supported. */
+        }
+        int start = -1, end = -1;
+        String startToken = "onion-key\n";
+        while (end < ascii.length()) {
+          start = ascii.indexOf(startToken, end);
+          if (start < 0) {
+            break;
+          }
+          end = ascii.indexOf(startToken, start + 1);
+          if (end < 0) {
+            end = ascii.length();
+            if (end <= start) {
+              break;
+            }
+          }
+          byte[] descBytes = new byte[end - start];
+          System.arraycopy(allData, start, descBytes, 0, end - start);
+          String digest256Base64 = Base64.encodeBase64String(
+              DigestUtils.sha256(descBytes)).replaceAll("=", "");
+          if (!this.microdescriptorKeys.containsKey(digest256Base64)) {
+            continue;
+          }
+          String digest256Hex = DigestUtils.sha256Hex(descBytes);
+          for (String microdescriptorKey :
+              this.microdescriptorKeys.get(digest256Base64)) {
+            String validAfterTime = microdescriptorKey.split(",")[1];
+            try {
+              long validAfter =
+                  parseFormat.parse(validAfterTime).getTime();
+              this.rdp.storeMicrodescriptor(descBytes, digest256Hex,
+                  digest256Base64, validAfter);
+            } catch (ParseException e) {
+              this.logger.log(Level.WARNING, "Could not parse "
+                  + "valid-after time '" + validAfterTime + "' in "
+                  + "microdescriptor key. Not storing microdescriptor.",
+                  e);
+            }
+          }
+          receivedDescriptors++;
+        }
       }
     }
     return receivedDescriptors;
@@ -727,8 +961,9 @@ public class RelayDescriptorDownloader {
   public void writeFile() {
 
     /* Write missing descriptors file to disk. */
-    int missingConsensuses = 0, missingVotes = 0,
-        missingServerDescriptors = 0, missingExtraInfoDescriptors = 0;
+    int missingConsensuses = 0, missingMicrodescConsensuses = 0,
+        missingVotes = 0, missingServerDescriptors = 0,
+        missingExtraInfoDescriptors = 0;
     try {
       this.logger.fine("Writing file "
           + this.missingDescriptorsFile.getAbsolutePath() + "...");
@@ -742,12 +977,15 @@ public class RelayDescriptorDownloader {
           /* Not missing. */
         } else if (key.startsWith("consensus,")) {
           missingConsensuses++;
+        } else if (key.startsWith("consensus-microdesc,")) {
+          missingMicrodescConsensuses++;
         } else if (key.startsWith("vote,")) {
           missingVotes++;
         } else if (key.startsWith("server,")) {
           missingServerDescriptors++;
         } else if (key.startsWith("extra,")) {
           missingExtraInfoDescriptors++;
+        } else if (key.startsWith("micro,")) {
         }
         bw.write(key + "," + value + "\n");
       }
@@ -758,6 +996,7 @@ public class RelayDescriptorDownloader {
       this.logger.log(Level.WARNING, "Failed writing "
           + this.missingDescriptorsFile.getAbsolutePath() + "!", e);
     }
+    int missingMicrodescriptors = this.missingMicrodescriptors.size();
 
     /* Write text file containing the directory authorities and when we
      * last downloaded all server and extra-info descriptors from them to
@@ -790,25 +1029,33 @@ public class RelayDescriptorDownloader {
         + "directory authorities.");
     this.logger.info("At the beginning of this execution, we were "
         + "missing " + oldMissingConsensuses + " consensus(es), "
+        + oldMissingMicrodescConsensuses + " microdesc consensus(es), "
         + oldMissingVotes + " vote(s), " + oldMissingServerDescriptors
-        + " server descriptor(s), and " + oldMissingExtraInfoDescriptors
-        + " extra-info descriptor(s).");
+        + " server descriptor(s), " + oldMissingExtraInfoDescriptors
+        + " extra-info descriptor(s), and " + oldMissingMicrodescriptors
+        + " microdescriptor(s).");
     this.logger.info("During this execution, we added "
         + this.newMissingConsensuses + " consensus(es), "
-        + this.newMissingVotes + " vote(s), "
-        + this.newMissingServerDescriptors + " server descriptor(s), and "
-        + this.newMissingExtraInfoDescriptors + " extra-info "
-        + "descriptor(s) to the missing list, some of which we also "
+        + this.newMissingMicrodescConsensuses
+        + " microdesc consensus(es), " + this.newMissingVotes
+        + " vote(s), " + this.newMissingServerDescriptors
+        + " server descriptor(s), " + this.newMissingExtraInfoDescriptors
+        + " extra-info descriptor(s), and "
+        + this.newMissingMicrodescriptors + " microdescriptor(s) to the "
+        + "missing list, some of which we also "
         + "requested and removed from the list again.");
     this.logger.info("We requested " + this.requestedConsensuses
-        + " consensus(es), " + this.requestedVotes + " vote(s), "
-        + this.requestedMissingServerDescriptors + " missing server "
-        + "descriptor(s), " + this.requestedAllServerDescriptors
+        + " consensus(es), " + this.requestedMicrodescConsensuses
+        + " microdesc consensus(es), " + this.requestedVotes
+        + " vote(s), " + this.requestedMissingServerDescriptors
+        + " missing server descriptor(s), "
+        + this.requestedAllServerDescriptors
         + " times all server descriptors, "
         + this.requestedMissingExtraInfoDescriptors + " missing "
-        + "extra-info descriptor(s), and "
+        + "extra-info descriptor(s), "
         + this.requestedAllExtraInfoDescriptors + " times all extra-info "
-        + "descriptors from the directory authorities.");
+        + "descriptors, and " + this.requestedMissingMicrodescriptors
+        + " missing microdescriptor(s) from the directory authorities.");
     StringBuilder sb = new StringBuilder();
     for (String authority : this.authorities) {
       sb.append(" " + authority + "="
@@ -818,20 +1065,26 @@ public class RelayDescriptorDownloader {
         + "authorities:" + sb.toString());
     this.logger.info("We successfully downloaded "
         + this.downloadedConsensuses + " consensus(es), "
-        + this.downloadedVotes + " vote(s), "
-        + this.downloadedMissingServerDescriptors + " missing server "
-        + "descriptor(s), " + this.downloadedAllServerDescriptors
+        + this.downloadedMicrodescConsensuses
+        + " microdesc consensus(es), " + this.downloadedVotes
+        + " vote(s), " + this.downloadedMissingServerDescriptors
+        + " missing server descriptor(s), "
+        + this.downloadedAllServerDescriptors
         + " server descriptor(s) when downloading all descriptors, "
         + this.downloadedMissingExtraInfoDescriptors + " missing "
-        + "extra-info descriptor(s) and "
+        + "extra-info descriptor(s), "
         + this.downloadedAllExtraInfoDescriptors + " extra-info "
-        + "descriptor(s) when downloading all descriptors.");
+        + "descriptor(s) when downloading all descriptors, and "
+        + this.downloadedMissingMicrodescriptors
+        + " missing microdescriptor(s).");
     this.logger.info("At the end of this execution, we are missing "
-      + missingConsensuses + " consensus(es), " + missingVotes
-      + " vote(s), " + missingServerDescriptors + " server "
-      + "descriptor(s), and " + missingExtraInfoDescriptors
-      + " extra-info descriptor(s), some of which we may try in the next "
-      + "execution.");
+        + missingConsensuses + " consensus(es), "
+        + missingMicrodescConsensuses + " microdesc consensus(es), "
+        + missingVotes + " vote(s), " + missingServerDescriptors
+        + " server descriptor(s), " + missingExtraInfoDescriptors
+        + " extra-info descriptor(s), and " + missingMicrodescriptors
+        + " microdescriptor(s), some of which we may try in the next "
+        + "execution.");
   }
 }
 

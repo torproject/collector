@@ -33,6 +33,10 @@
 ## Download the current consensus (only if DownloadRelayDescriptors is 1)
 #DownloadCurrentConsensus 1
 #
+## Download the current microdesc consensus (only if
+## DownloadRelayDescriptors is 1)
+#DownloadCurrentMicrodescConsensus 1
+#
 ## Download current votes (only if DownloadRelayDescriptors is 1)
 #DownloadCurrentVotes 1
 #
@@ -43,6 +47,10 @@
 ## Download missing extra-info descriptors (only if
 ## DownloadRelayDescriptors is 1)
 #DownloadMissingExtraInfoDescriptors 1
+#
+## Download missing microdescriptors (only if
+## DownloadRelayDescriptors is 1)
+#DownloadMissingMicrodescriptors 1
 #
 ## Download all server descriptors from the directory authorities at most
 ## once a day (only if DownloadRelayDescriptors is 1)
