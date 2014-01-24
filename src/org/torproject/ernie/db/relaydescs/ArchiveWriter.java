@@ -177,7 +177,7 @@ public class ArchiveWriter extends Thread {
             break;
           }
           long validAfter = dateTimeFormat.parse(parts[0]).getTime();
-          if (validAfter < this.now - 48L * 60L * 60L * 1000L) {
+          if (validAfter < this.now - 40L * 24L * 60L * 60L * 1000L) {
             continue;
           }
           if (!this.storedMicrodescriptors.containsKey(validAfter)) {
@@ -514,9 +514,10 @@ public class ArchiveWriter extends Thread {
     if (this.store(MICRODESCRIPTOR_ANNOTATION, data, outputFiles)) {
       this.storedMicrodescriptorsCounter++;
     }
-    if (this.now - validAfter < 48L * 60L * 60L * 1000L) {
+    if (validAfter < this.now - 40L * 24L * 60L * 60L * 1000L) {
       if (!this.storedMicrodescriptors.containsKey(validAfter)) {
-        this.storedMicrodescriptors.put(validAfter, new HashSet<String>());
+        this.storedMicrodescriptors.put(validAfter,
+            new HashSet<String>());
       }
       this.storedMicrodescriptors.get(validAfter).add(
           microdescriptorDigest);
