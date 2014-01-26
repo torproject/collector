@@ -514,7 +514,7 @@ public class ArchiveWriter extends Thread {
     if (this.store(MICRODESCRIPTOR_ANNOTATION, data, outputFiles)) {
       this.storedMicrodescriptorsCounter++;
     }
-    if (validAfter < this.now - 40L * 24L * 60L * 60L * 1000L) {
+    if (this.now - validAfter < 40L * 24L * 60L * 60L * 1000L) {
       if (!this.storedMicrodescriptors.containsKey(validAfter)) {
         this.storedMicrodescriptors.put(validAfter,
             new HashSet<String>());
