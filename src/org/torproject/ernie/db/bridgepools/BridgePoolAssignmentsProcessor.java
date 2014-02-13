@@ -92,7 +92,7 @@ public class BridgePoolAssignmentsProcessor extends Thread {
       File file = files.pop();
       if (file.isDirectory()) {
         files.addAll(Arrays.asList(file.listFiles()));
-      } else if (!file.getName().endsWith(".gz")) {
+      } else if (file.getName().equals("assignments.log")) {
         assignmentFiles.add(file);
       }
     }
