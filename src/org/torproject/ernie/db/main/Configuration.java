@@ -39,9 +39,9 @@ public class Configuration {
   private String bridgeSnapshotsDirectory = "in/bridge-descriptors/";
   private boolean downloadRelayDescriptors = false;
   private List<String> downloadFromDirectoryAuthorities = Arrays.asList((
-      "86.59.21.38,76.73.17.194:9030,213.115.239.118:443,"
+      "86.59.21.38,76.73.17.194:9030,171.25.193.9:443,"
       + "193.23.244.244,208.83.223.34:443,128.31.0.34:9131,"
-      + "194.109.206.212,212.112.245.170").split(","));
+      + "194.109.206.212,212.112.245.170,154.35.32.5").split(","));
   private List<String> downloadVotesByFingerprint = Arrays.asList((
       "14C131DFC5C6F93646BE72FA1401C02A8DF2E8B4,"
       + "27B6B5996C426270A5C95488AA5BCEB6BCC86956,"
