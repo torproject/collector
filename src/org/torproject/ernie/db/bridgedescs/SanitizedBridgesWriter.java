@@ -90,6 +90,8 @@ public class SanitizedBridgesWriter extends Thread {
    */
   private Logger logger;
 
+  private String rsyncCatString;
+
   private File bridgeDirectoriesDirectory;
 
   /**
@@ -136,6 +138,12 @@ public class SanitizedBridgesWriter extends Thread {
     /* Initialize logger. */
     this.logger = Logger.getLogger(
         SanitizedBridgesWriter.class.getName());
+
+    SimpleDateFormat rsyncCatFormat = new SimpleDateFormat(
+        "yyyy-MM-dd-HH-mm-ss");
+    rsyncCatFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    this.rsyncCatString = rsyncCatFormat.format(
+        System.currentTimeMillis());
 
     /* Initialize secure random number generator if we need it. */
     if (this.replaceIPAddressesWithHashes) {
@@ -827,12 +835,19 @@ public class SanitizedBridgesWriter extends Thread {
     File rsyncFile = new File(
         "rsync/bridge-descriptors/server-descriptors/"
         + tarballFile.getName());
-    File[] outputFiles = new File[] { tarballFile, rsyncFile };
+    File rsyncCatFile = new File("rsync/bridge-descriptors/"
+        + "server-descriptors-cat/" + this.rsyncCatString
+        + "-server-descriptors.tmp");
+    File[] outputFiles = new File[] { tarballFile, rsyncFile,
+        rsyncCatFile };
+    boolean[] append = new boolean[] { false, false, true };
     try {
-      for (File outputFile : outputFiles) {
+      for (int i = 0; i < outputFiles.length; i++) {
+        File outputFile = outputFiles[i];
+        boolean appendToFile = append[i];
         outputFile.getParentFile().mkdirs();
         BufferedWriter bw = new BufferedWriter(new FileWriter(
-            outputFile));
+            outputFile, appendToFile));
         bw.write("@type bridge-server-descriptor 1.0\n");
         bw.write(scrubbedDesc);
         bw.write("router-digest " + descriptorDigest.toUpperCase() + "\n");
@@ -968,12 +983,18 @@ public class SanitizedBridgesWriter extends Thread {
         + descriptorDigest);
     File rsyncFile = new File("rsync/bridge-descriptors/extra-infos/"
         + tarballFile.getName());
-    File[] outputFiles = new File[] { tarballFile, rsyncFile };
+    File rsyncCatFile = new File("rsync/bridge-descriptors/"
+        + "extra-infos-cat/" + this.rsyncCatString + "-extra-infos.tmp");
+    File[] outputFiles = new File[] { tarballFile, rsyncFile,
+        rsyncCatFile };
+    boolean[] append = new boolean[] { false, false, true };
     try {
-      for (File outputFile : outputFiles) {
+      for (int i = 0; i < outputFiles.length; i++) {
+        File outputFile = outputFiles[i];
+        boolean appendToFile = append[i];
         outputFile.getParentFile().mkdirs();
         BufferedWriter bw = new BufferedWriter(new FileWriter(
-            outputFile));
+            outputFile, appendToFile));
         bw.write("@type bridge-extra-info 1.2\n");
         bw.write(scrubbedDesc);
         bw.write("router-digest " + descriptorDigest.toUpperCase() + "\n");
@@ -1062,7 +1083,8 @@ public class SanitizedBridgesWriter extends Thread {
   }
 
   /* Delete all files from the rsync directory that have not been modified
-   * in the last three days. */
+   * in the last three days, and remove the .tmp extension from newly
+   * written files. */
   public void cleanUpRsyncDirectory() {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
@@ -1074,6 +1096,10 @@ public class SanitizedBridgesWriter extends Thread {
         allFiles.addAll(Arrays.asList(file.listFiles()));
       } else if (file.lastModified() < cutOffMillis) {
         file.delete();
+      } else if (file.getName().endsWith(".tmp")) {
+        file.renameTo(new File(file.getParentFile(),
+            file.getName().substring(0,
+            file.getName().lastIndexOf(".tmp"))));
       }
     }
   }

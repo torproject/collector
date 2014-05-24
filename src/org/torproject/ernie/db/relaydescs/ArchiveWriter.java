@@ -72,6 +72,7 @@ public class ArchiveWriter extends Thread {
   private long now = System.currentTimeMillis();
   private Logger logger;
   private File outputDirectory;
+  private String rsyncCatString;
   private DescriptorParser descriptorParser;
   private int storedConsensusesCounter = 0,
       storedMicrodescConsensusesCounter = 0, storedVotesCounter = 0,
@@ -260,6 +261,11 @@ public class ArchiveWriter extends Thread {
 
     this.logger = Logger.getLogger(ArchiveWriter.class.getName());
     this.outputDirectory = outputDirectory;
+    SimpleDateFormat rsyncCatFormat = new SimpleDateFormat(
+        "yyyy-MM-dd-HH-mm-ss");
+    rsyncCatFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    this.rsyncCatString = rsyncCatFormat.format(
+        System.currentTimeMillis());
     this.descriptorParser =
         DescriptorSourceFactory.createDescriptorParser();
 
@@ -317,7 +323,7 @@ public class ArchiveWriter extends Thread {
   }
 
   private boolean store(byte[] typeAnnotation, byte[] data,
-      File[] outputFiles) {
+      File[] outputFiles, boolean[] append) {
     try {
       this.logger.finer("Storing " + outputFiles[0]);
       if (this.descriptorParser.parseDescriptors(data,
@@ -326,10 +332,12 @@ public class ArchiveWriter extends Thread {
             + " doesn't contain exactly one descriptor.  Not storing.");
         return false;
       }
-      for (File outputFile : outputFiles) {
+      for (int i = 0; i < outputFiles.length; i++) {
+        File outputFile = outputFiles[i];
+        boolean appendToFile = append == null ? false : append[i];
         outputFile.getParentFile().mkdirs();
         BufferedOutputStream bos = new BufferedOutputStream(
-            new FileOutputStream(outputFile));
+            new FileOutputStream(outputFile, appendToFile));
         if (data.length > 0 && data[0] != '@') {
           bos.write(typeAnnotation, 0, typeAnnotation.length);
         }
@@ -360,7 +368,7 @@ public class ArchiveWriter extends Thread {
     File rsyncFile = new File("rsync/relay-descriptors/consensuses/"
         + tarballFile.getName());
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
-    if (this.store(CONSENSUS_ANNOTATION, data, outputFiles)) {
+    if (this.store(CONSENSUS_ANNOTATION, data, outputFiles, null)) {
       this.storedConsensusesCounter++;
     }
     if (this.now - validAfter < 3L * 60L * 60L * 1000L) {
@@ -387,7 +395,8 @@ public class ArchiveWriter extends Thread {
     File rsyncFile = new File("rsync/relay-descriptors/microdescs/"
         + "consensus-microdesc/" + tarballFile.getName());
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
-    if (this.store(MICRODESCCONSENSUS_ANNOTATION, data, outputFiles)) {
+    if (this.store(MICRODESCCONSENSUS_ANNOTATION, data, outputFiles,
+        null)) {
       this.storedMicrodescConsensusesCounter++;
     }
     if (this.now - validAfter < 3L * 60L * 60L * 1000L) {
@@ -410,7 +419,7 @@ public class ArchiveWriter extends Thread {
     File rsyncFile = new File("rsync/relay-descriptors/votes/"
         + tarballFile.getName());
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
-    if (this.store(VOTE_ANNOTATION, data, outputFiles)) {
+    if (this.store(VOTE_ANNOTATION, data, outputFiles, null)) {
       this.storedVotesCounter++;
     }
     if (this.now - validAfter < 3L * 60L * 60L * 1000L) {
@@ -433,7 +442,7 @@ public class ArchiveWriter extends Thread {
     File tarballFile = new File(this.outputDirectory + "/certs/"
         + fingerprint + "-" + printFormat.format(new Date(published)));
     File[] outputFiles = new File[] { tarballFile };
-    if (this.store(CERTIFICATE_ANNOTATION, data, outputFiles)) {
+    if (this.store(CERTIFICATE_ANNOTATION, data, outputFiles, null)) {
       this.storedCertsCounter++;
     }
   }
@@ -450,8 +459,14 @@ public class ArchiveWriter extends Thread {
         + digest);
     File rsyncFile = new File(
         "rsync/relay-descriptors/server-descriptors/" + digest);
-    File[] outputFiles = new File[] { tarballFile, rsyncFile };
-    if (this.store(SERVER_DESCRIPTOR_ANNOTATION, data, outputFiles)) {
+    File rsyncCatFile = new File("rsync/relay-descriptors/"
+        + "server-descriptors-cat/" + this.rsyncCatString
+        + "-server-descriptors.tmp");
+    File[] outputFiles = new File[] { tarballFile, rsyncFile,
+        rsyncCatFile };
+    boolean[] append = new boolean[] { false, false, true };
+    if (this.store(SERVER_DESCRIPTOR_ANNOTATION, data, outputFiles,
+        append)) {
       this.storedServerDescriptorsCounter++;
     }
     if (this.now - published < 48L * 60L * 60L * 1000L) {
@@ -477,8 +492,12 @@ public class ArchiveWriter extends Thread {
         + extraInfoDigest);
     File rsyncFile = new File("rsync/relay-descriptors/extra-infos/"
         + extraInfoDigest);
-    File[] outputFiles = new File[] { tarballFile, rsyncFile };
-    if (this.store(EXTRA_INFO_ANNOTATION, data, outputFiles)) {
+    File rsyncCatFile = new File("rsync/relay-descriptors/"
+        + "extra-infos-cat/" + this.rsyncCatString + "-extra-infos.tmp");
+    File[] outputFiles = new File[] { tarballFile, rsyncFile,
+        rsyncCatFile };
+    boolean[] append = new boolean[] { false, false, true };
+    if (this.store(EXTRA_INFO_ANNOTATION, data, outputFiles, append)) {
       this.storedExtraInfoDescriptorsCounter++;
     }
     if (this.now - published < 48L * 60L * 60L * 1000L) {
@@ -510,8 +529,14 @@ public class ArchiveWriter extends Thread {
         + microdescriptorDigest);
     File rsyncFile = new File("rsync/relay-descriptors/microdescs/micro/"
         + microdescriptorDigest);
-    File[] outputFiles = new File[] { tarballFile, rsyncFile };
-    if (this.store(MICRODESCRIPTOR_ANNOTATION, data, outputFiles)) {
+    File rsyncCatFile = new File("rsync/relay-descriptors/"
+        + "microdescs/micro-cat/" + this.rsyncCatString
+        + "-micro.tmp");
+    File[] outputFiles = new File[] { tarballFile, rsyncFile,
+        rsyncCatFile };
+    boolean[] append = new boolean[] { false, false, true };
+    if (this.store(MICRODESCRIPTOR_ANNOTATION, data, outputFiles,
+        append)) {
       this.storedMicrodescriptorsCounter++;
     }
     if (this.now - validAfter < 40L * 24L * 60L * 60L * 1000L) {
@@ -766,7 +791,8 @@ public class ArchiveWriter extends Thread {
   }
 
   /* Delete all files from the rsync directory that have not been modified
-   * in the last three days. */
+   * in the last three days, and remove the .tmp extension from newly
+   * written files. */
   public void cleanUpRsyncDirectory() {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
@@ -778,6 +804,10 @@ public class ArchiveWriter extends Thread {
         allFiles.addAll(Arrays.asList(file.listFiles()));
       } else if (file.lastModified() < cutOffMillis) {
         file.delete();
+      } else if (file.getName().endsWith(".tmp")) {
+        file.renameTo(new File(file.getParentFile(),
+            file.getName().substring(0,
+            file.getName().lastIndexOf(".tmp"))));
       }
     }
   }
