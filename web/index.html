@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 <head>
-<title>CollecTor &mdash; your friendly data-collecting service in the Tor
+<title>CollecTor &mdash; Your friendly data-collecting service in the Tor
 network</title>
 <link href="css/style.css" type="text/css" rel="stylesheet">
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
@@ -11,8 +11,8 @@ network</title>
 
 <div class="box">
 
-<h1>CollecTor &mdash; your friendly data-collecting service in the Tor
-network</h1>
+<h1><a href="index.html">CollecTor</a> &mdash;</h1>
+<h2>Your friendly data-collecting service in the Tor network</h2>
 
 <p>
 Welcome to CollecTor, your friendly data-collecting service in the Tor
@@ -23,12 +23,51 @@ If you're doing research on the Tor network, or if you're developing an
 application that uses Tor network data, this is your place to start.
 </p>
 
+<ul>
+<li><a href="#formats">What is in the data?</a></li>
+<li><a href="#download">Where do I get the data?</a></li>
+<li><a href="#libraries">How can I parse the data?</a></li>
+<li><a href="#references">What did others do with the data?</a></li>
+<li><a href="#support">How can I get support?</a></li>
+</ul>
+
 </div> <!-- box -->
 
 <div class="box">
 
-<a name="archive"></a>
-<h3>Archive of monthly tarballs <a href="#archive">#</a></h3>
+<a name="formats"></a>
+<h2>What is in the data? <a href="#formats">#</a></h2>
+
+<p>
+The Tor network data provided here comes from currently five different
+sources (each of which is explained in more detail on a
+<a href="formats.html">separate page</a>):
+</p>
+
+<ol>
+<li>Relays and directory authorities publish
+<a href="formats.html#relay-descriptors">relay descriptors</a>, so that
+clients can select relays for their paths through the Tor network.</li>
+<li>Bridges and the bridge authority publish
+<a href="formats.html#bridge-descriptors">bridge descriptors</a> that are
+used by censored clients to connect to the Tor network.</li>
+<li>The bridge distribution service BridgeDB publishes
+<a href="formats.html#bridge-pool-assignments">bridge pool assignments</a>
+describing which bridges it has assigned to which distribution pool.</li>
+<li>The exit list service TorDNSEL publishes
+<a href="formats.html#exit-lists">exit lists</a> containing the IP
+addresses of relays that it found when exiting through them.</li>
+<li>The performance measurement service Torperf publishes
+<a href="formats.html#torperf">performance data</a> from making simple
+HTTP requests over the Tor network.</li>
+</ol>
+
+</div> <!-- box -->
+
+<div class="box">
+
+<a name="download"></a>
+<h2>Where do I get the data? <a href="#download">#</a></h2>
 
 <p>
 We have over 10 years of Tor network data available for download in
@@ -36,24 +75,11 @@ monthly tarballs.
 The latest tarballs are updated every few days.
 So, if you want to fetch data covering an extended period of time, monthly
 tarballs are for you.
-Note that tarballs can decompress to 20 times the compressed size or even
-more.
+Just be careful: these tarballs can decompress to 20 times the compressed
+size or even more.
+Monthly tarballs can be browsed and downloaded in the
+<a href="archive/"><tt>archive/</tt></a> subdirectory.
 </p>
-
-<p>
-Monthly tarballs can be browsed and downloaded here:
-</p>
-
-<pre>
-    <a href="archive/">https://collector.torproject.org/archive/</a>
-</pre>
-
-</div> <!-- box -->
-
-<div class="box">
-
-<a name="recent"></a>
-<h3>The latest 72 hours <a href="#recent">#</a></h3>
 
 <p>
 If you're only interested in recently published data, we also have data
@@ -62,30 +88,91 @@ In contrast to monthly tarballs, this data set is updated every hour.
 If you have already bootstrapped your application with monthly tarballs
 and want to stay up-to-date, or if you just want to take a peak at the
 latest data, this is your data set.
+If you're using special software to download these files, you may want to
+configure it to accept gzip-compressed data to save us all some bandwidth.
+The latest 72 hours of data are available in the
+<a href="recent/"><tt>recent/</tt></a> subdirectory.
 </p>
-
-<p>
-The latest 72 hours of data are also available here:
-</p>
-
-<pre>
-    <a href="recent/">https://collector.torproject.org/recent/</a>
-</pre>
 
 </div> <!-- box -->
 
 <div class="box">
 
-<a name="next"></a>
-<h3>What's next? <a href="#next">#</a></h3>
+<a name="libraries"></a>
+<h2>How can I parse the data? <a href="#libraries">#</a></h2>
 
 <p>
-Do you need support?
-If you have any questions or feedback about the Tor network data provided
-here, we'd like to hear from you!
-Please send mail to the
-<a href="mailto:tor-dev@lists.torproject.org">Tor development mailing
-list</a>.
+We developed two parsing libraries, one for Java and one for Python:
+</p>
+
+<ul>
+<li>If you're programming in Java, try out the
+<a href="https://gitweb.torproject.org/metrics-lib.git">metrics-lib</a>
+library.</li>
+<li>If you're writing in Python,
+<a href="https://stem.torproject.org/">Stem</a> is your library.</li>
+</ul>
+
+<p>
+If you developed a parsing library for another language and want it to be
+listed here, <a href="#support">please let us know</a>!</h2>
+</p>
+
+</div> <!-- box -->
+
+<div class="box">
+
+<a name="references"></a>
+<h2>What did others do with the data? <a href="#references">#</a></h2>
+
+<p>
+We wrote a couple of applications, and researchers wrote research papers
+using the Tor network data provided here.
+The following list is not at all exhaustive:
+</p>
+
+<ul>
+<li>The metrics portal shows graphs of
+<a href="https://metrics.torproject.org/network.html">network growth over
+time</a> and <a href="https://metrics.torproject.org/users.html">estimates
+of users derived from directory activity</a>.</li>
+<li>The <a href="https://exonerator.torproject.org/">ExoneraTor
+service</a> allows people to look up whether a given IP address was part
+of the Tor network in the past.</li>
+<li>The websites <a href="https://atlas.torproject.org/">Atlas</a>,
+<a href="https://globe.torproject.org/">Globe</a>, and
+<a href="https://compass.torproject.org/">Compass</a> let users explore
+how specific relays or bridges contribute to the Tor network.
+They all use <a href="https://onionoo.torproject.org/">Onionoo</a> as
+their data back-end service which in turn uses the Tor network data
+provided here.</li>
+<li>The <a href="https://shadow.github.io/">Shadow Simulator</a> uses
+archived Tor directory data to generate network topologies that match the
+real Tor network as close as possible.</li>
+<li>The <a href="https://torps.github.io/">Tor Path Simulator</a> uses Tor
+directory archive data to simulate the effect of changes to Tor's path
+selection algorithm.</li>
+</ul>
+
+<p>
+If you wrote an application or research paper that uses Tor network data
+and that is not yet listed here, <a href="#support">please let us
+know</a>!</h2>
+Please include a short description what your application does or what your
+research was about.
+</p>
+
+</div> <!-- box -->
+
+<div class="box">
+
+<a name="support"></a>
+<h2>How can I get support? <a href="#support">#</a></h2>
+
+<p>
+If you have any questions about the Tor network data provided here, we'd
+like to <a href="mailto:help@rt.torproject.org">hear from you</a>!
+Of course, suggestions or other feedback are welcome, too.
 </p>
 
 </div>
