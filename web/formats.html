@@ -311,6 +311,14 @@ contain all descriptors collected in an hour concatenated into a single
 file to reduce the number of files.
 </p>
 
+<p>
+There was supposed to be a newer version of this document that indicates
+added <tt>ntor-onion-key</tt> lines, but due to a mistake only the version
+number of sanitized bridge extra-info descriptors was raised.
+As a result, there may be sanitzed bridge server descriptors with and
+without those lines.
+</p>
+
 <h3>Extra-info descriptors
 (<a href="archive/bridge-descriptors/">archive</a>,
 <a href="recent/bridge-descriptors/extra-infos/">recent</a>)
@@ -318,7 +326,7 @@ file to reduce the number of files.
 </h3>
 
 <p>
-Bridge server descriptors follow the same format as relay server
+Bridge extra-info descriptors follow the same format as relay extra-info
 descriptors, except for the sanitizing steps described above.
 The format has changed over time to accomodate changes to the sanitizing
 process, with earlier versions being:
@@ -329,8 +337,10 @@ process, with earlier versions being:
 version.</font></li>
 <li><font color="#666"><tt>@type bridge-extra-info 1.1</tt> added
 sanitized <tt>transport</tt> lines</font>.</li>
-<li><tt>@type bridge-extra-info 1.2</tt> added <tt>ntor-onion-key</tt>
-lines.</li>
+<li><tt>@type bridge-extra-info 1.2</tt> was supposed to indicate added
+<tt>ntor-onion-key</tt> lines, but those changes only affect bridge server
+descriptors, not extra-info descriptors.
+So, nothing has changed as compared to version 1.1.</li>
 </ul>
 
 <p>
