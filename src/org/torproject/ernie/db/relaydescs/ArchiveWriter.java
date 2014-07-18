@@ -365,13 +365,15 @@ public class ArchiveWriter extends Thread {
     printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     File tarballFile = new File(this.outputDirectory + "/consensus/"
         + printFormat.format(new Date(validAfter)) + "-consensus");
+    boolean tarballFileExistedBefore = tarballFile.exists();
     File rsyncFile = new File("rsync/relay-descriptors/consensuses/"
         + tarballFile.getName());
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
     if (this.store(CONSENSUS_ANNOTATION, data, outputFiles, null)) {
       this.storedConsensusesCounter++;
     }
-    if (this.now - validAfter < 3L * 60L * 60L * 1000L) {
+    if (!tarballFileExistedBefore &&
+        this.now - validAfter < 3L * 60L * 60L * 1000L) {
       this.storedConsensuses.put(validAfter, serverDescriptorDigests);
       this.expectedVotes.put(validAfter, dirSources.size());
     }
@@ -392,6 +394,7 @@ public class ArchiveWriter extends Thread {
         + "/consensus-microdesc/"
         + dayDirectoryFileFormat.format(validAfter)
         + "-consensus-microdesc");
+    boolean tarballFileExistedBefore = tarballFile.exists();
     File rsyncFile = new File("rsync/relay-descriptors/microdescs/"
         + "consensus-microdesc/" + tarballFile.getName());
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
@@ -399,7 +402,8 @@ public class ArchiveWriter extends Thread {
         null)) {
       this.storedMicrodescConsensusesCounter++;
     }
-    if (this.now - validAfter < 3L * 60L * 60L * 1000L) {
+    if (!tarballFileExistedBefore &&
+        this.now - validAfter < 3L * 60L * 60L * 1000L) {
       this.storedMicrodescConsensuses.put(validAfter,
           microdescriptorDigests);
     }
@@ -416,13 +420,15 @@ public class ArchiveWriter extends Thread {
     File tarballFile = new File(this.outputDirectory + "/vote/"
         + printFormat.format(new Date(validAfter)) + "-vote-"
         + fingerprint + "-" + digest);
+    boolean tarballFileExistedBefore = tarballFile.exists();
     File rsyncFile = new File("rsync/relay-descriptors/votes/"
         + tarballFile.getName());
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
     if (this.store(VOTE_ANNOTATION, data, outputFiles, null)) {
       this.storedVotesCounter++;
     }
-    if (this.now - validAfter < 3L * 60L * 60L * 1000L) {
+    if (!tarballFileExistedBefore &&
+        this.now - validAfter < 3L * 60L * 60L * 1000L) {
       if (!this.storedVotes.containsKey(validAfter)) {
         this.storedVotes.put(validAfter,
             new TreeMap<String, SortedSet<String>>());
@@ -457,6 +463,7 @@ public class ArchiveWriter extends Thread {
         + "/server-descriptor/" + printFormat.format(new Date(published))
         + digest.substring(0, 1) + "/" + digest.substring(1, 2) + "/"
         + digest);
+    boolean tarballFileExistedBefore = tarballFile.exists();
     File rsyncFile = new File(
         "rsync/relay-descriptors/server-descriptors/" + digest);
     File rsyncCatFile = new File("rsync/relay-descriptors/"
@@ -469,7 +476,8 @@ public class ArchiveWriter extends Thread {
         append)) {
       this.storedServerDescriptorsCounter++;
     }
-    if (this.now - published < 48L * 60L * 60L * 1000L) {
+    if (!tarballFileExistedBefore &&
+        this.now - published < 48L * 60L * 60L * 1000L) {
       if (!this.storedServerDescriptors.containsKey(published)) {
         this.storedServerDescriptors.put(published,
             new HashMap<String, String>());
@@ -490,6 +498,7 @@ public class ArchiveWriter extends Thread {
         + extraInfoDigest.substring(0, 1) + "/"
         + extraInfoDigest.substring(1, 2) + "/"
         + extraInfoDigest);
+    boolean tarballFileExistedBefore = tarballFile.exists();
     File rsyncFile = new File("rsync/relay-descriptors/extra-infos/"
         + extraInfoDigest);
     File rsyncCatFile = new File("rsync/relay-descriptors/"
@@ -500,7 +509,8 @@ public class ArchiveWriter extends Thread {
     if (this.store(EXTRA_INFO_ANNOTATION, data, outputFiles, append)) {
       this.storedExtraInfoDescriptorsCounter++;
     }
-    if (this.now - published < 48L * 60L * 60L * 1000L) {
+    if (!tarballFileExistedBefore &&
+        this.now - published < 48L * 60L * 60L * 1000L) {
       if (!this.storedExtraInfoDescriptors.containsKey(published)) {
         this.storedExtraInfoDescriptors.put(published,
             new HashSet<String>());
@@ -527,6 +537,7 @@ public class ArchiveWriter extends Thread {
         + microdescriptorDigest.substring(0, 1) + "/"
         + microdescriptorDigest.substring(1, 2) + "/"
         + microdescriptorDigest);
+    boolean tarballFileExistedBefore = tarballFile.exists();
     File rsyncFile = new File("rsync/relay-descriptors/microdescs/micro/"
         + microdescriptorDigest);
     File rsyncCatFile = new File("rsync/relay-descriptors/"
@@ -539,7 +550,8 @@ public class ArchiveWriter extends Thread {
         append)) {
       this.storedMicrodescriptorsCounter++;
     }
-    if (this.now - validAfter < 40L * 24L * 60L * 60L * 1000L) {
+    if (!tarballFileExistedBefore &&
+        this.now - validAfter < 40L * 24L * 60L * 60L * 1000L) {
       if (!this.storedMicrodescriptors.containsKey(validAfter)) {
         this.storedMicrodescriptors.put(validAfter,
             new HashSet<String>());
