@@ -654,8 +654,12 @@ public class ArchiveWriter extends Thread {
           } else {
             sb.append(", 0/0 E");
           }
-          if (voteFoundServerDescs * 1000 < voteAllServerDescs * 995 ||
-              voteFoundExtraInfos * 1000 < voteAllExtraInfos * 995) {
+          String fingerprint = v.getKey();
+          /* Ignore turtles when warning about missing descriptors. */
+          if (!fingerprint.equalsIgnoreCase(
+              "27B6B5996C426270A5C95488AA5BCEB6BCC86956") &&
+              (voteFoundServerDescs * 1000 < voteAllServerDescs * 995 ||
+              voteFoundExtraInfos * 1000 < voteAllExtraInfos * 995)) {
             missingDescriptors = true;
           }
         }
