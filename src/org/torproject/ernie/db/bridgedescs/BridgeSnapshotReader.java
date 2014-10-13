@@ -118,8 +118,9 @@ public class BridgeSnapshotReader {
                     break;
                   }
                 }
-                if (firstLine.startsWith("r ") ||
-                    firstLine.startsWith("flag-thresholds ")) {
+                if (firstLine.startsWith("published ") ||
+                    firstLine.startsWith("flag-thresholds ") ||
+                    firstLine.startsWith("r ")) {
                   bdp.parse(allData, dateTime);
                   parsedStatuses++;
                 } else if (descriptorImportHistory.contains(fileDigest)) {

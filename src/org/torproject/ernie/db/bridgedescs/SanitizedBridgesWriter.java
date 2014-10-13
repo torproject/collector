@@ -444,8 +444,14 @@ public class SanitizedBridgesWriter extends Thread {
       String hashedBridgeIdentityHex = null;
       while ((line = br.readLine()) != null) {
 
-        /* Header lines don't have to be cleaned up. */
-        if (line.startsWith("flag-thresholds ")) {
+        /* Use publication time from "published" line instead of the
+         * file's last-modified time.  Don't copy over the line, because
+         * we're going to write a "published" line below. */
+        if (line.startsWith("published ")) {
+          publicationTime = line.substring("published ".length());
+
+        /* Additional header lines don't have to be cleaned up. */
+        } else if (line.startsWith("flag-thresholds ")) {
           header.append(line + "\n");
 
         /* r lines contain sensitive information that needs to be removed
