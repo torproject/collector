@@ -760,7 +760,8 @@ public class SanitizedBridgesWriter extends Thread {
             || line.equals("caches-extra-info")
             || line.equals("opt allow-single-hop-exits")
             || line.equals("allow-single-hop-exits")
-            || line.startsWith("ipv6-policy ")) {
+            || line.startsWith("ipv6-policy ")
+            || line.equals("tunnelled-dir-server")) {
           scrubbed.append(line + "\n");
 
         /* Replace node fingerprints in the family line with their hashes
