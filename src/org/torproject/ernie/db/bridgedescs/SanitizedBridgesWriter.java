@@ -852,6 +852,11 @@ public class SanitizedBridgesWriter extends Thread {
       for (int i = 0; i < outputFiles.length; i++) {
         File outputFile = outputFiles[i];
         boolean appendToFile = append[i];
+        if (outputFile.exists() && !appendToFile) {
+          /* We already stored this descriptor to disk before, so let's
+           * not store it yet another time. */
+          break;
+        }
         outputFile.getParentFile().mkdirs();
         BufferedWriter bw = new BufferedWriter(new FileWriter(
             outputFile, appendToFile));
@@ -999,6 +1004,11 @@ public class SanitizedBridgesWriter extends Thread {
       for (int i = 0; i < outputFiles.length; i++) {
         File outputFile = outputFiles[i];
         boolean appendToFile = append[i];
+        if (outputFile.exists() && !appendToFile) {
+          /* We already stored this descriptor to disk before, so let's
+           * not store it yet another time. */
+          break;
+        }
         outputFile.getParentFile().mkdirs();
         BufferedWriter bw = new BufferedWriter(new FileWriter(
             outputFile, appendToFile));
