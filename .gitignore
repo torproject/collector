@@ -5,8 +5,6 @@ config
 data/
 in/
 out/
-doc/manual.aux
-doc/manual.log
 log/
 rsync/
 stats/
