@@ -609,13 +609,15 @@ public class SanitizedBridgesWriter extends Thread {
     }
 
     /* Parse descriptor to generate a sanitized version. */
-    String scrubbedDesc = null, published = null;
+    String scrubbedDesc = null, published = null,
+        masterKeyEd25519FromIdentityEd25519 = null;
     try {
       BufferedReader br = new BufferedReader(new StringReader(
           new String(data, "US-ASCII")));
       StringBuilder scrubbed = new StringBuilder();
       String line = null, hashedBridgeIdentity = null, address = null,
-          routerLine = null, scrubbedAddress = null;
+          routerLine = null, scrubbedAddress = null,
+          masterKeyEd25519 = null;
       List<String> orAddresses = null, scrubbedOrAddresses = null;
       boolean skipCrypto = false;
       while ((line = br.readLine()) != null) {
@@ -722,15 +724,19 @@ public class SanitizedBridgesWriter extends Thread {
          * non-scrubbed descriptor. */
         } else if (line.startsWith("opt extra-info-digest ") ||
             line.startsWith("extra-info-digest ")) {
-          String extraInfoDescriptorIdentifier = line.substring(
-              line.indexOf("extra-info-digest ")
-              + "extra-info-digest ".length());
-          String hashedExtraInfoDescriptorIdentifier =
-              DigestUtils.shaHex(Hex.decodeHex(
-              extraInfoDescriptorIdentifier.toCharArray())).toUpperCase();
-          scrubbed.append((line.startsWith("opt ") ? "opt " : "")
-              + "extra-info-digest " + hashedExtraInfoDescriptorIdentifier
-              + "\n");
+          String[] parts = line.split(" ");
+          if (line.startsWith("opt ")) {
+            scrubbed.append("opt ");
+            parts = line.substring(4).split(" ");
+          }
+          scrubbed.append("extra-info-digest " + DigestUtils.shaHex(
+              Hex.decodeHex(parts[1].toCharArray())).toUpperCase());
+          if (parts.length > 2) {
+            scrubbed.append(" " + Base64.encodeBase64String(
+                DigestUtils.sha256(Base64.decodeBase64(parts[2]))).
+                replaceAll("=", ""));
+          }
+          scrubbed.append("\n");
 
         /* Possibly sanitize reject lines if they contain the bridge's own
          * IP address. */
@@ -741,6 +747,43 @@ public class SanitizedBridgesWriter extends Thread {
                 + "\n");
           } else {
             scrubbed.append(line + "\n");
+          }
+
+        /* Extract master-key-ed25519 from identity-ed25519. */
+        } else if (line.equals("identity-ed25519")) {
+          StringBuilder sb = new StringBuilder();
+          while ((line = br.readLine()) != null &&
+              !line.equals("-----END ED25519 CERT-----")) {
+            if (line.equals("-----BEGIN ED25519 CERT-----")) {
+              continue;
+            }
+            sb.append(line);
+          }
+          masterKeyEd25519FromIdentityEd25519 =
+              this.parseMasterKeyEd25519FromIdentityEd25519(
+              sb.toString());
+          String sha256MasterKeyEd25519 = Base64.encodeBase64String(
+              DigestUtils.sha256(Base64.decodeBase64(
+              masterKeyEd25519FromIdentityEd25519 + "="))).
+              replaceAll("=", "");
+          scrubbed.append("master-key-ed25519 " + sha256MasterKeyEd25519
+              + "\n");
+          if (masterKeyEd25519 != null && !masterKeyEd25519.equals(
+              masterKeyEd25519FromIdentityEd25519)) {
+            this.logger.warning("Mismatch between identity-ed25519 and "
+                + "master-key-ed25519.  Skipping.");
+            return;
+          }
+
+        /* Verify that identity-ed25519 and master-key-ed25519 match. */
+        } else if (line.startsWith("master-key-ed25519 ")) {
+          masterKeyEd25519 = line.substring(line.indexOf(" ") + 1);
+          if (masterKeyEd25519FromIdentityEd25519 != null &&
+              !masterKeyEd25519FromIdentityEd25519.equals(
+              masterKeyEd25519)) {
+            this.logger.warning("Mismatch between identity-ed25519 and "
+                + "master-key-ed25519.  Skipping.");
+            return;
           }
 
         /* Write the following lines unmodified to the sanitized
@@ -786,12 +829,19 @@ public class SanitizedBridgesWriter extends Thread {
         /* Skip all crypto parts that might leak the bridge's identity
          * fingerprint. */
         } else if (line.startsWith("-----BEGIN ")
-            || line.equals("onion-key") || line.equals("signing-key")) {
+            || line.equals("onion-key") || line.equals("signing-key") ||
+            line.equals("onion-key-crosscert") ||
+            line.startsWith("ntor-onion-key-crosscert ")) {
           skipCrypto = true;
 
         /* Stop skipping lines when the crypto parts are over. */
         } else if (line.startsWith("-----END ")) {
           skipCrypto = false;
+
+        /* Skip the ed25519 signature; we'll include a SHA256 digest of
+         * the SHA256 descriptor digest in router-digest-sha256. */
+        } else if (line.startsWith("router-sig-ed25519 ")) {
+          continue;
 
         /* If we encounter an unrecognized line, stop parsing and print
          * out a warning. We might have overlooked sensitive information
@@ -831,6 +881,30 @@ public class SanitizedBridgesWriter extends Thread {
           + "descriptor digest.");
       return;
     }
+    String descriptorDigestSha256Base64 = null;
+    if (masterKeyEd25519FromIdentityEd25519 != null) {
+      try {
+        String ascii = new String(data, "US-ASCII");
+        String startToken = "router ";
+        String sigToken = "\n-----END SIGNATURE-----\n";
+        int start = ascii.indexOf(startToken);
+        int sig = ascii.indexOf(sigToken) + sigToken.length();
+        if (start >= 0 && sig >= 0 && sig > start) {
+          byte[] forDigest = new byte[sig - start];
+          System.arraycopy(data, start, forDigest, 0, sig - start);
+          descriptorDigestSha256Base64 = Base64.encodeBase64String(
+              DigestUtils.sha256(DigestUtils.sha256(forDigest))).
+              replaceAll("=", "");
+        }
+      } catch (UnsupportedEncodingException e) {
+        /* Handle below. */
+      }
+      if (descriptorDigestSha256Base64 == null) {
+        this.logger.log(Level.WARNING, "Could not calculate server "
+            + "descriptor SHA256 digest.");
+        return;
+      }
+    }
     String dyear = published.substring(0, 4);
     String dmonth = published.substring(5, 7);
     File tarballFile = new File(
@@ -860,9 +934,14 @@ public class SanitizedBridgesWriter extends Thread {
         outputFile.getParentFile().mkdirs();
         BufferedWriter bw = new BufferedWriter(new FileWriter(
             outputFile, appendToFile));
-        bw.write("@type bridge-server-descriptor 1.0\n");
+        bw.write("@type bridge-server-descriptor 1.1\n");
         bw.write(scrubbedDesc);
-        bw.write("router-digest " + descriptorDigest.toUpperCase() + "\n");
+        if (descriptorDigestSha256Base64 != null) {
+          bw.write("router-digest-sha256 " + descriptorDigestSha256Base64
+              + "\n");
+        }
+        bw.write("router-digest " + descriptorDigest.toUpperCase()
+            + "\n");
         bw.close();
       }
     } catch (IOException e) {
@@ -870,6 +949,57 @@ public class SanitizedBridgesWriter extends Thread {
           + "descriptor to disk.", e);
       return;
     }
+  }
+
+  private String parseMasterKeyEd25519FromIdentityEd25519(
+      String identityEd25519Base64) {
+    byte[] identityEd25519 = Base64.decodeBase64(identityEd25519Base64);
+    if (identityEd25519[0] != 0x01) {
+      this.logger.warning("Unknown version in identity-ed25519: "
+          + identityEd25519[0]);
+    } else if (identityEd25519[1] != 0x04) {
+      this.logger.warning("Unknown cert type in identity-ed25519: "
+          + identityEd25519[1]);
+    } else if (identityEd25519[6] != 0x01) {
+      this.logger.warning("Unknown certified key type in "
+          + "identity-ed25519: " + identityEd25519[1]);
+    } else if (identityEd25519[39] == 0x00) {
+      this.logger.warning("No extensions in identity-ed25519 (which "
+          + "would contain the encoded master-key-ed25519): "
+          + identityEd25519[39]);
+    } else {
+      int extensionStart = 40;
+      for (int i = 0; i < (int) identityEd25519[39]; i++) {
+        if (identityEd25519.length < extensionStart + 4) {
+          this.logger.warning("Invalid extension with id " + i
+              + " in identity-ed25519.");
+          break;
+        }
+        int extensionLength = identityEd25519[extensionStart];
+        extensionLength <<= 8;
+        extensionLength += identityEd25519[extensionStart + 1];
+        int extensionType = identityEd25519[extensionStart + 2];
+        if (extensionLength == 32 && extensionType == 4) {
+          if (identityEd25519.length < extensionStart + 4 + 32) {
+            this.logger.warning("Invalid extension with id " + i
+                + " in identity-ed25519.");
+            break;
+          }
+          byte[] masterKeyEd25519 = new byte[32];
+          System.arraycopy(identityEd25519, extensionStart + 4,
+              masterKeyEd25519, 0, masterKeyEd25519.length);
+          String masterKeyEd25519Base64 = Base64.encodeBase64String(
+              masterKeyEd25519);
+          String masterKeyEd25519Base64NoTrailingEqualSigns =
+              masterKeyEd25519Base64.replaceAll("=", "");
+          return masterKeyEd25519Base64NoTrailingEqualSigns;
+        }
+        extensionStart += 4 + extensionLength;
+      }
+    }
+    this.logger.warning("Unable to locate master-key-ed25519 in "
+        + "identity-ed25519.");
+    return null;
   }
 
   private String maxExtraInfoDescriptorPublishedTime =
@@ -881,13 +1011,14 @@ public class SanitizedBridgesWriter extends Thread {
   public void sanitizeAndStoreExtraInfoDescriptor(byte[] data) {
 
     /* Parse descriptor to generate a sanitized version. */
-    String scrubbedDesc = null, published = null;
+    String scrubbedDesc = null, published = null,
+        masterKeyEd25519FromIdentityEd25519 = null;
     try {
       BufferedReader br = new BufferedReader(new StringReader(new String(
           data, "US-ASCII")));
       String line = null;
       StringBuilder scrubbed = null;
-      String hashedBridgeIdentity = null;
+      String hashedBridgeIdentity = null, masterKeyEd25519 = null;
       while ((line = br.readLine()) != null) {
 
         /* Parse bridge identity from extra-info line and replace it with
@@ -921,6 +1052,43 @@ public class SanitizedBridgesWriter extends Thread {
         /* Skip transport-info lines entirely. */
         } else if (line.startsWith("transport-info ")) {
 
+        /* Extract master-key-ed25519 from identity-ed25519. */
+        } else if (line.equals("identity-ed25519")) {
+          StringBuilder sb = new StringBuilder();
+          while ((line = br.readLine()) != null &&
+              !line.equals("-----END ED25519 CERT-----")) {
+            if (line.equals("-----BEGIN ED25519 CERT-----")) {
+              continue;
+            }
+            sb.append(line);
+          }
+          masterKeyEd25519FromIdentityEd25519 =
+              this.parseMasterKeyEd25519FromIdentityEd25519(
+              sb.toString());
+          String sha256MasterKeyEd25519 = Base64.encodeBase64String(
+              DigestUtils.sha256(Base64.decodeBase64(
+              masterKeyEd25519FromIdentityEd25519 + "="))).
+              replaceAll("=", "");
+          scrubbed.append("master-key-ed25519 " + sha256MasterKeyEd25519
+              + "\n");
+          if (masterKeyEd25519 != null && !masterKeyEd25519.equals(
+              masterKeyEd25519FromIdentityEd25519)) {
+            this.logger.warning("Mismatch between identity-ed25519 and "
+                + "master-key-ed25519.  Skipping.");
+            return;
+          }
+
+        /* Verify that identity-ed25519 and master-key-ed25519 match. */
+        } else if (line.startsWith("master-key-ed25519 ")) {
+          masterKeyEd25519 = line.substring(line.indexOf(" ") + 1);
+          if (masterKeyEd25519FromIdentityEd25519 != null &&
+              !masterKeyEd25519FromIdentityEd25519.equals(
+              masterKeyEd25519)) {
+            this.logger.warning("Mismatch between identity-ed25519 and "
+                + "master-key-ed25519.  Skipping.");
+            return;
+          }
+
         /* Write the following lines unmodified to the sanitized
          * descriptor. */
         } else if (line.startsWith("write-history ")
@@ -942,6 +1110,11 @@ public class SanitizedBridgesWriter extends Thread {
         } else if (line.startsWith("router-signature")) {
           scrubbedDesc = scrubbed.toString();
           break;
+
+        /* Skip the ed25519 signature; we'll include a SHA256 digest of
+         * the SHA256 descriptor digest in router-digest-sha256. */
+        } else if (line.startsWith("router-sig-ed25519 ")) {
+          continue;
 
         /* If we encounter an unrecognized line, stop parsing and print
          * out a warning. We might have overlooked sensitive information
@@ -985,6 +1158,30 @@ public class SanitizedBridgesWriter extends Thread {
           + "descriptor digest.");
       return;
     }
+    String descriptorDigestSha256Base64 = null;
+    if (masterKeyEd25519FromIdentityEd25519 != null) {
+      try {
+        String ascii = new String(data, "US-ASCII");
+        String startToken = "extra-info ";
+        String sigToken = "\n-----END SIGNATURE-----\n";
+        int start = ascii.indexOf(startToken);
+        int sig = ascii.indexOf(sigToken) + sigToken.length();
+        if (start >= 0 && sig >= 0 && sig > start) {
+          byte[] forDigest = new byte[sig - start];
+          System.arraycopy(data, start, forDigest, 0, sig - start);
+          descriptorDigestSha256Base64 = Base64.encodeBase64String(
+              DigestUtils.sha256(DigestUtils.sha256(forDigest))).
+              replaceAll("=", "");
+        }
+      } catch (UnsupportedEncodingException e) {
+        /* Handle below. */
+      }
+      if (descriptorDigestSha256Base64 == null) {
+        this.logger.log(Level.WARNING, "Could not calculate extra-info "
+            + "descriptor SHA256 digest.");
+        return;
+      }
+    }
     String dyear = published.substring(0, 4);
     String dmonth = published.substring(5, 7);
     File tarballFile = new File(
@@ -1012,9 +1209,14 @@ public class SanitizedBridgesWriter extends Thread {
         outputFile.getParentFile().mkdirs();
         BufferedWriter bw = new BufferedWriter(new FileWriter(
             outputFile, appendToFile));
-        bw.write("@type bridge-extra-info 1.2\n");
+        bw.write("@type bridge-extra-info 1.3\n");
         bw.write(scrubbedDesc);
-        bw.write("router-digest " + descriptorDigest.toUpperCase() + "\n");
+        if (descriptorDigestSha256Base64 != null) {
+          bw.write("router-digest-sha256 " + descriptorDigestSha256Base64
+              + "\n");
+        }
+        bw.write("router-digest " + descriptorDigest.toUpperCase()
+            + "\n");
         bw.close();
       }
     } catch (Exception e) {
