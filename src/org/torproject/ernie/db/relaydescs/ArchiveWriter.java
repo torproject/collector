@@ -464,14 +464,11 @@ public class ArchiveWriter extends Thread {
         + digest.substring(0, 1) + "/" + digest.substring(1, 2) + "/"
         + digest);
     boolean tarballFileExistedBefore = tarballFile.exists();
-    File rsyncFile = new File(
-        "rsync/relay-descriptors/server-descriptors/" + digest);
     File rsyncCatFile = new File("rsync/relay-descriptors/"
         + "server-descriptors-cat/" + this.rsyncCatString
         + "-server-descriptors.tmp");
-    File[] outputFiles = new File[] { tarballFile, rsyncFile,
-        rsyncCatFile };
-    boolean[] append = new boolean[] { false, false, true };
+    File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
+    boolean[] append = new boolean[] { false, true };
     if (this.store(SERVER_DESCRIPTOR_ANNOTATION, data, outputFiles,
         append)) {
       this.storedServerDescriptorsCounter++;
@@ -499,13 +496,10 @@ public class ArchiveWriter extends Thread {
         + extraInfoDigest.substring(1, 2) + "/"
         + extraInfoDigest);
     boolean tarballFileExistedBefore = tarballFile.exists();
-    File rsyncFile = new File("rsync/relay-descriptors/extra-infos/"
-        + extraInfoDigest);
     File rsyncCatFile = new File("rsync/relay-descriptors/"
         + "extra-infos-cat/" + this.rsyncCatString + "-extra-infos.tmp");
-    File[] outputFiles = new File[] { tarballFile, rsyncFile,
-        rsyncCatFile };
-    boolean[] append = new boolean[] { false, false, true };
+    File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
+    boolean[] append = new boolean[] { false, true };
     if (this.store(EXTRA_INFO_ANNOTATION, data, outputFiles, append)) {
       this.storedExtraInfoDescriptorsCounter++;
     }
@@ -538,14 +532,11 @@ public class ArchiveWriter extends Thread {
         + microdescriptorDigest.substring(1, 2) + "/"
         + microdescriptorDigest);
     boolean tarballFileExistedBefore = tarballFile.exists();
-    File rsyncFile = new File("rsync/relay-descriptors/microdescs/micro/"
-        + microdescriptorDigest);
     File rsyncCatFile = new File("rsync/relay-descriptors/"
         + "microdescs/micro-cat/" + this.rsyncCatString
         + "-micro.tmp");
-    File[] outputFiles = new File[] { tarballFile, rsyncFile,
-        rsyncCatFile };
-    boolean[] append = new boolean[] { false, false, true };
+    File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
+    boolean[] append = new boolean[] { false, true };
     if (this.store(MICRODESCRIPTOR_ANNOTATION, data, outputFiles,
         append)) {
       this.storedMicrodescriptorsCounter++;

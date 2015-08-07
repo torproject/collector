@@ -913,15 +913,11 @@ public class SanitizedBridgesWriter extends Thread {
         + "/" + descriptorDigest.charAt(0) + "/"
         + descriptorDigest.charAt(1) + "/"
         + descriptorDigest);
-    File rsyncFile = new File(
-        "rsync/bridge-descriptors/server-descriptors/"
-        + tarballFile.getName());
     File rsyncCatFile = new File("rsync/bridge-descriptors/"
         + "server-descriptors-cat/" + this.rsyncCatString
         + "-server-descriptors.tmp");
-    File[] outputFiles = new File[] { tarballFile, rsyncFile,
-        rsyncCatFile };
-    boolean[] append = new boolean[] { false, false, true };
+    File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
+    boolean[] append = new boolean[] { false, true };
     try {
       for (int i = 0; i < outputFiles.length; i++) {
         File outputFile = outputFiles[i];
@@ -1190,13 +1186,10 @@ public class SanitizedBridgesWriter extends Thread {
         + descriptorDigest.charAt(0) + "/"
         + descriptorDigest.charAt(1) + "/"
         + descriptorDigest);
-    File rsyncFile = new File("rsync/bridge-descriptors/extra-infos/"
-        + tarballFile.getName());
     File rsyncCatFile = new File("rsync/bridge-descriptors/"
         + "extra-infos-cat/" + this.rsyncCatString + "-extra-infos.tmp");
-    File[] outputFiles = new File[] { tarballFile, rsyncFile,
-        rsyncCatFile };
-    boolean[] append = new boolean[] { false, false, true };
+    File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
+    boolean[] append = new boolean[] { false, true };
     try {
       for (int i = 0; i < outputFiles.length; i++) {
         File outputFile = outputFiles[i];
