@@ -374,6 +374,39 @@ file to reduce the number of files.
 
 <div class="box">
 
+<a name="hidden-service-descriptors"></a>
+<h2>Tor hidden service descriptors <a
+href="#hidden-service-descriptors">#</a></h2>
+
+<p>
+Tor hidden services make it possible for users to hide their locations
+while offering various kinds of services, such as web publishing or an
+instant messaging server.
+A hidden service assembles a hidden service descriptor to make its service
+available in the network.
+This descriptor gets stored on hidden service directories and can be
+retrieved by hidden service clients.
+Hidden service descriptors are not formally archived, but some libraries
+support parsing these descriptors when obtaining them from a locally
+running Tor instance.
+</p>
+
+<h3>Hidden service descriptors
+<span class="type-annotation"><tt>@type hidden-service-descriptor
+1.0</tt></span>
+</h3>
+
+<p>
+Hidden service descriptors contain all details that are necessary for
+clients to connect to a hidden service.
+Despite the version number being 1.0, these descriptors are part of the
+version 2 hidden service protocol.
+</p>
+
+</div> <!-- box -->
+
+<div class="box">
+
 <a name="bridge-pool-assignments"></a>
 <h2>BridgeDB's bridge pool assignments
 <a href="#bridge-pool-assignments">#</a></h2>
