@@ -366,7 +366,7 @@ public class ArchiveWriter extends Thread {
     File tarballFile = new File(this.outputDirectory + "/consensus/"
         + printFormat.format(new Date(validAfter)) + "-consensus");
     boolean tarballFileExistedBefore = tarballFile.exists();
-    File rsyncFile = new File("rsync/relay-descriptors/consensuses/"
+    File rsyncFile = new File("recent/relay-descriptors/consensuses/"
         + tarballFile.getName());
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
     if (this.store(CONSENSUS_ANNOTATION, data, outputFiles, null)) {
@@ -395,7 +395,7 @@ public class ArchiveWriter extends Thread {
         + dayDirectoryFileFormat.format(validAfter)
         + "-consensus-microdesc");
     boolean tarballFileExistedBefore = tarballFile.exists();
-    File rsyncFile = new File("rsync/relay-descriptors/microdescs/"
+    File rsyncFile = new File("recent/relay-descriptors/microdescs/"
         + "consensus-microdesc/" + tarballFile.getName());
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
     if (this.store(MICRODESCCONSENSUS_ANNOTATION, data, outputFiles,
@@ -421,7 +421,7 @@ public class ArchiveWriter extends Thread {
         + printFormat.format(new Date(validAfter)) + "-vote-"
         + fingerprint + "-" + digest);
     boolean tarballFileExistedBefore = tarballFile.exists();
-    File rsyncFile = new File("rsync/relay-descriptors/votes/"
+    File rsyncFile = new File("recent/relay-descriptors/votes/"
         + tarballFile.getName());
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
     if (this.store(VOTE_ANNOTATION, data, outputFiles, null)) {
@@ -464,7 +464,7 @@ public class ArchiveWriter extends Thread {
         + digest.substring(0, 1) + "/" + digest.substring(1, 2) + "/"
         + digest);
     boolean tarballFileExistedBefore = tarballFile.exists();
-    File rsyncCatFile = new File("rsync/relay-descriptors/"
+    File rsyncCatFile = new File("recent/relay-descriptors/"
         + "server-descriptors/" + this.rsyncCatString
         + "-server-descriptors.tmp");
     File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
@@ -496,7 +496,7 @@ public class ArchiveWriter extends Thread {
         + extraInfoDigest.substring(1, 2) + "/"
         + extraInfoDigest);
     boolean tarballFileExistedBefore = tarballFile.exists();
-    File rsyncCatFile = new File("rsync/relay-descriptors/"
+    File rsyncCatFile = new File("recent/relay-descriptors/"
         + "extra-infos/" + this.rsyncCatString + "-extra-infos.tmp");
     File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
     boolean[] append = new boolean[] { false, true };
@@ -532,7 +532,7 @@ public class ArchiveWriter extends Thread {
         + microdescriptorDigest.substring(1, 2) + "/"
         + microdescriptorDigest);
     boolean tarballFileExistedBefore = tarballFile.exists();
-    File rsyncCatFile = new File("rsync/relay-descriptors/"
+    File rsyncCatFile = new File("recent/relay-descriptors/"
         + "microdescs/micro/" + this.rsyncCatString
         + "-micro.tmp");
     File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
@@ -804,7 +804,7 @@ public class ArchiveWriter extends Thread {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
     Stack<File> allFiles = new Stack<File>();
-    allFiles.add(new File("rsync/relay-descriptors"));
+    allFiles.add(new File("recent/relay-descriptors"));
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();
       if (file.isDirectory()) {

@@ -143,7 +143,7 @@ public class ExitListDownloader extends Thread {
   }
 
     /* Write to disk. */
-    File rsyncFile = new File("rsync/exit-lists/"
+    File rsyncFile = new File("recent/exit-lists/"
         + tarballFile.getName());
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
     for (File outputFile : outputFiles) {
@@ -199,7 +199,7 @@ public class ExitListDownloader extends Thread {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
     Stack<File> allFiles = new Stack<File>();
-    allFiles.add(new File("rsync/exit-lists"));
+    allFiles.add(new File("recent/exit-lists"));
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();
       if (file.isDirectory()) {

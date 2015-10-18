@@ -156,7 +156,7 @@ public class BridgePoolAssignmentsProcessor extends Thread {
                     sanitizedAssignmentsDirectory, filenameFormat.format(
                     bridgePoolAssignmentTime));
                 File rsyncFile = new File(
-                    "rsync/bridge-pool-assignments/"
+                    "recent/bridge-pool-assignments/"
                     + tarballFile.getName());
                 File[] outputFiles = new File[] { tarballFile,
                     rsyncFile };
@@ -258,7 +258,7 @@ public class BridgePoolAssignmentsProcessor extends Thread {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
     Stack<File> allFiles = new Stack<File>();
-    allFiles.add(new File("rsync/bridge-pool-assignments"));
+    allFiles.add(new File("recent/bridge-pool-assignments"));
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();
       if (file.isDirectory()) {

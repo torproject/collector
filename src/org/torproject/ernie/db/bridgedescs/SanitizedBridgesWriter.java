@@ -573,7 +573,7 @@ public class SanitizedBridgesWriter extends Thread {
           + "/" + smonth + "/statuses/" + sday + "/" + syear + smonth
           + sday + "-" + stime + "-"
           + "4A0CCD2DDC7995083D73F5D667100C8A5831F16D");
-      File rsyncFile = new File("rsync/bridge-descriptors/statuses/"
+      File rsyncFile = new File("recent/bridge-descriptors/statuses/"
           + tarballFile.getName());
       File[] outputFiles = new File[] { tarballFile, rsyncFile };
       for (File outputFile : outputFiles) {
@@ -913,7 +913,7 @@ public class SanitizedBridgesWriter extends Thread {
         + "/" + descriptorDigest.charAt(0) + "/"
         + descriptorDigest.charAt(1) + "/"
         + descriptorDigest);
-    File rsyncCatFile = new File("rsync/bridge-descriptors/"
+    File rsyncCatFile = new File("recent/bridge-descriptors/"
         + "server-descriptors/" + this.rsyncCatString
         + "-server-descriptors.tmp");
     File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
@@ -1186,7 +1186,7 @@ public class SanitizedBridgesWriter extends Thread {
         + descriptorDigest.charAt(0) + "/"
         + descriptorDigest.charAt(1) + "/"
         + descriptorDigest);
-    File rsyncCatFile = new File("rsync/bridge-descriptors/"
+    File rsyncCatFile = new File("recent/bridge-descriptors/"
         + "extra-infos/" + this.rsyncCatString + "-extra-infos.tmp");
     File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
     boolean[] append = new boolean[] { false, true };
@@ -1301,7 +1301,7 @@ public class SanitizedBridgesWriter extends Thread {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
     Stack<File> allFiles = new Stack<File>();
-    allFiles.add(new File("rsync/bridge-descriptors"));
+    allFiles.add(new File("recent/bridge-descriptors"));
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();
       if (file.isDirectory()) {

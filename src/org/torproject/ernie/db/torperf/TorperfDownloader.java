@@ -597,7 +597,7 @@ public class TorperfDownloader extends Thread {
         + "/" + this.cachedSource + "-"
         + String.valueOf(this.cachedFileSize) + "-"
         + this.cachedStartDate + ".tpf");
-    File rsyncFile = new File("rsync/torperf/" + tarballFile.getName());
+    File rsyncFile = new File("recent/torperf/" + tarballFile.getName());
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
     for (File outputFile : outputFiles) {
       outputFile.getParentFile().mkdirs();
@@ -620,7 +620,7 @@ public class TorperfDownloader extends Thread {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
     Stack<File> allFiles = new Stack<File>();
-    allFiles.add(new File("rsync/torperf"));
+    allFiles.add(new File("recent/torperf"));
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();
       if (file.isDirectory()) {
