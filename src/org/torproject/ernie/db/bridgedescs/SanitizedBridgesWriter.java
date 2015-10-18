@@ -914,7 +914,7 @@ public class SanitizedBridgesWriter extends Thread {
         + descriptorDigest.charAt(1) + "/"
         + descriptorDigest);
     File rsyncCatFile = new File("rsync/bridge-descriptors/"
-        + "server-descriptors-cat/" + this.rsyncCatString
+        + "server-descriptors/" + this.rsyncCatString
         + "-server-descriptors.tmp");
     File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
     boolean[] append = new boolean[] { false, true };
@@ -1187,7 +1187,7 @@ public class SanitizedBridgesWriter extends Thread {
         + descriptorDigest.charAt(1) + "/"
         + descriptorDigest);
     File rsyncCatFile = new File("rsync/bridge-descriptors/"
-        + "extra-infos-cat/" + this.rsyncCatString + "-extra-infos.tmp");
+        + "extra-infos/" + this.rsyncCatString + "-extra-infos.tmp");
     File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
     boolean[] append = new boolean[] { false, true };
     try {

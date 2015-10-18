@@ -465,7 +465,7 @@ public class ArchiveWriter extends Thread {
         + digest);
     boolean tarballFileExistedBefore = tarballFile.exists();
     File rsyncCatFile = new File("rsync/relay-descriptors/"
-        + "server-descriptors-cat/" + this.rsyncCatString
+        + "server-descriptors/" + this.rsyncCatString
         + "-server-descriptors.tmp");
     File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
     boolean[] append = new boolean[] { false, true };
@@ -497,7 +497,7 @@ public class ArchiveWriter extends Thread {
         + extraInfoDigest);
     boolean tarballFileExistedBefore = tarballFile.exists();
     File rsyncCatFile = new File("rsync/relay-descriptors/"
-        + "extra-infos-cat/" + this.rsyncCatString + "-extra-infos.tmp");
+        + "extra-infos/" + this.rsyncCatString + "-extra-infos.tmp");
     File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
     boolean[] append = new boolean[] { false, true };
     if (this.store(EXTRA_INFO_ANNOTATION, data, outputFiles, append)) {
@@ -533,7 +533,7 @@ public class ArchiveWriter extends Thread {
         + microdescriptorDigest);
     boolean tarballFileExistedBefore = tarballFile.exists();
     File rsyncCatFile = new File("rsync/relay-descriptors/"
-        + "microdescs/micro-cat/" + this.rsyncCatString
+        + "microdescs/micro/" + this.rsyncCatString
         + "-micro.tmp");
     File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
     boolean[] append = new boolean[] { false, true };
