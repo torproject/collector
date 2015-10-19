@@ -8,6 +8,8 @@
     <fileset dir="/usr/share/java">
       <include name="commons-codec.jar"/>
       <include name="commons-compress.jar"/>
+      <include name="gson.jar"/>
+      <include name="xz.jar"/>
     </fileset>
     <fileset dir="deps/metrics-lib">
       <include name="descriptor.jar"/>
@@ -68,6 +70,12 @@
     <java fork="true"
           maxmemory="2048m"
           classname="org.torproject.ernie.db.torperf.TorperfDownloader">
+      <classpath refid="classpath"/>
+    </java>
+  </target>
+  <target name="updateindex" depends="compile">
+    <java fork="true"
+          classname="org.torproject.collector.index.CreateIndexJson">
       <classpath refid="classpath"/>
     </java>
   </target>
