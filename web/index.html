@@ -1,158 +1,900 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<html>
-<head>
-<title>CollecTor &mdash; Your friendly data-collecting service in the Tor
-network</title>
-<link href="css/style.css" type="text/css" rel="stylesheet">
-<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-<link href="favicon.ico" type="image/x-icon" rel="shortcut icon">
-</head>
-<body>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CollecTor</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link href="images/favicon.ico" type="image/x-icon" rel="icon">
+    <style type="text/css">
+      .row {
+        margin-bottom: 0;
+      }
+      .page-header {
+        border-bottom: 0 solid #fff;
+        margin-bottom: 10px;
+      }
+      .footer .row {
+        margin-top: 50px;
+        margin-bottom: 10px;
+      }
+      h1 {
+        margin-top: 50px;
+        margin-bottom: 25px;
+        font-size: 36px;
+      }
+      h2 {
+        margin-top: 30px;
+        margin-bottom: 15px;
+        font-size: 24px;
+      }
+      h3 {
+        margin-top: 24px;
+        margin-bottom: 10px;
+        font-size: 18px;
+      }
+      .hover a.hover{
+        visibility: hidden;
+      }
+      .hover:hover a.hover {
+        visibility: visible;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-xs-12">
+          <div class="page-header">
+            <div class="jumbotron">
+              <div class="text-center">
+                  <a href="index.html"><img src="images/collector-logo.png" width="292" height="254" alt="CollecTor logo"><img src="images/collector-wordmark.png" width="264" height="50" alt="CollecTor wordmark"></a>
+                <h2>
+                  Welcome to CollecTor, your friendly data-collecting service in the Tor network
+                </h2>
+              <p>
+              CollecTor fetches data from various
+              nodes and services in the public Tor network and makes it
+              available to the world.  If you're doing research on the Tor
+              network, or if you're developing an application that uses
+              Tor network data, this is your place to start.
+              </p>
+<a class="btn btn-primary btn-lg" style="margin: 10px" href="recent/">Browse Recent Descriptors</a>
+<a class="btn btn-primary btn-lg" style="margin: 10px" href="archive/">Browse Archived Descriptors</a>
+              </div><!-- text-center -->
 
-<div class="box">
 
-<h1><a href="index.html"><img src="images/collector-logo.png" width="292" height="254" alt="CollecTor logo"><img src="images/collector-wordmark.png" width="264" height="50" alt="CollecTor wordmark"></a></h1>
-<h2>Your friendly data-collecting service in the Tor network</h2>
+            </div><!-- jumbotron -->
+          </div><!-- page-header -->
+        </div><!-- col -->
+      </div><!-- row -->
+
+      <div class="row">
+        <div class="col-xs-12">
+<h1>Contents</h1>
+<ul>
+<li><a href="#available-descriptors">Available Descriptors</a></li>
+<li><a href="#data-formats">Data Formats</a></li>
+<li><a href="#automated-downloads">Automated Downloads</a></li>
+<li><a href="#libraries">Parsing Libraries</a></li>
+<li><a href="#related-work">Related Work</a></li>
+<li><a href="#support">Support</a></li>
+</ul>
+        </div><!-- col -->
+      </div><!-- row -->
+
+      <div class="row">
+        <div class="col-xs-12">
+          <h1 id="available-descriptors" class="hover">Available Descriptors
+<a href="#available-descriptors" class="hover">#</a></h1>
+
+
+<p>Descriptors are available in two different file formats: recent descriptors that were published in the last 72 hours are available as plain text, and archived descriptors covering over 10 years of Tor network history are available as compressed tarballs.</p>
+
+<table class="table">
+<thead>
+<tr>
+<th>Descriptor Type</th>
+<th>Type Annotation</th>
+<th>Recent Descriptors</th>
+<th>Archived Descriptors</th>
+<th>Data Format</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Relay Server Descriptors</td>
+  <td><tt>@type server-descriptor 1.0</tt></td>
+  <td><a href="recent/relay-descriptors/server-descriptors/" class="btn btn-primary btn-xs">recent</a></td>
+  <td><a href="archive/relay-descriptors/server-descriptors/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="#type-server-descriptor" class="btn btn-default btn-xs">format</a></td>
+</tr>
+<tr>
+  <td>Relay Extra-info Descriptors</td>
+  <td><tt>@type extra-info 1.0</tt></td>
+  <td><a href="recent/relay-descriptors/extra-infos/" class="btn btn-primary btn-xs">recent</a></td>
+  <td><a href="archive/relay-descriptors/extra-infos/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="#type-extra-info" class="btn btn-default btn-xs">format</a></td>
+</tr>
+<tr>
+  <td>Network Status Consensuses</td>
+  <td><tt>@type network-status-consensus-3 1.0</tt></td>
+  <td><a href="recent/relay-descriptors/consensuses/" class="btn btn-primary btn-xs">recent</a></td>
+  <td><a href="archive/relay-descriptors/consensuses/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="#type-network-status-consensus-3" class="btn btn-default btn-xs">format</a></td>
+</tr>
+<tr>
+  <td>Network Status Votes</td>
+  <td><tt>@type network-status-vote-3 1.0</tt></td>
+  <td><a href="recent/relay-descriptors/votes/" class="btn btn-primary btn-xs">recent</a></td>
+  <td><a href="archive/relay-descriptors/votes/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="#type-network-status-vote-3" class="btn btn-default btn-xs">format</a></td>
+</tr>
+<tr>
+  <td>Directory Key Certificates</td>
+  <td><tt>@type dir-key-certificate-3 1.0</tt></td>
+  <td></td>
+  <td><a href="archive/relay-descriptors/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="#type-dir-key-certificate-3" class="btn btn-default btn-xs">format</a></td>
+</tr>
+<tr>
+  <td>Microdescriptor Consensuses</td>
+  <td><tt>@type network-status-microdesc-consensus-3 1.0</tt></td>
+  <td><a href="recent/relay-descriptors/microdescs/consensus-microdesc/" class="btn btn-primary btn-xs">recent</a></td>
+  <td><a href="archive/relay-descriptors/microdescs/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="#type-network-status-microdesc-consensus-3" class="btn btn-default btn-xs">format</a></td>
+</tr>
+<tr>
+  <td>Microdescriptors</td>
+  <td><tt>@type microdescriptor 1.0</tt></td>
+  <td><a href="recent/relay-descriptors/microdescs/micro/" class="btn btn-primary btn-xs">recent</a></td>
+  <td><a href="archive/relay-descriptors/microdescs/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="#type-microdescriptor" class="btn btn-default btn-xs">format</a></td>
+</tr>
+<tr>
+  <td>Version 2 Network Statuses</td>
+  <td><tt>@type network-status-2 1.0</tt></td>
+  <td></td>
+  <td><a href="archive/relay-descriptors/statuses/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="#type-network-status-2" class="btn btn-default btn-xs">format</a></td>
+</tr>
+<tr>
+  <td>Version 1 Directories</td>
+  <td><tt>@type directory 1.0</tt></td>
+  <td></td>
+  <td><a href="archive/relay-descriptors/tor/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="#type-directory" class="btn btn-default btn-xs">format</a></td>
+</tr>
+<tr>
+  <td>Bridge Network Statuses</td>
+  <td><tt>@type bridge-network-status 1.0</tt></td>
+  <td><a href="recent/bridge-descriptors/statuses/" class="btn btn-primary btn-xs">recent</a></td>
+  <td><a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="#type-bridge-network-status" class="btn btn-default btn-xs">format</a></td>
+</tr>
+<tr>
+  <td>Bridge Server Descriptors</td>
+  <td><tt>@type bridge-server-descriptor 1.1</tt></td>
+  <td><a href="recent/bridge-descriptors/server-descriptors/" class="btn btn-primary btn-xs">recent</a></td>
+  <td><a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="#type-bridge-server-descriptor" class="btn btn-default btn-xs">format</a></td>
+</tr>
+<tr>
+  <td>Bridge Extra-info Descriptors</td>
+  <td><tt>@type bridge-extra-info 1.3</tt></td>
+  <td><a href="recent/bridge-descriptors/extra-infos/" class="btn btn-primary btn-xs">recent</a></td>
+  <td><a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="#type-bridge-extra-info" class="btn btn-default btn-xs">format</a></td>
+</tr>
+<tr>
+  <td>Hidden Service Descriptors</td>
+  <td><tt>@type hidden-service-descriptor 1.0</tt></td>
+  <td></td>
+  <td></td>
+  <td><a href="#type-hidden-service-descriptor" class="btn btn-default btn-xs">format</a></td>
+</tr>
+<tr>
+  <td>Bridge Pool Assignments</td>
+  <td><tt>@type bridge-pool-assignment 1.0</tt></td>
+  <td></td>
+  <td><a href="archive/bridge-pool-assignments/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="#type-bridge-pool-assignment" class="btn btn-default btn-xs">format</a></td>
+</tr>
+<tr>
+  <td>Exit Lists</td>
+  <td><tt>@type tordnsel 1.0</tt></td>
+  <td><a href="recent/exit-lists/" class="btn btn-primary btn-xs">recent</a></td>
+  <td><a href="archive/exit-lists/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="#type-tordnsel" class="btn btn-default btn-xs">format</a></td>
+</tr>
+<tr>
+  <td>Torperf Measurement Results</td>
+  <td><tt>@type torperf 1.0</tt></td>
+  <td><a href="recent/torperf/" class="btn btn-primary btn-xs">recent</a></td>
+  <td><a href="archive/torperf/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="#type-torperf" class="btn btn-default btn-xs">format</a></td>
+</tr>
+</tbody>
+</table>
+
+        </div><!-- col -->
+      </div><!-- row -->
+
+
+
+
+      <div class="row">
+        <div class="col-xs-12">
+          <h1 id="data-formats" class="hover">Data Formats
+<a href="#data-formats" class="hover">#</a></h1>
 
 <p>
-Welcome to CollecTor, your friendly data-collecting service in the Tor
-network.
-CollecTor fetches data from various nodes and services in the public Tor
-network and makes it available to the world.
-If you're doing research on the Tor network, or if you're developing an
-application that uses Tor network data, this is your place to start.
+Each descriptor provided here contains an <tt>@type</tt> annotation using
+the format <tt>@type $descriptortype $major.$minor</tt>.
+Any tool that processes these descriptors may parse files without meta
+data or with an unknown descriptor type at its own risk, can safely parse
+files with known descriptor type and same major version number, and should
+not parse files with known descriptor type and higher major version
+number.
 </p>
 
-<ul>
-<li><a href="#formats">What is in the data?</a></li>
-<li><a href="#download">Where do I get the data?</a></li>
-<li><a href="#libraries">How can I parse the data?</a></li>
-<li><a href="#references">What did others do with the data?</a></li>
-<li><a href="#support">How can I get support?</a></li>
-</ul>
-
-</div> <!-- box -->
-
-<div class="box">
-
-<a name="formats"></a>
-<h2>What is in the data? <a href="#formats">#</a></h2>
+<h2 id="relay-descriptors" class="hover">Tor Relay Descriptors
+<a href="#relay-descriptors" class="hover">#</a>
+</h2>
 
 <p>
-The Tor network data provided here comes from currently five different
-sources (each of which is explained in more detail on a
-<a href="formats.html">separate page</a>):
+Relays and directory authorities publish relay descriptors, so that
+clients can select relays for their paths through the Tor network.
+All these relay descriptors are specified in the
+<a href="https://gitweb.torproject.org/torspec.git/tree/dir-spec.txt">Tor
+directory protocol, version 3</a> specification document (or in the
+earlier protocol
+<a href="https://gitweb.torproject.org/torspec.git/tree/attic/dir-spec-v2.txt">version 2</a> or
+<a href="https://gitweb.torproject.org/torspec.git/tree/attic/dir-spec-v1.txt">version 1</a>).
+</p>
+
+<h3 id="type-server-descriptor" class="hover">Relay Server Descriptors
+<small><tt>@type server-descriptor 1.0</tt></small>
+<a href="recent/relay-descriptors/server-descriptors/" class="btn btn-primary btn-xs">recent</a>
+<a href="archive/relay-descriptors/server-descriptors/" class="btn btn-primary btn-xs">archive</a>
+<a href="#type-server-descriptor" class="hover">#</a>
+</h3>
+
+<p>
+Server descriptors contain information that relays publish about
+themselves.
+Tor clients once downloaded this information, but now they use
+microdescriptors instead.
+The server descriptors in the descriptor archives
+contain one descriptor per file, whereas the recently published files
+contain all descriptors collected in an hour concatenated into a single
+file.
+</p>
+
+<h3 id="type-extra-info" class="hover">Relay Extra-info Descriptors
+<small><tt>@type extra-info 1.0</tt></small>
+<a href="recent/relay-descriptors/extra-infos/" class="btn btn-primary btn-xs">recent</a>
+<a href="archive/relay-descriptors/extra-infos/" class="btn btn-primary btn-xs">archive</a>
+<a href="#type-extra-info" class="hover">#</a>
+</h3>
+
+<p>
+Extra-info descriptors contain relay information that Tor clients do not
+need in order to function.
+These are self-published, like server descriptors, but not downloaded by
+clients by default.
+The extra-info descriptors in the descriptor archives
+contain one descriptor per file, whereas the recently published files
+contain all descriptors collected in an hour concatenated into a single
+file.
+</p>
+
+<h3 id="type-network-status-consensus-3" class="hover">Network Status Consensuses
+<small><tt>@type network-status-consensus-3 1.0</tt></small>
+<a href="recent/relay-descriptors/consensuses/" class="btn btn-primary btn-xs">recent</a>
+<a href="archive/relay-descriptors/consensuses/" class="btn btn-primary btn-xs">archive</a>
+<a href="#type-network-status-consensus-3" class="hover">#</a>
+</h3>
+
+<p>
+Though Tor relays are decentralized, the directories that track the
+overall network are not.
+These central points are called directory authorities, and every hour they
+publish a document called a consensus, or network status document.
+The consensus is made up of router status entries containing
+flags, heuristics used for relay selection, etc.
+</p>
+
+<h3 id="type-network-status-vote-3" class="hover">Network Status Votes
+<small><tt>@type network-status-vote-3 1.0</tt></small>
+<a href="recent/relay-descriptors/votes/" class="btn btn-primary btn-xs">recent</a>
+<a href="archive/relay-descriptors/votes/" class="btn btn-primary btn-xs">archive</a>
+<a href="#type-network-status-vote-3" class="hover">#</a>
+</h3>
+
+<p>
+The directory authorities exchange votes every hour to come up with a
+common consensus.
+Vote documents are by far the largest documents provided here.
+</p>
+
+<h3 id="type-dir-key-certificate-3" class="hover">Directory Key Certificates
+<small><tt>@type dir-key-certificate-3 1.0</tt></small>
+<a href="archive/relay-descriptors/" class="btn btn-primary btn-xs">archive</a>
+<a href="#type-dir-key-certificate-3" class="hover">#</a>
+</h3>
+
+<p>
+The directory authorities sign votes and the consensus with their
+key that they publish in a key certificate.
+These key certificates change once every few months, so they are only
+available in a single descriptor archive tarball.
+</p>
+
+<h3 id="type-network-status-microdesc-consensus-3" class="hover">Microdescriptor Consensuses
+<small><tt>@type network-status-microdesc-consensus-3 1.0</tt></small>
+<a href="recent/relay-descriptors/microdescs/" class="btn btn-primary btn-xs">recent</a>
+<a href="archive/relay-descriptors/microdescs/" class="btn btn-primary btn-xs">archive</a>
+<a href="#type-network-status-microdesc-consensus-3" class="hover">#</a>
+</h3>
+
+<p>
+Tor clients used to download all server descriptors of active relays, but
+now they only download the smaller microdescriptors which are derived from
+server descriptors.
+The microdescriptor consensus lists all active relays and references their
+currently used microdescriptor.
+The descriptor archive tarballs
+contain both microdescriptor consensuses and referenced microdescriptors
+together.
+</p>
+
+<h3 id="type-microdescriptor" class="hover">Microdescriptors
+<small><tt>@type microdescriptor 1.0</tt></small>
+<a href="recent/relay-descriptors/microdescs/" class="btn btn-primary btn-xs">recent</a>
+<a href="archive/relay-descriptors/microdescs/" class="btn btn-primary btn-xs">archive</a>
+<a href="#type-microdescriptor" class="hover">#</a>
+</h3>
+
+<p>
+Microdescriptors are minimalistic documents that just includes the
+information necessary for Tor clients to work.
+The descriptor archive tarballs
+contain both microdescriptor consensuses and referenced microdescriptors
+together.
+The microdescriptors in descriptor archive tarballs
+contain one descriptor per file, whereas the recently published files
+contain all descriptors collected in an hour concatenated into a single
+file.
+</p>
+
+<h3 id="type-network-status-2" class="hover">Version 2 Network Statuses
+<small><tt>@type network-status-2 1.0</tt></small>
+<a href="archive/relay-descriptors/statuses/" class="btn btn-primary btn-xs">archive</a>
+<a href="#type-network-status-2" class="hover">#</a>
+</h3>
+
+<p>
+Version 2 network statuses have been published by the directory
+authorities before consensuses have been introduced.
+In contrast to consensuses, each directory authority published their own
+authoritative view on the network, and clients combined these documents
+locally.
+We stopped archiving version 2 network statuses in 2012.
+</p>
+
+<h3 id="type-directory" class="hover">Version 1 Directories
+<small><tt>@type directory 1.0</tt></small>
+<a href="archive/relay-descriptors/tor/" class="btn btn-primary btn-xs">archive</a>
+<a href="#type-directory" class="hover">#</a>
+</h3>
+
+<p>
+The first directory protocol version combined the list of active relays
+with server descriptors in a single directory document.
+We stopped archiving version 1 directories in 2007.
+</p>
+
+<h2 id="bridge-descriptors" class="hover">Tor Bridge Descriptors
+<a href="#bridge-descriptors" class="hover">#</a>
+</h2>
+
+<p>
+Bridges and the bridge authority publish bridge descriptors that are used
+by censored clients to connect to the Tor network.
+We cannot, however, make bridge descriptors available as we do with relay
+descriptors, because that would defeat the purpose of making bridges hard
+to enumerate for censors.
+We therefore sanitize bridge descriptors by removing all potentially
+identifying information and publish sanitized versions here.
+The sanitizing steps are as follows:
 </p>
 
 <ol>
-<li>Relays and directory authorities publish
-<a href="formats.html#relay-descriptors">relay descriptors</a>, so that
-clients can select relays for their paths through the Tor network.</li>
-<li>Bridges and the bridge authority publish
-<a href="formats.html#bridge-descriptors">bridge descriptors</a> that are
-used by censored clients to connect to the Tor network.</li>
-<li>The bridge distribution service BridgeDB publishes
-<a href="formats.html#bridge-pool-assignments">bridge pool assignments</a>
-describing which bridges it has assigned to which distribution pool.</li>
-<li>The exit list service TorDNSEL publishes
-<a href="formats.html#exit-lists">exit lists</a> containing the IP
-addresses of relays that it found when exiting through them.</li>
-<li>The performance measurement service Torperf publishes
-<a href="formats.html#torperf">performance data</a> from making simple
-HTTP requests over the Tor network.</li>
+<li><b>Replace bridge identities with their digests:</b> Clients
+can request a bridge's current descriptor by sending its identity string
+to the bridge authority.
+This is a feature to make bridges on dynamic IP addresses useful.
+Therefore, the original identities (and anything that could be used to
+derive them) need to be removed from the descriptors.
+The bridge's RSA-based identity fingerprint is replaced with its SHA-1
+hash value, and the bridge's optional base64-encoded Ed25519 master key is
+replaced with its SHA-256 digest.
+The idea is to have a consistent replacement that remains stable over
+months or even years (without keeping a secret for a keyed hash
+function).</li>
+<li><b>Remove most cryptographic keys and signatures:</b> It would be
+straightforward to learn about the bridge identity from the bridge's
+public key.
+Replacing keys by newly generated ones seemed to be unnecessary (and would
+involve keeping a state over months/years), so that most cryptographic
+keys and signatures have simply been removed.</li>
+<li><b>Replace IP address with IP address hash:</b> Of course, IP
+addresses need to be sanitized, too.
+<ul><li>IPv4 addresses are replaced with <tt>10.x.x.x</tt> with
+<tt>x.x.x</tt> being the 3 byte output of
+<tt>H(IP address | bridge identity | secret)[:3]</tt>.
+The input <tt>IP address</tt> is the 4-byte long binary representation of
+the bridge's current IP address.
+The <tt>bridge identity</tt> is the 20-byte long binary representation of
+the bridge's long-term identity fingerprint.
+The <tt>secret</tt> is a 31-byte long secure random string that changes
+once per month for all descriptors and statuses published in that month.
+<tt>H()</tt> is SHA-256.
+The <tt>[:3]</tt> operator means that we pick the 3 most significant bytes
+of the result.</li>
+<li>IPv6 addresses are replaced with <tt>[fd9f:2e19:3bcf::xx:xxxx]</tt>
+with <tt>xx:xxxx</tt> being the hex-formatted 3 byte output of a similar
+hash function as described for IPv4 addresses.
+The only differences are that the input <tt>IP address</tt> is 16 bytes
+long and the <tt>secret</tt> is only 19 bytes long.</li></ul>
+<li><b>Replace contact information:</b> If there is contact information in
+a descriptor, the contact line is changed to
+<tt>somebody</tt>.</li>
+<li><b>Remove pluggable transport addresses and arguments:</b> Bridges may
+provide transports in addition to the onion-routing protocol and include
+information about these transports in their extra-info descriptors for
+BridgeDB.
+In that case, any IP addresses, TCP ports, or additional arguments are
+removed, only leaving in the supported transport names.</li>
+<li><b>Append descriptor digests:</b> Descriptors are often referenced by
+their digest, but that is not possible anymore once their content has
+changed.
+As a workaround, sanitized descriptors contain a new line
+<tt>router-digest</tt> with the hex representation of the SHA-1 of the
+original descriptor digest excluding RSA signature and&mdash;if the bridge
+uses an Ed25519 identity&mdash;a new line <tt>router-digest-sha256</tt>
+with the base64-encoded SHA-256 of the SHA-256 digest of the original
+descriptor including all signatures.</li>
 </ol>
 
-</div> <!-- box -->
-
-<div class="box">
-
-<a name="download"></a>
-<h2>Where do I get the data? <a href="#download">#</a></h2>
+<h3 id="type-bridge-network-status" class="hover">Bridge Network Statuses
+<small><tt>@type bridge-network-status 1.0</tt></small>
+<a href="recent/bridge-descriptors/statuses/" class="btn btn-primary btn-xs">recent</a>
+<a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs">archive</a>
+<a href="#type-bridge-network-status" class="hover">#</a>
+</h3>
 
 <p>
-We have over 10 years of Tor network data available for download in
-monthly tarballs.
-The latest tarballs are updated every few days.
-So, if you want to fetch data covering an extended period of time, monthly
-tarballs are for you.
-Just be careful: these tarballs can decompress to 20 times the compressed
-size or even more.
-Monthly tarballs can be browsed and downloaded in the
-<a href="archive/"><tt>archive/</tt></a> subdirectory.
+Sanitized bridge network statuses are similar to version 2 relay network
+statuses, but with only a <tt>published</tt> line in the header and
+without any lines in the footer.
+The bridge descriptor archive tarballs contain all bridge
+descriptors of a given month, not just network statuses.
 </p>
 
-<p>
-If you're only interested in recently published data, we also have data
-from the last 72 hours available for you.
-In contrast to monthly tarballs, this data set is updated every hour.
-If you have already bootstrapped your application with monthly tarballs
-and want to stay up-to-date, or if you just want to take a peak at the
-latest data, this is your data set.
-If you're using special software to download these files, you may want to
-configure it to accept gzip-compressed data to save us all some bandwidth.
-The latest 72 hours of data are available in the
-<a href="recent/"><tt>recent/</tt></a> subdirectory.
-</p>
-
-</div> <!-- box -->
-
-<div class="box">
-
-<a name="libraries"></a>
-<h2>How can I parse the data? <a href="#libraries">#</a></h2>
+<h3 id="type-bridge-server-descriptor" class="hover">Bridge Server descriptors
+<small><tt>@type bridge-server-descriptor 1.1</tt></small>
+<a href="recent/bridge-descriptors/server-descriptors/" class="btn btn-primary btn-xs">recent</a>
+<a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs">archive</a>
+<a href="#type-bridge-server-descriptor" class="hover">#</a>
+</h3>
 
 <p>
-We developed two parsing libraries, one for Java and one for Python:
+Bridge server descriptors follow the same format as relay server
+descriptors, except for the sanitizing steps described above.
+The bridge descriptor archive tarballs contain all bridge
+descriptors of a given month, not just server descriptors.
+These tarballs contain one descriptor per file, whereas recently published bridge descriptor
+files
+contain all descriptors collected in an hour concatenated into a single
+file to reduce the number of files.
+The format has changed over time to accomodate changes to the sanitizing
+process, with earlier versions being:
 </p>
 
 <ul>
-<li>If you're programming in Java, try out the
-<a href="https://gitweb.torproject.org/metrics-lib.git">metrics-lib</a>
-library.</li>
-<li>If you're writing in Python,
-<a href="https://stem.torproject.org/">Stem</a> is your library.</li>
-<li>If Go is your language of choice, be sure to take a look at
-<a href="https://gitweb.torproject.org/user/phw/zoossh.git/">zoossh</a>
-which is currently under development.</li>
+<li><font color="#666"><tt>@type bridge-server-descriptor 1.0</tt> was the
+first version.</font></li>
+<li><font color="#666">There was supposed to be a newer version indicating
+added <tt>ntor-onion-key</tt> lines, but due to a mistake only the version
+number of sanitized bridge extra-info descriptors was raised.
+As a result, there may be sanitized bridge server descriptors with version
+<tt>@type bridge-server-descriptor 1.0</tt> with and without those
+lines.</font></li>
+<li><tt>@type bridge-server-descriptor 1.1</tt> added
+<tt>master-key-ed25519</tt> lines and <tt>router-digest-sha256</tt> to
+server descriptors published by bridges using an Ed25519 master key.</li>
+</ul>
+
+<h3 id="type-bridge-extra-info" class="hover">Bridge Extra-info Descriptors
+<small><tt>@type bridge-extra-info 1.3</tt></small>
+<a href="recent/bridge-descriptors/extra-infos/" class="btn btn-primary btn-xs">recent</a>
+<a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs">archive</a>
+<a href="#type-bridge-extra-info" class="hover">#</a>
+</h3>
+
+<p>
+Bridge extra-info descriptors follow the same format as relay extra-info
+descriptors, except for the sanitizing steps described above.
+The format has changed over time to accomodate changes to the sanitizing
+process, with earlier versions being:
+</p>
+
+<ul>
+<li><font color="#666"><tt>@type bridge-extra-info 1.0</tt> was the first
+version.</font></li>
+<li><font color="#666"><tt>@type bridge-extra-info 1.1</tt> added
+sanitized <tt>transport</tt> lines.</font></li>
+<li><font color="#666"><tt>@type bridge-extra-info 1.2</tt> was supposed
+to indicate added <tt>ntor-onion-key</tt> lines, but those changes only
+affect bridge server descriptors, not extra-info descriptors.
+So, nothing has changed as compared to version 1.1.</font></li>
+<li><tt>@type bridge-extra-info 1.3</tt> added <tt>master-key-ed25519</tt>
+lines and <tt>router-digest-sha256</tt> to extra-info descriptors
+published by bridges using an Ed25519 master key.</li>
 </ul>
 
 <p>
-If you developed a parsing library for another language and want it to be
-listed here, <a href="#support">please let us know</a>!</h2>
+The bridge descriptor archive tarballs contain all bridge
+descriptors of a given month, not just extra-info descriptors.
+These tarballs contain one descriptor per file, whereas recently published bridge descriptor
+files contain all descriptors collected in an hour concatenated into a single
+file to reduce the number of files.
 </p>
 
-</div> <!-- box -->
-
-<div class="box">
-
-<a name="references"></a>
-<h2>What did others do with the data? <a href="#references">#</a></h2>
+<h2 id="tor-hidden-service-descriptors" class="hover">Tor Hidden Service Descriptors
+<a href="#tor-hidden-service-descriptors" class="hover">#</a>
+</h2>
 
 <p>
-We wrote a couple of applications, and researchers wrote research papers
+Tor hidden services make it possible for users to hide their locations
+while offering various kinds of services, such as web publishing or an
+instant messaging server.
+A hidden service assembles a hidden service descriptor to make its service
+available in the network.
+This descriptor gets stored on hidden service directories and can be
+retrieved by hidden service clients.
+Hidden service descriptors are not formally archived, but some libraries
+support parsing these descriptors when obtaining them from a locally
+running Tor instance.
+</p>
+
+<h3 id="type-hidden-service-descriptor" class="hover">Hidden Service Descriptors
+<small><tt>@type hidden-service-descriptor 1.0</tt></small>
+<a href="#type-hidden-service-descriptor" class="hover">#</a>
+</h3>
+
+<p>
+Hidden service descriptors contain all details that are necessary for
+clients to connect to a hidden service.
+Despite the version number being 1.0, these descriptors are part of the
+version 2 hidden service protocol.
+</p>
+
+<h2 id="bridge-pool-assignments" class="hover">BridgeDB's Bridge Pool Assignments
+<a href="#bridge-pool-assignments" class="hover">#</a>
+</h2>
+
+<p>
+The bridge distribution service BridgeDB publishes bridge pool assignments
+describing which bridges it has assigned to which distribution pool.
+BridgeDB receives bridge network statuses from the bridge authority,
+assigns these bridges to persistent distribution rings, and hands them out
+to bridge users.
+BridgeDB periodically dumps the list of running bridges with information
+about the rings, subrings, and file buckets to which they are assigned to
+a local file.
+The sanitized versions of these lists containing SHA-1 hashes of bridge
+fingerprints instead of the original fingerprints are available for
+statistical analysis.
+</p>
+
+<h3 id="type-bridge-pool-assignment" class="hover">Bridge Pool Assignments
+<small><tt>@type bridge-pool-assignment 1.0</tt></small>
+<a href="archive/bridge-pool-assignments/" class="btn btn-primary btn-xs">archive</a>
+<a href="#type-bridge-pool-assignment" class="hover">#</a>
+</h3>
+
+<p>
+The document below shows a BridgeDB pool assignment file
+from March 13, 2011.
+Every such file begins with a line containing the timestamp when BridgeDB
+wrote this file.
+Subsequent lines start with the SHA-1 hash of a bridge fingerprint,
+followed by ring, subring, and/or file bucket information.
+There are currently three distributor ring types in BridgeDB:
+</p>
+
+<ol>
+<li><b>unallocated:</b> These bridges are not distributed by BridgeDB,
+but are either reserved for manual distribution or are written to file
+buckets for distribution via an external tool.
+If a bridge in the <tt>unallocated</tt> ring is assigned to a file bucket,
+this is noted by <tt>bucket=$bucketname</tt>.</li>
+<li><b>email:</b> These bridges are distributed via an e-mail
+autoresponder.  Bridges can be assigned to subrings by their OR port or
+relay flag which is defined by <tt>port=$port</tt> and/or <tt>flag=$flag</tt>.
+</li>
+<li><b>https:</b> These bridges are distributed via https server.
+There are multiple https rings to further distribute bridges by IP address
+ranges, which is denoted by <tt>ring=$ring</tt>.
+Bridges in the <tt>https</tt> ring can also be assigned to subrings by
+OR port or relay flag which is defined by <tt>port=$port</tt> and/or
+<tt>flag=$flag</tt>.</li>
+</ol>
+
+<pre>
+bridge-pool-assignment 2011-03-13 14:38:03
+00b834117566035736fc6bd4ece950eace8e057a unallocated
+00e923e7a8d87d28954fee7503e480f3a03ce4ee email port=443 flag=stable
+0103bb5b00ad3102b2dbafe9ce709a0a7c1060e4 https ring=2 port=443 flag=stable
+[...]
+</pre>
+
+<p>
+As of December 8, 2014, bridge pool assignment files are no longer
+archived.
+</p>
+
+<h2 id="exit-lists" class="hover">TorDNSEL's Exit Lists
+<a href="#exit-lists" class="hover">#</a>
+</h2>
+
+<p>
+The exit list service
+<a href="https://www.torproject.org/tordnsel/dist/">TorDNSEL</a>
+publishes exit lists containing the IP addresses of relays that it found
+when exiting through them.
+</p>
+
+<h3 id="type-tordnsel" class="hover">Exit Lists
+<small><tt>@type tordnsel 1.0</tt></small>
+<a href="recent/exit-lists/" class="btn btn-primary btn-xs">recent</a>
+<a href="archive/exit-lists/" class="btn btn-primary btn-xs">archive</a>
+<a href="#type-tordnsel" class="hover">#</a>
+</h3>
+
+<p>
+Tor Check makes the list of known exits and corresponding exit IP
+addresses available in a specific format.
+The document below shows an entry of the exit list written on
+December 28, 2010 at 15:21:44 UTC.
+This entry means that the relay with fingerprint <tt>63BA..</tt> which
+published a descriptor at 07:35:55 and was contained in a version 2
+network status from 08:10:11 uses two different IP addresses for exiting.
+The first address <tt>91.102.152.236</tt> was found in a test performed at
+07:10:30.
+When looking at the corresponding server descriptor, one finds that this
+is also the IP address on which the relay accepts connections from inside
+the Tor network.
+A second test performed at 10:35:30 reveals that the relay also uses IP
+address <tt>91.102.152.227</tt> for exiting.
+</p>
+
+<pre>
+ExitNode 63BA28370F543D175173E414D5450590D73E22DC
+Published 2010-12-28 07:35:55
+LastStatus 2010-12-28 08:10:11
+ExitAddress 91.102.152.236 2010-12-28 07:10:30
+ExitAddress 91.102.152.227 2010-12-28 10:35:30
+</pre>
+
+<h2 id="torperf" class="hover">Torperf's Performance Data
+<a href="#torperf" class="hover">#</a>
+</h2>
+
+<p>
+The performance measurement service Torperf publishes performance data
+from making simple HTTP requests over the Tor network.
+Torperf uses a trivial SOCKS client to download files of various sizes
+over the Tor network and notes how long substeps take.
+</p>
+
+<h3 id="type-torperf" class="hover">Torperf Measurement Results
+<small><tt>@type torperf 1.0</tt></small>
+<a href="recent/torperf/" class="btn btn-primary btn-xs">recent</a>
+<a href="archive/torperf/" class="btn btn-primary btn-xs">archive</a>
+<a href="#type-torperf" class="hover">#</a>
+</h3>
+
+<p>
+A Torperf results file contains a single line per Torperf run with
+<tt>key=value</tt> pairs.
+Such a result line is sufficient to learn about 1) the Tor and Torperf
+configuration, 2) measurement results, and 3) additional information that
+might help explain the results.
+Known keys are explained below.
+</p>
+<ul>
+<li>Configuration
+<ul>
+<li><tt>SOURCE:</tt> Configured name of the data source; required.</li>
+<li><tt>FILESIZE:</tt> Configured file size in bytes; required.</li>
+<li>Other meta data describing the Tor or Torperf configuration, e.g.,
+GUARD for a custom guard choice; optional.</li>
+</ul>
+<li>Measurement results
+<ul>
+<li><tt>START:</tt> Time when the connection process starts;
+required.</li>
+<li><tt>SOCKET:</tt> Time when the socket was created; required.</li>
+<li><tt>CONNECT:</tt> Time when the socket was connected; required.</li>
+<li><tt>NEGOTIATE:</tt> Time when SOCKS 5 authentication methods have been
+negotiated; required.</li>
+<li><tt>REQUEST:</tt> Time when the SOCKS request was sent; required.</li>
+<li><tt>RESPONSE:</tt> Time when the SOCKS response was received;
+required.</li>
+<li><tt>DATAREQUEST:</tt> Time when the HTTP request was written;
+required.</li>
+<li><tt>DATARESPONSE:</tt> Time when the first response was received;
+required.</li>
+<li><tt>DATACOMPLETE:</tt> Time when the payload was complete;
+required.</li>
+<li><tt>WRITEBYTES:</tt> Total number of bytes written; required.</li>
+<li><tt>READBYTES:</tt> Total number of bytes read; required.</li>
+<li><tt>DIDTIMEOUT:</tt> 1 if the request timed out, 0 otherwise;
+optional.</li>
+<li><tt>DATAPERCx:</tt> Time when x% of expected bytes were read for
+x = { 10, 20, 30, 40, 50, 60, 70, 80, 90 }; optional.</li>
+<li>Other measurement results, e.g., START_RENDCIRC, GOT_INTROCIRC, etc.
+for hidden-service measurements; optional.</li>
+</ul>
+<li>Additional information
+<ul>
+<li><tt>LAUNCH:</tt> Time when the circuit was launched; optional.</li>
+<li><tt>USED_AT:</tt> Time when this circuit was used; optional.</li>
+<li><tt>PATH:</tt> List of relays in the circuit, separated by commas;
+optional.</li>
+<li><tt>BUILDTIMES:</tt> List of times when circuit hops were built,
+separated by commas; optional.</li>
+<li><tt>TIMEOUT:</tt> Circuit build timeout in milliseconds that the Tor
+client used when building this circuit; optional.</li>
+<li><tt>QUANTILE:</tt> Circuit build time quantile that the Tor client
+uses to determine its circuit-build timeout; optional.</li>
+<li><tt>CIRC_ID:</tt> Circuit identifier of the circuit used for this
+measurement; optional.</li>
+<li><tt>USED_BY:</tt> Stream identifier of the stream used for this
+measurement; optional.</li>
+<li>Other fields containing additional information; optional.</li>
+</ul>
+</ul>
+
+<p>
+Recently published Torperf measurement result files accumulate
+all new Torperf measurements of a given day, which means that
+they may change throughout the day.
+This is different from some of the other recently published files provided here
+which do not change once they are
+written.
+</p>
+
+        </div><!-- col -->
+      </div><!-- row -->
+
+      <div class="row">
+        <div class="col-xs-12">
+          <h1 id="automated-downloads" class="hover">Automated Downloads
+<a href="#automated-downloads" class="hover">#</a>
+</h1>
+<p>
+There are multiple ways to download descriptors from this site.
+Of course, the obvious way is to browse the directories and download contained files using your browser.  However, this method cannot be automated very well.</p>
+
+<h2 id="recursive-wget" class="hover">Recursive downloads using <tt>wget</tt>
+<a href="#recursive-wget" class="hover">#</a>
+</h2>
+
+<p>A more elaborate way to automatically download descriptors is to use Unix tools like <tt>wget</tt> which support recursively downloading files from this site.  Example:</p>
+<pre>
+wget --recursive \                     # turn on recursive retrieving
+     --reject "index.html*" \          # don't retrieve directory listings
+     --no-parent \                     # don't ascend to parent directory
+     --no-host-directories \           # don't generate host-prefixed directories
+     --directory-prefix descriptors \  # set directory prefix
+     https://collector.torproject.org/recent/relay-descriptors/microdescs/
+</pre>
+
+<h2 id="index-json" class="hover">Custom downloaders using provided <tt>index.json</tt>
+<a href="#index-json" class="hover">#</a></h2>
+
+<p>Another automated way to download descriptors is to develop a tool that uses the provided <a href="index.json"><tt>index.json</tt></a> file or one of its compressed versions <a href="index.json.gz"><tt>index.json.gz</tt></a>, <a href="index.json.bz2"><tt>index.json.bz2</tt></a>, or <a href="index.json.xz"><tt>index.json.xz</tt></a>.
+These files contain a machine-readable representation of all descriptor files available on this site.
+Index files use the following custom JSON data format that might still be extended at a later time:</p>
+<ul>
+<li>Index object: At the document root there is always an index object with the following fields:
+<ul>
+<li><tt>"index_created"</tt>: Timestamp when this index was created using pattern <tt>"YYYY-MM-DD HH:MM"</tt> in the UTC timezone.</li>
+<li><tt>"path"</tt>: Base URL of this index file and all included resources.</li>
+<li><tt>"files"</tt>: List of file objects of files available from the document root, which will be omitted if empty.
+<li><tt>"directories"</tt>: List of directory objects of directories available from the document root, which will be omitted if empty.</li>
+</ul></li>
+<li>Directory object: There is one directory object for each directory or subdirectory in the document tree containing similar fields as the index object:
+<ul>
+<li><tt>"path"</tt>: Relative path of the directory.</li>
+<li><tt>"files"</tt>: List of file objects of files available from this directory, which will be omitted if empty.
+<li><tt>"directories"</tt>: List of directory objects of directories available from this directory, which will be omitted if empty.</li>
+</ul></li>
+<li>File object: Each file that is available in the document tree is represented by a file object with the following fields:
+<ul>
+<li><tt>"path"</tt>: Relative path of the file.</li>
+<li><tt>"size"</tt>: Size of the file in bytes.</li>
+<li><tt>"last_modified"</tt>: Timestamp when the file was last modified using pattern <tt>"YYYY-MM-DD HH:MM"</tt> in the UTC timezone.</li>
+</ul></li>
+</ul>
+
+        </div><!-- col -->
+      </div><!-- row -->
+
+      <div class="row">
+        <div class="col-xs-12">
+
+<h1 id="libraries" class="hover">Parsing Libraries
+<a href="#libraries" class="hover">#</a>
+</h1>
+
+<p>
+There are three parsing libraries available to facilitate processing the descriptors provided on this site:
+</p>
+
+<ul>
+<li><a href="https://gitweb.torproject.org/metrics-lib.git">metrics-lib</a> is the library of choice if you're programming in Java.</li>
+<li><a href="https://stem.torproject.org/">Stem</a> is your library if you're developing in Python.</li>
+<li><a href="https://gitweb.torproject.org/user/phw/zoossh.git/">zoossh</a> is a Go library that is currently under development.</li>
+</ul>
+
+<p>If you're unclear which library to pick and if you're flexible regarding the programming language, be sure to look at the <a href="https://stem.torproject.org/tutorials/mirror_mirror_on_the_wall.html#are-there-any-other-parsing-libraries">library comparison on the Stem website</a>.</p>
+
+<p>
+If you developed a descriptor parsing library for another language and want it to be
+listed here, <a href="#support">please let us know</a>!
+</p>
+
+
+        </div><!-- col -->
+      </div><!-- row -->
+
+      <div class="row">
+        <div class="col-xs-12">
+          <h1 id="related-work" class="hover">Related Work
+<a href="#related-work" class="hover">#</a></h1>
+
+<p>
+A couple of applications have been developed and plenty of research papers have been written
 using the Tor network data provided here.
 The following list is not at all exhaustive:
 </p>
 
 <ul>
-<li>The metrics portal shows graphs of
-<a href="https://metrics.torproject.org/network.html">network growth over
-time</a> and <a href="https://metrics.torproject.org/users.html">estimates
-of users derived from directory activity</a>.</li>
-<li>The <a href="https://exonerator.torproject.org/">ExoneraTor
-service</a> allows people to look up whether a given IP address was part
-of the Tor network in the past.</li>
-<li>The websites <a href="https://atlas.torproject.org/">Atlas</a>,
+<li><a href="https://metrics.torproject.org/">Tor Metrics</a> shows graphs
+of network growth over time and estimates of users derived from directory
+activity.</li>
+<li><a href="https://exonerator.torproject.org/">ExoneraTor</a> allows
+people to look up whether a given IP address was part of the Tor network
+in the past.</li>
+<li><a href="https://atlas.torproject.org/">Atlas</a>,
 <a href="https://globe.torproject.org/">Globe</a>, and
 <a href="https://compass.torproject.org/">Compass</a> let users explore
 how specific relays or bridges contribute to the Tor network.
 They all use <a href="https://onionoo.torproject.org/">Onionoo</a> as
 their data back-end service which in turn uses the Tor network data
 provided here.</li>
-<li>The <a href="https://shadow.github.io/">Shadow Simulator</a> uses
+<li><a href="https://shadow.github.io/">Shadow</a> uses
 archived Tor directory data to generate network topologies that match the
 real Tor network as close as possible.</li>
-<li>The <a href="https://torps.github.io/">Tor Path Simulator</a> uses Tor
+<li><a href="https://torps.github.io/">TorPS</a> uses Tor
 directory archive data to simulate the effect of changes to Tor's path
 selection algorithm.</li>
 </ul>
@@ -160,34 +902,44 @@ selection algorithm.</li>
 <p>
 If you wrote an application or research paper that uses Tor network data
 and that is not yet listed here, <a href="#support">please let us
-know</a>!</h2>
+know</a>!
 Please include a short description what your application does or what your
 research was about.
 </p>
 
-</div> <!-- box -->
+        </div><!-- col -->
+      </div><!-- row -->
 
-<div class="box">
-
-<a name="support"></a>
-<h2>How can I get support? <a href="#support">#</a></h2>
-
+      <div class="row">
+        <div class="col-xs-12">
+          <h1 id="support" class="hover">Support
+<a href="#support" class="hover">#</a>
+</h1>
 <p>
 If you have any questions about the Tor network data provided here, we'd
-like to <a href="mailto:help@rt.torproject.org">hear from you</a>!
+like to <a href="https://www.torproject.org/about/contact">hear from you</a>!
 Of course, suggestions or other feedback are welcome, too.
 </p>
+        </div><!-- col -->
+      </div><!-- row -->
 
-</div>
+    </div><!-- container -->
 
-<div class="footer">
-<p>Data on this site is freely available under a
+    <div class="footer">
+      <div class="container">
+        <div class="row">
+          <div class="col-xs-12">
+          <hr>
+            <p class="text-center small">Data on this site is freely available under a
 <a href="http://creativecommons.org/publicdomain/zero/1.0/">CC0 no
 copyright declaration</a>: To the extent possible under law, the Tor
 Project has waived all copyright and related or neighboring rights in the
-data.</p>
-</div>
-
-</body>
+data.
+"Tor" and the "Onion Logo" are <a href="https://www.torproject.org/docs/trademark-faq.html.en">registered trademarks</a> of The Tor Project, Inc.</p>
+          </div><!-- col -->
+        </div><!-- row -->
+      </div><!-- container -->
+    </div><!-- footer -->
+  </body>
 </html>
 
