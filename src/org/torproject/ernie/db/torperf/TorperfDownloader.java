@@ -602,8 +602,8 @@ public class TorperfDownloader extends Thread {
     for (File outputFile : outputFiles) {
       outputFile.getParentFile().mkdirs();
       BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-      bw.write("@type torperf 1.0\n");
       for (String line : this.cachedTpfLines.values()) {
+        bw.write("@type torperf 1.0\n");
         bw.write(line + "\n");
       }
       bw.close();
