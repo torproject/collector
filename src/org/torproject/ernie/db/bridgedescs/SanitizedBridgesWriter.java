@@ -950,7 +950,10 @@ public class SanitizedBridgesWriter extends Thread {
   private String parseMasterKeyEd25519FromIdentityEd25519(
       String identityEd25519Base64) {
     byte[] identityEd25519 = Base64.decodeBase64(identityEd25519Base64);
-    if (identityEd25519[0] != 0x01) {
+    if (identityEd25519.length < 40) {
+      this.logger.warning("Invalid length of identity-ed25519 (in "
+          + "bytes): " + identityEd25519.length);
+    } else if (identityEd25519[0] != 0x01) {
       this.logger.warning("Unknown version in identity-ed25519: "
           + identityEd25519[0]);
     } else if (identityEd25519[1] != 0x04) {
