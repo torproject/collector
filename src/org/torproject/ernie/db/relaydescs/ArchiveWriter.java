@@ -57,6 +57,10 @@ public class ArchiveWriter extends Thread {
     // Import/download relay descriptors from the various sources
     new ArchiveWriter(config).run();
 
+    new ReferenceChecker(new File("recent/relay-descriptors"),
+        new File("stats/references"),
+        new File("stats/references-history")).check();
+
     // Remove lock file
     lf.releaseLock();
 
