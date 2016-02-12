@@ -731,7 +731,7 @@ public class ArchiveWriter extends Thread {
     }
     this.logger.info(sb.toString());
     if (missingDescriptors) {
-      this.logger.warning("We are missing at least 0.5% of server or "
+      this.logger.fine("We are missing at least 0.5% of server or "
           + "extra-info descriptors referenced from a consensus or "
           + "vote or at least 0.5% of microdescriptors referenced from a "
           + "microdesc consensus.");
@@ -739,13 +739,13 @@ public class ArchiveWriter extends Thread {
     if (missingVotes) {
       /* TODO Shouldn't warn if we're not trying to archive votes at
        * all. */
-      this.logger.warning("We are missing at least one vote that was "
+      this.logger.fine("We are missing at least one vote that was "
           + "referenced from a consensus.");
     }
     if (missingMicrodescConsensus) {
       /* TODO Shouldn't warn if we're not trying to archive microdesc
        * consensuses at all. */
-      this.logger.warning("We are missing at least one microdesc "
+      this.logger.fine("We are missing at least one microdesc "
           + "consensus that was published together with a known "
           + "consensus.");
     }
