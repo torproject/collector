@@ -802,17 +802,23 @@ public class ArchiveWriter extends Thread {
   }
 
   /* Delete all files from the rsync directory that have not been modified
-   * in the last three days, and remove the .tmp extension from newly
+   * in the last three days (except for microdescriptors which are kept
+   * for up to thirty days), and remove the .tmp extension from newly
    * written files. */
   public void cleanUpRsyncDirectory() {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
+    long cutOffMicroMillis = cutOffMillis - 27L * 24L * 60L * 60L * 1000L;
     Stack<File> allFiles = new Stack<File>();
     allFiles.add(new File("recent/relay-descriptors"));
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();
       if (file.isDirectory()) {
         allFiles.addAll(Arrays.asList(file.listFiles()));
+      } else if (file.getName().endsWith("-micro")) {
+        if (file.lastModified() < cutOffMicroMillis) {
+          file.delete();
+        }
       } else if (file.lastModified() < cutOffMillis) {
         file.delete();
       } else if (file.getName().endsWith(".tmp")) {
