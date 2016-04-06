@@ -25,7 +25,6 @@
   <target name="compile" depends="metrics-lib,init">
     <javac srcdir="${sources}"
            destdir="${classes}"
-           excludes="org/torproject/ernie/web/"
            debug="true" debuglevel="lines,source"
            includeantruntime="false">
       <classpath refid="classpath"/>
@@ -41,35 +40,35 @@
   <target name="bridgedescs" depends="compile">
     <java fork="true"
           maxmemory="2048m"
-          classname="org.torproject.ernie.db.bridgedescs.SanitizedBridgesWriter">
+          classname="org.torproject.collector.bridgedescs.SanitizedBridgesWriter">
       <classpath refid="classpath"/>
     </java>
   </target>
   <target name="bridgepools" depends="compile">
     <java fork="true"
           maxmemory="2048m"
-          classname="org.torproject.ernie.db.bridgepools.BridgePoolAssignmentsProcessor">
+          classname="org.torproject.collector.bridgepools.BridgePoolAssignmentsProcessor">
       <classpath refid="classpath"/>
     </java>
   </target>
   <target name="exitlists" depends="compile">
     <java fork="true"
           maxmemory="2048m"
-          classname="org.torproject.ernie.db.exitlists.ExitListDownloader">
+          classname="org.torproject.collector.exitlists.ExitListDownloader">
       <classpath refid="classpath"/>
     </java>
   </target>
   <target name="relaydescs" depends="compile">
     <java fork="true"
           maxmemory="2048m"
-          classname="org.torproject.ernie.db.relaydescs.ArchiveWriter">
+          classname="org.torproject.collector.relaydescs.ArchiveWriter">
       <classpath refid="classpath"/>
     </java>
   </target>
   <target name="torperf" depends="compile">
     <java fork="true"
           maxmemory="2048m"
-          classname="org.torproject.ernie.db.torperf.TorperfDownloader">
+          classname="org.torproject.collector.torperf.TorperfDownloader">
       <classpath refid="classpath"/>
     </java>
   </target>

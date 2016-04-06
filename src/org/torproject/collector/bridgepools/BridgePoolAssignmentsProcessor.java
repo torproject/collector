@@ -1,6 +1,6 @@
 /* Copyright 2011--2012 The Tor Project
  * See LICENSE for licensing information */
-package org.torproject.ernie.db.bridgepools;
+package org.torproject.collector.bridgepools;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -28,9 +28,9 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-import org.torproject.ernie.db.main.Configuration;
-import org.torproject.ernie.db.main.LockFile;
-import org.torproject.ernie.db.main.LoggingConfiguration;
+import org.torproject.collector.main.Configuration;
+import org.torproject.collector.main.LockFile;
+import org.torproject.collector.main.LoggingConfiguration;
 
 public class BridgePoolAssignmentsProcessor extends Thread {
 

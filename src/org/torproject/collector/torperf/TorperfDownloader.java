@@ -1,6 +1,6 @@
 /* Copyright 2012 The Tor Project
  * See LICENSE for licensing information */
-package org.torproject.ernie.db.torperf;
+package org.torproject.collector.torperf;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -22,9 +22,9 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.torproject.ernie.db.main.Configuration;
-import org.torproject.ernie.db.main.LockFile;
-import org.torproject.ernie.db.main.LoggingConfiguration;
+import org.torproject.collector.main.Configuration;
+import org.torproject.collector.main.LockFile;
+import org.torproject.collector.main.LoggingConfiguration;
 
 /* Download possibly truncated Torperf .data and .extradata files from
  * configured sources, append them to the files we already have, and merge

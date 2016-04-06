@@ -1,6 +1,6 @@
 /* Copyright 2010--2012 The Tor Project
  * See LICENSE for licensing information */
-package org.torproject.ernie.db.bridgedescs;
+package org.torproject.collector.bridgedescs;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -29,9 +29,9 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.torproject.ernie.db.main.Configuration;
-import org.torproject.ernie.db.main.LockFile;
-import org.torproject.ernie.db.main.LoggingConfiguration;
+import org.torproject.collector.main.Configuration;
+import org.torproject.collector.main.LockFile;
+import org.torproject.collector.main.LoggingConfiguration;
 
 /**
  * Sanitizes bridge descriptors, i.e., removes all possibly sensitive

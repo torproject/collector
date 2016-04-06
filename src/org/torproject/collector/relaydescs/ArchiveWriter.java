@@ -1,6 +1,6 @@
 /* Copyright 2010--2014 The Tor Project
  * See LICENSE for licensing information */
-package org.torproject.ernie.db.relaydescs;
+package org.torproject.collector.relaydescs;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -30,9 +30,9 @@ import java.util.logging.Logger;
 import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
 import org.torproject.descriptor.impl.DescriptorParseException;
-import org.torproject.ernie.db.main.Configuration;
-import org.torproject.ernie.db.main.LockFile;
-import org.torproject.ernie.db.main.LoggingConfiguration;
+import org.torproject.collector.main.Configuration;
+import org.torproject.collector.main.LockFile;
+import org.torproject.collector.main.LoggingConfiguration;
 
 public class ArchiveWriter extends Thread {
 

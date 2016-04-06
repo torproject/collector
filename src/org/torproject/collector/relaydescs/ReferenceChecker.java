@@ -1,4 +1,4 @@
-package org.torproject.ernie.db.relaydescs;
+package org.torproject.collector.relaydescs;
 
 import java.io.File;
 import java.io.FileReader;

@@ -1,6 +1,6 @@
 /* Copyright 2010--2012 The Tor Project
  * See LICENSE for licensing information */
-package org.torproject.ernie.db.relaydescs;
+package org.torproject.collector.relaydescs;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;

@@ -1,6 +1,6 @@
 /* Copyright 2010--2012 The Tor Project
  * See LICENSE for licensing information */
-package org.torproject.ernie.db.exitlists;
+package org.torproject.collector.exitlists;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
@@ -26,9 +26,9 @@ import org.torproject.descriptor.DescriptorSourceFactory;
 import org.torproject.descriptor.ExitList;
 import org.torproject.descriptor.ExitListEntry;
 import org.torproject.descriptor.impl.DescriptorParseException;
-import org.torproject.ernie.db.main.Configuration;
-import org.torproject.ernie.db.main.LockFile;
-import org.torproject.ernie.db.main.LoggingConfiguration;
+import org.torproject.collector.main.Configuration;
+import org.torproject.collector.main.LockFile;
+import org.torproject.collector.main.LoggingConfiguration;
 
 public class ExitListDownloader extends Thread {
 
