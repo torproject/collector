@@ -24,8 +24,7 @@ import org.torproject.descriptor.Descriptor;
 import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
 import org.torproject.descriptor.ExitList;
-import org.torproject.descriptor.ExitListEntry;
-import org.torproject.descriptor.impl.DescriptorParseException;
+import org.torproject.descriptor.DescriptorParseException;
 import org.torproject.collector.main.Configuration;
 import org.torproject.collector.main.LockFile;
 import org.torproject.collector.main.LoggingConfiguration;
@@ -128,8 +127,10 @@ public class ExitListDownloader extends Thread {
         return;
       }
       ExitList parsedExitList = (ExitList) parsedDescriptors.get(0);
-      for (ExitListEntry entry : parsedExitList.getExitListEntries()) {
-        maxScanMillis = Math.max(maxScanMillis, entry.getScanMillis());
+      for (ExitList.Entry entry : parsedExitList.getEntries()) {
+        for (long scanMillis : entry.getExitAddresses().values()) {
+          maxScanMillis = Math.max(maxScanMillis, scanMillis);
+        }
       }
     } catch (DescriptorParseException e) {
       logger.log(Level.WARNING, "Could not parse downloaded exit list",

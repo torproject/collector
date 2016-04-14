@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 
 import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
-import org.torproject.descriptor.impl.DescriptorParseException;
+import org.torproject.descriptor.DescriptorParseException;
 import org.torproject.collector.main.Configuration;
 import org.torproject.collector.main.LockFile;
 import org.torproject.collector.main.LoggingConfiguration;
