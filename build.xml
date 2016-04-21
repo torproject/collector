@@ -1,33 +1,98 @@
-<project default="compile" name="ERNIE" basedir=".">
+<project default="compile" name="CollecTor" basedir=".">
+  <property name="release.version" value="0.9.0-dev" />
+  <property name="name" value="CollecTor"/>
+  <property name="descriptorversion" value="1.1.0-dev" />
+  <property name="source-and-target-java-version" value="1.7" />
   <property name="sources" value="src/"/>
-  <property name="classes" value="classes/"/>
-  <property name="docs" value="javadoc/"/>
-  <property name="name" value="ERNIE"/>
+  <property name="generated" value="generated/"/>
+  <property name="testresult" value="${generated}/test-results"/>
+  <property name="testsources" value="test"/>
+  <property name="coverageresult" value="${generated}/coverage-report/"/>
+  <property name="instrument" value="${generated}/instrument/"/>
+  <property name="classes" value="${generated}/classes/"/>
+  <property name="testclasses" value="${generated}/testclasses/"/>
+  <property name="docs" value="${generated}/javadoc/"/>
+  <property name="libs" value="lib"/>
+  <property name="cobertura.ser.file" value="cobertura.ser" />
+  <property name="jarfile" value="collector-${release.version}.jar" />
+  <property name="jarsourcesfile" value="collector-${release.version}-sources.jar" />
+  <property name="jarjavadocfile" value="collector-${release.version}-javadoc.jar" />
   <path id="classpath">
     <pathelement path="${classes}"/>
-    <fileset dir="/usr/share/java">
-      <include name="commons-codec.jar"/>
-      <include name="commons-compress.jar"/>
-      <include name="gson.jar"/>
-      <include name="xz.jar"/>
+    <fileset dir="${libs}">
+      <include name="commons-codec-1.9.jar"/>
+      <include name="commons-compress-1.9.jar"/>
+      <include name="gson-2.2.4.jar"/>
+      <include name="xz-1.5.jar"/>
+      <include name="descriptor-${descriptorversion}.jar"/>
     </fileset>
-    <fileset dir="deps/metrics-lib">
-      <include name="descriptor.jar"/>
+  </path>
+  <path id="cobertura.classpath">
+    <fileset dir="${libs}">
+      <include name="descriptor-${descriptorversion}.jar"/>
+      <include name="cobertura-2.1.1.jar" />
+      <include name="slf4j-api-1.7.7.jar" />
+      <include name="commons-lang3-3.3.2.jar" />
+      <include name="asm4-5.0.3.jar" />
+      <include name="asm4-util-5.0.3.jar" />
+      <include name="asm4-tree-5.0.3.jar" />
+      <include name="asm4-commons-5.0.3.jar" />
+      <include name="asm4-analysis-5.0.3.jar" />
+      <include name="oro-2.0.8.jar" />
+      <include name="logback-core-1.1.2.jar" />
+      <include name="logback-classic-1.1.2.jar" />
+    </fileset>
+  </path>
+  <path id="test.classpath">
+    <pathelement path="${testclasses}"/>
+    <fileset dir="${libs}">
+      <include name="junit4-4.11.jar"/>
     </fileset>
   </path>
   <target name="init">
     <mkdir dir="${classes}"/>
+    <mkdir dir="${testclasses}"/>
+    <mkdir dir="${generated}"/>
+    <mkdir dir="${docs}"/>
+    <mkdir dir="${testresult}"/>
+    <mkdir dir="${instrument}"/>
     <copy file="config.template" tofile="config"/>
   </target>
-  <target name="metrics-lib">
-    <ant dir="deps/metrics-lib"/>
+  <target name="clean">
+    <delete includeEmptyDirs="true" quiet="true">
+      <fileset dir="${classes}" defaultexcludes="false" includes="**" />
+      <fileset dir="${generated}" defaultexcludes="false" includes="**" />
+    </delete>
+    <delete file="${cobertura.ser.file}" quiet="true"/>
+    <delete file="${jarfile}" quiet="true"/>
+    <delete file="${jarsourcesfile}" quiet="true"/>
+    <delete file="${jarjavadocfile}" quiet="true"/>
   </target>
-  <target name="compile" depends="metrics-lib,init">
+  <target name="compile" depends="init">
     <javac srcdir="${sources}"
            destdir="${classes}"
+           source="${source-and-target-java-version}"
+           target="${source-and-target-java-version}"
            debug="true" debuglevel="lines,source"
+           deprecation="true"
+           optimize="false"
+           failonerror="true"
            includeantruntime="false">
       <classpath refid="classpath"/>
+    </javac>
+  </target>
+  <target name="compile-tests" depends="compile">
+    <javac destdir="${testclasses}"
+            srcdir="${testsources}"
+            source="${source-and-target-java-version}"
+            target="${source-and-target-java-version}"
+            debug="true" debuglevel="lines,source"
+            deprecation="true"
+            optimize="false"
+            failonerror="true"
+            includeantruntime="false">
+      <classpath refid="classpath"/>
+      <classpath refid="test.classpath"/>
     </javac>
   </target>
   <target name="docs">
@@ -36,6 +101,82 @@
       <classpath refid="classpath"/>
       <fileset dir="${sources}/" includes="**/*.java" />
     </javadoc>
+  </target>
+  <target name="jar" depends="compile,docs">
+    <exec executable="git" outputproperty="git.revision">
+      <arg value="rev-parse" />
+      <arg value="--short" />
+      <arg value="HEAD" />
+    </exec>
+    <jar destfile="${jarfile}"
+         basedir="${classes}">
+      <manifest>
+        <attribute name="Created-By" value="The Tor Project" />
+        <attribute name="Implementation-Title" value="${name}"/>
+        <attribute name="Implementation-Version"
+                   value="${release.version}-${git.revision}"/>
+      </manifest>
+    </jar>
+    <jar destfile="${jarsourcesfile}">
+      <fileset dir="${sources}" />
+      <fileset dir="${testsources}" />
+      <manifest>
+        <attribute name="Created-By" value="The Tor Project" />
+        <attribute name="Implementation-Title" value="${name}"/>
+        <attribute name="Implementation-Version"
+                   value="${release.version}-${git.revision}"/>
+      </manifest>
+    </jar>
+    <jar destfile="${jarjavadocfile}">
+      <fileset dir="${docs}" />
+      <manifest>
+        <attribute name="Created-By" value="The Tor Project" />
+        <attribute name="Implementation-Title" value="${name}"/>
+        <attribute name="Implementation-Version"
+                   value="${release.version}-${git.revision}"/>
+      </manifest>
+    </jar>
+  </target>
+  <taskdef classpathref="cobertura.classpath" resource="tasks.properties" />
+  <target name="coverage" depends="compile,compile-tests">
+    <copy todir="${instrument}" >
+      <fileset dir="${classes}" >
+       <include name="**/*"/>
+      </fileset>
+    </copy>
+    <cobertura-instrument ignoreTrivial="true">
+      <fileset dir="${instrument}">
+        <include name="**/**/*.class" />
+      </fileset>
+    </cobertura-instrument>
+    <junit fork="true" haltonfailure="false" printsummary="on">
+      <sysproperty key="net.sourceforge.cobertura.datafile"
+                   file="${basedir}/${cobertura.ser.file}" />
+      <classpath location="${instrument}" />
+      <classpath refid="classpath" />
+      <classpath refid="test.classpath" />
+      <classpath refid="cobertura.classpath" />
+      <formatter type="xml" />
+      <batchtest toDir="${testresult}" >
+        <fileset dir="${testclasses}" />
+      </batchtest>
+    </junit>
+    <cobertura-report format="html" destdir="${coverageresult}" >
+      <fileset dir="${sources}">
+        <include name="**/*.java" />
+      </fileset>
+    </cobertura-report>
+    <cobertura-check branchrate="0" totallinerate="0" />
+  </target>
+  <target name="test" depends="compile,compile-tests">
+    <junit fork="true" haltonfailure="true" printsummary="off">
+      <classpath refid="classpath"/>
+      <classpath refid="test.classpath"/>
+      <formatter type="plain" usefile="false"/>
+      <batchtest>
+        <fileset dir="${testclasses}" />
+      </batchtest>
+    </junit>
   </target>
   <target name="bridgedescs" depends="compile">
     <java fork="true"
