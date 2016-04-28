@@ -1,4 +1,4 @@
-/* Copyright 2010--2012 The Tor Project
+/* Copyright 2010--2016 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.collector.main;
 
@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 /**
  * Initialize logging configuration.
  *
- * Log levels used by ERNIE:
+ * Log levels used by CollecTor:
  *
  * - SEVERE: An event made it impossible to continue program execution.
  * - WARNING: A potential problem occurred that requires the operator to

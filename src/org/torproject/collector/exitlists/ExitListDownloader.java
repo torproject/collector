@@ -1,4 +1,4 @@
-/* Copyright 2010--2012 The Tor Project
+/* Copyright 2010--2016 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.collector.exitlists;
 
@@ -36,7 +36,7 @@ public class ExitListDownloader extends Thread {
     /* Initialize logging configuration. */
     new LoggingConfiguration("exit-lists");
     Logger logger = Logger.getLogger(ExitListDownloader.class.getName());
-    logger.info("Starting exit-lists module of ERNIE.");
+    logger.info("Starting exit-lists module of CollecTor.");
 
     // Initialize configuration
     Configuration config = new Configuration();
@@ -44,7 +44,7 @@ public class ExitListDownloader extends Thread {
     // Use lock file to avoid overlapping runs
     LockFile lf = new LockFile("exit-lists");
     if (!lf.acquireLock()) {
-      logger.severe("Warning: ERNIE is already running or has not exited "
+      logger.severe("Warning: CollecTor is already running or has not exited "
           + "cleanly! Exiting!");
       System.exit(1);
     }
@@ -55,7 +55,7 @@ public class ExitListDownloader extends Thread {
     // Remove lock file
     lf.releaseLock();
 
-    logger.info("Terminating exit-lists module of ERNIE.");
+    logger.info("Terminating exit-lists module of CollecTor.");
   }
 
   public ExitListDownloader(Configuration config) {

@@ -1,4 +1,4 @@
-/* Copyright 2012 The Tor Project
+/* Copyright 2012-2016 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.collector.torperf;
 
@@ -36,7 +36,7 @@ public class TorperfDownloader extends Thread {
     /* Initialize logging configuration. */
     new LoggingConfiguration("torperf");
     Logger logger = Logger.getLogger(TorperfDownloader.class.getName());
-    logger.info("Starting torperf module of ERNIE.");
+    logger.info("Starting torperf module of CollecTor.");
 
     // Initialize configuration
     Configuration config = new Configuration();
@@ -44,7 +44,7 @@ public class TorperfDownloader extends Thread {
     // Use lock file to avoid overlapping runs
     LockFile lf = new LockFile("torperf");
     if (!lf.acquireLock()) {
-      logger.severe("Warning: ERNIE is already running or has not exited "
+      logger.severe("Warning: CollecTor is already running or has not exited "
           + "cleanly! Exiting!");
       System.exit(1);
     }
@@ -55,7 +55,7 @@ public class TorperfDownloader extends Thread {
     // Remove lock file
     lf.releaseLock();
 
-    logger.info("Terminating torperf module of ERNIE.");
+    logger.info("Terminating torperf module of CollecTor.");
   }
 
   private Configuration config;

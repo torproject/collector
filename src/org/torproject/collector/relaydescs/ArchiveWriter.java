@@ -1,4 +1,4 @@
-/* Copyright 2010--2014 The Tor Project
+/* Copyright 2010--2016 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.collector.relaydescs;
 
@@ -41,7 +41,7 @@ public class ArchiveWriter extends Thread {
     /* Initialize logging configuration. */
     new LoggingConfiguration("relay-descriptors");
     Logger logger = Logger.getLogger(ArchiveWriter.class.getName());
-    logger.info("Starting relay-descriptors module of ERNIE.");
+    logger.info("Starting relay-descriptors module of CollecTor.");
 
     // Initialize configuration
     Configuration config = new Configuration();
@@ -49,7 +49,7 @@ public class ArchiveWriter extends Thread {
     // Use lock file to avoid overlapping runs
     LockFile lf = new LockFile("relay-descriptors");
     if (!lf.acquireLock()) {
-      logger.severe("Warning: ERNIE is already running or has not exited "
+      logger.severe("Warning: CollecTor is already running or has not exited "
           + "cleanly! Exiting!");
       System.exit(1);
     }
@@ -64,7 +64,7 @@ public class ArchiveWriter extends Thread {
     // Remove lock file
     lf.releaseLock();
 
-    logger.info("Terminating relay-descriptors module of ERNIE.");
+    logger.info("Terminating relay-descriptors module of CollecTor.");
   }
 
   private Configuration config;

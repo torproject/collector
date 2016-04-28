@@ -1,4 +1,4 @@
-/* Copyright 2011--2012 The Tor Project
+/* Copyright 2011--2016 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.collector.bridgepools;
 
@@ -40,7 +40,7 @@ public class BridgePoolAssignmentsProcessor extends Thread {
     new LoggingConfiguration("bridge-pool-assignments");
     Logger logger = Logger.getLogger(
         BridgePoolAssignmentsProcessor.class.getName());
-    logger.info("Starting bridge-pool-assignments module of ERNIE.");
+    logger.info("Starting bridge-pool-assignments module of CollecTor.");
 
     // Initialize configuration
     Configuration config = new Configuration();
@@ -48,7 +48,7 @@ public class BridgePoolAssignmentsProcessor extends Thread {
     // Use lock file to avoid overlapping runs
     LockFile lf = new LockFile("bridge-pool-assignments");
     if (!lf.acquireLock()) {
-      logger.severe("Warning: ERNIE is already running or has not exited "
+      logger.severe("Warning: CollecTor is already running or has not exited "
           + "cleanly! Exiting!");
       System.exit(1);
     }
@@ -59,7 +59,7 @@ public class BridgePoolAssignmentsProcessor extends Thread {
     // Remove lock file
     lf.releaseLock();
 
-    logger.info("Terminating bridge-pool-assignments module of ERNIE.");
+    logger.info("Terminating bridge-pool-assignments module of CollecTor.");
   }
 
   private Configuration config;

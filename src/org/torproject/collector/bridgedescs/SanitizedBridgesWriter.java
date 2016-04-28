@@ -1,4 +1,4 @@
-/* Copyright 2010--2012 The Tor Project
+/* Copyright 2010--2016 The Tor Project
  * See LICENSE for licensing information */
 package org.torproject.collector.bridgedescs;
 
@@ -54,7 +54,7 @@ public class SanitizedBridgesWriter extends Thread {
     new LoggingConfiguration("bridge-descriptors");
     Logger logger = Logger.getLogger(
         SanitizedBridgesWriter.class.getName());
-    logger.info("Starting bridge-descriptors module of ERNIE.");
+    logger.info("Starting bridge-descriptors module of CollecTor.");
 
     // Initialize configuration
     Configuration config = new Configuration();
@@ -62,7 +62,7 @@ public class SanitizedBridgesWriter extends Thread {
     // Use lock file to avoid overlapping runs
     LockFile lf = new LockFile("bridge-descriptors");
     if (!lf.acquireLock()) {
-      logger.severe("Warning: ERNIE is already running or has not exited "
+      logger.severe("Warning: CollecTor is already running or has not exited "
           + "cleanly! Exiting!");
       System.exit(1);
     }
@@ -73,7 +73,7 @@ public class SanitizedBridgesWriter extends Thread {
     // Remove lock file
     lf.releaseLock();
 
-    logger.info("Terminating bridge-descriptors module of ERNIE.");
+    logger.info("Terminating bridge-descriptors module of CollecTor.");
   }
 
   private Configuration config;

@@ -9,4 +9,6 @@ log/
 rsync/
 stats/
 tarballs/
+generated
+lib
 
