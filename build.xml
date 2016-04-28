@@ -4,6 +4,7 @@
   <property name="descriptorversion" value="1.1.0-dev" />
   <property name="source-and-target-java-version" value="1.7" />
   <property name="sources" value="src/"/>
+  <property name="resources" value="resources/"/>
   <property name="generated" value="generated/"/>
   <property name="testresult" value="${generated}/test-results"/>
   <property name="testsources" value="test"/>
@@ -25,6 +26,11 @@
       <include name="gson-2.2.4.jar"/>
       <include name="xz-1.5.jar"/>
       <include name="descriptor-${descriptorversion}.jar"/>
+    </fileset>
+  </path>
+  <path id="checkstyle.classpath" >
+    <fileset dir="${libs}">
+      <include name="checkstyle-6.17-all.jar" />
     </fileset>
   </path>
   <path id="cobertura.classpath">
@@ -134,6 +140,21 @@
                    value="${release.version}-${git.revision}"/>
       </manifest>
     </jar>
+  </target>
+  <taskdef resource="com/puppycrawl/tools/checkstyle/ant/checkstyle-ant-task.properties">
+    <classpath refid="checkstyle.classpath" />
+  </taskdef>
+  <target name="checks" depends="compile">
+    <checkstyle config="${resources}/metrics_checks.xml">
+      <fileset dir="${sources}"
+               includes="**/*.java" />
+      <classpath>
+        <path refid="classpath" />
+        <path refid="checkstyle.classpath" />
+      </classpath>
+      <formatter type="plain"
+                 toFile="${generated}/checkstyle_report.txt"/>
+    </checkstyle>
   </target>
   <taskdef classpathref="cobertura.classpath" resource="tasks.properties" />
   <target name="coverage" depends="compile,compile-tests">
