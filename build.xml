@@ -52,7 +52,6 @@
   <target name="init">
     <mkdir dir="${classes}"/>
     <mkdir dir="${testclasses}"/>
-    <mkdir dir="${generated}"/>
     <mkdir dir="${docs}"/>
     <mkdir dir="${testresult}"/>
     <mkdir dir="${instrument}"/>
@@ -60,7 +59,6 @@
   </target>
   <target name="clean">
     <delete includeEmptyDirs="true" quiet="true">
-      <fileset dir="${classes}" defaultexcludes="false" includes="**" />
       <fileset dir="${generated}" defaultexcludes="false" includes="**" />
     </delete>
     <delete file="${cobertura.ser.file}" quiet="true"/>
