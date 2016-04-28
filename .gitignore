@@ -1,14 +1,14 @@
-.classpath
-.project
-classes/
-config
-data/
-in/
-out/
-log/
-rsync/
-stats/
-tarballs/
-generated
-lib
+/.classpath
+/.project
+/classes/
+/config
+/data/
+/in/
+/out/
+/log/
+/rsync/
+/stats/
+/tarballs/
+/generated
+/lib
 
