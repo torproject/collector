@@ -11,6 +11,9 @@
      - Replaced com.google with org.torproject in import statement ordering
        [CustomImportOrder].
 
+     - Relaxed requirement that catch parameters must be at least two
+       characters long [CatchParameterName].
+
     Checkstyle is very configurable. Be sure to read the documentation at
     http://checkstyle.sf.net (or in your downloaded distribution).
 
@@ -111,7 +114,7 @@
              value="Parameter name ''{0}'' must match pattern ''{1}''."/>
         </module>
         <module name="CatchParameterName">
-            <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9]*$"/>
+            <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
             <message key="name.invalidPattern"
              value="Catch parameter name ''{0}'' must match pattern ''{1}''."/>
         </module>
