@@ -1,5 +1,6 @@
-/* Copyright 2010--2012 The Tor Project
+/* Copyright 2010--2016 The Tor Project
  * See LICENSE for licensing information */
+
 package org.torproject.collector.main;
 
 import java.io.BufferedReader;
@@ -67,6 +68,7 @@ public class Configuration {
   private String torperfOutputDirectory = "out/torperf/";
   private SortedMap<String, String> torperfSources = null;
   private List<String> torperfFiles = null;
+
   public Configuration() {
 
     /* Initialize logger. */
@@ -219,84 +221,111 @@ public class Configuration {
       System.exit(1);
     }
   }
+
   public String getDirectoryArchivesOutputDirectory() {
     return this.directoryArchivesOutputDirectory;
   }
+
   public boolean getImportCachedRelayDescriptors() {
     return this.importCachedRelayDescriptors;
   }
+
   public List<String> getCachedRelayDescriptorDirectory() {
     return this.cachedRelayDescriptorsDirectory;
   }
+
   public boolean getImportDirectoryArchives() {
     return this.importDirectoryArchives;
   }
+
   public String getDirectoryArchivesDirectory() {
     return this.directoryArchivesDirectory;
   }
+
   public boolean getKeepDirectoryArchiveImportHistory() {
     return this.keepDirectoryArchiveImportHistory;
   }
+
   public boolean getReplaceIPAddressesWithHashes() {
     return this.replaceIPAddressesWithHashes;
   }
+
   public long getLimitBridgeDescriptorMappings() {
     return this.limitBridgeDescriptorMappings;
   }
+
   public String getSanitizedBridgesWriteDirectory() {
     return this.sanitizedBridgesWriteDirectory;
   }
+
   public String getBridgeSnapshotsDirectory() {
     return this.bridgeSnapshotsDirectory;
   }
+
   public boolean getDownloadRelayDescriptors() {
     return this.downloadRelayDescriptors;
   }
+
   public List<String> getDownloadFromDirectoryAuthorities() {
     return this.downloadFromDirectoryAuthorities;
   }
+
   public List<String> getDownloadVotesByFingerprint() {
     return this.downloadVotesByFingerprint;
   }
+
   public boolean getDownloadCurrentConsensus() {
     return this.downloadCurrentConsensus;
   }
+
   public boolean getDownloadCurrentMicrodescConsensus() {
     return this.downloadCurrentMicrodescConsensus;
   }
+
   public boolean getDownloadCurrentVotes() {
     return this.downloadCurrentVotes;
   }
+
   public boolean getDownloadMissingServerDescriptors() {
     return this.downloadMissingServerDescriptors;
   }
+
   public boolean getDownloadMissingExtraInfoDescriptors() {
     return this.downloadMissingExtraInfoDescriptors;
   }
+
   public boolean getDownloadMissingMicrodescriptors() {
     return this.downloadMissingMicrodescriptors;
   }
+
   public boolean getDownloadAllServerDescriptors() {
     return this.downloadAllServerDescriptors;
   }
+
   public boolean getDownloadAllExtraInfoDescriptors() {
     return this.downloadAllExtraInfoDescriptors;
   }
+
   public boolean getCompressRelayDescriptorDownloads() {
     return this.compressRelayDescriptorDownloads;
   }
+
   public String getAssignmentsDirectory() {
     return this.assignmentsDirectory;
   }
+
   public String getSanitizedAssignmentsDirectory() {
     return this.sanitizedAssignmentsDirectory;
   }
+
   public String getTorperfOutputDirectory() {
     return this.torperfOutputDirectory;
   }
+
   public SortedMap<String, String> getTorperfSources() {
     return this.torperfSources;
   }
+
   public List<String> getTorperfFiles() {
     return this.torperfFiles;
   }

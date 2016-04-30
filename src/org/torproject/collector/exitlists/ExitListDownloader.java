@@ -1,6 +1,16 @@
 /* Copyright 2010--2016 The Tor Project
  * See LICENSE for licensing information */
+
 package org.torproject.collector.exitlists;
+
+import org.torproject.collector.main.Configuration;
+import org.torproject.collector.main.LockFile;
+import org.torproject.collector.main.LoggingConfiguration;
+import org.torproject.descriptor.Descriptor;
+import org.torproject.descriptor.DescriptorParseException;
+import org.torproject.descriptor.DescriptorParser;
+import org.torproject.descriptor.DescriptorSourceFactory;
+import org.torproject.descriptor.ExitList;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
@@ -19,15 +29,6 @@ import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.torproject.descriptor.Descriptor;
-import org.torproject.descriptor.DescriptorParser;
-import org.torproject.descriptor.DescriptorSourceFactory;
-import org.torproject.descriptor.ExitList;
-import org.torproject.descriptor.DescriptorParseException;
-import org.torproject.collector.main.Configuration;
-import org.torproject.collector.main.LockFile;
-import org.torproject.collector.main.LoggingConfiguration;
 
 public class ExitListDownloader extends Thread {
 
@@ -85,8 +86,8 @@ public class ExitListDownloader extends Thread {
       huc.connect();
       int response = huc.getResponseCode();
       if (response != 200) {
-        logger.warning("Could not download exit list. Response code " + 
-            response);
+        logger.warning("Could not download exit list. Response code "
+            + response);
         return;
       }
       BufferedInputStream in = new BufferedInputStream(
@@ -121,8 +122,8 @@ public class ExitListDownloader extends Thread {
       List<Descriptor> parsedDescriptors =
           descriptorParser.parseDescriptors(downloadedExitList.getBytes(),
           tarballFile.getName());
-      if (parsedDescriptors.size() != 1 ||
-          !(parsedDescriptors.get(0) instanceof ExitList)) {
+      if (parsedDescriptors.size() != 1
+          || !(parsedDescriptors.get(0) instanceof ExitList)) {
         logger.warning("Could not parse downloaded exit list");
         return;
       }
@@ -136,12 +137,12 @@ public class ExitListDownloader extends Thread {
       logger.log(Level.WARNING, "Could not parse downloaded exit list",
           e);
     }
-    if (maxScanMillis > 0L &&
-        maxScanMillis + 330L * 60L * 1000L < System.currentTimeMillis()) {
+    if (maxScanMillis > 0L
+        && maxScanMillis + 330L * 60L * 1000L < System.currentTimeMillis()) {
       logger.warning("The last reported scan in the downloaded exit list "
           + "took place at " + dateTimeFormat.format(maxScanMillis)
           + ", which is more than 5:30 hours in the past.");
-  }
+    }
 
     /* Write to disk. */
     File rsyncFile = new File("recent/exit-lists/"

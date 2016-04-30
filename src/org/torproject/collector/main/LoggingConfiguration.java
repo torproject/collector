@@ -1,5 +1,6 @@
 /* Copyright 2010--2016 The Tor Project
  * See LICENSE for licensing information */
+
 package org.torproject.collector.main;
 
 import java.io.File;

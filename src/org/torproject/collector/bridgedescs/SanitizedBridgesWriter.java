@@ -1,6 +1,16 @@
 /* Copyright 2010--2016 The Tor Project
  * See LICENSE for licensing information */
+
 package org.torproject.collector.bridgedescs;
+
+import org.torproject.collector.main.Configuration;
+import org.torproject.collector.main.LockFile;
+import org.torproject.collector.main.LoggingConfiguration;
+
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -24,14 +34,6 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.torproject.collector.main.Configuration;
-import org.torproject.collector.main.LockFile;
-import org.torproject.collector.main.LoggingConfiguration;
 
 /**
  * Sanitizes bridge descriptors, i.e., removes all possibly sensitive
@@ -125,8 +127,8 @@ public class SanitizedBridgesWriter extends Thread {
         config.getLimitBridgeDescriptorMappings();
     File statsDirectory = new File("stats");
 
-    if (bridgeDirectoriesDirectory == null ||
-        sanitizedBridgesDirectory == null || statsDirectory == null) {
+    if (bridgeDirectoriesDirectory == null
+        || sanitizedBridgesDirectory == null || statsDirectory == null) {
       throw new IllegalArgumentException();
     }
 
@@ -169,9 +171,9 @@ public class SanitizedBridgesWriter extends Thread {
         String line;
         while ((line = br.readLine()) != null) {
           String[] parts = line.split(",");
-          if ((line.length() != ("yyyy-MM,".length() + 31 * 2) &&
-              line.length() != ("yyyy-MM,".length() + 50 * 2)) ||
-              parts.length != 2) {
+          if ((line.length() != ("yyyy-MM,".length() + 31 * 2)
+              && line.length() != ("yyyy-MM,".length() + 50 * 2))
+              || parts.length != 2) {
             this.logger.warning("Invalid line in bridge-ip-secrets file "
                 + "starting with '" + line.substring(0, 7) + "'! "
                 + "Not calculating any IP address hashes in this "
@@ -364,8 +366,8 @@ public class SanitizedBridgesWriter extends Thread {
   }
 
   private byte[] getSecretForMonth(String month) throws IOException {
-    if (!this.secretsForHashingIPAddresses.containsKey(month) ||
-        this.secretsForHashingIPAddresses.get(month).length == 31) {
+    if (!this.secretsForHashingIPAddresses.containsKey(month)
+        || this.secretsForHashingIPAddresses.get(month).length == 31) {
       byte[] secret = new byte[50];
       this.secureRandom.nextBytes(secret);
       if (this.secretsForHashingIPAddresses.containsKey(month)) {
@@ -420,8 +422,8 @@ public class SanitizedBridgesWriter extends Thread {
       maxNetworkStatusPublishedTime = publicationTime;
     }
 
-    if (this.bridgeSanitizingCutOffTimestamp.
-        compareTo(publicationTime) > 0) {
+    if (this.bridgeSanitizingCutOffTimestamp
+        .compareTo(publicationTime) > 0) {
       this.logger.log(!this.haveWarnedAboutInterval ? Level.WARNING
           : Level.FINE, "Sanitizing and storing network status with "
           + "publication time outside our descriptor sanitizing "
@@ -476,9 +478,9 @@ public class SanitizedBridgesWriter extends Thread {
           String dirPort = parts[8];
 
           /* Determine most recent descriptor publication time. */
-          if (descPublicationTime.compareTo(publicationTime) <= 0 &&
-              (mostRecentDescPublished == null ||
-              descPublicationTime.compareTo(
+          if (descPublicationTime.compareTo(publicationTime) <= 0
+              && (mostRecentDescPublished == null
+              || descPublicationTime.compareTo(
               mostRecentDescPublished) > 0)) {
             mostRecentDescPublished = descPublicationTime;
           }
@@ -515,9 +517,9 @@ public class SanitizedBridgesWriter extends Thread {
           }
 
         /* Nothing special about s, w, and p lines; just copy them. */
-        } else if (line.startsWith("s ") || line.equals("s") ||
-            line.startsWith("w ") || line.equals("w") ||
-            line.startsWith("p ") || line.equals("p")) {
+        } else if (line.startsWith("s ") || line.equals("s")
+            || line.startsWith("w ") || line.equals("w")
+            || line.startsWith("p ") || line.equals("p")) {
           scrubbed.append(line + "\n");
 
         /* There should be nothing else but r, w, p, and s lines in the
@@ -541,9 +543,9 @@ public class SanitizedBridgesWriter extends Thread {
       SimpleDateFormat formatter = new SimpleDateFormat(
           "yyyy-MM-dd HH:mm:ss");
       formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-      if (formatter.parse(publicationTime).getTime() -
-          formatter.parse(mostRecentDescPublished).getTime() >
-          60L * 60L * 1000L) {
+      if (formatter.parse(publicationTime).getTime()
+          - formatter.parse(mostRecentDescPublished).getTime()
+          > 60L * 60L * 1000L) {
         this.logger.warning("The most recent descriptor in the bridge "
             + "network status published at " + publicationTime + " was "
             + "published at " + mostRecentDescPublished + " which is "
@@ -609,16 +611,21 @@ public class SanitizedBridgesWriter extends Thread {
     }
 
     /* Parse descriptor to generate a sanitized version. */
-    String scrubbedDesc = null, published = null,
-        masterKeyEd25519FromIdentityEd25519 = null;
+    String scrubbedDesc = null;
+    String published = null;
+    String masterKeyEd25519FromIdentityEd25519 = null;
     try {
       BufferedReader br = new BufferedReader(new StringReader(
           new String(data, "US-ASCII")));
       StringBuilder scrubbed = new StringBuilder();
-      String line = null, hashedBridgeIdentity = null, address = null,
-          routerLine = null, scrubbedAddress = null,
-          masterKeyEd25519 = null;
-      List<String> orAddresses = null, scrubbedOrAddresses = null;
+      String line = null;
+      String hashedBridgeIdentity = null;
+      String address = null;
+      String routerLine = null;
+      String scrubbedAddress = null;
+      String masterKeyEd25519 = null;
+      List<String> orAddresses = null;
+      List<String> scrubbedOrAddresses = null;
       boolean skipCrypto = false;
       while ((line = br.readLine()) != null) {
 
@@ -649,8 +656,8 @@ public class SanitizedBridgesWriter extends Thread {
           if (published.compareTo(maxServerDescriptorPublishedTime) > 0) {
             maxServerDescriptorPublishedTime = published;
           }
-          if (this.bridgeSanitizingCutOffTimestamp.
-              compareTo(published) > 0) {
+          if (this.bridgeSanitizingCutOffTimestamp
+              .compareTo(published) > 0) {
             this.logger.log(!this.haveWarnedAboutInterval
                 ? Level.WARNING : Level.FINE, "Sanitizing and storing "
                 + "server descriptor with publication time outside our "
@@ -661,15 +668,15 @@ public class SanitizedBridgesWriter extends Thread {
 
         /* Parse the fingerprint to determine the hashed bridge
          * identity. */
-        } else if (line.startsWith("opt fingerprint ") ||
-            line.startsWith("fingerprint ")) {
-          String fingerprint = line.substring(line.startsWith("opt ") ?
-              "opt fingerprint".length() : "fingerprint".length()).
-              replaceAll(" ", "").toLowerCase();
+        } else if (line.startsWith("opt fingerprint ")
+            || line.startsWith("fingerprint ")) {
+          String fingerprint = line.substring(line.startsWith("opt ")
+              ? "opt fingerprint".length() : "fingerprint".length())
+              .replaceAll(" ", "").toLowerCase();
           byte[] fingerprintBytes = Hex.decodeHex(
               fingerprint.toCharArray());
-          hashedBridgeIdentity = DigestUtils.shaHex(fingerprintBytes).
-              toLowerCase();
+          hashedBridgeIdentity = DigestUtils.shaHex(fingerprintBytes)
+              .toLowerCase();
           try {
             scrubbedAddress = scrubIpv4Address(address, fingerprintBytes,
                 published);
@@ -695,9 +702,10 @@ public class SanitizedBridgesWriter extends Thread {
           }
           scrubbed.append((line.startsWith("opt ") ? "opt " : "")
               + "fingerprint");
-          for (int i = 0; i < hashedBridgeIdentity.length() / 4; i++)
+          for (int i = 0; i < hashedBridgeIdentity.length() / 4; i++) {
             scrubbed.append(" " + hashedBridgeIdentity.substring(4 * i,
                 4 * (i + 1)).toUpperCase());
+          }
           scrubbed.append("\n");
 
         /* Replace the contact line (if present) with a generic one. */
@@ -722,8 +730,8 @@ public class SanitizedBridgesWriter extends Thread {
 
         /* Replace extra-info digest with the hashed digest of the
          * non-scrubbed descriptor. */
-        } else if (line.startsWith("opt extra-info-digest ") ||
-            line.startsWith("extra-info-digest ")) {
+        } else if (line.startsWith("opt extra-info-digest ")
+            || line.startsWith("extra-info-digest ")) {
           String[] parts = line.split(" ");
           if (line.startsWith("opt ")) {
             scrubbed.append("opt ");
@@ -733,8 +741,8 @@ public class SanitizedBridgesWriter extends Thread {
               Hex.decodeHex(parts[1].toCharArray())).toUpperCase());
           if (parts.length > 2) {
             scrubbed.append(" " + Base64.encodeBase64String(
-                DigestUtils.sha256(Base64.decodeBase64(parts[2]))).
-                replaceAll("=", ""));
+                DigestUtils.sha256(Base64.decodeBase64(parts[2])))
+                .replaceAll("=", ""));
           }
           scrubbed.append("\n");
 
@@ -752,8 +760,8 @@ public class SanitizedBridgesWriter extends Thread {
         /* Extract master-key-ed25519 from identity-ed25519. */
         } else if (line.equals("identity-ed25519")) {
           StringBuilder sb = new StringBuilder();
-          while ((line = br.readLine()) != null &&
-              !line.equals("-----END ED25519 CERT-----")) {
+          while ((line = br.readLine()) != null
+              && !line.equals("-----END ED25519 CERT-----")) {
             if (line.equals("-----BEGIN ED25519 CERT-----")) {
               continue;
             }
@@ -764,8 +772,8 @@ public class SanitizedBridgesWriter extends Thread {
               sb.toString());
           String sha256MasterKeyEd25519 = Base64.encodeBase64String(
               DigestUtils.sha256(Base64.decodeBase64(
-              masterKeyEd25519FromIdentityEd25519 + "="))).
-              replaceAll("=", "");
+              masterKeyEd25519FromIdentityEd25519 + "=")))
+              .replaceAll("=", "");
           scrubbed.append("master-key-ed25519 " + sha256MasterKeyEd25519
               + "\n");
           if (masterKeyEd25519 != null && !masterKeyEd25519.equals(
@@ -778,8 +786,8 @@ public class SanitizedBridgesWriter extends Thread {
         /* Verify that identity-ed25519 and master-key-ed25519 match. */
         } else if (line.startsWith("master-key-ed25519 ")) {
           masterKeyEd25519 = line.substring(line.indexOf(" ") + 1);
-          if (masterKeyEd25519FromIdentityEd25519 != null &&
-              !masterKeyEd25519FromIdentityEd25519.equals(
+          if (masterKeyEd25519FromIdentityEd25519 != null
+              && !masterKeyEd25519FromIdentityEd25519.equals(
               masterKeyEd25519)) {
             this.logger.warning("Mismatch between identity-ed25519 and "
                 + "master-key-ed25519.  Skipping.");
@@ -829,9 +837,9 @@ public class SanitizedBridgesWriter extends Thread {
         /* Skip all crypto parts that might leak the bridge's identity
          * fingerprint. */
         } else if (line.startsWith("-----BEGIN ")
-            || line.equals("onion-key") || line.equals("signing-key") ||
-            line.equals("onion-key-crosscert") ||
-            line.startsWith("ntor-onion-key-crosscert ")) {
+            || line.equals("onion-key") || line.equals("signing-key")
+            || line.equals("onion-key-crosscert")
+            || line.startsWith("ntor-onion-key-crosscert ")) {
           skipCrypto = true;
 
         /* Stop skipping lines when the crypto parts are over. */
@@ -893,8 +901,8 @@ public class SanitizedBridgesWriter extends Thread {
           byte[] forDigest = new byte[sig - start];
           System.arraycopy(data, start, forDigest, 0, sig - start);
           descriptorDigestSha256Base64 = Base64.encodeBase64String(
-              DigestUtils.sha256(DigestUtils.sha256(forDigest))).
-              replaceAll("=", "");
+              DigestUtils.sha256(DigestUtils.sha256(forDigest)))
+              .replaceAll("=", "");
         }
       } catch (UnsupportedEncodingException e) {
         /* Handle below. */
@@ -1010,14 +1018,16 @@ public class SanitizedBridgesWriter extends Thread {
   public void sanitizeAndStoreExtraInfoDescriptor(byte[] data) {
 
     /* Parse descriptor to generate a sanitized version. */
-    String scrubbedDesc = null, published = null,
-        masterKeyEd25519FromIdentityEd25519 = null;
+    String scrubbedDesc = null;
+    String published = null;
+    String masterKeyEd25519FromIdentityEd25519 = null;
     try {
       BufferedReader br = new BufferedReader(new StringReader(new String(
           data, "US-ASCII")));
       String line = null;
       StringBuilder scrubbed = null;
-      String hashedBridgeIdentity = null, masterKeyEd25519 = null;
+      String hashedBridgeIdentity = null;
+      String masterKeyEd25519 = null;
       while ((line = br.readLine()) != null) {
 
         /* Parse bridge identity from extra-info line and replace it with
@@ -1054,8 +1064,8 @@ public class SanitizedBridgesWriter extends Thread {
         /* Extract master-key-ed25519 from identity-ed25519. */
         } else if (line.equals("identity-ed25519")) {
           StringBuilder sb = new StringBuilder();
-          while ((line = br.readLine()) != null &&
-              !line.equals("-----END ED25519 CERT-----")) {
+          while ((line = br.readLine()) != null
+              && !line.equals("-----END ED25519 CERT-----")) {
             if (line.equals("-----BEGIN ED25519 CERT-----")) {
               continue;
             }
@@ -1066,8 +1076,8 @@ public class SanitizedBridgesWriter extends Thread {
               sb.toString());
           String sha256MasterKeyEd25519 = Base64.encodeBase64String(
               DigestUtils.sha256(Base64.decodeBase64(
-              masterKeyEd25519FromIdentityEd25519 + "="))).
-              replaceAll("=", "");
+              masterKeyEd25519FromIdentityEd25519 + "=")))
+              .replaceAll("=", "");
           scrubbed.append("master-key-ed25519 " + sha256MasterKeyEd25519
               + "\n");
           if (masterKeyEd25519 != null && !masterKeyEd25519.equals(
@@ -1080,8 +1090,8 @@ public class SanitizedBridgesWriter extends Thread {
         /* Verify that identity-ed25519 and master-key-ed25519 match. */
         } else if (line.startsWith("master-key-ed25519 ")) {
           masterKeyEd25519 = line.substring(line.indexOf(" ") + 1);
-          if (masterKeyEd25519FromIdentityEd25519 != null &&
-              !masterKeyEd25519FromIdentityEd25519.equals(
+          if (masterKeyEd25519FromIdentityEd25519 != null
+              && !masterKeyEd25519FromIdentityEd25519.equals(
               masterKeyEd25519)) {
             this.logger.warning("Mismatch between identity-ed25519 and "
                 + "master-key-ed25519.  Skipping.");
@@ -1169,8 +1179,8 @@ public class SanitizedBridgesWriter extends Thread {
           byte[] forDigest = new byte[sig - start];
           System.arraycopy(data, start, forDigest, 0, sig - start);
           descriptorDigestSha256Base64 = Base64.encodeBase64String(
-              DigestUtils.sha256(DigestUtils.sha256(forDigest))).
-              replaceAll("=", "");
+              DigestUtils.sha256(DigestUtils.sha256(forDigest)))
+              .replaceAll("=", "");
         }
       } catch (UnsupportedEncodingException e) {
         /* Handle below. */
@@ -1230,11 +1240,12 @@ public class SanitizedBridgesWriter extends Thread {
   public void finishWriting() {
 
     /* Delete secrets that we don't need anymore. */
-    if (!this.secretsForHashingIPAddresses.isEmpty() &&
-        this.secretsForHashingIPAddresses.firstKey().compareTo(
+    if (!this.secretsForHashingIPAddresses.isEmpty()
+        && this.secretsForHashingIPAddresses.firstKey().compareTo(
         this.bridgeSanitizingCutOffTimestamp) < 0) {
       try {
-        int kept = 0, deleted = 0;
+        int kept = 0;
+        int deleted = 0;
         BufferedWriter bw = new BufferedWriter(new FileWriter(
             this.bridgeIpSecretsFile));
         for (Map.Entry<String, byte[]> e :
@@ -1267,26 +1278,26 @@ public class SanitizedBridgesWriter extends Thread {
     try {
       long maxNetworkStatusPublishedMillis =
           dateTimeFormat.parse(maxNetworkStatusPublishedTime).getTime();
-      if (maxNetworkStatusPublishedMillis > 0L &&
-          maxNetworkStatusPublishedMillis < tooOldMillis) {
+      if (maxNetworkStatusPublishedMillis > 0L
+          && maxNetworkStatusPublishedMillis < tooOldMillis) {
         this.logger.warning("The last known bridge network status was "
             + "published " + maxNetworkStatusPublishedTime + ", which is "
             + "more than 5:30 hours in the past.");
       }
       long maxServerDescriptorPublishedMillis =
-          dateTimeFormat.parse(maxServerDescriptorPublishedTime).
-          getTime();
-      if (maxServerDescriptorPublishedMillis > 0L &&
-          maxServerDescriptorPublishedMillis < tooOldMillis) {
+          dateTimeFormat.parse(maxServerDescriptorPublishedTime)
+          .getTime();
+      if (maxServerDescriptorPublishedMillis > 0L
+          && maxServerDescriptorPublishedMillis < tooOldMillis) {
         this.logger.warning("The last known bridge server descriptor was "
             + "published " + maxServerDescriptorPublishedTime + ", which "
             + "is more than 5:30 hours in the past.");
       }
       long maxExtraInfoDescriptorPublishedMillis =
-          dateTimeFormat.parse(maxExtraInfoDescriptorPublishedTime).
-          getTime();
-      if (maxExtraInfoDescriptorPublishedMillis > 0L &&
-          maxExtraInfoDescriptorPublishedMillis < tooOldMillis) {
+          dateTimeFormat.parse(maxExtraInfoDescriptorPublishedTime)
+          .getTime();
+      if (maxExtraInfoDescriptorPublishedMillis > 0L
+          && maxExtraInfoDescriptorPublishedMillis < tooOldMillis) {
         this.logger.warning("The last known bridge extra-info descriptor "
             + "was published " + maxExtraInfoDescriptorPublishedTime
             + ", which is more than 5:30 hours in the past.");

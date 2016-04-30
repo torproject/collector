@@ -1,4 +1,21 @@
+/* Copyright 2016 The Tor Project
+ * See LICENSE for licensing information */
+
 package org.torproject.collector.relaydescs;
+
+import org.torproject.descriptor.Descriptor;
+import org.torproject.descriptor.DescriptorFile;
+import org.torproject.descriptor.DescriptorReader;
+import org.torproject.descriptor.DescriptorSourceFactory;
+import org.torproject.descriptor.DirSourceEntry;
+import org.torproject.descriptor.ExtraInfoDescriptor;
+import org.torproject.descriptor.Microdescriptor;
+import org.torproject.descriptor.NetworkStatusEntry;
+import org.torproject.descriptor.RelayNetworkStatusConsensus;
+import org.torproject.descriptor.RelayNetworkStatusVote;
+import org.torproject.descriptor.ServerDescriptor;
+
+import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.FileReader;
@@ -16,20 +33,6 @@ import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.torproject.descriptor.Descriptor;
-import org.torproject.descriptor.DescriptorFile;
-import org.torproject.descriptor.DescriptorReader;
-import org.torproject.descriptor.DescriptorSourceFactory;
-import org.torproject.descriptor.DirSourceEntry;
-import org.torproject.descriptor.ExtraInfoDescriptor;
-import org.torproject.descriptor.Microdescriptor;
-import org.torproject.descriptor.NetworkStatusEntry;
-import org.torproject.descriptor.RelayNetworkStatusConsensus;
-import org.torproject.descriptor.RelayNetworkStatusVote;
-import org.torproject.descriptor.ServerDescriptor;
-
-import com.google.gson.Gson;
 
 public class ReferenceChecker {
 
@@ -87,8 +90,8 @@ public class ReferenceChecker {
         return false;
       }
       Reference other = (Reference) otherObject;
-      return this.referencing.equals(other.referencing) &&
-          this.referenced.equals(other.referenced);
+      return this.referencing.equals(other.referencing)
+          && this.referenced.equals(other.referenced);
     }
 
     @Override
@@ -168,6 +171,7 @@ public class ReferenceChecker {
   }
 
   private static DateFormat dateTimeFormat;
+
   static {
     dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'",
         Locale.US);
@@ -175,9 +179,15 @@ public class ReferenceChecker {
     dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 
-  private static final long ONE_HOUR = 60L * 60L * 1000L,
-      THREE_HOURS = 3L * ONE_HOUR, SIX_HOURS = 6L * ONE_HOUR,
-      ONE_DAY = 24L * ONE_HOUR, THIRTY_DAYS = 30L * ONE_DAY;
+  private static final long ONE_HOUR = 60L * 60L * 1000L;
+
+  private static final long THREE_HOURS = 3L * ONE_HOUR;
+
+  private static final long SIX_HOURS = 6L * ONE_HOUR;
+
+  private static final long ONE_DAY = 24L * ONE_HOUR;
+
+  private static final long THIRTY_DAYS = 30L * ONE_DAY;
 
   private void readRelayNetworkStatusConsensusUnflavored(
       RelayNetworkStatusConsensus consensus) {
@@ -194,8 +204,8 @@ public class ReferenceChecker {
             consensus.getValidAfterMillis() + THREE_HOURS);
       }
     }
-    double entryWeight = 200.0 /
-        ((double) consensus.getStatusEntries().size());
+    double entryWeight = 200.0
+        / ((double) consensus.getStatusEntries().size());
     for (NetworkStatusEntry entry :
         consensus.getStatusEntries().values()) {
       this.addReference(referencing,
@@ -212,8 +222,8 @@ public class ReferenceChecker {
     String referencing = String.format("M-%s", validAfter);
     this.addReference(referencing, String.format("C-%s", validAfter), 1.0,
         consensus.getValidAfterMillis() + THREE_HOURS);
-    double entryWeight = 200.0 /
-        ((double) consensus.getStatusEntries().size());
+    double entryWeight = 200.0
+        / ((double) consensus.getStatusEntries().size());
     for (NetworkStatusEntry entry :
         consensus.getStatusEntries().values()) {
       for (String digest : entry.getMicrodescriptorDigests()) {
@@ -227,8 +237,8 @@ public class ReferenceChecker {
     String validAfter = dateTimeFormat.format(vote.getValidAfterMillis());
     String referencing = String.format("V-%s-%s", validAfter,
         vote.getIdentity());
-    double entryWeight = 200.0 /
-        ((double) vote.getStatusEntries().size());
+    double entryWeight = 200.0
+        / ((double) vote.getStatusEntries().size());
     for (NetworkStatusEntry entry : vote.getStatusEntries().values()) {
       this.addReference(referencing,
           String.format("S-%s", entry.getDescriptor()), entryWeight,
@@ -277,8 +287,8 @@ public class ReferenceChecker {
     StringBuilder sb = new StringBuilder("Missing referenced "
         + "descriptors:");
     for (Reference reference : this.references) {
-      if (reference.referenced.length() > 0 &&
-          !knownDescriptors.contains(reference.referenced)) {
+      if (reference.referenced.length() > 0
+          && !knownDescriptors.contains(reference.referenced)) {
         if (!missingDescriptors.contains(reference.referenced)) {
           totalMissingDescriptorsWeight += reference.weight;
         }

@@ -1,6 +1,10 @@
-/* Copyright 2010--2014 The Tor Project
+/* Copyright 2010--2016 The Tor Project
  * See LICENSE for licensing information */
+
 package org.torproject.collector.relaydescs;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -30,9 +34,6 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.InflaterInputStream;
-
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * Downloads relay descriptors from the directory authorities via HTTP.
@@ -224,25 +225,61 @@ public class RelayDescriptorDownloader {
    * that we requested, and that we successfully downloaded in this
    * execution.
    */
-  private int oldMissingConsensuses = 0,
-      oldMissingMicrodescConsensuses = 0, oldMissingVotes = 0,
-      oldMissingServerDescriptors = 0, oldMissingExtraInfoDescriptors = 0,
-      oldMissingMicrodescriptors = 0, newMissingConsensuses = 0,
-      newMissingMicrodescConsensuses = 0, newMissingVotes = 0,
-      newMissingServerDescriptors = 0, newMissingExtraInfoDescriptors = 0,
-      newMissingMicrodescriptors = 0, requestedConsensuses = 0,
-      requestedMicrodescConsensuses = 0, requestedVotes = 0,
-      requestedMissingServerDescriptors = 0,
-      requestedAllServerDescriptors = 0,
-      requestedMissingExtraInfoDescriptors = 0,
-      requestedAllExtraInfoDescriptors = 0,
-      requestedMissingMicrodescriptors = 0, downloadedConsensuses = 0,
-      downloadedMicrodescConsensuses = 0, downloadedVotes = 0,
-      downloadedMissingServerDescriptors = 0,
-      downloadedAllServerDescriptors = 0,
-      downloadedMissingExtraInfoDescriptors = 0,
-      downloadedAllExtraInfoDescriptors = 0,
-      downloadedMissingMicrodescriptors = 0;
+  private int oldMissingConsensuses = 0;
+
+  private int oldMissingMicrodescConsensuses = 0;
+
+  private int oldMissingVotes = 0;
+
+  private int oldMissingServerDescriptors = 0;
+
+  private int oldMissingExtraInfoDescriptors = 0;
+
+  private int oldMissingMicrodescriptors = 0;
+
+  private int newMissingConsensuses = 0;
+
+  private int newMissingMicrodescConsensuses = 0;
+
+  private int newMissingVotes = 0;
+
+  private int newMissingServerDescriptors = 0;
+
+  private int newMissingExtraInfoDescriptors = 0;
+
+  private int newMissingMicrodescriptors = 0;
+
+  private int requestedConsensuses = 0;
+
+  private int requestedMicrodescConsensuses = 0;
+
+  private int requestedVotes = 0;
+
+  private int requestedMissingServerDescriptors = 0;
+
+  private int requestedAllServerDescriptors = 0;
+
+  private int requestedMissingExtraInfoDescriptors = 0;
+
+  private int requestedAllExtraInfoDescriptors = 0;
+
+  private int requestedMissingMicrodescriptors = 0;
+
+  private int downloadedConsensuses = 0;
+
+  private int downloadedMicrodescConsensuses = 0;
+
+  private int downloadedVotes = 0;
+
+  private int downloadedMissingServerDescriptors = 0;
+
+  private int downloadedAllServerDescriptors = 0;
+
+  private int downloadedMissingExtraInfoDescriptors = 0;
+
+  private int downloadedAllExtraInfoDescriptors = 0;
+
+  private int downloadedMissingMicrodescriptors = 0;
 
   /**
    * Initializes this class, including reading in missing descriptors from
@@ -292,8 +329,8 @@ public class RelayDescriptorDownloader {
     SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     format.setTimeZone(TimeZone.getTimeZone("UTC"));
     long now = System.currentTimeMillis();
-    this.currentValidAfter = format.format((now / (60L * 60L * 1000L)) *
-        (60L * 60L * 1000L));
+    this.currentValidAfter = format.format((now / (60L * 60L * 1000L))
+        * (60L * 60L * 1000L));
     this.descriptorCutOff = format.format(now - 24L * 60L * 60L * 1000L);
     this.currentTimestamp = format.format(now);
     this.downloadAllDescriptorsCutOff = format.format(now
@@ -317,14 +354,14 @@ public class RelayDescriptorDownloader {
         while ((line = br.readLine()) != null) {
           if (line.split(",").length > 2) {
             String published = line.split(",")[1];
-            if (((line.startsWith("consensus,") ||
-                line.startsWith("consensus-microdesc,") ||
-                line.startsWith("vote,")) &&
-                this.currentValidAfter.equals(published)) ||
-                ((line.startsWith("server,") ||
-                line.startsWith("extra,") ||
-                line.startsWith("micro,")) &&
-                this.descriptorCutOff.compareTo(published) < 0)) {
+            if (((line.startsWith("consensus,")
+                || line.startsWith("consensus-microdesc,")
+                || line.startsWith("vote,"))
+                && this.currentValidAfter.equals(published))
+                || ((line.startsWith("server,")
+                || line.startsWith("extra,")
+                || line.startsWith("micro,"))
+                && this.descriptorCutOff.compareTo(published) < 0)) {
               if (!line.endsWith("NA")) {
                 /* Not missing. */
               } else if (line.startsWith("consensus,")) {
@@ -352,8 +389,8 @@ public class RelayDescriptorDownloader {
                 }
                 this.microdescriptorKeys.get(microdescriptorDigest).add(
                     microdescriptorKey);
-                if (line.endsWith("NA") && !this.missingMicrodescriptors.
-                    contains(microdescriptorDigest)) {
+                if (line.endsWith("NA") && !this.missingMicrodescriptors
+                    .contains(microdescriptorDigest)) {
                   this.missingMicrodescriptors.add(microdescriptorDigest);
                   oldMissingMicrodescriptors++;
                 }
@@ -418,8 +455,8 @@ public class RelayDescriptorDownloader {
      * download all server and extra-info descriptors from. */
     this.downloadAllDescriptorsFromAuthorities = new HashSet<String>();
     for (String authority : this.authorities) {
-      if (!this.lastDownloadedAllDescriptors.containsKey(authority) ||
-          this.lastDownloadedAllDescriptors.get(authority).compareTo(
+      if (!this.lastDownloadedAllDescriptors.containsKey(authority)
+          || this.lastDownloadedAllDescriptors.get(authority).compareTo(
           this.downloadAllDescriptorsCutOff) < 0) {
         this.downloadAllDescriptorsFromAuthorities.add(authority);
       }
@@ -523,8 +560,8 @@ public class RelayDescriptorDownloader {
         this.microdescriptorKeys.get(microdescriptorDigest).add(
             microdescriptorKey);
         this.missingDescriptors.put(microdescriptorKey, parsed);
-        if (parsed.equals("NA") &&
-            !this.missingMicrodescriptors.contains(microdescriptorDigest)) {
+        if (parsed.equals("NA")
+            && !this.missingMicrodescriptors.contains(microdescriptorDigest)) {
           this.missingMicrodescriptors.add(microdescriptorDigest);
           this.newMissingMicrodescriptors++;
         }
@@ -662,8 +699,8 @@ public class RelayDescriptorDownloader {
         /* Start with downloading the current consensus, unless we already
          * have it. */
         if (downloadCurrentConsensus) {
-          if (this.missingDescriptors.containsKey(consensusKey) &&
-              this.missingDescriptors.get(consensusKey).equals("NA")) {
+          if (this.missingDescriptors.containsKey(consensusKey)
+              && this.missingDescriptors.get(consensusKey).equals("NA")) {
             this.requestedConsensuses++;
             this.downloadedConsensuses +=
                 this.downloadResourceFromAuthority(authority,
@@ -673,10 +710,9 @@ public class RelayDescriptorDownloader {
 
         /* Then try to download the microdesc consensus. */
         if (downloadCurrentMicrodescConsensus) {
-          if (this.missingDescriptors.containsKey(
-              microdescConsensusKey) &&
-              this.missingDescriptors.get(microdescConsensusKey).
-              equals("NA")) {
+          if (this.missingDescriptors.containsKey(microdescConsensusKey)
+              && this.missingDescriptors.get(microdescConsensusKey)
+              .equals("NA")) {
             this.requestedMicrodescConsensuses++;
             this.downloadedMicrodescConsensuses +=
                 this.downloadResourceFromAuthority(authority,
@@ -690,8 +726,8 @@ public class RelayDescriptorDownloader {
           SortedSet<String> fingerprints = new TreeSet<String>();
           for (Map.Entry<String, String> e :
               this.missingDescriptors.entrySet()) {
-            if (e.getValue().equals("NA") &&
-                e.getKey().startsWith(voteKeyPrefix)) {
+            if (e.getValue().equals("NA")
+                && e.getKey().startsWith(voteKeyPrefix)) {
               String fingerprint = e.getKey().split(",")[2];
               fingerprints.add(fingerprint);
             }
@@ -714,9 +750,9 @@ public class RelayDescriptorDownloader {
            * authority if we haven't done so for 24 hours and if we're
            * configured to do so. */
           if (this.downloadAllDescriptorsFromAuthorities.contains(
-              authority) && ((type.equals("server") &&
-              this.downloadAllServerDescriptors) ||
-              (type.equals("extra") && this.downloadAllExtraInfos))) {
+              authority) && ((type.equals("server")
+              && this.downloadAllServerDescriptors)
+              || (type.equals("extra") && this.downloadAllExtraInfos))) {
             int downloadedAllDescriptors =
                 this.downloadResourceFromAuthority(authority, "/tor/"
                 + type + "/all");
@@ -732,11 +768,11 @@ public class RelayDescriptorDownloader {
 
           /* Download missing server descriptors, extra-info descriptors,
            * and microdescriptors if we're configured to do so. */
-          } else if ((type.equals("server") &&
-              this.downloadMissingServerDescriptors) ||
-              (type.equals("extra") && this.downloadMissingExtraInfos) ||
-              (type.equals("micro") &&
-              this.downloadMissingMicrodescriptors)) {
+          } else if ((type.equals("server")
+              && this.downloadMissingServerDescriptors)
+              || (type.equals("extra") && this.downloadMissingExtraInfos)
+              || (type.equals("micro")
+              && this.downloadMissingMicrodescriptors)) {
 
             /* Go through the list of missing descriptors of this type
              * and combine the descriptor identifiers to a URL of up to
@@ -746,23 +782,24 @@ public class RelayDescriptorDownloader {
                 new TreeSet<String>();
             for (Map.Entry<String, String> e :
                 this.missingDescriptors.entrySet()) {
-              if (e.getValue().equals("NA") &&
-                  e.getKey().startsWith(type + ",") &&
-                  this.descriptorCutOff.compareTo(
+              if (e.getValue().equals("NA")
+                  && e.getKey().startsWith(type + ",")
+                  && this.descriptorCutOff.compareTo(
                   e.getKey().split(",")[1]) < 0) {
                 String descriptorIdentifier = e.getKey().split(",")[3];
                 descriptorIdentifiers.add(descriptorIdentifier);
               }
             }
             StringBuilder combinedResource = null;
-            int descriptorsInCombinedResource = 0,
-                requestedDescriptors = 0, downloadedDescriptors = 0;
+            int descriptorsInCombinedResource = 0;
+            int requestedDescriptors = 0;
+            int downloadedDescriptors = 0;
             int maxDescriptorsInCombinedResource =
                 type.equals("micro") ? 92 : 96;
             String separator = type.equals("micro") ? "-" : "+";
             for (String descriptorIdentifier : descriptorIdentifiers) {
-              if (descriptorsInCombinedResource >=
-                  maxDescriptorsInCombinedResource) {
+              if (descriptorsInCombinedResource
+                  >= maxDescriptorsInCombinedResource) {
                 requestedDescriptors += descriptorsInCombinedResource;
                 downloadedDescriptors +=
                     this.downloadResourceFromAuthority(authority,
@@ -836,8 +873,8 @@ public class RelayDescriptorDownloader {
     huc.connect();
     int response = huc.getResponseCode();
     if (response == 200) {
-      BufferedInputStream in = this.downloadCompressed &&
-          !resource.startsWith("/tor/extra/")
+      BufferedInputStream in = this.downloadCompressed
+          && !resource.startsWith("/tor/extra/")
           ? new BufferedInputStream(new InflaterInputStream(
           huc.getInputStream()))
           : new BufferedInputStream(huc.getInputStream());
@@ -857,10 +894,10 @@ public class RelayDescriptorDownloader {
       if (resource.startsWith("/tor/status-vote/current/")) {
         this.rdp.parse(allData);
         receivedDescriptors = 1;
-      } else if (resource.startsWith("/tor/server/") ||
-          resource.startsWith("/tor/extra/")) {
-        if (resource.equals("/tor/server/all") ||
-            resource.equals("/tor/extra/all")) {
+      } else if (resource.startsWith("/tor/server/")
+          || resource.startsWith("/tor/extra/")) {
+        if (resource.equals("/tor/server/all")
+            || resource.equals("/tor/extra/all")) {
           this.lastDownloadedAllDescriptors.put(authority,
               this.currentTimestamp);
         }
@@ -870,9 +907,11 @@ public class RelayDescriptorDownloader {
         } catch (UnsupportedEncodingException e) {
           /* No way that US-ASCII is not supported. */
         }
-        int start = -1, sig = -1, end = -1;
-        String startToken = resource.startsWith("/tor/server/") ?
-            "router " : "extra-info ";
+        int start = -1;
+        int sig = -1;
+        int end = -1;
+        String startToken = resource.startsWith("/tor/server/")
+            ? "router " : "extra-info ";
         String sigToken = "\nrouter-signature\n";
         String endToken = "\n-----END SIGNATURE-----\n";
         while (end < ascii.length()) {
@@ -910,7 +949,8 @@ public class RelayDescriptorDownloader {
         } catch (UnsupportedEncodingException e) {
           /* No way that US-ASCII is not supported. */
         }
-        int start = -1, end = -1;
+        int start = -1;
+        int end = -1;
         String startToken = "onion-key\n";
         while (end < ascii.length()) {
           start = ascii.indexOf(startToken, end);
@@ -961,9 +1001,11 @@ public class RelayDescriptorDownloader {
   public void writeFile() {
 
     /* Write missing descriptors file to disk. */
-    int missingConsensuses = 0, missingMicrodescConsensuses = 0,
-        missingVotes = 0, missingServerDescriptors = 0,
-        missingExtraInfoDescriptors = 0;
+    int missingConsensuses = 0;
+    int missingMicrodescConsensuses = 0;
+    int missingVotes = 0;
+    int missingServerDescriptors = 0;
+    int missingExtraInfoDescriptors = 0;
     try {
       this.logger.fine("Writing file "
           + this.missingDescriptorsFile.getAbsolutePath() + "...");
@@ -972,7 +1014,8 @@ public class RelayDescriptorDownloader {
           this.missingDescriptorsFile));
       for (Map.Entry<String, String> e :
           this.missingDescriptors.entrySet()) {
-        String key = e.getKey(), value = e.getValue();
+        String key = e.getKey();
+        String value = e.getValue();
         if (!value.equals("NA")) {
           /* Not missing. */
         } else if (key.startsWith("consensus,")) {
@@ -986,6 +1029,7 @@ public class RelayDescriptorDownloader {
         } else if (key.startsWith("extra,")) {
           missingExtraInfoDescriptors++;
         } else if (key.startsWith("micro,")) {
+          /* We're counting missing microdescriptors below. */
         }
         bw.write(key + "," + value + "\n");
       }
@@ -1059,7 +1103,7 @@ public class RelayDescriptorDownloader {
     StringBuilder sb = new StringBuilder();
     for (String authority : this.authorities) {
       sb.append(" " + authority + "="
-         + this.requestsByAuthority.get(authority));
+          + this.requestsByAuthority.get(authority));
     }
     this.logger.info("We sent these numbers of requests to the directory "
         + "authorities:" + sb.toString());

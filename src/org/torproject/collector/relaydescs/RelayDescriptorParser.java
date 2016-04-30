@@ -1,6 +1,11 @@
-/* Copyright 2010--2014 The Tor Project
+/* Copyright 2010--2016 The Tor Project
  * See LICENSE for licensing information */
+
 package org.torproject.collector.relaydescs;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,10 +17,6 @@ import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * Parses relay descriptors including network status consensuses and
@@ -93,9 +94,11 @@ public class RelayDescriptorParser {
         if (line.equals("network-status-version 3 microdesc")) {
           statusType = "consensus-microdesc";
         }
-        String validAfterTime = null, fingerprint = null,
-            dirSource = null;
-        long validAfter = -1L, dirKeyPublished = -1L;
+        String validAfterTime = null;
+        String fingerprint = null;
+        String dirSource = null;
+        long validAfter = -1L;
+        long dirKeyPublished = -1L;
         SortedSet<String> dirSources = new TreeSet<String>();
         SortedSet<String> serverDescriptors = new TreeSet<String>();
         SortedSet<String> serverDescriptorDigests = new TreeSet<String>();
@@ -130,8 +133,8 @@ public class RelayDescriptorParser {
           } else if (line.startsWith("dir-key-published ")) {
             String dirKeyPublishedTime = line.substring(
                 "dir-key-published ".length());
-            dirKeyPublished = parseFormat.parse(dirKeyPublishedTime).
-                getTime();
+            dirKeyPublished = parseFormat.parse(dirKeyPublishedTime)
+                .getTime();
           } else if (line.startsWith("r ")) {
             String[] parts = line.split(" ");
             if (parts.length == 8) {
@@ -158,12 +161,12 @@ public class RelayDescriptorParser {
               microdescriptorKeys.add(validAfterTime + ","
                   + lastRelayIdentity + "," + digest256Base64);
               String digest256Hex = Hex.encodeHexString(
-                  Base64.decodeBase64(digest256Base64 + "=")).
-                  toLowerCase();
+                  Base64.decodeBase64(digest256Base64 + "="))
+                  .toLowerCase();
               microdescriptorDigests.add(digest256Hex);
-            } else if (parts.length != 3 ||
-                !parts[2].startsWith("sha256=") ||
-                parts[2].length() != 50) {
+            } else if (parts.length != 3
+                || !parts[2].startsWith("sha256=")
+                || parts[2].length() != 50) {
               this.logger.log(Level.WARNING, "Could not parse m line '"
                   + line + "' in descriptor. Skipping.");
               break;
@@ -226,23 +229,24 @@ public class RelayDescriptorParser {
           }
         }
       } else if (line.startsWith("router ")) {
-        String publishedTime = null, extraInfoDigest = null,
-            relayIdentifier = null;
+        String publishedTime = null;
+        String extraInfoDigest = null;
+        String relayIdentifier = null;
         long published = -1L;
         while ((line = br.readLine()) != null) {
           if (line.startsWith("published ")) {
             publishedTime = line.substring("published ".length());
             published = parseFormat.parse(publishedTime).getTime();
-          } else if (line.startsWith("opt fingerprint") ||
-              line.startsWith("fingerprint")) {
-            relayIdentifier = line.substring(line.startsWith("opt ") ?
-                "opt fingerprint".length() : "fingerprint".length()).
-                replaceAll(" ", "").toLowerCase();
-          } else if (line.startsWith("opt extra-info-digest ") ||
-              line.startsWith("extra-info-digest ")) {
-            extraInfoDigest = line.startsWith("opt ") ?
-                line.split(" ")[2].toLowerCase() :
-                line.split(" ")[1].toLowerCase();
+          } else if (line.startsWith("opt fingerprint")
+              || line.startsWith("fingerprint")) {
+            relayIdentifier = line.substring(line.startsWith("opt ")
+                ? "opt fingerprint".length() : "fingerprint".length())
+                .replaceAll(" ", "").toLowerCase();
+          } else if (line.startsWith("opt extra-info-digest ")
+              || line.startsWith("extra-info-digest ")) {
+            extraInfoDigest = line.startsWith("opt ")
+                ? line.split(" ")[2].toLowerCase()
+                : line.split(" ")[1].toLowerCase();
           }
         }
         String ascii = new String(data, "US-ASCII");
@@ -266,7 +270,8 @@ public class RelayDescriptorParser {
               relayIdentifier, digest, extraInfoDigest);
         }
       } else if (line.startsWith("extra-info ")) {
-        String publishedTime = null, relayIdentifier = line.split(" ")[2];
+        String publishedTime = null;
+        String relayIdentifier = line.split(" ")[2];
         long published = -1L;
         while ((line = br.readLine()) != null) {
           if (line.startsWith("published ")) {

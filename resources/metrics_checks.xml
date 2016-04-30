@@ -5,7 +5,11 @@
 
 <!--
     Checkstyle configuration that checks the Google coding conventions from Google Java Style
-    that can be found at https://google.github.io/styleguide/javaguide.html.
+    that can be found at https://google.github.io/styleguide/javaguide.html with the following
+    modifications:
+
+     - Replaced com.google with org.torproject in import statement ordering
+       [CustomImportOrder].
 
     Checkstyle is very configurable. Be sure to read the documentation at
     http://checkstyle.sf.net (or in your downloaded distribution).
@@ -159,7 +163,7 @@
         <module name="OverloadMethodsDeclarationOrder"/>
         <module name="VariableDeclarationUsageDistance"/>
         <module name="CustomImportOrder">
-            <property name="specialImportsRegExp" value="com.google"/>
+            <property name="specialImportsRegExp" value="org.torproject"/>
             <property name="sortImportsInGroupAlphabetically" value="true"/>
             <property name="customImportOrderRules" value="STATIC###SPECIAL_IMPORTS###THIRD_PARTY_PACKAGE###STANDARD_JAVA_PACKAGE"/>
         </module>

@@ -1,6 +1,11 @@
 /* Copyright 2012-2016 The Tor Project
  * See LICENSE for licensing information */
+
 package org.torproject.collector.torperf;
+
+import org.torproject.collector.main.Configuration;
+import org.torproject.collector.main.LockFile;
+import org.torproject.collector.main.LoggingConfiguration;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -21,10 +26,6 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.torproject.collector.main.Configuration;
-import org.torproject.collector.main.LockFile;
-import org.torproject.collector.main.LoggingConfiguration;
 
 /* Download possibly truncated Torperf .data and .extradata files from
  * configured sources, append them to the files we already have, and merge
@@ -97,8 +98,10 @@ public class TorperfDownloader extends Thread {
 
   private File torperfLastMergedFile =
       new File("stats/torperf-last-merged");
+
   SortedMap<String, String> lastMergedTimestamps =
       new TreeMap<String, String>();
+
   private void readLastMergedTimestamps() {
     if (!this.torperfLastMergedFile.exists()) {
       return;
@@ -109,7 +112,8 @@ public class TorperfDownloader extends Thread {
       String line;
       while ((line = br.readLine()) != null) {
         String[] parts = line.split(" ");
-        String fileName = null, timestamp = null;
+        String fileName = null;
+        String timestamp = null;
         if (parts.length == 2) {
           try {
             Double.parseDouble(parts[1]);
@@ -315,11 +319,14 @@ public class TorperfDownloader extends Thread {
     }
     this.logger.fine("Merging " + dataFile.getAbsolutePath() + " and "
           + extradataFile.getAbsolutePath() + " into .tpf format.");
-    BufferedReader brD = new BufferedReader(new FileReader(dataFile)),
-        brE = new BufferedReader(new FileReader(extradataFile));
-    String lineD = brD.readLine(), lineE = brE.readLine();
-    int d = 1, e = 1;
-    String maxDataComplete = null, maxUsedAt = null;
+    BufferedReader brD = new BufferedReader(new FileReader(dataFile));
+    BufferedReader brE = new BufferedReader(new FileReader(extradataFile));
+    String lineD = brD.readLine();
+    String lineE = brE.readLine();
+    int d = 1;
+    int e = 1;
+    String maxDataComplete = null;
+    String maxUsedAt = null;
     while (lineD != null) {
 
       /* Parse .data line.  Every valid .data line will go into the .tpf
@@ -363,8 +370,8 @@ public class TorperfDownloader extends Thread {
               + e++ + " which is a BUILDTIMEOUT_SET line.");
           lineE = brE.readLine();
           continue;
-        } else if (lineE.startsWith("ok ") ||
-            lineE.startsWith("error ")) {
+        } else if (lineE.startsWith("ok ")
+            || lineE.startsWith("error ")) {
           this.logger.finer("Skipping " + extradataFile.getName() + ":"
               + e++ + " which is in the old format.");
           lineE = brE.readLine();
@@ -446,6 +453,7 @@ public class TorperfDownloader extends Thread {
   }
 
   private SortedMap<Integer, String> dataTimestamps;
+
   private SortedMap<String, String> parseDataLine(String line) {
     String[] parts = line.trim().split(" ");
     if (line.length() == 0 || parts.length < 20) {
@@ -504,18 +512,18 @@ public class TorperfDownloader extends Thread {
         String key = keyAndValue[0];
         previousKey = key;
         String value = keyAndValue[1];
-        if (value.contains(".") && value.lastIndexOf(".") ==
-            value.length() - 2) {
+        if (value.contains(".") && value.lastIndexOf(".")
+            == value.length() - 2) {
           /* Make sure that all floats have two trailing digits. */
           value += "0";
         }
         extradata.put(key, value);
       } else if (keyAndValue.length == 1 && previousKey != null) {
         String value = keyAndValue[0];
-        if (previousKey.equals("STREAM_FAIL_REASONS") &&
-            (value.equals("MISC") || value.equals("EXITPOLICY") ||
-            value.equals("RESOURCELIMIT") ||
-            value.equals("RESOLVEFAILED"))) {
+        if (previousKey.equals("STREAM_FAIL_REASONS")
+            && (value.equals("MISC") || value.equals("EXITPOLICY")
+            || value.equals("RESOURCELIMIT")
+            || value.equals("RESOLVEFAILED"))) {
           extradata.put(previousKey, extradata.get(previousKey) + ":"
               + value);
         } else {
@@ -529,9 +537,13 @@ public class TorperfDownloader extends Thread {
   }
 
   private String cachedSource;
+
   private int cachedFileSize;
+
   private String cachedStartDate;
+
   private SortedMap<String, String> cachedTpfLines;
+
   private void writeTpfLine(String source, int fileSize,
       SortedMap<String, String> keysAndValues) throws IOException {
     StringBuilder sb = new StringBuilder();
@@ -547,14 +559,14 @@ public class TorperfDownloader extends Thread {
     long startMillis = Long.parseLong(startString.substring(0,
         startString.indexOf("."))) * 1000L;
     String startDate = dateFormat.format(startMillis);
-    if (this.cachedTpfLines == null || !source.equals(this.cachedSource) ||
-        fileSize != this.cachedFileSize ||
-        !startDate.equals(this.cachedStartDate)) {
+    if (this.cachedTpfLines == null || !source.equals(this.cachedSource)
+        || fileSize != this.cachedFileSize
+        || !startDate.equals(this.cachedStartDate)) {
       this.writeCachedTpfLines();
       this.readTpfLinesToCache(source, fileSize, startDate);
     }
-    if (!this.cachedTpfLines.containsKey(startString) ||
-        line.length() > this.cachedTpfLines.get(startString).length()) {
+    if (!this.cachedTpfLines.containsKey(startString)
+        || line.length() > this.cachedTpfLines.get(startString).length()) {
       this.cachedTpfLines.put(startString, line);
     }
   }
@@ -588,8 +600,8 @@ public class TorperfDownloader extends Thread {
   }
 
   private void writeCachedTpfLines() throws IOException {
-    if (this.cachedSource == null || this.cachedFileSize == 0 ||
-        this.cachedStartDate == null || this.cachedTpfLines == null) {
+    if (this.cachedSource == null || this.cachedFileSize == 0
+        || this.cachedStartDate == null || this.cachedTpfLines == null) {
       return;
     }
     File tarballFile = new File(torperfOutputDirectory,

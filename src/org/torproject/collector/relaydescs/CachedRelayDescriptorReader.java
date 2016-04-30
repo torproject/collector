@@ -1,6 +1,10 @@
-/* Copyright 2010--2012 The Tor Project
+/* Copyright 2010--2016 The Tor Project
  * See LICENSE for licensing information */
+
 package org.torproject.collector.relaydescs;
+
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -25,9 +29,6 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.codec.digest.DigestUtils;
-
 /**
  * Parses all descriptors in local directory cacheddesc/ and sorts them
  * into directory structure in directory-archive/.
@@ -36,8 +37,8 @@ public class CachedRelayDescriptorReader {
   public CachedRelayDescriptorReader(RelayDescriptorParser rdp,
       List<String> inputDirectories, File statsDirectory) {
 
-    if (rdp == null || inputDirectories == null ||
-        inputDirectories.isEmpty() || statsDirectory == null) {
+    if (rdp == null || inputDirectories == null
+        || inputDirectories.isEmpty() || statsDirectory == null) {
       throw new IllegalArgumentException();
     }
 
@@ -48,8 +49,8 @@ public class CachedRelayDescriptorReader {
 
     /* Read import history containing SHA-1 digests of previously parsed
      * statuses and descriptors, so that we can skip them in this run. */
-    Set<String> lastImportHistory = new HashSet<String>(),
-        currentImportHistory = new HashSet<String>();
+    Set<String> lastImportHistory = new HashSet<String>();
+    Set<String> currentImportHistory = new HashSet<String>();
     File importHistoryFile = new File(statsDirectory,
         "cacheddesc-import-history");
     if (importHistoryFile.exists()) {
@@ -114,8 +115,8 @@ public class CachedRelayDescriptorReader {
                 SimpleDateFormat dateTimeFormat =
                     new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-                if (dateTimeFormat.parse(line.substring("valid-after ".
-                    length())).getTime() < System.currentTimeMillis()
+                if (dateTimeFormat.parse(line.substring("valid-after "
+                    .length())).getTime() < System.currentTimeMillis()
                     - 6L * 60L * 60L * 1000L) {
                   logger.warning("Cached descriptor files in "
                       + cachedDescDir.getAbsolutePath() + " are stale. "
@@ -133,8 +134,8 @@ public class CachedRelayDescriptorReader {
             if (rdp != null) {
               String digest = Hex.encodeHexString(DigestUtils.sha(
                   allData));
-              if (!lastImportHistory.contains(digest) &&
-                  !currentImportHistory.contains(digest)) {
+              if (!lastImportHistory.contains(digest)
+                  && !currentImportHistory.contains(digest)) {
                 rdp.parse(allData);
               } else {
                 dumpStats.append(" (skipped)");
@@ -142,7 +143,8 @@ public class CachedRelayDescriptorReader {
               currentImportHistory.add(digest);
             }
           } else if (f.getName().equals("v3-status-votes")) {
-            int parsedNum = 0, skippedNum = 0;
+            int parsedNum = 0;
+            int skippedNum = 0;
             String ascii = new String(allData, "US-ASCII");
             String startToken = "network-status-version ";
             int end = ascii.length();
@@ -159,8 +161,8 @@ public class CachedRelayDescriptorReader {
                 if (rdp != null) {
                   String digest = Hex.encodeHexString(DigestUtils.sha(
                       rawNetworkStatusBytes));
-                  if (!lastImportHistory.contains(digest) &&
-                      !currentImportHistory.contains(digest)) {
+                  if (!lastImportHistory.contains(digest)
+                      && !currentImportHistory.contains(digest)) {
                     rdp.parse(rawNetworkStatusBytes);
                     parsedNum++;
                   } else {
@@ -173,16 +175,19 @@ public class CachedRelayDescriptorReader {
             }
             dumpStats.append("\n" + f.getName() + ": parsed " + parsedNum
                 + ", skipped " + skippedNum + " votes");
-          } else if (f.getName().startsWith("cached-descriptors") ||
-              f.getName().startsWith("cached-extrainfo")) {
+          } else if (f.getName().startsWith("cached-descriptors")
+              || f.getName().startsWith("cached-extrainfo")) {
             String ascii = new String(allData, "US-ASCII");
-            int start = -1, sig = -1, end = -1;
+            int start = -1;
+            int sig = -1;
+            int end = -1;
             String startToken =
-                f.getName().startsWith("cached-descriptors") ?
-                "router " : "extra-info ";
+                f.getName().startsWith("cached-descriptors")
+                ? "router " : "extra-info ";
             String sigToken = "\nrouter-signature\n";
             String endToken = "\n-----END SIGNATURE-----\n";
-            int parsedNum = 0, skippedNum = 0;
+            int parsedNum = 0;
+            int skippedNum = 0;
             while (end < ascii.length()) {
               start = ascii.indexOf(startToken, end);
               if (start < 0) {
@@ -203,8 +208,8 @@ public class CachedRelayDescriptorReader {
               if (rdp != null) {
                 String digest = Hex.encodeHexString(DigestUtils.sha(
                     descBytes));
-                if (!lastImportHistory.contains(digest) &&
-                    !currentImportHistory.contains(digest)) {
+                if (!lastImportHistory.contains(digest)
+                    && !currentImportHistory.contains(digest)) {
                   rdp.parse(descBytes);
                   parsedNum++;
                 } else {
@@ -215,8 +220,8 @@ public class CachedRelayDescriptorReader {
             }
             dumpStats.append("\n" + f.getName() + ": parsed " + parsedNum
                 + ", skipped " + skippedNum + " "
-                + (f.getName().startsWith("cached-descriptors") ?
-                "server" : "extra-info") + " descriptors");
+                + (f.getName().startsWith("cached-descriptors")
+                ? "server" : "extra-info") + " descriptors");
           }
         } catch (IOException e) {
           logger.log(Level.WARNING, "Failed reading "

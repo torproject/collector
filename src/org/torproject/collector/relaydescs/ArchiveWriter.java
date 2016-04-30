@@ -1,6 +1,14 @@
 /* Copyright 2010--2016 The Tor Project
  * See LICENSE for licensing information */
+
 package org.torproject.collector.relaydescs;
+
+import org.torproject.collector.main.Configuration;
+import org.torproject.collector.main.LockFile;
+import org.torproject.collector.main.LoggingConfiguration;
+import org.torproject.descriptor.DescriptorParseException;
+import org.torproject.descriptor.DescriptorParser;
+import org.torproject.descriptor.DescriptorSourceFactory;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -26,13 +34,6 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.torproject.descriptor.DescriptorParser;
-import org.torproject.descriptor.DescriptorSourceFactory;
-import org.torproject.descriptor.DescriptorParseException;
-import org.torproject.collector.main.Configuration;
-import org.torproject.collector.main.LockFile;
-import org.torproject.collector.main.LoggingConfiguration;
 
 public class ArchiveWriter extends Thread {
 
@@ -78,11 +79,13 @@ public class ArchiveWriter extends Thread {
   private File outputDirectory;
   private String rsyncCatString;
   private DescriptorParser descriptorParser;
-  private int storedConsensusesCounter = 0,
-      storedMicrodescConsensusesCounter = 0, storedVotesCounter = 0,
-      storedCertsCounter = 0, storedServerDescriptorsCounter = 0,
-      storedExtraInfoDescriptorsCounter = 0,
-      storedMicrodescriptorsCounter = 0;
+  private int storedConsensusesCounter = 0;
+  private int storedMicrodescConsensusesCounter = 0;
+  private int storedVotesCounter = 0;
+  private int storedCertsCounter = 0;
+  private int storedServerDescriptorsCounter = 0;
+  private int storedExtraInfoDescriptorsCounter = 0;
+  private int storedMicrodescriptorsCounter = 0;
 
   private SortedMap<Long, SortedSet<String>> storedConsensuses =
       new TreeMap<Long, SortedSet<String>>();
@@ -361,6 +364,7 @@ public class ArchiveWriter extends Thread {
 
   private static final byte[] CONSENSUS_ANNOTATION =
       "@type network-status-consensus-3 1.0\n".getBytes();
+
   public void storeConsensus(byte[] data, long validAfter,
       SortedSet<String> dirSources,
       SortedSet<String> serverDescriptorDigests) {
@@ -376,8 +380,8 @@ public class ArchiveWriter extends Thread {
     if (this.store(CONSENSUS_ANNOTATION, data, outputFiles, null)) {
       this.storedConsensusesCounter++;
     }
-    if (!tarballFileExistedBefore &&
-        this.now - validAfter < 3L * 60L * 60L * 1000L) {
+    if (!tarballFileExistedBefore
+        && this.now - validAfter < 3L * 60L * 60L * 1000L) {
       this.storedConsensuses.put(validAfter, serverDescriptorDigests);
       this.expectedVotes.put(validAfter, dirSources.size());
     }
@@ -385,6 +389,7 @@ public class ArchiveWriter extends Thread {
 
   private static final byte[] MICRODESCCONSENSUS_ANNOTATION =
       "@type network-status-microdesc-consensus-3 1.0\n".getBytes();
+
   public void storeMicrodescConsensus(byte[] data, long validAfter,
       SortedSet<String> microdescriptorDigests) {
     SimpleDateFormat yearMonthDirectoryFormat = new SimpleDateFormat(
@@ -406,8 +411,8 @@ public class ArchiveWriter extends Thread {
         null)) {
       this.storedMicrodescConsensusesCounter++;
     }
-    if (!tarballFileExistedBefore &&
-        this.now - validAfter < 3L * 60L * 60L * 1000L) {
+    if (!tarballFileExistedBefore
+        && this.now - validAfter < 3L * 60L * 60L * 1000L) {
       this.storedMicrodescConsensuses.put(validAfter,
           microdescriptorDigests);
     }
@@ -415,6 +420,7 @@ public class ArchiveWriter extends Thread {
 
   private static final byte[] VOTE_ANNOTATION =
       "@type network-status-vote-3 1.0\n".getBytes();
+
   public void storeVote(byte[] data, long validAfter,
       String fingerprint, String digest,
       SortedSet<String> serverDescriptorDigests) {
@@ -431,8 +437,8 @@ public class ArchiveWriter extends Thread {
     if (this.store(VOTE_ANNOTATION, data, outputFiles, null)) {
       this.storedVotesCounter++;
     }
-    if (!tarballFileExistedBefore &&
-        this.now - validAfter < 3L * 60L * 60L * 1000L) {
+    if (!tarballFileExistedBefore
+        && this.now - validAfter < 3L * 60L * 60L * 1000L) {
       if (!this.storedVotes.containsKey(validAfter)) {
         this.storedVotes.put(validAfter,
             new TreeMap<String, SortedSet<String>>());
@@ -444,6 +450,7 @@ public class ArchiveWriter extends Thread {
 
   private static final byte[] CERTIFICATE_ANNOTATION =
       "@type dir-key-certificate-3 1.0\n".getBytes();
+
   public void storeCertificate(byte[] data, String fingerprint,
       long published) {
     SimpleDateFormat printFormat = new SimpleDateFormat(
@@ -459,6 +466,7 @@ public class ArchiveWriter extends Thread {
 
   private static final byte[] SERVER_DESCRIPTOR_ANNOTATION =
       "@type server-descriptor 1.0\n".getBytes();
+
   public void storeServerDescriptor(byte[] data, String digest,
       long published, String extraInfoDigest) {
     SimpleDateFormat printFormat = new SimpleDateFormat("yyyy/MM/");
@@ -477,8 +485,8 @@ public class ArchiveWriter extends Thread {
         append)) {
       this.storedServerDescriptorsCounter++;
     }
-    if (!tarballFileExistedBefore &&
-        this.now - published < 48L * 60L * 60L * 1000L) {
+    if (!tarballFileExistedBefore
+        && this.now - published < 48L * 60L * 60L * 1000L) {
       if (!this.storedServerDescriptors.containsKey(published)) {
         this.storedServerDescriptors.put(published,
             new HashMap<String, String>());
@@ -490,6 +498,7 @@ public class ArchiveWriter extends Thread {
 
   private static final byte[] EXTRA_INFO_ANNOTATION =
       "@type extra-info 1.0\n".getBytes();
+
   public void storeExtraInfoDescriptor(byte[] data,
       String extraInfoDigest, long published) {
     SimpleDateFormat descriptorFormat = new SimpleDateFormat("yyyy/MM/");
@@ -507,8 +516,8 @@ public class ArchiveWriter extends Thread {
     if (this.store(EXTRA_INFO_ANNOTATION, data, outputFiles, append)) {
       this.storedExtraInfoDescriptorsCounter++;
     }
-    if (!tarballFileExistedBefore &&
-        this.now - published < 48L * 60L * 60L * 1000L) {
+    if (!tarballFileExistedBefore
+        && this.now - published < 48L * 60L * 60L * 1000L) {
       if (!this.storedExtraInfoDescriptors.containsKey(published)) {
         this.storedExtraInfoDescriptors.put(published,
             new HashSet<String>());
@@ -519,6 +528,7 @@ public class ArchiveWriter extends Thread {
 
   private static final byte[] MICRODESCRIPTOR_ANNOTATION =
       "@type microdescriptor 1.0\n".getBytes();
+
   public void storeMicrodescriptor(byte[] data,
       String microdescriptorDigest, long validAfter) {
     /* TODO We could check here whether we already stored the
@@ -545,8 +555,8 @@ public class ArchiveWriter extends Thread {
         append)) {
       this.storedMicrodescriptorsCounter++;
     }
-    if (!tarballFileExistedBefore &&
-        this.now - validAfter < 40L * 24L * 60L * 60L * 1000L) {
+    if (!tarballFileExistedBefore
+        && this.now - validAfter < 40L * 24L * 60L * 60L * 1000L) {
       if (!this.storedMicrodescriptors.containsKey(validAfter)) {
         this.storedMicrodescriptors.put(validAfter,
             new HashSet<String>());
@@ -557,6 +567,7 @@ public class ArchiveWriter extends Thread {
   }
 
   private StringBuilder intermediateStats = new StringBuilder();
+
   public void intermediateStats(String event) {
     intermediateStats.append("While " + event + ", we stored "
         + this.storedConsensusesCounter + " consensus(es), "
@@ -600,8 +611,9 @@ public class ArchiveWriter extends Thread {
     for (Set<String> descriptors : this.storedMicrodescriptors.values()) {
       knownMicrodescriptors.addAll(descriptors);
     }
-    boolean missingDescriptors = false, missingVotes = false,
-        missingMicrodescConsensus = false;
+    boolean missingDescriptors = false;
+    boolean missingVotes = false;
+    boolean missingMicrodescConsensus = false;
     for (Map.Entry<Long, SortedSet<String>> c :
         this.storedConsensuses.entrySet()) {
       long validAfterMillis = c.getKey();
@@ -613,8 +625,10 @@ public class ArchiveWriter extends Thread {
         foundVotes = this.storedVotes.get(validAfterMillis).size();
         for (Map.Entry<String, SortedSet<String>> v :
             this.storedVotes.get(validAfterMillis).entrySet()) {
-          int voteFoundServerDescs = 0, voteAllServerDescs = 0,
-              voteFoundExtraInfos = 0, voteAllExtraInfos = 0;
+          int voteFoundServerDescs = 0;
+          int voteAllServerDescs = 0;
+          int voteFoundExtraInfos = 0;
+          int voteAllExtraInfos = 0;
           for (String serverDescriptorDigest : v.getValue()) {
             voteAllServerDescs++;
             if (knownServerDescriptors.containsKey(
@@ -636,32 +650,35 @@ public class ArchiveWriter extends Thread {
           if (voteAllServerDescs > 0) {
             sb.append(String.format(", %d/%d S (%.1f%%)",
                 voteFoundServerDescs, voteAllServerDescs,
-                100.0D * (double) voteFoundServerDescs /
-                  (double) voteAllServerDescs));
+                100.0D * (double) voteFoundServerDescs
+                / (double) voteAllServerDescs));
           } else {
             sb.append(", 0/0 S");
           }
           if (voteAllExtraInfos > 0) {
             sb.append(String.format(", %d/%d E (%.1f%%)",
                 voteFoundExtraInfos, voteAllExtraInfos,
-                100.0D * (double) voteFoundExtraInfos /
-                  (double) voteAllExtraInfos));
+                100.0D * (double) voteFoundExtraInfos
+                / (double) voteAllExtraInfos));
           } else {
             sb.append(", 0/0 E");
           }
           String fingerprint = v.getKey();
           /* Ignore turtles when warning about missing descriptors. */
           if (!fingerprint.equalsIgnoreCase(
-              "27B6B5996C426270A5C95488AA5BCEB6BCC86956") &&
-              (voteFoundServerDescs * 1000 < voteAllServerDescs * 995 ||
-              voteFoundExtraInfos * 1000 < voteAllExtraInfos * 995)) {
+              "27B6B5996C426270A5C95488AA5BCEB6BCC86956")
+              && (voteFoundServerDescs * 1000 < voteAllServerDescs * 995
+              || voteFoundExtraInfos * 1000 < voteAllExtraInfos * 995)) {
             missingDescriptors = true;
           }
         }
       }
-      int foundServerDescs = 0, allServerDescs = 0, foundExtraInfos = 0,
-          allExtraInfos = 0, foundMicrodescriptors = 0,
-          allMicrodescriptors = 0;
+      int foundServerDescs = 0;
+      int allServerDescs = 0;
+      int foundExtraInfos = 0;
+      int allExtraInfos = 0;
+      int foundMicrodescriptors = 0;
+      int allMicrodescriptors = 0;
       for (String serverDescriptorDigest : c.getValue()) {
         allServerDescs++;
         if (knownServerDescriptors.containsKey(
@@ -688,15 +705,15 @@ public class ArchiveWriter extends Thread {
       }
       if (allServerDescs > 0) {
         sb.append(String.format(", %d/%d S (%.1f%%)", foundServerDescs,
-            allServerDescs, 100.0D * (double) foundServerDescs /
-            (double) allServerDescs));
+            allServerDescs, 100.0D * (double) foundServerDescs
+            / (double) allServerDescs));
       } else {
         sb.append(", 0/0 S");
       }
       if (allExtraInfos > 0) {
         sb.append(String.format(", %d/%d E (%.1f%%)", foundExtraInfos,
-            allExtraInfos, 100.0D * (double) foundExtraInfos /
-            (double) allExtraInfos));
+            allExtraInfos, 100.0D * (double) foundExtraInfos
+            / (double) allExtraInfos));
       } else {
         sb.append(", 0/0 E");
       }
@@ -712,17 +729,17 @@ public class ArchiveWriter extends Thread {
         if (allMicrodescriptors > 0) {
           sb.append(String.format(", %d/%d M (%.1f%%)",
               foundMicrodescriptors, allMicrodescriptors,
-              100.0D * (double) foundMicrodescriptors /
-              (double) allMicrodescriptors));
+              100.0D * (double) foundMicrodescriptors
+              / (double) allMicrodescriptors));
         } else {
           sb.append(", 0/0 M");
         }
       } else {
         missingMicrodescConsensus = true;
       }
-      if (foundServerDescs * 1000 < allServerDescs * 995 ||
-          foundExtraInfos * 1000 < allExtraInfos * 995 ||
-          foundMicrodescriptors * 1000 < allMicrodescriptors * 995) {
+      if (foundServerDescs * 1000 < allServerDescs * 995
+          || foundExtraInfos * 1000 < allExtraInfos * 995
+          || foundMicrodescriptors * 1000 < allMicrodescriptors * 995) {
         missingDescriptors = true;
       }
       if (foundVotes < allVotes) {
@@ -756,44 +773,44 @@ public class ArchiveWriter extends Thread {
         "yyyy-MM-dd HH:mm:ss");
     dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     long tooOldMillis = this.now - 330L * 60L * 1000L;
-    if (!this.storedConsensuses.isEmpty() &&
-        this.storedConsensuses.lastKey() < tooOldMillis) {
+    if (!this.storedConsensuses.isEmpty()
+        && this.storedConsensuses.lastKey() < tooOldMillis) {
       this.logger.warning("The last known relay network status "
           + "consensus was valid after "
           + dateTimeFormat.format(this.storedConsensuses.lastKey())
           + ", which is more than 5:30 hours in the past.");
     }
-    if (!this.storedMicrodescConsensuses.isEmpty() &&
-        this.storedMicrodescConsensuses.lastKey() < tooOldMillis) {
+    if (!this.storedMicrodescConsensuses.isEmpty()
+        && this.storedMicrodescConsensuses.lastKey() < tooOldMillis) {
       this.logger.warning("The last known relay network status "
           + "microdesc consensus was valid after "
           + dateTimeFormat.format(
           this.storedMicrodescConsensuses.lastKey())
           + ", which is more than 5:30 hours in the past.");
     }
-    if (!this.storedVotes.isEmpty() &&
-        this.storedVotes.lastKey() < tooOldMillis) {
+    if (!this.storedVotes.isEmpty()
+        && this.storedVotes.lastKey() < tooOldMillis) {
       this.logger.warning("The last known relay network status vote "
           + "was valid after " + dateTimeFormat.format(
           this.storedVotes.lastKey()) + ", which is more than 5:30 hours "
           + "in the past.");
     }
-    if (!this.storedServerDescriptors.isEmpty() &&
-        this.storedServerDescriptors.lastKey() < tooOldMillis) {
+    if (!this.storedServerDescriptors.isEmpty()
+        && this.storedServerDescriptors.lastKey() < tooOldMillis) {
       this.logger.warning("The last known relay server descriptor was "
           + "published at "
           + dateTimeFormat.format(this.storedServerDescriptors.lastKey())
           + ", which is more than 5:30 hours in the past.");
     }
-    if (!this.storedExtraInfoDescriptors.isEmpty() &&
-        this.storedExtraInfoDescriptors.lastKey() < tooOldMillis) {
+    if (!this.storedExtraInfoDescriptors.isEmpty()
+        && this.storedExtraInfoDescriptors.lastKey() < tooOldMillis) {
       this.logger.warning("The last known relay extra-info descriptor "
           + "was published at " + dateTimeFormat.format(
           this.storedExtraInfoDescriptors.lastKey())
           + ", which is more than 5:30 hours in the past.");
     }
-    if (!this.storedMicrodescriptors.isEmpty() &&
-        this.storedMicrodescriptors.lastKey() < tooOldMillis) {
+    if (!this.storedMicrodescriptors.isEmpty()
+        && this.storedMicrodescriptors.lastKey() < tooOldMillis) {
       this.logger.warning("The last known relay microdescriptor was "
           + "contained in a microdesc consensus that was valid after "
           + dateTimeFormat.format(this.storedMicrodescriptors.lastKey())

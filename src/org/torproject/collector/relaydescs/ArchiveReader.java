@@ -1,6 +1,11 @@
-/* Copyright 2010--2014 The Tor Project
+/* Copyright 2010--2016 The Tor Project
  * See LICENSE for licensing information */
+
 package org.torproject.collector.relaydescs;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -28,10 +33,6 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
-
 /**
  * Read in all files in a given directory and pass buffered readers of
  * them to the relay descriptor parser.
@@ -40,13 +41,14 @@ public class ArchiveReader {
   public ArchiveReader(RelayDescriptorParser rdp, File archivesDirectory,
       File statsDirectory, boolean keepImportHistory) {
 
-    if (rdp == null || archivesDirectory == null ||
-        statsDirectory == null) {
+    if (rdp == null || archivesDirectory == null
+        || statsDirectory == null) {
       throw new IllegalArgumentException();
     }
 
     rdp.setArchiveReader(this);
-    int parsedFiles = 0, ignoredFiles = 0;
+    int parsedFiles = 0;
+    int ignoredFiles = 0;
     Logger logger = Logger.getLogger(ArchiveReader.class.getName());
     SortedSet<String> archivesImportHistory = new TreeSet<String>();
     File archivesImportHistoryFile = new File(statsDirectory,
@@ -82,8 +84,8 @@ public class ArchiveReader {
           if (rdp != null) {
             try {
               BufferedInputStream bis = null;
-              if (keepImportHistory &&
-                  archivesImportHistory.contains(pop.getName())) {
+              if (keepImportHistory
+                  && archivesImportHistory.contains(pop.getName())) {
                 ignoredFiles++;
                 continue;
               } else if (pop.getName().endsWith(".tar.bz2")) {
@@ -176,7 +178,8 @@ public class ArchiveReader {
             } catch (UnsupportedEncodingException e) {
               /* No way that US-ASCII is not supported. */
             }
-            int start = -1, end = -1;
+            int start = -1;
+            int end = -1;
             String startToken = "onion-key\n";
             while (end < ascii.length()) {
               start = ascii.indexOf(startToken, end);
@@ -198,8 +201,8 @@ public class ArchiveReader {
               if (!this.microdescriptorValidAfterTimes.containsKey(
                   digest256Hex)) {
                 logger.fine("Could not store microdescriptor '"
-                  + digest256Hex + "', which was not contained in a "
-                  + "microdesc consensus.");
+                    + digest256Hex + "', which was not contained in a "
+                    + "microdesc consensus.");
                 continue;
               }
               for (String validAfterTime :
@@ -265,6 +268,7 @@ public class ArchiveReader {
 
   private Map<String, Set<String>> microdescriptorValidAfterTimes =
       new HashMap<String, Set<String>>();
+
   public void haveParsedMicrodescConsensus(String validAfterTime,
       SortedSet<String> microdescriptorDigests) {
     for (String microdescriptor : microdescriptorDigests) {

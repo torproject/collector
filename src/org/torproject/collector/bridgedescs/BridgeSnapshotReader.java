@@ -1,6 +1,12 @@
-/* Copyright 2010--2012 The Tor Project
+/* Copyright 2010--2016 The Tor Project
  * See LICENSE for licensing information */
+
 package org.torproject.collector.bridgedescs;
+
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -20,11 +26,6 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-
 /**
  * Reads the half-hourly snapshots of bridge descriptors from Tonga.
  */
@@ -32,8 +33,8 @@ public class BridgeSnapshotReader {
   public BridgeSnapshotReader(BridgeDescriptorParser bdp,
       File bridgeDirectoriesDir, File statsDirectory) {
 
-    if (bdp == null || bridgeDirectoriesDir == null ||
-        statsDirectory == null) {
+    if (bdp == null || bridgeDirectoriesDir == null
+        || statsDirectory == null) {
       throw new IllegalArgumentException();
     }
 
@@ -62,11 +63,15 @@ public class BridgeSnapshotReader {
         }
       }
       logger.fine("Importing files in directory " + bridgeDirectoriesDir
-         + "/...");
+          + "/...");
       Set<String> descriptorImportHistory = new HashSet<String>();
-      int parsedFiles = 0, skippedFiles = 0, parsedStatuses = 0,
-          parsedServerDescriptors = 0, skippedServerDescriptors = 0,
-          parsedExtraInfoDescriptors = 0, skippedExtraInfoDescriptors = 0;
+      int parsedFiles = 0;
+      int skippedFiles = 0;
+      int parsedStatuses = 0;
+      int parsedServerDescriptors = 0;
+      int skippedServerDescriptors = 0;
+      int parsedExtraInfoDescriptors = 0;
+      int skippedExtraInfoDescriptors = 0;
       Stack<File> filesInInputDir = new Stack<File>();
       filesInInputDir.add(bdDir);
       while (!filesInInputDir.isEmpty()) {
@@ -118,9 +123,9 @@ public class BridgeSnapshotReader {
                     break;
                   }
                 }
-                if (firstLine.startsWith("published ") ||
-                    firstLine.startsWith("flag-thresholds ") ||
-                    firstLine.startsWith("r ")) {
+                if (firstLine.startsWith("published ")
+                    || firstLine.startsWith("flag-thresholds ")
+                    || firstLine.startsWith("r ")) {
                   bdp.parse(allData, dateTime);
                   parsedStatuses++;
                 } else if (descriptorImportHistory.contains(fileDigest)) {
@@ -129,10 +134,11 @@ public class BridgeSnapshotReader {
                   skippedFiles++;
                   continue;
                 } else {
-                  int start = -1, sig = -1, end = -1;
-                  String startToken =
-                      firstLine.startsWith("router ") ?
-                      "router " : "extra-info ";
+                  int start = -1;
+                  int sig = -1;
+                  int end = -1;
+                  String startToken = firstLine.startsWith("router ")
+                      ? "router " : "extra-info ";
                   String sigToken = "\nrouter-signature\n";
                   String endToken = "\n-----END SIGNATURE-----\n";
                   while (end < ascii.length()) {

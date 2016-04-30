@@ -1,6 +1,16 @@
 /* Copyright 2011--2016 The Tor Project
  * See LICENSE for licensing information */
+
 package org.torproject.collector.bridgepools;
+
+import org.torproject.collector.main.Configuration;
+import org.torproject.collector.main.LockFile;
+import org.torproject.collector.main.LoggingConfiguration;
+
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -23,14 +33,6 @@ import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-import org.torproject.collector.main.Configuration;
-import org.torproject.collector.main.LockFile;
-import org.torproject.collector.main.LoggingConfiguration;
 
 public class BridgePoolAssignmentsProcessor extends Thread {
 
@@ -77,8 +79,8 @@ public class BridgePoolAssignmentsProcessor extends Thread {
 
     Logger logger =
         Logger.getLogger(BridgePoolAssignmentsProcessor.class.getName());
-    if (assignmentsDirectory == null ||
-        sanitizedAssignmentsDirectory == null) {
+    if (assignmentsDirectory == null
+        || sanitizedAssignmentsDirectory == null) {
       IllegalArgumentException e = new IllegalArgumentException("Neither "
           + "assignmentsDirectory nor sanitizedAssignmentsDirectory may "
           + "be null!");
@@ -117,9 +119,11 @@ public class BridgePoolAssignmentsProcessor extends Thread {
         } else {
           br = new BufferedReader(new FileReader(assignmentFile));
         }
-        String line, bridgePoolAssignmentLine = null;
+        String line;
+        String bridgePoolAssignmentLine = null;
         SortedSet<String> sanitizedAssignments = new TreeSet<String>();
-        boolean wroteLastLine = false, skipBefore20120504125947 = true;
+        boolean wroteLastLine = false;
+        boolean skipBefore20120504125947 = true;
         Set<String> hashedFingerprints = null;
         while ((line = br.readLine()) != null || !wroteLastLine) {
           if (line != null && line.startsWith("bridge-pool-assignment ")) {
@@ -142,8 +146,8 @@ public class BridgePoolAssignmentsProcessor extends Thread {
               continue;
             }
           }
-          if (line == null ||
-              line.startsWith("bridge-pool-assignment ")) {
+          if (line == null
+              || line.startsWith("bridge-pool-assignment ")) {
             if (bridgePoolAssignmentLine != null) {
               try {
                 long bridgePoolAssignmentTime = assignmentFormat.parse(
@@ -235,8 +239,8 @@ public class BridgePoolAssignmentsProcessor extends Thread {
           + "starting with '" + duplicateFingerprint + "'.");
     }
 
-    if (maxBridgePoolAssignmentTime > 0L &&
-        maxBridgePoolAssignmentTime + 330L * 60L * 1000L
+    if (maxBridgePoolAssignmentTime > 0L
+        && maxBridgePoolAssignmentTime + 330L * 60L * 1000L
         < System.currentTimeMillis()) {
       SimpleDateFormat dateTimeFormat = new SimpleDateFormat(
           "yyyy-MM-dd HH:mm:ss");

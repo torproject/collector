@@ -1,6 +1,13 @@
-/* Copyright 2015 The Tor Project
+/* Copyright 2015--2016 The Tor Project
  * See LICENSE for licensing information */
+
 package org.torproject.collector.index;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
+import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -16,12 +23,6 @@ import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.zip.GZIPOutputStream;
-
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
-import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 /* Create a fresh index.json containing all directories and files in the
  * archive/ and recent/ directories.
@@ -53,12 +54,14 @@ public class CreateIndexJson {
     String path;
     SortedSet<FileNode> files;
     SortedSet<DirectoryNode> directories;
+
     DirectoryNode(String path, SortedSet<FileNode> files,
         SortedSet<DirectoryNode> directories) {
       this.path = path;
       this.files = files;
       this.directories = directories;
     }
+
     public int compareTo(DirectoryNode o) {
       return this.path.compareTo(o.path);
     }
@@ -69,6 +72,7 @@ public class CreateIndexJson {
     String path;
     SortedSet<FileNode> files;
     SortedSet<DirectoryNode> directories;
+
     IndexNode(String index_created, String path,
         SortedSet<FileNode> files,
         SortedSet<DirectoryNode> directories) {
@@ -83,17 +87,20 @@ public class CreateIndexJson {
     String path;
     long size;
     String last_modified;
+
     FileNode(String path, long size, String last_modified) {
       this.path = path;
       this.size = size;
       this.last_modified = last_modified;
     }
+
     public int compareTo(FileNode o) {
       return this.path.compareTo(o.path);
     }
   }
 
   static DateFormat dateTimeFormat;
+
   static {
     dateTimeFormat = new SimpleDateFormat(dateTimePattern,
         dateTimeLocale);
