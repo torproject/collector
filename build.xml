@@ -18,14 +18,17 @@
   <property name="jarfile" value="collector-${release.version}.jar" />
   <property name="jarsourcesfile" value="collector-${release.version}-sources.jar" />
   <property name="jarjavadocfile" value="collector-${release.version}-javadoc.jar" />
-  <path id="classpath">
-    <pathelement path="${classes}"/>
-    <fileset dir="${libs}">
+  <patternset id="runtime" >
       <include name="commons-codec-1.9.jar"/>
       <include name="commons-compress-1.9.jar"/>
       <include name="gson-2.2.4.jar"/>
       <include name="xz-1.5.jar"/>
       <include name="descriptor-${descriptorversion}.jar"/>
+  </patternset>
+  <path id="classpath">
+    <pathelement path="${classes}"/>
+    <fileset dir="${libs}">
+      <patternset refid="runtime" />
     </fileset>
   </path>
   <path id="checkstyle.classpath" >
@@ -114,11 +117,17 @@
     </exec>
     <jar destfile="${jarfile}"
          basedir="${classes}">
+      <fileset dir="${classes}"/>
+      <zipgroupfileset dir="${libs}" >
+        <patternset refid="runtime" />
+      </zipgroupfileset>
       <manifest>
         <attribute name="Created-By" value="The Tor Project" />
         <attribute name="Implementation-Title" value="${name}"/>
         <attribute name="Implementation-Version"
                    value="${release.version}-${git.revision}"/>
+        <attribute name="Main-Class"
+                   value="org.torproject.collector.Main" />
       </manifest>
     </jar>
     <jar destfile="${jarsourcesfile}">
@@ -196,47 +205,6 @@
         <fileset dir="${testclasses}" />
       </batchtest>
     </junit>
-  </target>
-  <target name="bridgedescs" depends="compile">
-    <java fork="true"
-          maxmemory="2048m"
-          classname="org.torproject.collector.bridgedescs.SanitizedBridgesWriter">
-      <classpath refid="classpath"/>
-    </java>
-  </target>
-  <target name="bridgepools" depends="compile">
-    <java fork="true"
-          maxmemory="2048m"
-          classname="org.torproject.collector.bridgepools.BridgePoolAssignmentsProcessor">
-      <classpath refid="classpath"/>
-    </java>
-  </target>
-  <target name="exitlists" depends="compile">
-    <java fork="true"
-          maxmemory="2048m"
-          classname="org.torproject.collector.exitlists.ExitListDownloader">
-      <classpath refid="classpath"/>
-    </java>
-  </target>
-  <target name="relaydescs" depends="compile">
-    <java fork="true"
-          maxmemory="2048m"
-          classname="org.torproject.collector.relaydescs.ArchiveWriter">
-      <classpath refid="classpath"/>
-    </java>
-  </target>
-  <target name="torperf" depends="compile">
-    <java fork="true"
-          maxmemory="2048m"
-          classname="org.torproject.collector.torperf.TorperfDownloader">
-      <classpath refid="classpath"/>
-    </java>
-  </target>
-  <target name="updateindex" depends="compile">
-    <java fork="true"
-          classname="org.torproject.collector.index.CreateIndexJson">
-      <classpath refid="classpath"/>
-    </java>
   </target>
 </project>
 
