@@ -5,7 +5,6 @@ package org.torproject.collector.bridgedescs;
 
 import org.torproject.collector.main.Configuration;
 import org.torproject.collector.main.LockFile;
-import org.torproject.collector.main.LoggingConfiguration;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
@@ -52,8 +51,6 @@ public class SanitizedBridgesWriter extends Thread {
 
   public static void main(String[] args) {
 
-    /* Initialize logging configuration. */
-    new LoggingConfiguration("bridge-descriptors");
     Logger logger = Logger.getLogger(
         SanitizedBridgesWriter.class.getName());
     logger.info("Starting bridge-descriptors module of CollecTor.");

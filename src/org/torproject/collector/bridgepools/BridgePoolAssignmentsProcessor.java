@@ -5,7 +5,6 @@ package org.torproject.collector.bridgepools;
 
 import org.torproject.collector.main.Configuration;
 import org.torproject.collector.main.LockFile;
-import org.torproject.collector.main.LoggingConfiguration;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -38,8 +37,6 @@ public class BridgePoolAssignmentsProcessor extends Thread {
 
   public static void main(String[] args) {
 
-    /* Initialize logging configuration. */
-    new LoggingConfiguration("bridge-pool-assignments");
     Logger logger = Logger.getLogger(
         BridgePoolAssignmentsProcessor.class.getName());
     logger.info("Starting bridge-pool-assignments module of CollecTor.");

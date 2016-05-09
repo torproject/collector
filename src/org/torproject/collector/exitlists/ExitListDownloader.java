@@ -5,7 +5,6 @@ package org.torproject.collector.exitlists;
 
 import org.torproject.collector.main.Configuration;
 import org.torproject.collector.main.LockFile;
-import org.torproject.collector.main.LoggingConfiguration;
 import org.torproject.descriptor.Descriptor;
 import org.torproject.descriptor.DescriptorParseException;
 import org.torproject.descriptor.DescriptorParser;
@@ -34,8 +33,6 @@ public class ExitListDownloader extends Thread {
 
   public static void main(String[] args) {
 
-    /* Initialize logging configuration. */
-    new LoggingConfiguration("exit-lists");
     Logger logger = Logger.getLogger(ExitListDownloader.class.getName());
     logger.info("Starting exit-lists module of CollecTor.");
 

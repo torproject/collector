@@ -5,7 +5,6 @@ package org.torproject.collector.torperf;
 
 import org.torproject.collector.main.Configuration;
 import org.torproject.collector.main.LockFile;
-import org.torproject.collector.main.LoggingConfiguration;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -34,8 +33,6 @@ public class TorperfDownloader extends Thread {
 
   public static void main(String[] args) {
 
-    /* Initialize logging configuration. */
-    new LoggingConfiguration("torperf");
     Logger logger = Logger.getLogger(TorperfDownloader.class.getName());
     logger.info("Starting torperf module of CollecTor.");
 

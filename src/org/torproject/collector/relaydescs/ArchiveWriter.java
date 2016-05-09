@@ -5,7 +5,6 @@ package org.torproject.collector.relaydescs;
 
 import org.torproject.collector.main.Configuration;
 import org.torproject.collector.main.LockFile;
-import org.torproject.collector.main.LoggingConfiguration;
 import org.torproject.descriptor.DescriptorParseException;
 import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
@@ -39,8 +38,6 @@ public class ArchiveWriter extends Thread {
 
   public static void main(String[] args) {
 
-    /* Initialize logging configuration. */
-    new LoggingConfiguration("relay-descriptors");
     Logger logger = Logger.getLogger(ArchiveWriter.class.getName());
     logger.info("Starting relay-descriptors module of CollecTor.");
 
