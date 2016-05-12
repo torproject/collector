@@ -4,7 +4,6 @@
 package org.torproject.collector;
 
 import org.torproject.collector.bridgedescs.SanitizedBridgesWriter;
-import org.torproject.collector.bridgepools.BridgePoolAssignmentsProcessor;
 import org.torproject.collector.exitlists.ExitListDownloader;
 import org.torproject.collector.index.CreateIndexJson;
 import org.torproject.collector.relaydescs.ArchiveWriter;
@@ -33,7 +32,6 @@ public class Main {
 
   static { // add a new main class here
     collecTorMains.put("bridgedescs", SanitizedBridgesWriter.class);
-    collecTorMains.put("bridgepools", BridgePoolAssignmentsProcessor.class);
     collecTorMains.put("exitlists", ExitListDownloader.class);
     collecTorMains.put("updateindex", CreateIndexJson.class);
     collecTorMains.put("relaydescs", ArchiveWriter.class);

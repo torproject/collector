@@ -62,9 +62,6 @@ public class Configuration {
   private boolean downloadAllServerDescriptors = false;
   private boolean downloadAllExtraInfoDescriptors = false;
   private boolean compressRelayDescriptorDownloads;
-  private String assignmentsDirectory = "in/bridge-pool-assignments/";
-  private String sanitizedAssignmentsDirectory =
-      "out/bridge-pool-assignments/";
   private String torperfOutputDirectory = "out/torperf/";
   private SortedMap<String, String> torperfSources = null;
   private List<String> torperfFiles = null;
@@ -170,10 +167,6 @@ public class Configuration {
         } else if (line.startsWith("CompressRelayDescriptorDownloads")) {
           this.compressRelayDescriptorDownloads = Integer.parseInt(
               line.split(" ")[1]) != 0;
-        } else if (line.startsWith("AssignmentsDirectory")) {
-          this.assignmentsDirectory = line.split(" ")[1];
-        } else if (line.startsWith("SanitizedAssignmentsDirectory")) {
-          this.sanitizedAssignmentsDirectory = line.split(" ")[1];
         } else if (line.startsWith("TorperfOutputDirectory")) {
           this.torperfOutputDirectory = line.split(" ")[1];
         } else if (line.startsWith("TorperfSource")) {
@@ -308,14 +301,6 @@ public class Configuration {
 
   public boolean getCompressRelayDescriptorDownloads() {
     return this.compressRelayDescriptorDownloads;
-  }
-
-  public String getAssignmentsDirectory() {
-    return this.assignmentsDirectory;
-  }
-
-  public String getSanitizedAssignmentsDirectory() {
-    return this.sanitizedAssignmentsDirectory;
   }
 
   public String getTorperfOutputDirectory() {

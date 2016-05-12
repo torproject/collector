@@ -85,16 +85,6 @@
 #SanitizedBridgesWriteDirectory out/bridge-descriptors/
 #
 #
-######## Bridge pool assignments ########
-#
-## Relative path to directory to read bridge pool assignment files from
-#AssignmentsDirectory in/bridge-pool-assignments/
-#
-## Relative path to directory to write sanitized bridge pool assignment
-## files to
-#SanitizedAssignmentsDirectory out/bridge-pool-assignments/
-#
-#
 ######## Exit lists ########
 #
 ## (No options available)
