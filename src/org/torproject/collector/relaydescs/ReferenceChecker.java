@@ -44,6 +44,29 @@ public class ReferenceChecker {
 
   private File historyFile;
 
+  private long currentTimeMillis;
+
+  private SortedSet<Reference> references = new TreeSet<Reference>();
+
+  private static DateFormat dateTimeFormat;
+
+  static {
+    dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'",
+        Locale.US);
+    dateTimeFormat.setLenient(false);
+    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+  }
+
+  private static final long ONE_HOUR = 60L * 60L * 1000L;
+
+  private static final long THREE_HOURS = 3L * ONE_HOUR;
+
+  private static final long SIX_HOURS = 6L * ONE_HOUR;
+
+  private static final long ONE_DAY = 24L * ONE_HOUR;
+
+  private static final long THIRTY_DAYS = 30L * ONE_DAY;
+
   public ReferenceChecker(File descriptorsDir, File referencesFile,
       File historyFile) {
     this.descriptorsDir = descriptorsDir;
@@ -59,8 +82,6 @@ public class ReferenceChecker {
     this.checkReferences();
     this.writeReferencesFile();
   }
-
-  private long currentTimeMillis;
 
   private void getCurrentTimeMillis() {
     this.currentTimeMillis = System.currentTimeMillis();
@@ -107,14 +128,6 @@ public class ReferenceChecker {
       }
       return result;
     }
-  }
-
-  private SortedSet<Reference> references = new TreeSet<Reference>();
-
-  private void addReference(String referencing, String referenced,
-      double weight, long expiresAfterMillis) {
-    this.references.add(new Reference(referencing.toUpperCase(),
-        referenced.toUpperCase(), weight, expiresAfterMillis));
   }
 
   private void readReferencesFile() {
@@ -170,25 +183,6 @@ public class ReferenceChecker {
     }
   }
 
-  private static DateFormat dateTimeFormat;
-
-  static {
-    dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'",
-        Locale.US);
-    dateTimeFormat.setLenient(false);
-    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-  }
-
-  private static final long ONE_HOUR = 60L * 60L * 1000L;
-
-  private static final long THREE_HOURS = 3L * ONE_HOUR;
-
-  private static final long SIX_HOURS = 6L * ONE_HOUR;
-
-  private static final long ONE_DAY = 24L * ONE_HOUR;
-
-  private static final long THIRTY_DAYS = 30L * ONE_DAY;
-
   private void readRelayNetworkStatusConsensusUnflavored(
       RelayNetworkStatusConsensus consensus) {
     String validAfter = dateTimeFormat.format(
@@ -213,7 +207,6 @@ public class ReferenceChecker {
           entry.getPublishedMillis() + THREE_HOURS);
     }
   }
-
 
   private void readRelayNetworkStatusConsensusMicrodesc(
       RelayNetworkStatusConsensus consensus) {
@@ -265,6 +258,12 @@ public class ReferenceChecker {
     this.addReference(
         String.format("D-%s", microdesc.getMicrodescriptorDigest()), "",
         0.0, this.currentTimeMillis + THIRTY_DAYS);
+  }
+
+  private void addReference(String referencing, String referenced,
+      double weight, long expiresAfterMillis) {
+    this.references.add(new Reference(referencing.toUpperCase(),
+        referenced.toUpperCase(), weight, expiresAfterMillis));
   }
 
   private void dropStaleReferences() {

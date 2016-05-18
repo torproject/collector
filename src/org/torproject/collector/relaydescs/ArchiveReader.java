@@ -38,6 +38,10 @@ import java.util.logging.Logger;
  * them to the relay descriptor parser.
  */
 public class ArchiveReader {
+
+  private Map<String, Set<String>> microdescriptorValidAfterTimes =
+      new HashMap<String, Set<String>>();
+
   public ArchiveReader(RelayDescriptorParser rdp, File archivesDirectory,
       File statsDirectory, boolean keepImportHistory) {
 
@@ -265,9 +269,6 @@ public class ArchiveReader {
         + "directory:\nParsed " + parsedFiles + ", ignored "
         + ignoredFiles + " files.");
   }
-
-  private Map<String, Set<String>> microdescriptorValidAfterTimes =
-      new HashMap<String, Set<String>>();
 
   public void haveParsedMicrodescConsensus(String validAfterTime,
       SortedSet<String> microdescriptorDigests) {
