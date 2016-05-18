@@ -3,11 +3,11 @@
   <property name="name" value="CollecTor"/>
   <property name="descriptorversion" value="1.1.0-dev" />
   <property name="source-and-target-java-version" value="1.7" />
-  <property name="sources" value="src/"/>
+  <property name="sources" value="src/main/java"/>
   <property name="resources" value="resources/"/>
   <property name="generated" value="generated/"/>
   <property name="testresult" value="${generated}/test-results"/>
-  <property name="testsources" value="test"/>
+  <property name="testsources" value="src/test/java"/>
   <property name="coverageresult" value="${generated}/coverage-report/"/>
   <property name="instrument" value="${generated}/instrument/"/>
   <property name="classes" value="${generated}/classes/"/>
