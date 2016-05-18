@@ -4,4 +4,3 @@ IndexOrderDefault Descending Name
 IndexIgnore *.tmp
 HeaderName /header.html
 ReadmeName /footer.html
-

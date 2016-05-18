@@ -4,17 +4,18 @@
   <property name="descriptorversion" value="1.1.0-dev" />
   <property name="source-and-target-java-version" value="1.7" />
   <property name="sources" value="src/main/java"/>
-  <property name="resources" value="resources/"/>
+  <property name="resources" value="src/main/resources/"/>
   <property name="generated" value="generated/"/>
   <property name="testresult" value="${generated}/test-results"/>
   <property name="testsources" value="src/test/java"/>
+  <property name="testresources" value="src/test/resources/"/>
   <property name="coverageresult" value="${generated}/coverage-report/"/>
   <property name="instrument" value="${generated}/instrument/"/>
   <property name="classes" value="${generated}/classes/"/>
   <property name="testclasses" value="${generated}/testclasses/"/>
   <property name="docs" value="${generated}/javadoc/"/>
   <property name="libs" value="lib"/>
-  <property name="cobertura.ser.file" value="cobertura.ser" />
+  <property name="cobertura.ser.file" value="${generated}/cobertura.ser" />
   <property name="jarfile" value="collector-${release.version}.jar" />
   <property name="jarsourcesfile" value="collector-${release.version}-sources.jar" />
   <property name="jarjavadocfile" value="collector-${release.version}-javadoc.jar" />
@@ -70,7 +71,6 @@
     <delete includeEmptyDirs="true" quiet="true">
       <fileset dir="${generated}" defaultexcludes="false" includes="**" />
     </delete>
-    <delete file="${cobertura.ser.file}" quiet="true"/>
     <delete file="${jarfile}" quiet="true"/>
     <delete file="${jarsourcesfile}" quiet="true"/>
     <delete file="${jarjavadocfile}" quiet="true"/>
@@ -154,7 +154,7 @@
     <classpath refid="checkstyle.classpath" />
   </taskdef>
   <target name="checks" depends="compile">
-    <checkstyle config="${resources}/metrics_checks.xml">
+    <checkstyle config="${testresources}/metrics_checks.xml">
       <fileset dir="${sources}"
                includes="**/*.java" />
       <classpath>
