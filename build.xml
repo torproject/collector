@@ -15,7 +15,7 @@
   <property name="testclasses" value="${generated}/testclasses/"/>
   <property name="docs" value="${generated}/javadoc/"/>
   <property name="libs" value="lib"/>
-  <property name="cobertura.ser.file" value="${generated}/cobertura.ser" />
+  <property name="cobertura.ser.file" value="${basedir}/cobertura.ser" />
   <property name="jarfile" value="collector-${release.version}.jar" />
   <property name="jarsourcesfile" value="collector-${release.version}-sources.jar" />
   <property name="jarjavadocfile" value="collector-${release.version}-javadoc.jar" />
@@ -71,6 +71,7 @@
     <delete includeEmptyDirs="true" quiet="true">
       <fileset dir="${generated}" defaultexcludes="false" includes="**" />
     </delete>
+    <delete file="${cobertura.ser.file}" quiet="true"/>
     <delete file="${jarfile}" quiet="true"/>
     <delete file="${jarsourcesfile}" quiet="true"/>
     <delete file="${jarjavadocfile}" quiet="true"/>
@@ -179,7 +180,7 @@
     </cobertura-instrument>
     <junit fork="true" haltonfailure="false" printsummary="on">
       <sysproperty key="net.sourceforge.cobertura.datafile"
-                   file="${basedir}/${cobertura.ser.file}" />
+                   file="${cobertura.ser.file}" />
       <classpath location="${instrument}" />
       <classpath refid="classpath" />
       <classpath refid="test.classpath" />
