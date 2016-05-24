@@ -105,7 +105,11 @@
   </target>
   <target name="docs">
     <mkdir dir="${docs}"/>
-    <javadoc destdir="${docs}">
+    <javadoc destdir="${docs}"
+             footer="&amp;copy; 2016 The Tor Project"
+             doctitle="CollecTor Documentation"
+             use="true"
+             windowtitle="CollecTor Documentation">
       <classpath refid="classpath"/>
       <fileset dir="${sources}/" includes="**/*.java" />
     </javadoc>
