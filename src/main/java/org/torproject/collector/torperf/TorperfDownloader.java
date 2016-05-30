@@ -3,7 +3,9 @@
 
 package org.torproject.collector.torperf;
 
-import org.torproject.collector.main.Configuration;
+import org.torproject.collector.conf.Configuration;
+import org.torproject.collector.conf.ConfigurationException;
+import org.torproject.collector.conf.Key;
 import org.torproject.collector.main.LockFile;
 
 import java.io.BufferedReader;
@@ -17,6 +19,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -30,22 +33,14 @@ import java.util.logging.Logger;
  * configured sources, append them to the files we already have, and merge
  * the two files into the .tpf format. */
 public class TorperfDownloader extends Thread {
+  private static Logger logger = Logger.getLogger(TorperfDownloader.class.getName());
 
-  public static void main(String[] args) {
-
-    Logger logger = Logger.getLogger(TorperfDownloader.class.getName());
+  public static void main(Configuration config) throws ConfigurationException {
     logger.info("Starting torperf module of CollecTor.");
 
-    // Initialize configuration
-    Configuration config = new Configuration();
-
     // Use lock file to avoid overlapping runs
-    LockFile lf = new LockFile("torperf");
-    if (!lf.acquireLock()) {
-      logger.severe("Warning: CollecTor is already running or has not exited "
-          + "cleanly! Exiting!");
-      System.exit(1);
-    }
+    LockFile lf = new LockFile(config.getPath(Key.LockFilePath).toString(), "torperf");
+    lf.acquireLock();
 
     // Process Torperf files
     new TorperfDownloader(config).run();
@@ -63,30 +58,34 @@ public class TorperfDownloader extends Thread {
   }
 
   private File torperfOutputDirectory = null;
-  private SortedMap<String, String> torperfSources = null;
-  private List<String> torperfFilesLines = null;
-  private Logger logger = null;
+  private Map<String, String> torperfSources = new HashMap<>();
+  private String[] torperfFilesLines = null;
   private SimpleDateFormat dateFormat;
 
   public void run() {
+    try {
+      startProcessing();
+    } catch (ConfigurationException ce) {
+      logger.severe("Configuration failed: " + ce);
+      throw new RuntimeException(ce);
+    }
+  }
 
-    File torperfOutputDirectory =
-        new File(config.getTorperfOutputDirectory());
-    SortedMap<String, String> torperfSources = config.getTorperfSources();
-    List<String> torperfFilesLines = config.getTorperfFiles();
-
-    this.torperfOutputDirectory = torperfOutputDirectory;
-    this.torperfSources = torperfSources;
-    this.torperfFilesLines = torperfFilesLines;
+  private void startProcessing() throws ConfigurationException {
+    this.torperfFilesLines = config.getStringArray(Key.TorperfFilesLines);
+    this.torperfOutputDirectory = config.getPath(Key.TorperfOutputDirectory)
+        .toFile();
     if (!this.torperfOutputDirectory.exists()) {
       this.torperfOutputDirectory.mkdirs();
     }
-    this.logger = Logger.getLogger(TorperfDownloader.class.getName());
     this.dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     this.dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     this.readLastMergedTimestamps();
+    for (String[] source : config.getStringArrayArray(Key.TorperfSources)) {
+        torperfSources.put(source[0], source[1]);
+    }
     for (String torperfFilesLine : this.torperfFilesLines) {
-      this.downloadAndMergeFiles(torperfFilesLine);
+        this.downloadAndMergeFiles(torperfFilesLine);
     }
     this.writeLastMergedTimestamps();
 
@@ -161,10 +160,10 @@ public class TorperfDownloader extends Thread {
 
   private void downloadAndMergeFiles(String torperfFilesLine) {
     String[] parts = torperfFilesLine.split(" ");
-    String sourceName = parts[1];
+    String sourceName = parts[0];
     int fileSize = -1;
     try {
-      fileSize = Integer.parseInt(parts[2]);
+      fileSize = Integer.parseInt(parts[1]);
     } catch (NumberFormatException e) {
       this.logger.log(Level.WARNING, "Could not parse file size in "
           + "TorperfFiles configuration line '" + torperfFilesLine
@@ -173,7 +172,7 @@ public class TorperfDownloader extends Thread {
     }
 
     /* Download and append the .data file. */
-    String dataFileName = parts[3];
+    String dataFileName = parts[2];
     String sourceBaseUrl = torperfSources.get(sourceName);
     String dataUrl = sourceBaseUrl + dataFileName;
     String dataOutputFileName = sourceName + "-" + dataFileName;
@@ -183,7 +182,7 @@ public class TorperfDownloader extends Thread {
         dataOutputFile, true);
 
     /* Download and append the .extradata file. */
-    String extradataFileName = parts[4];
+    String extradataFileName = parts[3];
     String extradataUrl = sourceBaseUrl + extradataFileName;
     String extradataOutputFileName = sourceName + "-" + extradataFileName;
     File extradataOutputFile = new File(torperfOutputDirectory,

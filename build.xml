@@ -53,10 +53,22 @@
       <include name="logback-classic-1.1.2.jar" />
     </fileset>
   </path>
+  <path id="cobertura.test.classpath">
+    <path location="${instrument}" />
+    <path refid="test.classpath" />
+    <path refid="cobertura.classpath" />
+  </path>
   <path id="test.classpath">
+    <pathelement path="${classes}"/>
     <pathelement path="${testclasses}"/>
+    <pathelement path="${resources}"/>
+    <pathelement path="${testresources}"/>
+    <fileset dir="${libs}">
+      <patternset refid="runtime" />
+    </fileset>
     <fileset dir="${libs}">
       <include name="junit4-4.11.jar"/>
+      <include name="hamcrest-all-1.3.jar"/>
     </fileset>
   </path>
   <target name="init">
@@ -65,7 +77,6 @@
     <mkdir dir="${docs}"/>
     <mkdir dir="${testresult}"/>
     <mkdir dir="${instrument}"/>
-    <copy file="config.template" tofile="config"/>
   </target>
   <target name="clean">
     <delete includeEmptyDirs="true" quiet="true">
@@ -123,6 +134,7 @@
     <jar destfile="${jarfile}"
          basedir="${classes}">
       <fileset dir="${classes}"/>
+      <fileset dir="${resources}" includes="collector.properties"/>
       <zipgroupfileset dir="${libs}" >
         <patternset refid="runtime" />
       </zipgroupfileset>
@@ -185,10 +197,10 @@
     <junit fork="true" haltonfailure="false" printsummary="on">
       <sysproperty key="net.sourceforge.cobertura.datafile"
                    file="${cobertura.ser.file}" />
-      <classpath location="${instrument}" />
-      <classpath refid="classpath" />
-      <classpath refid="test.classpath" />
-      <classpath refid="cobertura.classpath" />
+      <!-- The following jvmargs prevent test access to the network. -->
+      <jvmarg value="-Djava.security.policy=${testresources}/junittest.policy"/>
+      <jvmarg value="-Djava.security.manager"/>
+      <classpath refid="cobertura.test.classpath" />
       <formatter type="xml" />
       <batchtest toDir="${testresult}" >
         <fileset dir="${testclasses}" />
@@ -199,11 +211,15 @@
         <include name="**/*.java" />
       </fileset>
     </cobertura-report>
-    <cobertura-check branchrate="0" totallinerate="0" />
+    <cobertura-check branchrate="0" totallinerate="15" totalbranchrate="5" >
+      <regex pattern="org.torproject.collector.conf.*" branchrate="100" linerate="100"/>
+    </cobertura-check>
   </target>
   <target name="test" depends="compile,compile-tests">
     <junit fork="true" haltonfailure="true" printsummary="off">
-      <classpath refid="classpath"/>
+      <!-- The following jvmargs prevent test access to the network. -->
+      <jvmarg value="-Djava.security.policy=${testresources}/junittest.policy"/>
+      <jvmarg value="-Djava.security.manager"/>
       <classpath refid="test.classpath"/>
       <formatter type="plain" usefile="false"/>
       <batchtest>

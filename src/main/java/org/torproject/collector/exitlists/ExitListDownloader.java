@@ -3,7 +3,9 @@
 
 package org.torproject.collector.exitlists;
 
-import org.torproject.collector.main.Configuration;
+import org.torproject.collector.conf.Configuration;
+import org.torproject.collector.conf.ConfigurationException;
+import org.torproject.collector.conf.Key;
 import org.torproject.collector.main.LockFile;
 import org.torproject.descriptor.Descriptor;
 import org.torproject.descriptor.DescriptorParseException;
@@ -31,21 +33,15 @@ import java.util.logging.Logger;
 
 public class ExitListDownloader extends Thread {
 
-  public static void main(String[] args) {
+  private static Logger logger =
+      Logger.getLogger(ExitListDownloader.class.getName());
 
-    Logger logger = Logger.getLogger(ExitListDownloader.class.getName());
+  public static void main(Configuration config) throws ConfigurationException {
     logger.info("Starting exit-lists module of CollecTor.");
 
-    // Initialize configuration
-    Configuration config = new Configuration();
-
     // Use lock file to avoid overlapping runs
-    LockFile lf = new LockFile("exit-lists");
-    if (!lf.acquireLock()) {
-      logger.severe("Warning: CollecTor is already running or has not exited "
-          + "cleanly! Exiting!");
-      System.exit(1);
-    }
+    LockFile lf = new LockFile(config.getPath(Key.LockFilePath).toString(), "exit-lists");
+    lf.acquireLock();
 
     // Download exit list and store it to disk
     new ExitListDownloader(config).run();
@@ -56,12 +52,18 @@ public class ExitListDownloader extends Thread {
     logger.info("Terminating exit-lists module of CollecTor.");
   }
 
-  public ExitListDownloader(Configuration config) {
-  }
+  public ExitListDownloader(Configuration config) {}
 
   public void run() {
+    try {
+      startProcessing();
+    } catch (ConfigurationException ce) {
+      logger.severe("Configuration failed: " + ce);
+      throw new RuntimeException(ce);
+    }
+  }
 
-    Logger logger = Logger.getLogger(ExitListDownloader.class.getName());
+  private void startProcessing() throws ConfigurationException {
 
     SimpleDateFormat dateTimeFormat =
         new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

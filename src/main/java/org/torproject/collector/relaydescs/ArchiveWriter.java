@@ -3,7 +3,9 @@
 
 package org.torproject.collector.relaydescs;
 
-import org.torproject.collector.main.Configuration;
+import org.torproject.collector.conf.Configuration;
+import org.torproject.collector.conf.ConfigurationException;
+import org.torproject.collector.conf.Key;
 import org.torproject.collector.main.LockFile;
 import org.torproject.descriptor.DescriptorParseException;
 import org.torproject.descriptor.DescriptorParser;
@@ -17,6 +19,8 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -36,11 +40,12 @@ import java.util.logging.Logger;
 
 public class ArchiveWriter extends Thread {
 
+  private static Logger logger = Logger.getLogger(ArchiveWriter.class.getName());
+
   private Configuration config;
 
   private long now = System.currentTimeMillis();
-  private Logger logger;
-  private File outputDirectory;
+  private String outputDirectory;
   private String rsyncCatString;
   private DescriptorParser descriptorParser;
   private int storedConsensusesCounter = 0;
@@ -67,12 +72,9 @@ public class ArchiveWriter extends Thread {
   private SortedMap<Long, Set<String>> storedMicrodescriptors =
       new TreeMap<Long, Set<String>>();
 
-  private File storedServerDescriptorsFile = new File(
-      "stats/stored-server-descriptors");
-  private File storedExtraInfoDescriptorsFile = new File(
-      "stats/stored-extra-info-descriptors");
-  private File storedMicrodescriptorsFile = new File(
-      "stats/stored-microdescriptors");
+  private File storedServerDescriptorsFile;
+  private File storedExtraInfoDescriptorsFile;
+  private File storedMicrodescriptorsFile;
 
   private static final byte[] CONSENSUS_ANNOTATION =
       "@type network-status-consensus-3 1.0\n".getBytes();
@@ -97,28 +99,31 @@ public class ArchiveWriter extends Thread {
 
   private StringBuilder intermediateStats = new StringBuilder();
 
-  public static void main(String[] args) {
+  private static Path recentPath;
+  private static String recentPathName;
+  private static final String RELAY_DESCRIPTORS = "relay-descriptors";
+  private static final String MICRO = "micro";
+  private static final String CONSENSUS_MICRODESC = "consensus-microdesc";
+  private static final String MICRODESC = "microdesc";
+  private static final String MICRODESCS = "microdescs";
+  public static void main(Configuration config) throws ConfigurationException {
 
-    Logger logger = Logger.getLogger(ArchiveWriter.class.getName());
     logger.info("Starting relay-descriptors module of CollecTor.");
 
-    // Initialize configuration
-    Configuration config = new Configuration();
-
     // Use lock file to avoid overlapping runs
-    LockFile lf = new LockFile("relay-descriptors");
-    if (!lf.acquireLock()) {
-      logger.severe("Warning: CollecTor is already running or has not exited "
-          + "cleanly! Exiting!");
-      System.exit(1);
-    }
+    LockFile lf = new LockFile(config.getPath(Key.LockFilePath).toString(), RELAY_DESCRIPTORS);
+    lf.acquireLock();
+
+    recentPath = config.getPath(Key.RecentPath);
+    recentPathName = recentPath.toString();
 
     // Import/download relay descriptors from the various sources
     new ArchiveWriter(config).run();
 
-    new ReferenceChecker(new File("recent/relay-descriptors"),
-        new File("stats/references"),
-        new File("stats/references-history")).check();
+    new ReferenceChecker(
+        recentPath.toFile(),
+        new File(config.getPath(Key.StatsPath).toFile(), "references"),
+        new File(config.getPath(Key.StatsPath).toFile(), "references-history")).check();
 
     // Remove lock file
     lf.releaseLock();
@@ -126,18 +131,29 @@ public class ArchiveWriter extends Thread {
     logger.info("Terminating relay-descriptors module of CollecTor.");
   }
 
-  public ArchiveWriter(Configuration config) {
+  public ArchiveWriter(Configuration config) throws ConfigurationException {
     this.config = config;
+    storedServerDescriptorsFile =
+        new File(config.getPath(Key.StatsPath).toFile(), "stored-server-descriptors");
+    storedExtraInfoDescriptorsFile =
+        new File(config.getPath(Key.StatsPath).toFile(), "stored-extra-info-descriptors");
+    storedMicrodescriptorsFile =
+        new File(config.getPath(Key.StatsPath).toFile(), "stored-microdescriptors");
   }
 
   public void run() {
+    try {
+      startProcessing();
+    } catch (ConfigurationException ce) {
+      logger.severe("Configuration failed: " + ce);
+      throw new RuntimeException(ce);
+    }
+  }
 
-    File outputDirectory =
-        new File(config.getDirectoryArchivesOutputDirectory());
+  private void startProcessing() throws ConfigurationException {
+
     File statsDirectory = new File("stats");
-
-    this.logger = Logger.getLogger(ArchiveWriter.class.getName());
-    this.outputDirectory = outputDirectory;
+    this.outputDirectory = config.getPath(Key.DirectoryArchivesOutputDirectory).toString();
     SimpleDateFormat rsyncCatFormat = new SimpleDateFormat(
         "yyyy-MM-dd-HH-mm-ss");
     rsyncCatFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -152,33 +168,33 @@ public class ArchiveWriter extends Thread {
     RelayDescriptorParser rdp = new RelayDescriptorParser(this);
 
     RelayDescriptorDownloader rdd = null;
-    if (config.getDownloadRelayDescriptors()) {
-      List<String> dirSources =
-          config.getDownloadFromDirectoryAuthorities();
+    if (config.getBool(Key.DownloadRelayDescriptors)) {
+      String[] dirSources =
+          config.getStringArray(Key.DirectoryAuthoritiesAddresses);
       rdd = new RelayDescriptorDownloader(rdp, dirSources,
-          config.getDownloadVotesByFingerprint(),
-          config.getDownloadCurrentConsensus(),
-          config.getDownloadCurrentMicrodescConsensus(),
-          config.getDownloadCurrentVotes(),
-          config.getDownloadMissingServerDescriptors(),
-          config.getDownloadMissingExtraInfoDescriptors(),
-          config.getDownloadMissingMicrodescriptors(),
-          config.getDownloadAllServerDescriptors(),
-          config.getDownloadAllExtraInfoDescriptors(),
-          config.getCompressRelayDescriptorDownloads());
+          config.getStringArray(Key.DirectoryAuthoritiesFingerprintsForVotes),
+          config.getBool(Key.DownloadCurrentConsensus),
+          config.getBool(Key.DownloadCurrentMicrodescConsensus),
+          config.getBool(Key.DownloadCurrentVotes),
+          config.getBool(Key.DownloadMissingServerDescriptors),
+          config.getBool(Key.DownloadMissingExtraInfoDescriptors),
+          config.getBool(Key.DownloadMissingMicrodescriptors),
+          config.getBool(Key.DownloadAllServerDescriptors),
+          config.getBool(Key.DownloadAllExtraInfoDescriptors),
+          config.getBool(Key.CompressRelayDescriptorDownloads));
       rdp.setRelayDescriptorDownloader(rdd);
     }
-    if (config.getImportCachedRelayDescriptors()) {
+    if (config.getBool(Key.ImportCachedRelayDescriptors)) {
       new CachedRelayDescriptorReader(rdp,
-          config.getCachedRelayDescriptorDirectory(), statsDirectory);
+          config.getStringArray(Key.CachedRelayDescriptorsDirectories), statsDirectory);
       this.intermediateStats("importing relay descriptors from local "
           + "Tor data directories");
     }
-    if (config.getImportDirectoryArchives()) {
+    if (config.getBool(Key.ImportDirectoryArchives)) {
       new ArchiveReader(rdp,
-          new File(config.getDirectoryArchivesDirectory()),
+                        config.getPath(Key.DirectoryArchivesDirectory).toFile(),
           statsDirectory,
-          config.getKeepDirectoryArchiveImportHistory());
+          config.getBool(Key.KeepDirectoryArchiveImportHistory));
       this.intermediateStats("importing relay descriptors from local "
           + "directory");
     }
@@ -557,7 +573,7 @@ public class ArchiveWriter extends Thread {
         - 3L * 24L * 60L * 60L * 1000L;
     long cutOffMicroMillis = cutOffMillis - 27L * 24L * 60L * 60L * 1000L;
     Stack<File> allFiles = new Stack<File>();
-    allFiles.add(new File("recent/relay-descriptors"));
+    allFiles.add(new File(recentPathName, RELAY_DESCRIPTORS));
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();
       if (file.isDirectory()) {
@@ -633,11 +649,11 @@ public class ArchiveWriter extends Thread {
     SimpleDateFormat printFormat = new SimpleDateFormat(
         "yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
     printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    File tarballFile = new File(this.outputDirectory + "/consensus/"
-        + printFormat.format(new Date(validAfter)) + "-consensus");
+    File tarballFile = Paths.get(this.outputDirectory, "consensus",
+        printFormat.format(new Date(validAfter)) + "-consensus").toFile();
     boolean tarballFileExistedBefore = tarballFile.exists();
-    File rsyncFile = new File("recent/relay-descriptors/consensuses/"
-        + tarballFile.getName());
+    File rsyncFile = Paths.get(recentPathName, RELAY_DESCRIPTORS,
+        "consensuses", tarballFile.getName()).toFile();
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
     if (this.store(CONSENSUS_ANNOTATION, data, outputFiles, null)) {
       this.storedConsensusesCounter++;
@@ -657,14 +673,12 @@ public class ArchiveWriter extends Thread {
     SimpleDateFormat dayDirectoryFileFormat = new SimpleDateFormat(
         "dd/yyyy-MM-dd-HH-mm-ss");
     dayDirectoryFileFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    File tarballFile = new File(this.outputDirectory
-        + "/microdesc/" + yearMonthDirectoryFormat.format(validAfter)
-        + "/consensus-microdesc/"
-        + dayDirectoryFileFormat.format(validAfter)
-        + "-consensus-microdesc");
+    File tarballFile = Paths.get(this.outputDirectory, MICRODESC,
+        yearMonthDirectoryFormat.format(validAfter), CONSENSUS_MICRODESC,
+        dayDirectoryFileFormat.format(validAfter) + "-consensus-microdesc").toFile();
     boolean tarballFileExistedBefore = tarballFile.exists();
-    File rsyncFile = new File("recent/relay-descriptors/microdescs/"
-        + "consensus-microdesc/" + tarballFile.getName());
+    File rsyncFile = Paths.get(recentPathName, RELAY_DESCRIPTORS, MICRODESCS,
+        CONSENSUS_MICRODESC, tarballFile.getName()).toFile();
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
     if (this.store(MICRODESCCONSENSUS_ANNOTATION, data, outputFiles,
         null)) {
@@ -683,12 +697,12 @@ public class ArchiveWriter extends Thread {
     SimpleDateFormat printFormat = new SimpleDateFormat(
         "yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
     printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    File tarballFile = new File(this.outputDirectory + "/vote/"
-        + printFormat.format(new Date(validAfter)) + "-vote-"
-        + fingerprint + "-" + digest);
+    File tarballFile = Paths.get(this.outputDirectory, "vote",
+        printFormat.format(new Date(validAfter)) + "-vote-"
+        + fingerprint + "-" + digest).toFile();
     boolean tarballFileExistedBefore = tarballFile.exists();
-    File rsyncFile = new File("recent/relay-descriptors/votes/"
-        + tarballFile.getName());
+    File rsyncFile = Paths.get(recentPathName, RELAY_DESCRIPTORS, "votes",
+        tarballFile.getName()).toFile();
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
     if (this.store(VOTE_ANNOTATION, data, outputFiles, null)) {
       this.storedVotesCounter++;
@@ -709,8 +723,8 @@ public class ArchiveWriter extends Thread {
     SimpleDateFormat printFormat = new SimpleDateFormat(
         "yyyy-MM-dd-HH-mm-ss");
     printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    File tarballFile = new File(this.outputDirectory + "/certs/"
-        + fingerprint + "-" + printFormat.format(new Date(published)));
+    File tarballFile = Paths.get(this.outputDirectory, "certs",
+        fingerprint + "-" + printFormat.format(new Date(published))).toFile();
     File[] outputFiles = new File[] { tarballFile };
     if (this.store(CERTIFICATE_ANNOTATION, data, outputFiles, null)) {
       this.storedCertsCounter++;
@@ -721,14 +735,13 @@ public class ArchiveWriter extends Thread {
       long published, String extraInfoDigest) {
     SimpleDateFormat printFormat = new SimpleDateFormat("yyyy/MM/");
     printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    File tarballFile = new File(this.outputDirectory
-        + "/server-descriptor/" + printFormat.format(new Date(published))
-        + digest.substring(0, 1) + "/" + digest.substring(1, 2) + "/"
-        + digest);
+    File tarballFile = Paths.get(this.outputDirectory,
+        "server-descriptor", printFormat.format(new Date(published)),
+        digest.substring(0, 1), digest.substring(1, 2), digest).toFile();
     boolean tarballFileExistedBefore = tarballFile.exists();
-    File rsyncCatFile = new File("recent/relay-descriptors/"
-        + "server-descriptors/" + this.rsyncCatString
-        + "-server-descriptors.tmp");
+    File rsyncCatFile = Paths.get(recentPathName, RELAY_DESCRIPTORS,
+        "server-descriptors",
+        this.rsyncCatString + "-server-descriptors.tmp").toFile();
     File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
     boolean[] append = new boolean[] { false, true };
     if (this.store(SERVER_DESCRIPTOR_ANNOTATION, data, outputFiles,
@@ -750,14 +763,14 @@ public class ArchiveWriter extends Thread {
       String extraInfoDigest, long published) {
     SimpleDateFormat descriptorFormat = new SimpleDateFormat("yyyy/MM/");
     descriptorFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    File tarballFile = new File(this.outputDirectory + "/extra-info/"
-        + descriptorFormat.format(new Date(published))
-        + extraInfoDigest.substring(0, 1) + "/"
-        + extraInfoDigest.substring(1, 2) + "/"
-        + extraInfoDigest);
+    File tarballFile = Paths.get(this.outputDirectory, "extra-info",
+        descriptorFormat.format(new Date(published)),
+        extraInfoDigest.substring(0, 1),
+        extraInfoDigest.substring(1, 2),
+        extraInfoDigest).toFile();
     boolean tarballFileExistedBefore = tarballFile.exists();
-    File rsyncCatFile = new File("recent/relay-descriptors/"
-        + "extra-infos/" + this.rsyncCatString + "-extra-infos.tmp");
+    File rsyncCatFile = Paths.get(recentPathName, RELAY_DESCRIPTORS,
+        "extra-infos", this.rsyncCatString + "-extra-infos.tmp").toFile();
     File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
     boolean[] append = new boolean[] { false, true };
     if (this.store(EXTRA_INFO_ANNOTATION, data, outputFiles, append)) {
@@ -784,15 +797,14 @@ public class ArchiveWriter extends Thread {
      * valid-after months. */
     SimpleDateFormat descriptorFormat = new SimpleDateFormat("yyyy/MM/");
     descriptorFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    File tarballFile = new File(this.outputDirectory + "/microdesc/"
-        + descriptorFormat.format(validAfter) + "micro/"
-        + microdescriptorDigest.substring(0, 1) + "/"
-        + microdescriptorDigest.substring(1, 2) + "/"
-        + microdescriptorDigest);
+    File tarballFile = Paths.get(this.outputDirectory, MICRODESC,
+        descriptorFormat.format(validAfter), MICRO,
+        microdescriptorDigest.substring(0, 1),
+        microdescriptorDigest.substring(1, 2),
+        microdescriptorDigest).toFile();
     boolean tarballFileExistedBefore = tarballFile.exists();
-    File rsyncCatFile = new File("recent/relay-descriptors/"
-        + "microdescs/micro/" + this.rsyncCatString
-        + "-micro.tmp");
+    File rsyncCatFile = Paths.get(recentPathName, RELAY_DESCRIPTORS,
+        MICRODESCS, MICRO, this.rsyncCatString + "-micro.tmp").toFile();
     File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
     boolean[] append = new boolean[] { false, true };
     if (this.store(MICRODESCRIPTOR_ANNOTATION, data, outputFiles,

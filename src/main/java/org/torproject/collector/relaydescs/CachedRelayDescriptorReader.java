@@ -35,10 +35,10 @@ import java.util.logging.Logger;
  */
 public class CachedRelayDescriptorReader {
   public CachedRelayDescriptorReader(RelayDescriptorParser rdp,
-      List<String> inputDirectories, File statsDirectory) {
+      String[] inputDirectories, File statsDirectory) {
 
     if (rdp == null || inputDirectories == null
-        || inputDirectories.isEmpty() || statsDirectory == null) {
+        || inputDirectories.length == 0 || statsDirectory == null) {
       throw new IllegalArgumentException();
     }
 

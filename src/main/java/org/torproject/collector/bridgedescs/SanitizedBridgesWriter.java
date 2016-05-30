@@ -3,7 +3,9 @@
 
 package org.torproject.collector.bridgedescs;
 
-import org.torproject.collector.main.Configuration;
+import org.torproject.collector.conf.Configuration;
+import org.torproject.collector.conf.ConfigurationException;
+import org.torproject.collector.conf.Key;
 import org.torproject.collector.main.LockFile;
 
 import org.apache.commons.codec.DecoderException;
@@ -35,36 +37,30 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Sanitizes bridge descriptors, i.e., removes all possibly sensitive
+ * <p>Sanitizes bridge descriptors, i.e., removes all possibly sensitive
  * information from them, and writes them to a local directory structure.
  * During the sanitizing process, all information about the bridge
  * identity or IP address are removed or replaced. The goal is to keep the
  * sanitized bridge descriptors useful for statistical analysis while not
- * making it easier for an adversary to enumerate bridges.
+ * making it easier for an adversary to enumerate bridges.</p>
  *
- * There are three types of bridge descriptors: bridge network statuses
+ * <p>There are three types of bridge descriptors: bridge network statuses
  * (lists of all bridges at a given time), server descriptors (published
  * by the bridge to advertise their capabilities), and extra-info
- * descriptors (published by the bridge, mainly for statistical analysis).
+ * descriptors (published by the bridge, mainly for statistical analysis).</p>
  */
 public class SanitizedBridgesWriter extends Thread {
 
-  public static void main(String[] args) {
+  private static Logger logger;
 
-    Logger logger = Logger.getLogger(
-        SanitizedBridgesWriter.class.getName());
+  public static void main(Configuration config) throws ConfigurationException {
+
+    logger = Logger.getLogger(SanitizedBridgesWriter.class.getName());
     logger.info("Starting bridge-descriptors module of CollecTor.");
 
-    // Initialize configuration
-    Configuration config = new Configuration();
-
     // Use lock file to avoid overlapping runs
-    LockFile lf = new LockFile("bridge-descriptors");
-    if (!lf.acquireLock()) {
-      logger.severe("Warning: CollecTor is already running or has not exited "
-          + "cleanly! Exiting!");
-      System.exit(1);
-    }
+    LockFile lf = new LockFile(config.getPath(Key.LockFilePath).toString(), "bridge-descriptors");
+    lf.acquireLock();
 
     // Sanitize bridge descriptors
     new SanitizedBridgesWriter(config).run();
@@ -83,11 +79,6 @@ public class SanitizedBridgesWriter extends Thread {
   public SanitizedBridgesWriter(Configuration config) {
     this.config = config;
   }
-
-  /**
-   * Logger for this class.
-   */
-  private Logger logger;
 
   private String rsyncCatString;
 
@@ -112,16 +103,26 @@ public class SanitizedBridgesWriter extends Thread {
 
   private SecureRandom secureRandom;
 
+  @Override
   public void run() {
+    try {
+      startProcessing();
+    } catch (ConfigurationException ce) {
+      logger.severe("Configuration failed: " + ce);
+      throw new RuntimeException(ce);
+    }
+  }
+
+  private void startProcessing() throws ConfigurationException {
 
     File bridgeDirectoriesDirectory =
-        new File(config.getBridgeSnapshotsDirectory());
+        config.getPath(Key.BridgeSnapshotsDirectory).toFile();
     File sanitizedBridgesDirectory =
-        new File(config.getSanitizedBridgesWriteDirectory());
+        config.getPath(Key.SanitizedBridgesWriteDirectory).toFile();
     boolean replaceIPAddressesWithHashes =
-        config.getReplaceIPAddressesWithHashes();
+        config.getBool(Key.ReplaceIPAddressesWithHashes);
     long limitBridgeSanitizingInterval =
-        config.getLimitBridgeDescriptorMappings();
+        config.getInt(Key.BridgeDescriptorMappingsLimit);
     File statsDirectory = new File("stats");
 
     if (bridgeDirectoriesDirectory == null

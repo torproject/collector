@@ -19,7 +19,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -288,7 +288,7 @@ public class RelayDescriptorDownloader {
    * <code>stats/last-downloaded-all-descriptors</code>.
    */
   public RelayDescriptorDownloader(RelayDescriptorParser rdp,
-      List<String> authorities, List<String> authorityFingerprints,
+      String[] authorities, String[] authorityFingerprints,
       boolean downloadCurrentConsensus,
       boolean downloadCurrentMicrodescConsensus,
       boolean downloadCurrentVotes,
@@ -300,9 +300,8 @@ public class RelayDescriptorDownloader {
 
     /* Memorize argument values. */
     this.rdp = rdp;
-    this.authorities = new ArrayList<String>(authorities);
-    this.authorityFingerprints = new ArrayList<String>(
-        authorityFingerprints);
+    this.authorities = Arrays.asList(authorities);
+    this.authorityFingerprints = Arrays.asList(authorityFingerprints);
     this.downloadCurrentConsensus = downloadCurrentConsensus;
     this.downloadCurrentMicrodescConsensus =
         downloadCurrentMicrodescConsensus;

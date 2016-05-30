@@ -3,6 +3,10 @@
 
 package org.torproject.collector.index;
 
+import org.torproject.collector.conf.Configuration;
+import org.torproject.collector.conf.ConfigurationException;
+import org.torproject.collector.conf.Key;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -33,12 +37,11 @@ import java.util.zip.GZIPOutputStream;
  * we'll likely have to do that. */
 public class CreateIndexJson {
 
-  static final File indexJsonFile = new File("index.json");
+  private static File indexJsonFile;
 
-  static final String basePath = "https://collector.torproject.org";
+  private static String basePath = "https://collector.torproject.org";
 
-  static final File[] indexedDirectories = new File[] {
-      new File("archive"), new File("recent") };
+  private static File[] indexedDirectories;
 
   static final String dateTimePattern = "yyyy-MM-dd HH:mm";
 
@@ -46,7 +49,12 @@ public class CreateIndexJson {
 
   static final TimeZone dateTimezone = TimeZone.getTimeZone("UTC");
 
-  public static void main(String[] args) throws IOException {
+  public static void main(Configuration config)
+      throws ConfigurationException, IOException {
+    indexJsonFile =  new File(config.getPath(Key.IndexPath).toFile(), "index.json");
+    indexedDirectories = new File[] {
+        new File(config.getPath(Key.ArchivePath).toFile(), "archive"),
+        new File(config.getPath(Key.RecentPath).toFile(), "recent") };
     writeIndex(indexDirectories());
   }
 

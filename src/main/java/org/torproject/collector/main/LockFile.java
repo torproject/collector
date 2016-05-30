@@ -13,12 +13,17 @@ import java.util.logging.Logger;
 
 public class LockFile {
 
-  private File lockFile;
-  private Logger logger;
+  private final File lockFile;
+  private final String moduleName;
+  private final Logger logger = Logger.getLogger(LockFile.class.getName());
 
   public LockFile(String moduleName) {
-    this.lockFile = new File("lock/" + moduleName);
-    this.logger = Logger.getLogger(LockFile.class.getName());
+    this("lock", moduleName);
+  }
+
+  public LockFile(String lockFilePath, String moduleName) {
+    this.lockFile = new File(lockFilePath, moduleName);
+    this.moduleName = moduleName;
   }
 
   public boolean acquireLock() {
@@ -30,7 +35,7 @@ public class LockFile {
         long runStarted = Long.parseLong(br.readLine());
         br.close();
         if (System.currentTimeMillis() - runStarted < 55L * 60L * 1000L) {
-          return false;
+          throw new RuntimeException("Cannot acquire lock for " + moduleName);
         }
       }
       this.lockFile.getParentFile().mkdirs();
@@ -41,9 +46,8 @@ public class LockFile {
       this.logger.fine("Acquired lock.");
       return true;
     } catch (IOException e) {
-      this.logger.warning("Caught exception while trying to acquire "
-          + "lock!");
-      return false;
+      throw new RuntimeException("Caught exception while trying to acquire "
+          + "lock for " + moduleName);
     }
   }
 
