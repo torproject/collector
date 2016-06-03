@@ -38,7 +38,7 @@ public class MainTest {
 
   @Test()
   public void testSmoke() throws Exception {
-    System.out.println("\n!!!!   Three SEVERE log messages are expected."
+    System.out.println("\n!!!!   Three ERROR log messages are expected."
         + "\nOne each from: ExitListDownloader, "
         + "TorperfDownloader, and CreateIndexJson.\n");
     File conf = tmpf.newFile("test.conf");
