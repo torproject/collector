@@ -24,26 +24,12 @@ that you're using `/srv/collector.torproject.org/` as working directory,
 but feel free to use another directory that better suits your needs.
 
 $ sudo mkdir -p /srv/collector.torproject.org/
-$ sudo chown vagrant:vagrant /srv/collector.torproject.org/
 
 Install a few packages:
 
-$ sudo apt-get install openjdk-6-jdk ant libcommons-codec-java \
-  libcommons-compress-java
-
-
-Clone the metrics-db repository
--------------------------------
-
-$ cd /srv/collector.torproject.org/
-$ git clone https://git.torproject.org/metrics-db
-
-
-Clone required submodule metrics-lib
-------------------------------------
-
-$ git submodule init
-$ git submodule update
+$ sudo apt-get ant junit4 libasm4-java libcommons-codec-java \
+  libcommons-compress-java libcommons-lang3-java libgoogle-gson-java \
+  liblogback-java liboro-java libslf4j-java libxz-java openjdk-7-jdk
 
 
 Compile CollecTor
@@ -55,26 +41,21 @@ $ ant compile
 Configure the relay descriptor downloader
 -----------------------------------------
 
-Edit the config file and uncomment and edit at least the following line:
+Run
+$ java -DLOGBASE=/path/to/logs -jar collector-<version>.jar releaydescs
+once in order to obtain a configuration properties file.
 
-DownloadRelayDescriptors 1
+Edit collector.properties and set at least the following value to true:
+
+DownloadRelayDescriptors = true
 
 
 Run the relay descriptor downloader
 -----------------------------------
 
-$ bin/run-relaydescs
+$ java -DLOGBASE=/path/to/logs -jar collector-<version>.jar releaydescs
 
-
-Set up an hourly cronjob for the relay descriptor downloader
-------------------------------------------------------------
-
-Ideally, run the relay descriptor downloader once per hour by adding a
-crontab entry like the following:
-
-6 * * * * cd /srv/collector.torproject.org/db/ && bin/run-relaydescs
-
-Watch out for INFO-level logs in the `log/` directory.  In particular, the
+Watch out for INFO-level logs in the log directory you configured.  In particular, the
 lines following "Statistics on the completeness of written relay
 descriptors:" is quite important.
 
