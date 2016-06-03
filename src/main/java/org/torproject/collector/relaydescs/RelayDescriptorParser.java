@@ -7,6 +7,9 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -15,8 +18,6 @@ import java.text.SimpleDateFormat;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Parses relay descriptors including network status consensuses and
@@ -54,7 +55,7 @@ public class RelayDescriptorParser {
     this.aw = aw;
 
     /* Initialize logger. */
-    this.logger = Logger.getLogger(RelayDescriptorParser.class.getName());
+    this.logger = LoggerFactory.getLogger(RelayDescriptorParser.class);
 
     this.dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     this.dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -82,7 +83,7 @@ public class RelayDescriptorParser {
         line = br.readLine();
       } while (line != null && line.startsWith("@"));
       if (line == null) {
-        this.logger.fine("We were given an empty descriptor for "
+        this.logger.debug("We were given an empty descriptor for "
             + "parsing. Ignoring.");
         return false;
       }
@@ -150,7 +151,7 @@ public class RelayDescriptorParser {
                   + lastRelayIdentity + "," + serverDesc);
               serverDescriptorDigests.add(serverDesc);
             } else {
-              this.logger.log(Level.WARNING, "Could not parse r line '"
+              this.logger.warn("Could not parse r line '"
                   + line + "' in descriptor. Skipping.");
               break;
             }
@@ -167,7 +168,7 @@ public class RelayDescriptorParser {
             } else if (parts.length != 3
                 || !parts[2].startsWith("sha256=")
                 || parts[2].length() != 50) {
-              this.logger.log(Level.WARNING, "Could not parse m line '"
+              this.logger.warn("Could not parse m line '"
                   + line + "' in descriptor. Skipping.");
               break;
             }
@@ -315,10 +316,10 @@ public class RelayDescriptorParser {
       }
       br.close();
     } catch (IOException e) {
-      this.logger.log(Level.WARNING, "Could not parse descriptor. "
+      this.logger.warn("Could not parse descriptor. "
           + "Skipping.", e);
     } catch (ParseException e) {
-      this.logger.log(Level.WARNING, "Could not parse descriptor. "
+      this.logger.warn("Could not parse descriptor. "
           + "Skipping.", e);
     }
     return stored;

@@ -8,6 +8,9 @@ import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
 import org.torproject.collector.main.LockFile;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -26,14 +29,12 @@ import java.util.SortedMap;
 import java.util.Stack;
 import java.util.TimeZone;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /* Download possibly truncated Torperf .data and .extradata files from
  * configured sources, append them to the files we already have, and merge
  * the two files into the .tpf format. */
 public class TorperfDownloader extends Thread {
-  private static Logger logger = Logger.getLogger(TorperfDownloader.class.getName());
+  private static Logger logger = LoggerFactory.getLogger(TorperfDownloader.class);
 
   public static void main(Configuration config) throws ConfigurationException {
     logger.info("Starting torperf module of CollecTor.");
@@ -66,7 +67,7 @@ public class TorperfDownloader extends Thread {
     try {
       startProcessing();
     } catch (ConfigurationException ce) {
-      logger.severe("Configuration failed: " + ce);
+      logger.error("Configuration failed: " + ce, ce);
       throw new RuntimeException(ce);
     }
   }
@@ -120,7 +121,7 @@ public class TorperfDownloader extends Thread {
           }
         }
         if (fileName == null || timestamp == null) {
-          this.logger.log(Level.WARNING, "Invalid line '" + line + "' in "
+          this.logger.warn("Invalid line '" + line + "' in "
               + this.torperfLastMergedFile.getAbsolutePath() + ".  "
               + "Ignoring past history of merging .data and .extradata "
               + "files.");
@@ -131,7 +132,7 @@ public class TorperfDownloader extends Thread {
       }
       br.close();
     } catch (IOException e) {
-      this.logger.log(Level.WARNING, "Error while reading '"
+      this.logger.warn("Error while reading '"
           + this.torperfLastMergedFile.getAbsolutePath() + ".  Ignoring "
           + "past history of merging .data and .extradata files.");
       this.lastMergedTimestamps.clear();
@@ -151,7 +152,7 @@ public class TorperfDownloader extends Thread {
       }
       bw.close();
     } catch (IOException e) {
-      this.logger.log(Level.WARNING, "Error while writing '"
+      this.logger.warn("Error while writing '"
           + this.torperfLastMergedFile.getAbsolutePath() + ".  This may "
           + "result in ignoring history of merging .data and .extradata "
           + "files in the next execution.", e);
@@ -165,9 +166,9 @@ public class TorperfDownloader extends Thread {
     try {
       fileSize = Integer.parseInt(parts[1]);
     } catch (NumberFormatException e) {
-      this.logger.log(Level.WARNING, "Could not parse file size in "
+      this.logger.warn("Could not parse file size in "
           + "TorperfFiles configuration line '" + torperfFilesLine
-          + "'.");
+          + "'.", e);
       return;
     }
 
@@ -202,7 +203,7 @@ public class TorperfDownloader extends Thread {
       skipUntil = this.mergeFiles(dataOutputFile, extradataOutputFile,
           sourceName, fileSize, skipUntil);
     } catch (IOException e) {
-      this.logger.log(Level.WARNING, "Failed merging " + dataOutputFile
+      this.logger.warn("Failed merging " + dataOutputFile
           + " and " + extradataOutputFile + ".", e);
     }
     if (skipUntil != null) {
@@ -232,14 +233,14 @@ public class TorperfDownloader extends Thread {
         }
         br.close();
       } catch (IOException e) {
-        this.logger.log(Level.WARNING, "Failed reading '"
+        this.logger.warn("Failed reading '"
             + outputFile.getAbsolutePath() + "' to determine the first "
             + "line to append to it.", e);
         return false;
       }
     }
     try {
-      this.logger.fine("Downloading " + (isDataFile ? ".data" :
+      this.logger.debug("Downloading " + (isDataFile ? ".data" :
           ".extradata") + " file from '" + url + "' and merging it into "
           + "'" + outputFile.getAbsolutePath() + "'.");
       URL u = new URL(url);
@@ -267,19 +268,19 @@ public class TorperfDownloader extends Thread {
       bw.close();
       br.close();
       if (!copyLines) {
-        this.logger.warning("The last timestamp line in '"
+        this.logger.warn("The last timestamp line in '"
             + outputFile.getAbsolutePath() + "' is not contained in the "
             + "new file downloaded from '" + url + "'.  Cannot append "
             + "new lines without possibly leaving a gap.  Skipping.");
         return false;
       }
     } catch (IOException e) {
-      this.logger.log(Level.WARNING, "Failed downloading and/or merging '"
+      this.logger.warn("Failed downloading and/or merging '"
           + url + "'.", e);
       return false;
     }
     if (lastTimestampLine == null) {
-      this.logger.warning("'" + outputFile.getAbsolutePath()
+      this.logger.warn("'" + outputFile.getAbsolutePath()
           + "' doesn't contain any timestamp lines.  Unable to check "
           + "whether that file is stale or not.");
     } else {
@@ -295,7 +296,7 @@ public class TorperfDownloader extends Thread {
       }
       if (lastTimestampMillis < System.currentTimeMillis()
           - 330L * 60L * 1000L) {
-        this.logger.warning("The last timestamp in '"
+        this.logger.warn("The last timestamp in '"
             + outputFile.getAbsolutePath() + "' is more than 5:30 hours "
             + "old: " + lastTimestampMillis);
       }
@@ -309,11 +310,11 @@ public class TorperfDownloader extends Thread {
     config.put("SOURCE", source);
     config.put("FILESIZE", String.valueOf(fileSize));
     if (!dataFile.exists() || !extradataFile.exists()) {
-      this.logger.warning("File " + dataFile.getAbsolutePath() + " or "
+      this.logger.warn("File " + dataFile.getAbsolutePath() + " or "
           + extradataFile.getAbsolutePath() + " is missing.");
       return null;
     }
-    this.logger.fine("Merging " + dataFile.getAbsolutePath() + " and "
+    this.logger.debug("Merging " + dataFile.getAbsolutePath() + " and "
           + extradataFile.getAbsolutePath() + " into .tpf format.");
     BufferedReader brD = new BufferedReader(new FileReader(dataFile));
     BufferedReader brE = new BufferedReader(new FileReader(extradataFile));
@@ -329,14 +330,14 @@ public class TorperfDownloader extends Thread {
        * format, either with additional information from the .extradata
        * file or without it. */
       if (lineD.isEmpty()) {
-        this.logger.finer("Skipping empty line " + dataFile.getName()
+        this.logger.trace("Skipping empty line " + dataFile.getName()
             + ":" + d++ + ".");
         lineD = brD.readLine();
         continue;
       }
       SortedMap<String, String> data = this.parseDataLine(lineD);
       if (data == null) {
-        this.logger.finer("Skipping illegal line " + dataFile.getName()
+        this.logger.trace("Skipping illegal line " + dataFile.getName()
             + ":" + d++ + " '" + lineD + "'.");
         lineD = brD.readLine();
         continue;
@@ -344,7 +345,7 @@ public class TorperfDownloader extends Thread {
       String dataComplete = data.get("DATACOMPLETE");
       double dataCompleteSeconds = Double.parseDouble(dataComplete);
       if (skipUntil != null && dataComplete.compareTo(skipUntil) < 0) {
-        this.logger.finer("Skipping " + dataFile.getName() + ":"
+        this.logger.trace("Skipping " + dataFile.getName() + ":"
             + d++ + " which we already processed before.");
         lineD = brD.readLine();
         continue;
@@ -356,33 +357,33 @@ public class TorperfDownloader extends Thread {
       SortedMap<String, String> extradata = null;
       while (lineE != null) {
         if (lineE.isEmpty()) {
-          this.logger.finer("Skipping " + extradataFile.getName() + ":"
+          this.logger.trace("Skipping " + extradataFile.getName() + ":"
               + e++ + " which is empty.");
           lineE = brE.readLine();
           continue;
         }
         if (lineE.startsWith("BUILDTIMEOUT_SET ")) {
-          this.logger.finer("Skipping " + extradataFile.getName() + ":"
+          this.logger.trace("Skipping " + extradataFile.getName() + ":"
               + e++ + " which is a BUILDTIMEOUT_SET line.");
           lineE = brE.readLine();
           continue;
         } else if (lineE.startsWith("ok ")
             || lineE.startsWith("error ")) {
-          this.logger.finer("Skipping " + extradataFile.getName() + ":"
+          this.logger.trace("Skipping " + extradataFile.getName() + ":"
               + e++ + " which is in the old format.");
           lineE = brE.readLine();
           continue;
         }
         extradata = this.parseExtradataLine(lineE);
         if (extradata == null) {
-          this.logger.finer("Skipping Illegal line "
+          this.logger.trace("Skipping Illegal line "
               + extradataFile.getName() + ":" + e++ + " '" + lineE
               + "'.");
           lineE = brE.readLine();
           continue;
         }
         if (!extradata.containsKey("USED_AT")) {
-          this.logger.finer("Skipping " + extradataFile.getName() + ":"
+          this.logger.trace("Skipping " + extradataFile.getName() + ":"
               + e++ + " which doesn't contain a USED_AT element.");
           lineE = brE.readLine();
           continue;
@@ -390,24 +391,24 @@ public class TorperfDownloader extends Thread {
         String usedAt = extradata.get("USED_AT");
         double usedAtSeconds = Double.parseDouble(usedAt);
         if (skipUntil != null && usedAt.compareTo(skipUntil) < 0) {
-          this.logger.finer("Skipping " + extradataFile.getName() + ":"
+          this.logger.trace("Skipping " + extradataFile.getName() + ":"
               + e++ + " which we already processed before.");
           lineE = brE.readLine();
           continue;
         }
         maxUsedAt = usedAt;
         if (Math.abs(usedAtSeconds - dataCompleteSeconds) <= 1.0) {
-          this.logger.fine("Merging " + extradataFile.getName() + ":"
+          this.logger.debug("Merging " + extradataFile.getName() + ":"
               + e++ + " into the current .data line.");
           lineE = brE.readLine();
           break;
         } else if (usedAtSeconds > dataCompleteSeconds) {
-          this.logger.finer("Comparing " + extradataFile.getName()
+          this.logger.trace("Comparing " + extradataFile.getName()
               + " to the next .data line.");
           extradata = null;
           break;
         } else {
-          this.logger.finer("Skipping " + extradataFile.getName() + ":"
+          this.logger.trace("Skipping " + extradataFile.getName() + ":"
               + e++ + " which is too old to be merged with "
               + dataFile.getName() + ":" + d + ".");
           lineE = brE.readLine();
@@ -423,12 +424,12 @@ public class TorperfDownloader extends Thread {
       }
       keysAndValues.putAll(data);
       keysAndValues.putAll(config);
-      this.logger.fine("Writing " + dataFile.getName() + ":" + d++ + ".");
+      this.logger.debug("Writing " + dataFile.getName() + ":" + d++ + ".");
       lineD = brD.readLine();
       try {
         this.writeTpfLine(source, fileSize, keysAndValues);
       } catch (IOException ex) {
-        this.logger.log(Level.WARNING, "Error writing output line.  "
+        this.logger.warn("Error writing output line.  "
             + "Aborting to merge " + dataFile.getName() + " and "
             + extradataFile.getName() + ".", e);
         break;

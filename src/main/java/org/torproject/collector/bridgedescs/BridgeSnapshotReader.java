@@ -8,6 +8,9 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -23,8 +26,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Reads the half-hourly snapshots of bridge descriptors from Tonga.
@@ -38,15 +39,14 @@ public class BridgeSnapshotReader {
       throw new IllegalArgumentException();
     }
 
-    Logger logger =
-        Logger.getLogger(BridgeSnapshotReader.class.getName());
+    Logger logger = LoggerFactory.getLogger(BridgeSnapshotReader.class);
     SortedSet<String> parsed = new TreeSet<String>();
     File bdDir = bridgeDirectoriesDir;
     File pbdFile = new File(statsDirectory, "parsed-bridge-directories");
     boolean modified = false;
     if (bdDir.exists()) {
       if (pbdFile.exists()) {
-        logger.fine("Reading file " + pbdFile.getAbsolutePath() + "...");
+        logger.debug("Reading file " + pbdFile.getAbsolutePath() + "...");
         try {
           BufferedReader br = new BufferedReader(new FileReader(pbdFile));
           String line = null;
@@ -54,15 +54,15 @@ public class BridgeSnapshotReader {
             parsed.add(line);
           }
           br.close();
-          logger.fine("Finished reading file "
+          logger.debug("Finished reading file "
               + pbdFile.getAbsolutePath() + ".");
         } catch (IOException e) {
-          logger.log(Level.WARNING, "Failed reading file "
+          logger.warn("Failed reading file "
               + pbdFile.getAbsolutePath() + "!", e);
           return;
         }
       }
-      logger.fine("Importing files in directory " + bridgeDirectoriesDir
+      logger.debug("Importing files in directory " + bridgeDirectoriesDir
           + "/...");
       Set<String> descriptorImportHistory = new HashSet<String>();
       int parsedFiles = 0;
@@ -192,13 +192,13 @@ public class BridgeSnapshotReader {
             parsed.add(pop.getName());
             modified = true;
           } catch (IOException e) {
-            logger.log(Level.WARNING, "Could not parse bridge snapshot "
+            logger.warn("Could not parse bridge snapshot "
                 + pop.getName() + "!", e);
             continue;
           }
         }
       }
-      logger.fine("Finished importing files in directory "
+      logger.debug("Finished importing files in directory "
           + bridgeDirectoriesDir + "/.  In total, we parsed "
           + parsedFiles + " files (skipped " + skippedFiles
           + ") containing " + parsedStatuses + " statuses, "
@@ -207,7 +207,7 @@ public class BridgeSnapshotReader {
           + parsedExtraInfoDescriptors + " extra-info descriptors "
           + "(skipped " + skippedExtraInfoDescriptors + ").");
       if (!parsed.isEmpty() && modified) {
-        logger.fine("Writing file " + pbdFile.getAbsolutePath() + "...");
+        logger.debug("Writing file " + pbdFile.getAbsolutePath() + "...");
         try {
           pbdFile.getParentFile().mkdirs();
           BufferedWriter bw = new BufferedWriter(new FileWriter(pbdFile));
@@ -215,10 +215,10 @@ public class BridgeSnapshotReader {
             bw.append(f + "\n");
           }
           bw.close();
-          logger.fine("Finished writing file " + pbdFile.getAbsolutePath()
+          logger.debug("Finished writing file " + pbdFile.getAbsolutePath()
               + ".");
         } catch (IOException e) {
-          logger.log(Level.WARNING, "Failed writing file "
+          logger.warn("Failed writing file "
               + pbdFile.getAbsolutePath() + "!", e);
         }
       }

@@ -1,0 +1,126 @@
+<configuration debug="false">
+
+  <!-- a path and a prefix -->
+  <property name="logfile-base" value="${LOGBASE}/collector-" />
+
+  <!-- log file names -->
+  <property name="fileall-logname" value="${logfile-base}all" />
+  <property name="file-bridgedescs-logname" value="${logfile-base}bridgedescs" />
+  <property name="file-exitlists-logname" value="${logfile-base}exitlists" />
+  <property name="file-relaydescs-logname" value="${logfile-base}relaydescs" />
+  <property name="file-torperf-logname" value="${logfile-base}torperf" />
+  <property name="file-updateindex-logname" value="${logfile-base}updateindex" />
+
+  <!-- date pattern -->
+  <property name="utc-date-pattern" value="%date{ISO8601, UTC}" />
+
+  <!-- appender section -->
+  <appender name="FILEALL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${fileall-logname}.log</file>
+    <encoder>
+      <pattern>${utc-date-pattern} %level %logger{20}:%line %msg%n</pattern>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- rollover daily -->
+      <FileNamePattern>${fileall-logname}.%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+      <maxHistory>10</maxHistory>
+      <timeBasedFileNamingAndTriggeringPolicy
+            class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+        <!-- or whenever the file size reaches 1MB -->
+        <maxFileSize>1MB</maxFileSize>
+      </timeBasedFileNamingAndTriggeringPolicy>
+    </rollingPolicy>
+  </appender>
+
+  <appender name="FILEBRIDGEDESCS" class="ch.qos.logback.core.FileAppender">
+    <file>${file-bridgedescs-logname}.log</file>
+    <encoder>
+      <pattern>${utc-date-pattern} %level %logger{20}:%line %msg%n</pattern>
+    </encoder>
+
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>TRACE</level>
+    </filter>
+  </appender>
+
+  <appender name="FILEEXITLISTS" class="ch.qos.logback.core.FileAppender">
+    <file>${file-exitlists-logname}.log</file>
+    <encoder>
+      <pattern>${utc-date-pattern} %level %logger{20}:%line %msg%n</pattern>
+    </encoder>
+
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>TRACE</level>
+    </filter>
+  </appender>
+
+  <appender name="FILERELAYDESCS" class="ch.qos.logback.core.FileAppender">
+    <file>${file-relaydescs-logname}.log</file>
+    <encoder>
+      <pattern>${utc-date-pattern} %level %logger{20}:%line %msg%n</pattern>
+    </encoder>
+
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>TRACE</level>
+    </filter>
+  </appender>
+
+  <appender name="FILETORPERF" class="ch.qos.logback.core.FileAppender">
+    <file>${file-torperf-logname}.log</file>
+    <encoder>
+      <pattern>${utc-date-pattern} %level %logger{20}:%line %msg%n</pattern>
+    </encoder>
+
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>TRACE</level>
+    </filter>
+  </appender>
+
+  <appender name="FILEUPDATEINDEX" class="ch.qos.logback.core.FileAppender">
+    <file>${file-updateindex-logname}.log</file>
+    <encoder>
+      <pattern>${utc-date-pattern} %level %logger{20}:%line %msg%n</pattern>
+    </encoder>
+
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>TRACE</level>
+    </filter>
+  </appender>
+
+  <!-- logger section -->
+  <logger name="org.torproject.collector.bridgedescs" >
+    <appender-ref ref="FILEBRIDGEDESCS" />
+  </logger>
+
+  <logger name="org.torproject.collector.exitlists" >
+    <appender-ref ref="FILEEXITLISTS" />
+  </logger>
+
+  <logger name="org.torproject.collector.relaydescs" >
+    <appender-ref ref="FILERELAYDESCS" />
+  </logger>
+
+  <logger name="org.torproject.collector.torperf" >
+    <appender-ref ref="FILETORPERF" />
+  </logger>
+
+  <logger name="org.torproject.collector.index" >
+    <appender-ref ref="FILEUPDATEINDEX" />
+  </logger>
+
+  <logger name="org.torproject.collector.Main" >
+    <appender-ref ref="FILEBRIDGEDESCS" />
+    <appender-ref ref="FILEEXITLISTS" />
+    <appender-ref ref="FILERELAYDESCS" />
+    <appender-ref ref="FILETORPERF" />
+    <appender-ref ref="FILEUPDATEINDEX" />
+  </logger>
+
+  <logger name="sun" level="ERROR" />
+
+  <root level="ALL">
+    <appender-ref ref="FILEALL" />
+  </root>
+
+</configuration>
+

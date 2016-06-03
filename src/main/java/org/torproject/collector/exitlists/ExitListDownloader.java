@@ -13,6 +13,9 @@ import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
 import org.torproject.descriptor.ExitList;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -28,13 +31,10 @@ import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TimeZone;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ExitListDownloader extends Thread {
 
-  private static Logger logger =
-      Logger.getLogger(ExitListDownloader.class.getName());
+  private static Logger logger = LoggerFactory.getLogger(ExitListDownloader.class);
 
   public static void main(Configuration config) throws ConfigurationException {
     logger.info("Starting exit-lists module of CollecTor.");
@@ -58,7 +58,7 @@ public class ExitListDownloader extends Thread {
     try {
       startProcessing();
     } catch (ConfigurationException ce) {
-      logger.severe("Configuration failed: " + ce);
+      logger.error("Configuration failed: " + ce, ce);
       throw new RuntimeException(ce);
     }
   }
@@ -72,7 +72,7 @@ public class ExitListDownloader extends Thread {
     Date downloadedDate = new Date();
     String downloadedExitList = null;
     try {
-      logger.fine("Downloading exit list...");
+      logger.debug("Downloading exit list...");
       StringBuilder sb = new StringBuilder();
       sb.append("@type tordnsel 1.0\n");
       sb.append("Downloaded " + dateTimeFormat.format(downloadedDate)
@@ -85,7 +85,7 @@ public class ExitListDownloader extends Thread {
       huc.connect();
       int response = huc.getResponseCode();
       if (response != 200) {
-        logger.warning("Could not download exit list. Response code "
+        logger.warn("Could not download exit list. Response code "
             + response);
         return;
       }
@@ -98,13 +98,13 @@ public class ExitListDownloader extends Thread {
       }   
       in.close();
       downloadedExitList = sb.toString();
-      logger.fine("Finished downloading exit list.");
+      logger.debug("Finished downloading exit list.");
     } catch (IOException e) {
-      logger.log(Level.WARNING, "Failed downloading exit list", e);
+      logger.warn("Failed downloading exit list", e);
       return;
     }
     if (downloadedExitList == null) {
-      logger.warning("Failed downloading exit list");
+      logger.warn("Failed downloading exit list");
       return;
     }
 
@@ -123,7 +123,7 @@ public class ExitListDownloader extends Thread {
           tarballFile.getName());
       if (parsedDescriptors.size() != 1
           || !(parsedDescriptors.get(0) instanceof ExitList)) {
-        logger.warning("Could not parse downloaded exit list");
+        logger.warn("Could not parse downloaded exit list");
         return;
       }
       ExitList parsedExitList = (ExitList) parsedDescriptors.get(0);
@@ -133,12 +133,12 @@ public class ExitListDownloader extends Thread {
         }
       }
     } catch (DescriptorParseException e) {
-      logger.log(Level.WARNING, "Could not parse downloaded exit list",
+      logger.warn("Could not parse downloaded exit list",
           e);
     }
     if (maxScanMillis > 0L
         && maxScanMillis + 330L * 60L * 1000L < System.currentTimeMillis()) {
-      logger.warning("The last reported scan in the downloaded exit list "
+      logger.warn("The last reported scan in the downloaded exit list "
           + "took place at " + dateTimeFormat.format(maxScanMillis)
           + ", which is more than 5:30 hours in the past.");
     }
@@ -155,7 +155,7 @@ public class ExitListDownloader extends Thread {
         bw.write(downloadedExitList);
         bw.close();
       } catch (IOException e) {
-        logger.log(Level.WARNING, "Could not write downloaded exit list "
+        logger.warn("Could not write downloaded exit list "
             + "to " + outputFile.getAbsolutePath(), e);
       }
     }

@@ -6,6 +6,9 @@ package org.torproject.collector.relaydescs;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -26,8 +29,6 @@ import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TimeZone;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Parses all descriptors in local directory cacheddesc/ and sorts them
@@ -44,8 +45,7 @@ public class CachedRelayDescriptorReader {
 
     StringBuilder dumpStats = new StringBuilder("Finished importing "
         + "relay descriptors from local Tor data directories:");
-    Logger logger = Logger.getLogger(
-        CachedRelayDescriptorReader.class.getName());
+    Logger logger = LoggerFactory.getLogger(CachedRelayDescriptorReader.class);
 
     /* Read import history containing SHA-1 digests of previously parsed
      * statuses and descriptors, so that we can skip them in this run. */
@@ -63,7 +63,7 @@ public class CachedRelayDescriptorReader {
         }
         br.close();
       } catch (IOException e) {
-        logger.log(Level.WARNING, "Could not read import history from "
+        logger.warn("Could not read import history from "
             + importHistoryFile.getAbsolutePath() + ".", e);
       }
     }
@@ -72,11 +72,11 @@ public class CachedRelayDescriptorReader {
     for (String inputDirectory : inputDirectories) {
       File cachedDescDir = new File(inputDirectory);
       if (!cachedDescDir.exists()) {
-        logger.warning("Directory " + cachedDescDir.getAbsolutePath()
+        logger.warn("Directory " + cachedDescDir.getAbsolutePath()
             + " does not exist. Skipping.");
         continue;
       }
-      logger.fine("Reading " + cachedDescDir.getAbsolutePath()
+      logger.debug("Reading " + cachedDescDir.getAbsolutePath()
           + " directory.");
       SortedSet<File> cachedDescFiles = new TreeSet<File>();
       Stack<File> files = new Stack<File>();
@@ -118,7 +118,7 @@ public class CachedRelayDescriptorReader {
                 if (dateTimeFormat.parse(line.substring("valid-after "
                     .length())).getTime() < System.currentTimeMillis()
                     - 6L * 60L * 60L * 1000L) {
-                  logger.warning("Cached descriptor files in "
+                  logger.warn("Cached descriptor files in "
                       + cachedDescDir.getAbsolutePath() + " are stale. "
                       + "The valid-after line in cached-consensus is '"
                       + line + "'.");
@@ -224,14 +224,14 @@ public class CachedRelayDescriptorReader {
                 ? "server" : "extra-info") + " descriptors");
           }
         } catch (IOException e) {
-          logger.log(Level.WARNING, "Failed reading "
+          logger.warn("Failed reading "
               + cachedDescDir.getAbsolutePath() + " directory.", e);
         } catch (ParseException e) {
-          logger.log(Level.WARNING, "Failed reading "
+          logger.warn("Failed reading "
               + cachedDescDir.getAbsolutePath() + " directory.", e);
         }
       }
-      logger.fine("Finished reading "
+      logger.debug("Finished reading "
           + cachedDescDir.getAbsolutePath() + " directory.");
     }
 
@@ -245,7 +245,7 @@ public class CachedRelayDescriptorReader {
       }
       bw.close();
     } catch (IOException e) {
-      logger.log(Level.WARNING, "Could not write import history to "
+      logger.warn("Could not write import history to "
            + importHistoryFile.getAbsolutePath() + ".", e);
     }
 

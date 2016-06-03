@@ -3,19 +3,21 @@
 
 package org.torproject.collector.main;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.logging.Logger;
 
 public class LockFile {
 
   private final File lockFile;
   private final String moduleName;
-  private final Logger logger = Logger.getLogger(LockFile.class.getName());
+  private final Logger logger = LoggerFactory.getLogger(LockFile.class);
 
   public LockFile(String moduleName) {
     this("lock", moduleName);
@@ -27,7 +29,7 @@ public class LockFile {
   }
 
   public boolean acquireLock() {
-    this.logger.fine("Trying to acquire lock...");
+    this.logger.debug("Trying to acquire lock...");
     try {
       if (this.lockFile.exists()) {
         BufferedReader br = new BufferedReader(new FileReader(
@@ -43,7 +45,7 @@ public class LockFile {
           this.lockFile));
       bw.append("" + System.currentTimeMillis() + "\n");
       bw.close();
-      this.logger.fine("Acquired lock.");
+      this.logger.debug("Acquired lock.");
       return true;
     } catch (IOException e) {
       throw new RuntimeException("Caught exception while trying to acquire "
@@ -52,9 +54,9 @@ public class LockFile {
   }
 
   public void releaseLock() {
-    this.logger.fine("Releasing lock...");
+    this.logger.debug("Releasing lock...");
     this.lockFile.delete();
-    this.logger.fine("Released lock.");
+    this.logger.debug("Released lock.");
   }
 }
 

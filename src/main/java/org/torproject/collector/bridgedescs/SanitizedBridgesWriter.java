@@ -13,6 +13,9 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -33,8 +36,6 @@ import java.util.SortedMap;
 import java.util.Stack;
 import java.util.TimeZone;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * <p>Sanitizes bridge descriptors, i.e., removes all possibly sensitive
@@ -51,11 +52,10 @@ import java.util.logging.Logger;
  */
 public class SanitizedBridgesWriter extends Thread {
 
-  private static Logger logger;
+  private static Logger logger = LoggerFactory.getLogger(SanitizedBridgesWriter.class);
 
   public static void main(Configuration config) throws ConfigurationException {
 
-    logger = Logger.getLogger(SanitizedBridgesWriter.class.getName());
     logger.info("Starting bridge-descriptors module of CollecTor.");
 
     // Use lock file to avoid overlapping runs
@@ -108,7 +108,7 @@ public class SanitizedBridgesWriter extends Thread {
     try {
       startProcessing();
     } catch (ConfigurationException ce) {
-      logger.severe("Configuration failed: " + ce);
+      logger.error("Configuration failed: " + ce, ce);
       throw new RuntimeException(ce);
     }
   }
@@ -135,10 +135,6 @@ public class SanitizedBridgesWriter extends Thread {
     this.sanitizedBridgesDirectory = sanitizedBridgesDirectory;
     this.replaceIPAddressesWithHashes = replaceIPAddressesWithHashes;
 
-    /* Initialize logger. */
-    this.logger = Logger.getLogger(
-        SanitizedBridgesWriter.class.getName());
-
     SimpleDateFormat rsyncCatFormat = new SimpleDateFormat(
         "yyyy-MM-dd-HH-mm-ss");
     rsyncCatFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -150,7 +146,7 @@ public class SanitizedBridgesWriter extends Thread {
       try {
         this.secureRandom = SecureRandom.getInstance("SHA1PRNG", "SUN");
       } catch (GeneralSecurityException e) {
-        this.logger.log(Level.WARNING, "Could not initialize secure "
+        this.logger.warn("Could not initialize secure "
             + "random number generator! Not calculating any IP address "
             + "hashes in this execution!", e);
         this.persistenceProblemWithSecrets = true;
@@ -172,7 +168,7 @@ public class SanitizedBridgesWriter extends Thread {
           if ((line.length() != ("yyyy-MM,".length() + 31 * 2)
               && line.length() != ("yyyy-MM,".length() + 50 * 2))
               || parts.length != 2) {
-            this.logger.warning("Invalid line in bridge-ip-secrets file "
+            this.logger.warn("Invalid line in bridge-ip-secrets file "
                 + "starting with '" + line.substring(0, 7) + "'! "
                 + "Not calculating any IP address hashes in this "
                 + "execution!");
@@ -185,17 +181,17 @@ public class SanitizedBridgesWriter extends Thread {
         }
         br.close();
         if (!this.persistenceProblemWithSecrets) {
-          this.logger.fine("Read "
+          this.logger.debug("Read "
               + this.secretsForHashingIPAddresses.size() + " secrets for "
               + "hashing bridge IP addresses.");
         }
       } catch (DecoderException e) {
-        this.logger.log(Level.WARNING, "Failed to decode hex string in "
+        this.logger.warn("Failed to decode hex string in "
             + this.bridgeIpSecretsFile + "! Not calculating any IP "
             + "address hashes in this execution!", e);
         this.persistenceProblemWithSecrets = true;
       } catch (IOException e) {
-        this.logger.log(Level.WARNING, "Failed to read "
+        this.logger.warn("Failed to read "
             + this.bridgeIpSecretsFile + "! Not calculating any IP "
             + "address hashes in this execution!", e);
         this.persistenceProblemWithSecrets = true;
@@ -374,7 +370,7 @@ public class SanitizedBridgesWriter extends Thread {
       }
       if (month.compareTo(
           this.bridgeSanitizingCutOffTimestamp) < 0) {
-        this.logger.warning("Generated a secret that we won't make "
+        this.logger.warn("Generated a secret that we won't make "
             + "persistent, because it's outside our bridge descriptor "
             + "sanitizing interval.");
       } else {
@@ -390,7 +386,7 @@ public class SanitizedBridgesWriter extends Thread {
           bw.write(month + "," + Hex.encodeHexString(secret) + "\n");
           bw.close();
         } catch (IOException e) {
-          this.logger.log(Level.WARNING, "Could not store new secret "
+          this.logger.warn("Could not store new secret "
               + "to disk! Not calculating any IP address hashes in "
               + "this execution!", e);
           this.persistenceProblemWithSecrets = true;
@@ -422,11 +418,15 @@ public class SanitizedBridgesWriter extends Thread {
 
     if (this.bridgeSanitizingCutOffTimestamp
         .compareTo(publicationTime) > 0) {
-      this.logger.log(!this.haveWarnedAboutInterval ? Level.WARNING
-          : Level.FINE, "Sanitizing and storing network status with "
+      String text =  "Sanitizing and storing network status with "
           + "publication time outside our descriptor sanitizing "
-          + "interval.");
-      this.haveWarnedAboutInterval = true;
+          + "interval.";
+      if (this.haveWarnedAboutInterval) {
+        this.logger.debug(text);
+      } else {
+        this.logger.warn(text);
+        this.haveWarnedAboutInterval = true;
+      }
     }
 
     /* Parse the given network status line by line. */
@@ -510,7 +510,7 @@ public class SanitizedBridgesWriter extends Thread {
           if (scrubbedOrAddress != null) {
             scrubbed.append("a " + scrubbedOrAddress + "\n");
           } else {
-            this.logger.warning("Invalid address in line '" + line
+            this.logger.warn("Invalid address in line '" + line
                 + "' in bridge network status.  Skipping line!");
           }
 
@@ -524,7 +524,7 @@ public class SanitizedBridgesWriter extends Thread {
          * network status.  If there is, we should probably learn before
          * writing anything to the sanitized descriptors. */
         } else {
-          this.logger.fine("Unknown line '" + line + "' in bridge "
+          this.logger.debug("Unknown line '" + line + "' in bridge "
               + "network status. Not writing to disk!");
           return;
         }
@@ -544,18 +544,18 @@ public class SanitizedBridgesWriter extends Thread {
       if (formatter.parse(publicationTime).getTime()
           - formatter.parse(mostRecentDescPublished).getTime()
           > 60L * 60L * 1000L) {
-        this.logger.warning("The most recent descriptor in the bridge "
+        this.logger.warn("The most recent descriptor in the bridge "
             + "network status published at " + publicationTime + " was "
             + "published at " + mostRecentDescPublished + " which is "
             + "more than 1 hour before the status. This is a sign for "
             + "the status being stale. Please check!");
       }
     } catch (ParseException e) {
-      this.logger.log(Level.WARNING, "Could not parse timestamp in "
+      this.logger.warn("Could not parse timestamp in "
           + "bridge network status.", e);
       return;
     } catch (IOException e) {
-      this.logger.log(Level.WARNING, "Could not parse bridge network "
+      this.logger.warn("Could not parse bridge network "
           + "status.", e);
       return;
     }
@@ -589,7 +589,7 @@ public class SanitizedBridgesWriter extends Thread {
         bw.close();
       }
     } catch (IOException e) {
-      this.logger.log(Level.WARNING, "Could not write sanitized bridge "
+      this.logger.warn("Could not write sanitized bridge "
           + "network status to disk.", e);
       return;
     }
@@ -656,11 +656,15 @@ public class SanitizedBridgesWriter extends Thread {
           }
           if (this.bridgeSanitizingCutOffTimestamp
               .compareTo(published) > 0) {
-            this.logger.log(!this.haveWarnedAboutInterval
-                ? Level.WARNING : Level.FINE, "Sanitizing and storing "
+            String text = "Sanitizing and storing "
                 + "server descriptor with publication time outside our "
-                + "descriptor sanitizing interval.");
-            this.haveWarnedAboutInterval = true;
+                + "descriptor sanitizing interval.";
+            if (this.haveWarnedAboutInterval) {
+              this.logger.debug(text);
+            } else {
+              this.logger.warn(text);
+              this.haveWarnedAboutInterval = true;
+            }
           }
           scrubbed.append(line + "\n");
 
@@ -686,7 +690,7 @@ public class SanitizedBridgesWriter extends Thread {
                 if (scrubbedOrAddress != null) {
                   scrubbedOrAddresses.add(scrubbedOrAddress);
                 } else {
-                  this.logger.warning("Invalid address in line "
+                  this.logger.warn("Invalid address in line "
                       + "'or-address " + orAddress + "' in bridge server "
                       + "descriptor.  Skipping line!");
                 }
@@ -776,7 +780,7 @@ public class SanitizedBridgesWriter extends Thread {
               + "\n");
           if (masterKeyEd25519 != null && !masterKeyEd25519.equals(
               masterKeyEd25519FromIdentityEd25519)) {
-            this.logger.warning("Mismatch between identity-ed25519 and "
+            this.logger.warn("Mismatch between identity-ed25519 and "
                 + "master-key-ed25519.  Skipping.");
             return;
           }
@@ -787,7 +791,7 @@ public class SanitizedBridgesWriter extends Thread {
           if (masterKeyEd25519FromIdentityEd25519 != null
               && !masterKeyEd25519FromIdentityEd25519.equals(
               masterKeyEd25519)) {
-            this.logger.warning("Mismatch between identity-ed25519 and "
+            this.logger.warn("Mismatch between identity-ed25519 and "
                 + "master-key-ed25519.  Skipping.");
             return;
           }
@@ -854,14 +858,14 @@ public class SanitizedBridgesWriter extends Thread {
          * that we need to remove or replace for the sanitized descriptor
          * version. */
         } else {
-          this.logger.warning("Unrecognized line '" + line
+          this.logger.warn("Unrecognized line '" + line
               + "'. Skipping.");
           return;
         }
       }
       br.close();
     } catch (Exception e) {
-      this.logger.log(Level.WARNING, "Could not parse server "
+      this.logger.warn("Could not parse server "
           + "descriptor.", e);
       return;
     }
@@ -883,7 +887,7 @@ public class SanitizedBridgesWriter extends Thread {
       /* Handle below. */
     }
     if (descriptorDigest == null) {
-      this.logger.log(Level.WARNING, "Could not calculate server "
+      this.logger.warn("Could not calculate server "
           + "descriptor digest.");
       return;
     }
@@ -906,7 +910,7 @@ public class SanitizedBridgesWriter extends Thread {
         /* Handle below. */
       }
       if (descriptorDigestSha256Base64 == null) {
-        this.logger.log(Level.WARNING, "Could not calculate server "
+        this.logger.warn("Could not calculate server "
             + "descriptor SHA256 digest.");
         return;
       }
@@ -947,7 +951,7 @@ public class SanitizedBridgesWriter extends Thread {
         bw.close();
       }
     } catch (IOException e) {
-      this.logger.log(Level.WARNING, "Could not write sanitized server "
+      this.logger.warn("Could not write sanitized server "
           + "descriptor to disk.", e);
       return;
     }
@@ -957,26 +961,26 @@ public class SanitizedBridgesWriter extends Thread {
       String identityEd25519Base64) {
     byte[] identityEd25519 = Base64.decodeBase64(identityEd25519Base64);
     if (identityEd25519.length < 40) {
-      this.logger.warning("Invalid length of identity-ed25519 (in "
+      this.logger.warn("Invalid length of identity-ed25519 (in "
           + "bytes): " + identityEd25519.length);
     } else if (identityEd25519[0] != 0x01) {
-      this.logger.warning("Unknown version in identity-ed25519: "
+      this.logger.warn("Unknown version in identity-ed25519: "
           + identityEd25519[0]);
     } else if (identityEd25519[1] != 0x04) {
-      this.logger.warning("Unknown cert type in identity-ed25519: "
+      this.logger.warn("Unknown cert type in identity-ed25519: "
           + identityEd25519[1]);
     } else if (identityEd25519[6] != 0x01) {
-      this.logger.warning("Unknown certified key type in "
+      this.logger.warn("Unknown certified key type in "
           + "identity-ed25519: " + identityEd25519[1]);
     } else if (identityEd25519[39] == 0x00) {
-      this.logger.warning("No extensions in identity-ed25519 (which "
+      this.logger.warn("No extensions in identity-ed25519 (which "
           + "would contain the encoded master-key-ed25519): "
           + identityEd25519[39]);
     } else {
       int extensionStart = 40;
       for (int i = 0; i < (int) identityEd25519[39]; i++) {
         if (identityEd25519.length < extensionStart + 4) {
-          this.logger.warning("Invalid extension with id " + i
+          this.logger.warn("Invalid extension with id " + i
               + " in identity-ed25519.");
           break;
         }
@@ -986,7 +990,7 @@ public class SanitizedBridgesWriter extends Thread {
         int extensionType = identityEd25519[extensionStart + 2];
         if (extensionLength == 32 && extensionType == 4) {
           if (identityEd25519.length < extensionStart + 4 + 32) {
-            this.logger.warning("Invalid extension with id " + i
+            this.logger.warn("Invalid extension with id " + i
                 + " in identity-ed25519.");
             break;
           }
@@ -1002,7 +1006,7 @@ public class SanitizedBridgesWriter extends Thread {
         extensionStart += 4 + extensionLength;
       }
     }
-    this.logger.warning("Unable to locate master-key-ed25519 in "
+    this.logger.warn("Unable to locate master-key-ed25519 in "
         + "identity-ed25519.");
     return null;
   }
@@ -1050,7 +1054,7 @@ public class SanitizedBridgesWriter extends Thread {
          * name. */
         } else if (line.startsWith("transport ")) {
           if (parts.length < 3) {
-            this.logger.fine("Illegal line in extra-info descriptor: '"
+            this.logger.debug("Illegal line in extra-info descriptor: '"
                 + line + "'.  Skipping descriptor.");
             return;
           }
@@ -1080,7 +1084,7 @@ public class SanitizedBridgesWriter extends Thread {
               + "\n");
           if (masterKeyEd25519 != null && !masterKeyEd25519.equals(
               masterKeyEd25519FromIdentityEd25519)) {
-            this.logger.warning("Mismatch between identity-ed25519 and "
+            this.logger.warn("Mismatch between identity-ed25519 and "
                 + "master-key-ed25519.  Skipping.");
             return;
           }
@@ -1091,7 +1095,7 @@ public class SanitizedBridgesWriter extends Thread {
           if (masterKeyEd25519FromIdentityEd25519 != null
               && !masterKeyEd25519FromIdentityEd25519.equals(
               masterKeyEd25519)) {
-            this.logger.warning("Mismatch between identity-ed25519 and "
+            this.logger.warn("Mismatch between identity-ed25519 and "
                 + "master-key-ed25519.  Skipping.");
             return;
           }
@@ -1128,18 +1132,18 @@ public class SanitizedBridgesWriter extends Thread {
          * that we need to remove or replace for the sanitized descriptor
          * version. */
         } else {
-          this.logger.warning("Unrecognized line '" + line
+          this.logger.warn("Unrecognized line '" + line
               + "'. Skipping.");
           return;
         }
       }
       br.close();
     } catch (IOException e) {
-      this.logger.log(Level.WARNING, "Could not parse extra-info "
+      this.logger.warn("Could not parse extra-info "
           + "descriptor.", e);
       return;
     } catch (DecoderException e) {
-      this.logger.log(Level.WARNING, "Could not parse extra-info "
+      this.logger.warn("Could not parse extra-info "
           + "descriptor.", e);
       return;
     }
@@ -1161,7 +1165,7 @@ public class SanitizedBridgesWriter extends Thread {
       /* Handle below. */
     }
     if (descriptorDigest == null) {
-      this.logger.log(Level.WARNING, "Could not calculate extra-info "
+      this.logger.warn("Could not calculate extra-info "
           + "descriptor digest.");
       return;
     }
@@ -1184,7 +1188,7 @@ public class SanitizedBridgesWriter extends Thread {
         /* Handle below. */
       }
       if (descriptorDigestSha256Base64 == null) {
-        this.logger.log(Level.WARNING, "Could not calculate extra-info "
+        this.logger.warn("Could not calculate extra-info "
             + "descriptor SHA256 digest.");
         return;
       }
@@ -1224,7 +1228,7 @@ public class SanitizedBridgesWriter extends Thread {
         bw.close();
       }
     } catch (Exception e) {
-      this.logger.log(Level.WARNING, "Could not write sanitized "
+      this.logger.warn("Could not write sanitized "
           + "extra-info descriptor to disk.", e);
     }
   }
@@ -1261,7 +1265,7 @@ public class SanitizedBridgesWriter extends Thread {
         this.logger.info("Deleted " + deleted + " secrets that we don't "
             + "need anymore and kept " + kept + ".");
       } catch (IOException e) {
-        this.logger.log(Level.WARNING, "Could not store reduced set of "
+        this.logger.warn("Could not store reduced set of "
             + "secrets to disk! This is a bad sign, better check what's "
             + "going on!", e);
       }
@@ -1278,7 +1282,7 @@ public class SanitizedBridgesWriter extends Thread {
           dateTimeFormat.parse(maxNetworkStatusPublishedTime).getTime();
       if (maxNetworkStatusPublishedMillis > 0L
           && maxNetworkStatusPublishedMillis < tooOldMillis) {
-        this.logger.warning("The last known bridge network status was "
+        this.logger.warn("The last known bridge network status was "
             + "published " + maxNetworkStatusPublishedTime + ", which is "
             + "more than 5:30 hours in the past.");
       }
@@ -1287,7 +1291,7 @@ public class SanitizedBridgesWriter extends Thread {
           .getTime();
       if (maxServerDescriptorPublishedMillis > 0L
           && maxServerDescriptorPublishedMillis < tooOldMillis) {
-        this.logger.warning("The last known bridge server descriptor was "
+        this.logger.warn("The last known bridge server descriptor was "
             + "published " + maxServerDescriptorPublishedTime + ", which "
             + "is more than 5:30 hours in the past.");
       }
@@ -1296,12 +1300,12 @@ public class SanitizedBridgesWriter extends Thread {
           .getTime();
       if (maxExtraInfoDescriptorPublishedMillis > 0L
           && maxExtraInfoDescriptorPublishedMillis < tooOldMillis) {
-        this.logger.warning("The last known bridge extra-info descriptor "
+        this.logger.warn("The last known bridge extra-info descriptor "
             + "was published " + maxExtraInfoDescriptorPublishedTime
             + ", which is more than 5:30 hours in the past.");
       }
     } catch (ParseException e) {
-      this.logger.log(Level.WARNING, "Unable to parse timestamp for "
+      this.logger.warn("Unable to parse timestamp for "
           + "stale check.", e);
     }
   }

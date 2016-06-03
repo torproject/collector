@@ -11,6 +11,9 @@ import org.torproject.descriptor.DescriptorParseException;
 import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -35,12 +38,10 @@ import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TimeZone;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ArchiveWriter extends Thread {
 
-  private static Logger logger = Logger.getLogger(ArchiveWriter.class.getName());
+  private static Logger logger = LoggerFactory.getLogger(ArchiveWriter.class);
 
   private Configuration config;
 
@@ -145,7 +146,7 @@ public class ArchiveWriter extends Thread {
     try {
       startProcessing();
     } catch (ConfigurationException ce) {
-      logger.severe("Configuration failed: " + ce);
+      logger.error("Configuration failed: " + ce, ce);
       throw new RuntimeException(ce);
     }
   }
@@ -227,7 +228,7 @@ public class ArchiveWriter extends Thread {
         while ((line = br.readLine()) != null) {
           String[] parts = line.split(",");
           if (parts.length != 3) {
-            this.logger.warning("Could not load server descriptor "
+            this.logger.warn("Could not load server descriptor "
                 + "digests because of illegal line '" + line + "'.  We "
                 + "might not be able to correctly check descriptors for "
                 + "completeness.");
@@ -256,7 +257,7 @@ public class ArchiveWriter extends Thread {
         while ((line = br.readLine()) != null) {
           String[] parts = line.split(",");
           if (parts.length != 2) {
-            this.logger.warning("Could not load extra-info descriptor "
+            this.logger.warn("Could not load extra-info descriptor "
                 + "digests because of illegal line '" + line + "'.  We "
                 + "might not be able to correctly check descriptors for "
                 + "completeness.");
@@ -283,7 +284,7 @@ public class ArchiveWriter extends Thread {
         while ((line = br.readLine()) != null) {
           String[] parts = line.split(",");
           if (parts.length != 2) {
-            this.logger.warning("Could not load microdescriptor digests "
+            this.logger.warn("Could not load microdescriptor digests "
                 + "because of illegal line '" + line + "'.  We might not "
                 + "be able to correctly check descriptors for "
                 + "completeness.");
@@ -304,11 +305,11 @@ public class ArchiveWriter extends Thread {
         br.close();
       }
     } catch (ParseException e) {
-      this.logger.log(Level.WARNING, "Could not load descriptor "
+      this.logger.warn("Could not load descriptor "
           + "digests.  We might not be able to correctly check "
           + "descriptors for completeness.", e);
     } catch (IOException e) {
-      this.logger.log(Level.WARNING, "Could not load descriptor "
+      this.logger.warn("Could not load descriptor "
           + "digests.  We might not be able to correctly check "
           + "descriptors for completeness.", e);
     }
@@ -494,7 +495,7 @@ public class ArchiveWriter extends Thread {
     }
     this.logger.info(sb.toString());
     if (missingDescriptors) {
-      this.logger.fine("We are missing at least 0.5% of server or "
+      this.logger.debug("We are missing at least 0.5% of server or "
           + "extra-info descriptors referenced from a consensus or "
           + "vote or at least 0.5% of microdescriptors referenced from a "
           + "microdesc consensus.");
@@ -502,13 +503,13 @@ public class ArchiveWriter extends Thread {
     if (missingVotes) {
       /* TODO Shouldn't warn if we're not trying to archive votes at
        * all. */
-      this.logger.fine("We are missing at least one vote that was "
+      this.logger.debug("We are missing at least one vote that was "
           + "referenced from a consensus.");
     }
     if (missingMicrodescConsensus) {
       /* TODO Shouldn't warn if we're not trying to archive microdesc
        * consensuses at all. */
-      this.logger.fine("We are missing at least one microdesc "
+      this.logger.debug("We are missing at least one microdesc "
           + "consensus that was published together with a known "
           + "consensus.");
     }
@@ -521,14 +522,14 @@ public class ArchiveWriter extends Thread {
     long tooOldMillis = this.now - 330L * 60L * 1000L;
     if (!this.storedConsensuses.isEmpty()
         && this.storedConsensuses.lastKey() < tooOldMillis) {
-      this.logger.warning("The last known relay network status "
+      this.logger.warn("The last known relay network status "
           + "consensus was valid after "
           + dateTimeFormat.format(this.storedConsensuses.lastKey())
           + ", which is more than 5:30 hours in the past.");
     }
     if (!this.storedMicrodescConsensuses.isEmpty()
         && this.storedMicrodescConsensuses.lastKey() < tooOldMillis) {
-      this.logger.warning("The last known relay network status "
+      this.logger.warn("The last known relay network status "
           + "microdesc consensus was valid after "
           + dateTimeFormat.format(
           this.storedMicrodescConsensuses.lastKey())
@@ -536,28 +537,28 @@ public class ArchiveWriter extends Thread {
     }
     if (!this.storedVotes.isEmpty()
         && this.storedVotes.lastKey() < tooOldMillis) {
-      this.logger.warning("The last known relay network status vote "
+      this.logger.warn("The last known relay network status vote "
           + "was valid after " + dateTimeFormat.format(
           this.storedVotes.lastKey()) + ", which is more than 5:30 hours "
           + "in the past.");
     }
     if (!this.storedServerDescriptors.isEmpty()
         && this.storedServerDescriptors.lastKey() < tooOldMillis) {
-      this.logger.warning("The last known relay server descriptor was "
+      this.logger.warn("The last known relay server descriptor was "
           + "published at "
           + dateTimeFormat.format(this.storedServerDescriptors.lastKey())
           + ", which is more than 5:30 hours in the past.");
     }
     if (!this.storedExtraInfoDescriptors.isEmpty()
         && this.storedExtraInfoDescriptors.lastKey() < tooOldMillis) {
-      this.logger.warning("The last known relay extra-info descriptor "
+      this.logger.warn("The last known relay extra-info descriptor "
           + "was published at " + dateTimeFormat.format(
           this.storedExtraInfoDescriptors.lastKey())
           + ", which is more than 5:30 hours in the past.");
     }
     if (!this.storedMicrodescriptors.isEmpty()
         && this.storedMicrodescriptors.lastKey() < tooOldMillis) {
-      this.logger.warning("The last known relay microdescriptor was "
+      this.logger.warn("The last known relay microdescriptor was "
           + "contained in a microdesc consensus that was valid after "
           + dateTimeFormat.format(this.storedMicrodescriptors.lastKey())
           + ", which is more than 5:30 hours in the past.");
@@ -637,7 +638,7 @@ public class ArchiveWriter extends Thread {
       }
       bw.close();
     } catch (IOException e) {
-      this.logger.log(Level.WARNING, "Could not save descriptor "
+      this.logger.warn("Could not save descriptor "
           + "digests.  We might not be able to correctly check "
           + "descriptors for completeness in the next run.", e);
     }
@@ -825,7 +826,7 @@ public class ArchiveWriter extends Thread {
   private boolean store(byte[] typeAnnotation, byte[] data,
       File[] outputFiles, boolean[] append) {
     try {
-      this.logger.finer("Storing " + outputFiles[0]);
+      this.logger.trace("Storing " + outputFiles[0]);
       if (this.descriptorParser.parseDescriptors(data,
           outputFiles[0].getName()).size() != 1) {
         this.logger.info("Relay descriptor file " + outputFiles[0]
@@ -846,10 +847,10 @@ public class ArchiveWriter extends Thread {
       }
       return true;
     } catch (DescriptorParseException e) {
-      this.logger.log(Level.WARNING, "Could not parse relay descriptor "
+      this.logger.warn("Could not parse relay descriptor "
           + outputFiles[0] + " before storing it to disk.  Skipping.", e);
     } catch (IOException e) {
-      this.logger.log(Level.WARNING, "Could not store relay descriptor "
+      this.logger.warn("Could not store relay descriptor "
           + outputFiles[0], e);
     }
     return false;

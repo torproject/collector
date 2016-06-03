@@ -17,6 +17,9 @@ import org.torproject.descriptor.ServerDescriptor;
 
 import com.google.gson.Gson;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -31,12 +34,10 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ReferenceChecker {
 
-  private Logger log = Logger.getLogger(ReferenceChecker.class.getName());
+  private Logger log = LoggerFactory.getLogger(ReferenceChecker.class);
 
   private File descriptorsDir;
 
@@ -141,7 +142,7 @@ public class ReferenceChecker {
           Reference[].class)));
       fr.close();
     } catch (IOException e) {
-      this.log.log(Level.WARNING, "Cannot read existing references file "
+      this.log.warn("Cannot read existing references file "
           + "from previous run.", e);
     }
   }
@@ -297,9 +298,9 @@ public class ReferenceChecker {
             totalMissingDescriptorsWeight));
       }
     }
-    this.log.log(Level.INFO, sb.toString());
+    this.log.info(sb.toString());
     if (totalMissingDescriptorsWeight > 0.999) {
-      this.log.log(Level.WARNING, "Missing too many referenced "
+      this.log.warn("Missing too many referenced "
           + "descriptors (" + totalMissingDescriptorsWeight + ").");
     }
   }
@@ -311,7 +312,7 @@ public class ReferenceChecker {
       gson.toJson(this.references, fw);
       fw.close();
     } catch (IOException e) {
-      this.log.log(Level.WARNING, "Cannot write references file for next "
+      this.log.warn("Cannot write references file for next "
           + "run.", e);
     }
   }

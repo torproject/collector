@@ -3,11 +3,12 @@
 
 package org.torproject.collector.bridgedescs;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class BridgeDescriptorParser {
 
@@ -18,7 +19,7 @@ public class BridgeDescriptorParser {
   public BridgeDescriptorParser(SanitizedBridgesWriter sbw) {
     this.sbw = sbw;
     this.logger =
-        Logger.getLogger(BridgeDescriptorParser.class.getName());
+        LoggerFactory.getLogger(BridgeDescriptorParser.class);
   }
 
   public void parse(byte[] allData, String dateTime) {
@@ -42,8 +43,7 @@ public class BridgeDescriptorParser {
         }
       }
     } catch (IOException e) {
-      this.logger.log(Level.WARNING, "Could not parse bridge descriptor.",
-          e);
+      this.logger.warn("Could not parse bridge descriptor.", e);
       return;
     }
   }

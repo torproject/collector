@@ -6,6 +6,9 @@ package org.torproject.collector.relaydescs;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -31,8 +34,6 @@ import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.zip.InflaterInputStream;
 
 /**
@@ -319,8 +320,7 @@ public class RelayDescriptorDownloader {
     Collections.shuffle(this.authorities);
 
     /* Initialize logger. */
-    this.logger = Logger.getLogger(
-        RelayDescriptorDownloader.class.getName());
+    this.logger = LoggerFactory.getLogger(RelayDescriptorDownloader.class);
 
     /* Prepare cut-off times and timestamp for the missing descriptors
      * list and the list of authorities to download all server and
@@ -345,7 +345,7 @@ public class RelayDescriptorDownloader {
         "stats/missing-relay-descriptors");
     if (this.missingDescriptorsFile.exists()) {
       try {
-        this.logger.fine("Reading file "
+        this.logger.debug("Reading file "
             + this.missingDescriptorsFile.getAbsolutePath() + "...");
         BufferedReader br = new BufferedReader(new FileReader(
             this.missingDescriptorsFile));
@@ -396,16 +396,16 @@ public class RelayDescriptorDownloader {
               }
             }
           } else {
-            this.logger.fine("Invalid line '" + line + "' in "
+            this.logger.debug("Invalid line '" + line + "' in "
                 + this.missingDescriptorsFile.getAbsolutePath()
                 + ". Ignoring.");
           }
         }
         br.close();
-        this.logger.fine("Finished reading file "
+        this.logger.debug("Finished reading file "
             + this.missingDescriptorsFile.getAbsolutePath() + ".");
       } catch (IOException e) {
-        this.logger.log(Level.WARNING, "Failed to read file "
+        this.logger.warn("Failed to read file "
             + this.missingDescriptorsFile.getAbsolutePath()
             + "! This means that we might forget to dowload relay "
             + "descriptors we are missing.", e);
@@ -419,7 +419,7 @@ public class RelayDescriptorDownloader {
         "stats/last-downloaded-all-descriptors");
     if (this.lastDownloadedAllDescriptorsFile.exists()) {
       try {
-        this.logger.fine("Reading file "
+        this.logger.debug("Reading file "
             + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
             + "...");
         BufferedReader br = new BufferedReader(new FileReader(
@@ -427,7 +427,7 @@ public class RelayDescriptorDownloader {
         String line;
         while ((line = br.readLine()) != null) {
           if (line.split(",").length != 2) {
-            this.logger.fine("Invalid line '" + line + "' in "
+            this.logger.debug("Invalid line '" + line + "' in "
                 + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
                 + ". Ignoring.");
           } else {
@@ -439,11 +439,11 @@ public class RelayDescriptorDownloader {
           }
         }
         br.close();
-        this.logger.fine("Finished reading file "
+        this.logger.debug("Finished reading file "
             + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
             + ".");
       } catch (IOException e) {
-        this.logger.log(Level.WARNING, "Failed to read file "
+        this.logger.warn("Failed to read file "
             + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
             + "! This means that we might download all server and "
             + "extra-info descriptors more often than we should.", e);
@@ -842,8 +842,7 @@ public class RelayDescriptorDownloader {
       /* If a download failed, stop requesting descriptors from this
        * authority and move on to the next. */
       } catch (IOException e) {
-        logger.log(Level.FINE, "Failed downloading from " + authority
-            + "!", e);
+        logger.debug("Failed downloading from " + authority + "!", e);
       }
     }
   }
@@ -886,7 +885,7 @@ public class RelayDescriptorDownloader {
       in.close();
       allData = baos.toByteArray();
     }
-    logger.fine("Downloaded " + fullUrl + " -> " + response + " ("
+    logger.debug("Downloaded " + fullUrl + " -> " + response + " ("
         + (allData == null ? 0 : allData.length) + " bytes)");
     int receivedDescriptors = 0;
     if (allData != null) {
@@ -980,7 +979,7 @@ public class RelayDescriptorDownloader {
               this.rdp.storeMicrodescriptor(descBytes, digest256Hex,
                   digest256Base64, validAfter);
             } catch (ParseException e) {
-              this.logger.log(Level.WARNING, "Could not parse "
+              this.logger.warn("Could not parse "
                   + "valid-after time '" + validAfterTime + "' in "
                   + "microdescriptor key. Not storing microdescriptor.",
                   e);
@@ -1006,7 +1005,7 @@ public class RelayDescriptorDownloader {
     int missingServerDescriptors = 0;
     int missingExtraInfoDescriptors = 0;
     try {
-      this.logger.fine("Writing file "
+      this.logger.debug("Writing file "
           + this.missingDescriptorsFile.getAbsolutePath() + "...");
       this.missingDescriptorsFile.getParentFile().mkdirs();
       BufferedWriter bw = new BufferedWriter(new FileWriter(
@@ -1033,10 +1032,10 @@ public class RelayDescriptorDownloader {
         bw.write(key + "," + value + "\n");
       }
       bw.close();
-      this.logger.fine("Finished writing file "
+      this.logger.debug("Finished writing file "
           + this.missingDescriptorsFile.getAbsolutePath() + ".");
     } catch (IOException e) {
-      this.logger.log(Level.WARNING, "Failed writing "
+      this.logger.warn("Failed writing "
           + this.missingDescriptorsFile.getAbsolutePath() + "!", e);
     }
     int missingMicrodescriptors = this.missingMicrodescriptors.size();
@@ -1045,7 +1044,7 @@ public class RelayDescriptorDownloader {
      * last downloaded all server and extra-info descriptors from them to
      * disk. */
     try {
-      this.logger.fine("Writing file "
+      this.logger.debug("Writing file "
           + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
           + "...");
       this.lastDownloadedAllDescriptorsFile.getParentFile().mkdirs();
@@ -1058,11 +1057,11 @@ public class RelayDescriptorDownloader {
         bw.write(authority + "," + lastDownloaded + "\n");
       }
       bw.close();
-      this.logger.fine("Finished writing file "
+      this.logger.debug("Finished writing file "
           + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
           + ".");
     } catch (IOException e) {
-      this.logger.log(Level.WARNING, "Failed writing "
+      this.logger.warn("Failed writing "
           + this.lastDownloadedAllDescriptorsFile.getAbsolutePath() + "!",
           e);
     }

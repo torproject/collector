@@ -25,6 +25,9 @@
       <include name="gson-2.2.4.jar"/>
       <include name="xz-1.5.jar"/>
       <include name="descriptor-${descriptorversion}.jar"/>
+      <include name="logback-core-1.1.2.jar" />
+      <include name="logback-classic-1.1.2.jar" />
+      <include name="slf4j-api-1.7.7.jar" />
   </patternset>
   <path id="classpath">
     <pathelement path="${classes}"/>
@@ -134,7 +137,10 @@
     <jar destfile="${jarfile}"
          basedir="${classes}">
       <fileset dir="${classes}"/>
-      <fileset dir="${resources}" includes="collector.properties"/>
+      <fileset dir="${resources}" >
+        <include name="collector.properties"/>
+        <include name="logback.xml"/>
+      </fileset>
       <zipgroupfileset dir="${libs}" >
         <patternset refid="runtime" />
       </zipgroupfileset>
@@ -200,6 +206,7 @@
       <!-- The following jvmargs prevent test access to the network. -->
       <jvmarg value="-Djava.security.policy=${testresources}/junittest.policy"/>
       <jvmarg value="-Djava.security.manager"/>
+      <jvmarg value="-DLOGBASE=${generated}/testcoverage-logs"/>
       <classpath refid="cobertura.test.classpath" />
       <formatter type="xml" />
       <batchtest toDir="${testresult}" >
@@ -220,6 +227,7 @@
       <!-- The following jvmargs prevent test access to the network. -->
       <jvmarg value="-Djava.security.policy=${testresources}/junittest.policy"/>
       <jvmarg value="-Djava.security.manager"/>
+      <jvmarg value="-DLOGBASE=${generated}/test-logs"/>
       <classpath refid="test.classpath"/>
       <formatter type="plain" usefile="false"/>
       <batchtest>

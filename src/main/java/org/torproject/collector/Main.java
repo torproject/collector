@@ -10,6 +10,9 @@ import org.torproject.collector.index.CreateIndexJson;
 import org.torproject.collector.relaydescs.ArchiveWriter;
 import org.torproject.collector.torperf.TorperfDownloader;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -19,7 +22,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Main class for starting a CollecTor instance.
@@ -30,7 +32,7 @@ import java.util.logging.Logger;
  */
 public class Main {
 
-  private static Logger log = Logger.getLogger(Main.class.getName());
+  private static Logger log = LoggerFactory.getLogger(Main.class);
   public static final String CONF_FILE = "collector.properties";
 
   /** All possible main classes.
@@ -91,7 +93,7 @@ public class Main {
           + ") and provide at least one data source and one data sink. "
           + "Refer to the manual for more information.");
     } catch (IOException e) {
-      log.severe("Cannot write default configuration. Reason: " + e);
+      log.error("Cannot write default configuration. Reason: " + e, e);
     }
   }
 
@@ -99,7 +101,7 @@ public class Main {
     try (FileInputStream fis = new FileInputStream(confFile)) {
       conf.load(fis);
     } catch (Exception e) { // catch all possible problems
-      log.severe("Cannot read configuration. Reason: " + e);
+      log.error("Cannot read configuration. Reason: " + e, e);
       throw e;
     }
   }
@@ -118,8 +120,8 @@ public class Main {
           .invoke(null, (Object) conf);
     } catch (NoSuchMethodException | IllegalAccessException
        | InvocationTargetException e) {
-      log.severe("Cannot invoke 'main' method on "
-          + clazz.getName() + ". " + e);
+      log.error("Cannot invoke 'main' method on "
+          + clazz.getName() + ". " + e, e);
     }
   }
 }

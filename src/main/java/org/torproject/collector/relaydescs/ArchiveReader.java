@@ -7,6 +7,9 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -30,8 +33,6 @@ import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TimeZone;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Read in all files in a given directory and pass buffered readers of
@@ -53,7 +54,7 @@ public class ArchiveReader {
     rdp.setArchiveReader(this);
     int parsedFiles = 0;
     int ignoredFiles = 0;
-    Logger logger = Logger.getLogger(ArchiveReader.class.getName());
+    Logger logger = LoggerFactory.getLogger(ArchiveReader.class);
     SortedSet<String> archivesImportHistory = new TreeSet<String>();
     File archivesImportHistoryFile = new File(statsDirectory,
         "archives-import-history");
@@ -67,12 +68,12 @@ public class ArchiveReader {
         }
         br.close();
       } catch (IOException e) {
-        logger.log(Level.WARNING, "Could not read in archives import "
-            + "history file. Skipping.");
+        logger.warn("Could not read in archives import "
+            + "history file. Skipping.", e);
       }
     }
     if (archivesDirectory.exists()) {
-      logger.fine("Importing files in directory " + archivesDirectory
+      logger.debug("Importing files in directory " + archivesDirectory
           + "/...");
       Stack<File> filesInInputDir = new Stack<File>();
       filesInInputDir.add(archivesDirectory);
@@ -93,7 +94,7 @@ public class ArchiveReader {
                 ignoredFiles++;
                 continue;
               } else if (pop.getName().endsWith(".tar.bz2")) {
-                logger.warning("Cannot parse compressed tarball "
+                logger.warn("Cannot parse compressed tarball "
                     + pop.getAbsolutePath() + ". Skipping.");
                 continue;
               } else if (pop.getName().endsWith(".bz2")) {
@@ -165,12 +166,12 @@ public class ArchiveReader {
             } while (line != null && line.startsWith("@"));
             br.close();
             if (line == null) {
-              logger.fine("We were given an empty descriptor for "
+              logger.debug("We were given an empty descriptor for "
                   + "parsing. Ignoring.");
               continue;
             }
             if (!line.equals("onion-key")) {
-              logger.fine("Skipping non-recognized descriptor.");
+              logger.debug("Skipping non-recognized descriptor.");
               continue;
             }
             SimpleDateFormat parseFormat =
@@ -204,7 +205,7 @@ public class ArchiveReader {
               String digest256Hex = DigestUtils.sha256Hex(descBytes);
               if (!this.microdescriptorValidAfterTimes.containsKey(
                   digest256Hex)) {
-                logger.fine("Could not store microdescriptor '"
+                logger.debug("Could not store microdescriptor '"
                     + digest256Hex + "', which was not contained in a "
                     + "microdesc consensus.");
                 continue;
@@ -217,7 +218,7 @@ public class ArchiveReader {
                   rdp.storeMicrodescriptor(descBytes, digest256Hex,
                       digest256Base64, validAfter);
                 } catch (ParseException e) {
-                  logger.log(Level.WARNING, "Could not parse "
+                  logger.warn("Could not parse "
                       + "valid-after time '" + validAfterTime + "'. Not "
                       + "storing microdescriptor.", e);
                 }
@@ -236,7 +237,7 @@ public class ArchiveReader {
         }
       }
       if (problems.isEmpty()) {
-        logger.fine("Finished importing files in directory "
+        logger.debug("Finished importing files in directory "
             + archivesDirectory + "/.");
       } else {
         StringBuilder sb = new StringBuilder("Failed importing files in "
@@ -261,7 +262,7 @@ public class ArchiveReader {
         }
         bw.close();
       } catch (IOException e) {
-        logger.log(Level.WARNING, "Could not write archives import "
+        logger.warn("Could not write archives import "
             + "history file.");
       }
     }
