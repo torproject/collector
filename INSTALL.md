@@ -53,9 +53,9 @@ DownloadRelayDescriptors = true
 Run the relay descriptor downloader
 -----------------------------------
 
-$ java -DLOGBASE=/path/to/logs -jar collector-<version>.jar releaydescs
+$ java -DLOGBASE=/path/to/logs -jar collector-<version>.jar relaydescs
 
-Watch out for INFO-level logs in the log directory you configured.  In particular, the
-lines following "Statistics on the completeness of written relay
-descriptors:" is quite important.
+Watch out for INFO-level logs in the log directory you configured.  In
+particular, the lines following "Statistics on the completeness of written
+relay descriptors:" is quite important.
 
