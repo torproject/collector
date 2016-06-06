@@ -57,5 +57,5 @@ $ java -DLOGBASE=/path/to/logs -jar collector-<version>.jar relaydescs
 
 Watch out for INFO-level logs in the log directory you configured.  In
 particular, the lines following "Statistics on the completeness of written
-relay descriptors:" is quite important.
+relay descriptors:" are quite important.
 
