@@ -138,7 +138,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         while ((line = br.readLine()) != null) {
           String[] parts = line.split(",");
           if ((line.length() != ("yyyy-MM,".length() + 31 * 2)
-              && line.length() != ("yyyy-MM,".length() + 50 * 2))
+              && line.length() != ("yyyy-MM,".length() + 50 * 2)
+              && line.length() != ("yyyy-MM,".length() + 83 * 2))
               || parts.length != 2) {
             logger.warn("Invalid line in bridge-ip-secrets file "
                 + "starting with '" + line.substring(0, 7) + "'! "
@@ -218,8 +219,10 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       scrubbedAddressPart = this.scrubIpv4Address(addressPart,
           fingerprintBytes, published);
     }
+    String scrubbedPort = this.scrubTcpPort(portPart, fingerprintBytes,
+        published);
     return (scrubbedAddressPart == null ? null :
-          scrubbedAddressPart + ":" + portPart);
+          scrubbedAddressPart + ":" + scrubbedPort);
   }
 
   private String scrubIpv4Address(String address, byte[] fingerprintBytes,
@@ -334,14 +337,42 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     return sb.toString();
   }
 
+  private String scrubTcpPort(String portString, byte[] fingerprintBytes,
+      String published) throws IOException {
+    if (portString.equals("0")) {
+      return "0";
+    } else if (this.replaceIpAddressesWithHashes) {
+      if (this.persistenceProblemWithSecrets) {
+        /* There's a persistence problem, so we shouldn't scrub more TCP
+         * ports in this execution. */
+        return null;
+      }
+      byte[] hashInput = new byte[2 + 20 + 33];
+      int portNumber = Integer.parseInt(portString);
+      hashInput[0] = (byte) (portNumber >> 8);
+      hashInput[1] = (byte) portNumber;
+      System.arraycopy(fingerprintBytes, 0, hashInput, 2, 20);
+      String month = published.substring(0, "yyyy-MM".length());
+      byte[] secret = this.getSecretForMonth(month);
+      System.arraycopy(secret, 50, hashInput, 22, 33);
+      byte[] hashOutput = DigestUtils.sha256(hashInput);
+      int hashedPort = ((((hashOutput[0] & 0xFF) << 8)
+          | (hashOutput[1] & 0xFF)) >> 2) | 0xC000;
+      return String.valueOf(hashedPort);
+    } else {
+      return "1";
+    }
+  }
+
   private byte[] getSecretForMonth(String month) throws IOException {
     if (!this.secretsForHashingIpAddresses.containsKey(month)
-        || this.secretsForHashingIpAddresses.get(month).length == 31) {
-      byte[] secret = new byte[50];
+        || this.secretsForHashingIpAddresses.get(month).length < 83) {
+      byte[] secret = new byte[83];
       this.secureRandom.nextBytes(secret);
       if (this.secretsForHashingIpAddresses.containsKey(month)) {
         System.arraycopy(this.secretsForHashingIpAddresses.get(month), 0,
-            secret, 0, 31);
+            secret, 0,
+            this.secretsForHashingIpAddresses.get(month).length);
       }
       if (month.compareTo(
           this.bridgeSanitizingCutOffTimestamp) < 0) {
@@ -362,8 +393,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           bw.close();
         } catch (IOException e) {
           logger.warn("Could not store new secret "
-              + "to disk! Not calculating any IP address hashes in "
-              + "this execution!", e);
+              + "to disk! Not calculating any IP address or TCP port "
+              + "hashes in this execution!", e);
           this.persistenceProblemWithSecrets = true;
           throw new IOException(e);
         }
@@ -471,11 +502,15 @@ public class SanitizedBridgesWriter extends CollecTorMain {
               fingerprintBytes,
               descPublicationTime);
           String nickname = parts[1];
+          String scrubbedOrPort = this.scrubTcpPort(orPort,
+              fingerprintBytes, descPublicationTime);
+          String scrubbedDirPort = this.scrubTcpPort(dirPort,
+              fingerprintBytes, descPublicationTime);
           scrubbed.append("r " + nickname + " "
               + hashedBridgeIdentityBase64 + " "
               + hashedDescriptorIdentifier + " " + descPublicationTime
-              + " " + scrubbedAddress + " " + orPort + " " + dirPort
-              + "\n");
+              + " " + scrubbedAddress + " " + scrubbedOrPort + " "
+              + scrubbedDirPort + "\n");
 
         /* Sanitize any addresses in a lines using the fingerprint and
          * descriptor publication time from the previous r line. */
@@ -555,7 +590,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         outputFile.getParentFile().mkdirs();
         BufferedWriter bw = new BufferedWriter(new FileWriter(
             outputFile));
-        bw.write("@type bridge-network-status 1.0\n");
+        bw.write("@type bridge-network-status 1.1\n");
         bw.write("published " + publicationTime + "\n");
         bw.write(header.toString());
         for (String scrubbed : scrubbedLines.values()) {
@@ -595,6 +630,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       String hashedBridgeIdentity = null;
       String address = null;
       String routerLine = null;
+      String scrubbedRouterLine = null;
       String scrubbedAddress = null;
       String masterKeyEd25519 = null;
       List<String> orAddresses = null;
@@ -611,7 +647,12 @@ public class SanitizedBridgesWriter extends CollecTorMain {
          * the bridge identity fingerprint for replacing the IP address in
          * the scrubbed version.  */
         } else if (line.startsWith("router ")) {
-          address = line.split(" ")[2];
+          String[] parts = line.split(" ");
+          if (parts.length != 6) {
+            logger.warn("Invalid router line: '" + line + "'.  Skipping.");
+            return;
+          }
+          address = parts[2];
           routerLine = line;
 
         /* Store or-address parts in a list and sanitize them when we have
@@ -671,6 +712,17 @@ public class SanitizedBridgesWriter extends CollecTorMain {
                 }
               }
             }
+            String[] routerLineParts = routerLine.split(" ");
+            String nickname = routerLineParts[1];
+            String scrubbedOrPort = this.scrubTcpPort(routerLineParts[3],
+                fingerprintBytes, published);
+            String scrubbedDirPort = this.scrubTcpPort(routerLineParts[4],
+                fingerprintBytes, published);
+            String scrubbedSocksPort = this.scrubTcpPort(
+                routerLineParts[5], fingerprintBytes, published);
+            scrubbedRouterLine = String.format("router %s %s %s %s %s%n",
+                nickname, scrubbedAddress, scrubbedOrPort,
+                scrubbedDirPort, scrubbedSocksPort);
           } catch (IOException e) {
             /* There's a persistence problem, so we shouldn't scrub more
              * IP addresses in this execution. */
@@ -692,10 +744,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         /* When we reach the signature, we're done. Write the sanitized
          * descriptor to disk below. */
         } else if (line.startsWith("router-signature")) {
-          String[] routerLineParts = routerLine.split(" ");
-          scrubbedDesc = "router " + routerLineParts[1] + " "
-              + scrubbedAddress + " " + routerLineParts[3] + " "
-              + routerLineParts[4] + " " + routerLineParts[5] + "\n";
+          scrubbedDesc = scrubbedRouterLine;
           if (scrubbedOrAddresses != null) {
             for (String scrubbedOrAddress : scrubbedOrAddresses) {
               scrubbedDesc = scrubbedDesc += "or-address "
@@ -915,7 +964,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         outputFile.getParentFile().mkdirs();
         BufferedWriter bw = new BufferedWriter(new FileWriter(
             outputFile, appendToFile));
-        bw.write("@type bridge-server-descriptor 1.1\n");
+        bw.write("@type bridge-server-descriptor 1.2\n");
         bw.write(scrubbedDesc);
         if (descriptorDigestSha256Base64 != null) {
           bw.write("router-digest-sha256 " + descriptorDigestSha256Base64

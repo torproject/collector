@@ -4,6 +4,8 @@
    - Add support for Bifroest's bridge descriptor tarballs.
    - Use a shutdown hook that gives currently running modules up to 10
      minutes to finish properly, rather than killing them immediately.
+   - Replace TCP ports with hashes in @type bridge-network-status 1.1
+     and @type bridge-server-descriptor 1.2.
 
  * Minor changes
    - Remove quotes around base URL in index.json.

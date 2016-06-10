@@ -166,14 +166,14 @@
 </tr>
 <tr>
   <td>Bridge Network Statuses</td>
-  <td><tt>@type bridge-network-status 1.0</tt></td>
+  <td><tt>@type bridge-network-status 1.1</tt></td>
   <td><a href="recent/bridge-descriptors/statuses/" class="btn btn-primary btn-xs">recent</a></td>
   <td><a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs">archive</a></td>
   <td><a href="#type-bridge-network-status" class="btn btn-default btn-xs">format</a></td>
 </tr>
 <tr>
   <td>Bridge Server Descriptors</td>
-  <td><tt>@type bridge-server-descriptor 1.1</tt></td>
+  <td><tt>@type bridge-server-descriptor 1.2</tt></td>
   <td><a href="recent/bridge-descriptors/server-descriptors/" class="btn btn-primary btn-xs">recent</a></td>
   <td><a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs">archive</a></td>
   <td><a href="#type-bridge-server-descriptor" class="btn btn-default btn-xs">format</a></td>
@@ -447,6 +447,28 @@ with <tt>xx:xxxx</tt> being the hex-formatted 3 byte output of a similar
 hash function as described for IPv4 addresses.
 The only differences are that the input <tt>IP address</tt> is 16 bytes
 long and the <tt>secret</tt> is only 19 bytes long.</li></ul>
+<li><b>Replace TCP port with TCP port hash:</b> It may be less obvious
+that TCP ports need to be sanitized, but an unusual TCP port used by a
+high-value bridge might still stand out and provide yet another way to
+locate and block the bridge.
+Therefore, each non-zero TCP port is replaced with a number in the range
+from 49152 to 65535 that is the result of
+<tt>H(port | bridge identity | secret)[:2] / 2^2 + 2^15 + 2^14</tt>
+written as decimal number.
+The input <tt>port</tt> is the 2-byte long binary representation of the
+TCP port.
+The <tt>bridge identity</tt> is the 20-byte long binary representation of
+the bridge's long-term identity fingerprint.
+The <tt>secret</tt> is a 33-byte long secure random string that changes
+once per month for all descriptors and statuses published in that month.
+<tt>H()</tt> is SHA-256.
+The <tt>[:2]</tt> operator means that we pick the 2 most significant bytes
+of the result.
+The subsequent integer division and additions make sure that sanitized
+ports are in the range from 49152 to 65535 which is reserved for private
+services.
+All operations assume inputs to be in network byte order.
+TCP ports that are 0 in the original descriptor are left unchanged.</li>
 <li><b>Replace contact information:</b> If there is contact information in
 a descriptor, the contact line is changed to
 <tt>somebody</tt>.</li>
@@ -468,7 +490,7 @@ descriptor including all signatures.</li>
 </ol>
 
 <h3 id="type-bridge-network-status" class="hover">Bridge Network Statuses
-<small><tt>@type bridge-network-status 1.0</tt></small>
+<small><tt>@type bridge-network-status 1.1</tt></small>
 <a href="recent/bridge-descriptors/statuses/" class="btn btn-primary btn-xs">recent</a>
 <a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs">archive</a>
 <a href="#type-bridge-network-status" class="hover">#</a>
@@ -480,10 +502,19 @@ statuses, but with only a <tt>published</tt> line in the header and
 without any lines in the footer.
 The bridge descriptor archive tarballs contain all bridge
 descriptors of a given month, not just network statuses.
+The format has changed over time to accomodate changes to the sanitizing
+process, with earlier versions being:
 </p>
 
+<ul>
+<li><font color="#666"><tt>@type bridge-network-status 1.0</tt> was the
+first version.</font></li>
+<li><tt>@type bridge-network-status 1.1</tt> introduced sanitized TCP
+ports.</li>
+</ul>
+
 <h3 id="type-bridge-server-descriptor" class="hover">Bridge Server descriptors
-<small><tt>@type bridge-server-descriptor 1.1</tt></small>
+<small><tt>@type bridge-server-descriptor 1.2</tt></small>
 <a href="recent/bridge-descriptors/server-descriptors/" class="btn btn-primary btn-xs">recent</a>
 <a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs">archive</a>
 <a href="#type-bridge-server-descriptor" class="hover">#</a>
@@ -511,9 +542,12 @@ number of sanitized bridge extra-info descriptors was raised.
 As a result, there may be sanitized bridge server descriptors with version
 <tt>@type bridge-server-descriptor 1.0</tt> with and without those
 lines.</font></li>
-<li><tt>@type bridge-server-descriptor 1.1</tt> added
+<li><font color="#666"><tt>@type bridge-server-descriptor 1.1</tt> added
 <tt>master-key-ed25519</tt> lines and <tt>router-digest-sha256</tt> to
-server descriptors published by bridges using an Ed25519 master key.</li>
+server descriptors published by bridges using an Ed25519 master
+key.</font></li>
+<li><tt>@type bridge-server-descriptor 1.2</tt> introduced sanitized TCP
+ports.</li>
 </ul>
 
 <h3 id="type-bridge-extra-info" class="hover">Bridge Extra-info Descriptors
