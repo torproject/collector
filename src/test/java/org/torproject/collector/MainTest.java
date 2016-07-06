@@ -7,6 +7,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 
 import org.torproject.collector.conf.Key;
 import org.torproject.collector.conf.ConfigurationException;
@@ -23,6 +24,7 @@ import java.security.AccessControlException;
 import java.security.Policy;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import java.util.Random;
 
 import org.junit.rules.TemporaryFolder;
@@ -69,4 +71,26 @@ public class MainTest {
     bw.close();
   }
 
+  /* Verifies the contents of the default collector.properties file.
+   * All properties specified have to be present but nothing else. */
+  @Test()
+  public void testPropertiesFile() throws Exception {
+    Properties props = new Properties();
+    props.load(getClass().getClassLoader().getResourceAsStream(
+        Main.CONF_FILE));
+    for (Key key : Key.values()) {
+      assertNotNull("Property '" + key.name() + "' not specified in "
+          + Main.CONF_FILE + ".",
+          props.getProperty(key.name()));
+    }
+    for (String propName : props.stringPropertyNames()) {
+      try {
+        Key.valueOf(propName);
+      } catch (IllegalArgumentException ex) {
+        fail("Invalid property name '" + propName + "' found in "
+            + Main.CONF_FILE + ".");
+      }
+    }
+  }
 }
+

@@ -224,7 +224,7 @@
   </target>
   <target name="test" depends="compile,compile-tests">
     <junit fork="true" haltonfailure="true" printsummary="off">
-      <!-- The following jvmargs prevent test access to the network. -->
+      <!-- The following two jvmargs prevent test access to the network. -->
       <jvmarg value="-Djava.security.policy=${testresources}/junittest.policy"/>
       <jvmarg value="-Djava.security.manager"/>
       <jvmarg value="-DLOGBASE=${generated}/test-logs"/>
