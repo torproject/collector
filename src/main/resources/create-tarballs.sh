@@ -1,10 +1,42 @@
 #!/bin/bash
+#
+# Copyright 2016 The Tor Project
+# See LICENSE for licensing information.
+#
+# Script for creating descriptor tarballs on a CollecTor instance.
+#
+####
+# Configuration section:
+# The following path should be adjusted, if the CollecTor server layout differs.
+# OUTDIR and TARBALLTARGETDIR have to be given absolute or relative to WORKDIR.
+WORKDIR="tarballs"
+OUTDIR="../out"
+TARBALLTARGETDIR="../data"
+### end of configuration section.
+#
+### script start
 echo `date` "Starting"
 YEARONE=`date +%Y`
 MONTHONE=`date +%m`
 YEARTWO=`date --date='7 days ago' +%Y`
 MONTHTWO=`date --date='7 days ago' +%m`
-cd tarballs/
+CURRENTPATH=`pwd`
+
+if ! test -d $WORKDIR
+  then mkdir $WORKDIR
+fi
+
+cd $WORKDIR
+
+if ! test -d $OUTDIR
+  then echo "$OUTDIR doesn't exist.  Exiting."
+  exit 1
+fi
+
+if ! test -d $TARBALLTARGETDIR
+  then echo "$TARBALLTARGETDIR doesn't exist.  Exiting."
+  exit 1
+fi
 
 TARBALLS=(
   exit-list-$YEARONE-$MONTHONE
@@ -28,23 +60,23 @@ TARBALLS=(
 TARBALLS=($(printf "%s\n" "${TARBALLS[@]}" | uniq))
 
 DIRECTORIES=(
-  ../out/exit-lists/$YEARONE/$MONTHONE/
-  ../out/exit-lists/$YEARTWO/$MONTHTWO/
-  ../out/torperf/$YEARONE/$MONTHONE/
-  ../out/torperf/$YEARTWO/$MONTHTWO/
-  ../out/relay-descriptors/certs/
-  ../out/relay-descriptors/microdesc/$YEARONE/$MONTHONE
-  ../out/relay-descriptors/microdesc/$YEARTWO/$MONTHTWO
-  ../out/relay-descriptors/consensus/$YEARONE/$MONTHONE
-  ../out/relay-descriptors/consensus/$YEARTWO/$MONTHTWO
-  ../out/relay-descriptors/vote/$YEARONE/$MONTHONE/
-  ../out/relay-descriptors/vote/$YEARTWO/$MONTHTWO/
-  ../out/relay-descriptors/server-descriptor/$YEARONE/$MONTHONE/
-  ../out/relay-descriptors/server-descriptor/$YEARTWO/$MONTHTWO/
-  ../out/relay-descriptors/extra-info/$YEARONE/$MONTHONE/
-  ../out/relay-descriptors/extra-info/$YEARTWO/$MONTHTWO/
-  ../out/bridge-descriptors/$YEARONE/$MONTHONE/
-  ../out/bridge-descriptors/$YEARTWO/$MONTHTWO/
+  $OUTDIR/exit-lists/$YEARONE/$MONTHONE/
+  $OUTDIR/exit-lists/$YEARTWO/$MONTHTWO/
+  $OUTDIR/torperf/$YEARONE/$MONTHONE/
+  $OUTDIR/torperf/$YEARTWO/$MONTHTWO/
+  $OUTDIR/relay-descriptors/certs/
+  $OUTDIR/relay-descriptors/microdesc/$YEARONE/$MONTHONE
+  $OUTDIR/relay-descriptors/microdesc/$YEARTWO/$MONTHTWO
+  $OUTDIR/relay-descriptors/consensus/$YEARONE/$MONTHONE
+  $OUTDIR/relay-descriptors/consensus/$YEARTWO/$MONTHTWO
+  $OUTDIR/relay-descriptors/vote/$YEARONE/$MONTHONE/
+  $OUTDIR/relay-descriptors/vote/$YEARTWO/$MONTHTWO/
+  $OUTDIR/relay-descriptors/server-descriptor/$YEARONE/$MONTHONE/
+  $OUTDIR/relay-descriptors/server-descriptor/$YEARTWO/$MONTHTWO/
+  $OUTDIR/relay-descriptors/extra-info/$YEARONE/$MONTHONE/
+  $OUTDIR/relay-descriptors/extra-info/$YEARTWO/$MONTHTWO/
+  $OUTDIR/bridge-descriptors/$YEARONE/$MONTHONE/
+  $OUTDIR/bridge-descriptors/$YEARTWO/$MONTHTWO/
 )
 DIRECTORIES=($(printf "%s\n" "${DIRECTORIES[@]}" | uniq))
 
@@ -69,7 +101,8 @@ for (( i = 0 ; i < ${#TARBALLS[@]} ; i++ )); do
 done
 
 echo `date` "Moving tarballs into place"
-mv *.tar.xz ../data/
+mv *.tar.xz $TARBALLTARGETDIR
 
-cd ..
-echo `date` "Finishing"
+cd $CURRENTPATH
+echo `date` "Finished."
+
