@@ -14,6 +14,8 @@
      - Relaxed requirement that catch parameters must be at least two
        characters long [CatchParameterName].
 
+     - Enabled suppression of warnings using annotations.
+
     Checkstyle is very configurable. Be sure to read the documentation at
     http://checkstyle.sf.net (or in your downloaded distribution).
 
@@ -34,6 +36,7 @@
             <property name="eachLine" value="true"/>
         </module>
 
+        <module name="SuppressWarningsFilter" />
     <module name="TreeWalker">
         <module name="OuterTypeFilename"/>
         <module name="IllegalTokenText">
@@ -213,5 +216,6 @@
             <property name="exceptionVariableName" value="expected"/>
         </module>
         <module name="CommentsIndentation"/>
+        <module name="SuppressWarningsHolder" />
     </module>
 </module>
