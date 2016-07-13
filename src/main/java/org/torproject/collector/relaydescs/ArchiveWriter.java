@@ -107,6 +107,8 @@ public class ArchiveWriter extends Thread {
   private static final String CONSENSUS_MICRODESC = "consensus-microdesc";
   private static final String MICRODESC = "microdesc";
   private static final String MICRODESCS = "microdescs";
+
+  @SuppressWarnings("checkstyle:javadocmethod")
   public static void main(Configuration config) throws ConfigurationException {
 
     logger.info("Starting relay-descriptors module of CollecTor.");
@@ -132,6 +134,7 @@ public class ArchiveWriter extends Thread {
     logger.info("Terminating relay-descriptors module of CollecTor.");
   }
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public ArchiveWriter(Configuration config) throws ConfigurationException {
     this.config = config;
     storedServerDescriptorsFile =
@@ -142,6 +145,7 @@ public class ArchiveWriter extends Thread {
         new File(config.getPath(Key.StatsPath).toFile(), "stored-microdescriptors");
   }
 
+  @Override
   public void run() {
     try {
       startProcessing();
@@ -315,6 +319,7 @@ public class ArchiveWriter extends Thread {
     }
   }
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public void intermediateStats(String event) {
     intermediateStats.append("While " + event + ", we stored "
         + this.storedConsensusesCounter + " consensus(es), "
@@ -365,8 +370,6 @@ public class ArchiveWriter extends Thread {
         this.storedConsensuses.entrySet()) {
       long validAfterMillis = c.getKey();
       String validAfterTime = dateTimeFormat.format(validAfterMillis);
-      int allVotes = this.expectedVotes.containsKey(validAfterMillis)
-          ? this.expectedVotes.get(validAfterMillis) : 0;
       int foundVotes = 0;
       if (this.storedVotes.containsKey(validAfterMillis)) {
         foundVotes = this.storedVotes.get(validAfterMillis).size();
@@ -444,6 +447,8 @@ public class ArchiveWriter extends Thread {
         }
       }
       sb.append("\nC, " + validAfterTime);
+      int allVotes = this.expectedVotes.containsKey(validAfterMillis)
+          ? this.expectedVotes.get(validAfterMillis) : 0;
       if (allVotes > 0) {
         sb.append(String.format(", %d/%d V (%.1f%%)", foundVotes, allVotes,
             100.0D * (double) foundVotes / (double) allVotes));
@@ -565,7 +570,7 @@ public class ArchiveWriter extends Thread {
     }
   }
 
-  /* Delete all files from the rsync directory that have not been modified
+  /** Delete all files from the rsync directory that have not been modified
    * in the last three days (except for microdescriptors which are kept
    * for up to thirty days), and remove the .tmp extension from newly
    * written files. */
@@ -644,6 +649,7 @@ public class ArchiveWriter extends Thread {
     }
   }
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public void storeConsensus(byte[] data, long validAfter,
       SortedSet<String> dirSources,
       SortedSet<String> serverDescriptorDigests) {
@@ -666,6 +672,7 @@ public class ArchiveWriter extends Thread {
     }
   }
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public void storeMicrodescConsensus(byte[] data, long validAfter,
       SortedSet<String> microdescriptorDigests) {
     SimpleDateFormat yearMonthDirectoryFormat = new SimpleDateFormat(
@@ -692,6 +699,7 @@ public class ArchiveWriter extends Thread {
     }
   }
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public void storeVote(byte[] data, long validAfter,
       String fingerprint, String digest,
       SortedSet<String> serverDescriptorDigests) {
@@ -719,6 +727,7 @@ public class ArchiveWriter extends Thread {
     }
   }
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public void storeCertificate(byte[] data, String fingerprint,
       long published) {
     SimpleDateFormat printFormat = new SimpleDateFormat(
@@ -732,6 +741,7 @@ public class ArchiveWriter extends Thread {
     }
   }
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public void storeServerDescriptor(byte[] data, String digest,
       long published, String extraInfoDigest) {
     SimpleDateFormat printFormat = new SimpleDateFormat("yyyy/MM/");
@@ -760,6 +770,7 @@ public class ArchiveWriter extends Thread {
     }
   }
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public void storeExtraInfoDescriptor(byte[] data,
       String extraInfoDigest, long published) {
     SimpleDateFormat descriptorFormat = new SimpleDateFormat("yyyy/MM/");
@@ -787,6 +798,7 @@ public class ArchiveWriter extends Thread {
     }
   }
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public void storeMicrodescriptor(byte[] data,
       String microdescriptorDigest, long validAfter) {
     /* TODO We could check here whether we already stored the

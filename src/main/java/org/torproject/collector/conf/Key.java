@@ -32,7 +32,7 @@ public enum Key {
   ImportCachedRelayDescriptors(Boolean.class),
   ImportDirectoryArchives(Boolean.class),
   KeepDirectoryArchiveImportHistory(Boolean.class),
-  ReplaceIPAddressesWithHashes(Boolean.class),
+  ReplaceIpAddressesWithHashes(Boolean.class),
   BridgeDescriptorMappingsLimit(Integer.class),
   SanitizedBridgesWriteDirectory(Path.class),
   TorperfOutputDirectory(Path.class),

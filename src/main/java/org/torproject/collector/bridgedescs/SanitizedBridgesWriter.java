@@ -54,6 +54,7 @@ public class SanitizedBridgesWriter extends Thread {
 
   private static Logger logger = LoggerFactory.getLogger(SanitizedBridgesWriter.class);
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public static void main(Configuration config) throws ConfigurationException {
 
     logger.info("Starting bridge-descriptors module of CollecTor.");
@@ -89,11 +90,11 @@ public class SanitizedBridgesWriter extends Thread {
    */
   private File sanitizedBridgesDirectory;
 
-  private boolean replaceIPAddressesWithHashes;
+  private boolean replaceIpAddressesWithHashes;
 
   private boolean persistenceProblemWithSecrets;
 
-  private SortedMap<String, byte[]> secretsForHashingIPAddresses;
+  private SortedMap<String, byte[]> secretsForHashingIpAddresses;
 
   private String bridgeSanitizingCutOffTimestamp;
 
@@ -119,10 +120,6 @@ public class SanitizedBridgesWriter extends Thread {
         config.getPath(Key.BridgeSnapshotsDirectory).toFile();
     File sanitizedBridgesDirectory =
         config.getPath(Key.SanitizedBridgesWriteDirectory).toFile();
-    boolean replaceIPAddressesWithHashes =
-        config.getBool(Key.ReplaceIPAddressesWithHashes);
-    long limitBridgeSanitizingInterval =
-        config.getInt(Key.BridgeDescriptorMappingsLimit);
     File statsDirectory = new File("stats");
 
     if (bridgeDirectoriesDirectory == null
@@ -133,8 +130,8 @@ public class SanitizedBridgesWriter extends Thread {
     /* Memorize argument values. */
     this.bridgeDirectoriesDirectory = bridgeDirectoriesDirectory;
     this.sanitizedBridgesDirectory = sanitizedBridgesDirectory;
-    this.replaceIPAddressesWithHashes = replaceIPAddressesWithHashes;
-
+    this.replaceIpAddressesWithHashes =
+        config.getBool(Key.ReplaceIpAddressesWithHashes);
     SimpleDateFormat rsyncCatFormat = new SimpleDateFormat(
         "yyyy-MM-dd-HH-mm-ss");
     rsyncCatFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -142,7 +139,7 @@ public class SanitizedBridgesWriter extends Thread {
         System.currentTimeMillis());
 
     /* Initialize secure random number generator if we need it. */
-    if (this.replaceIPAddressesWithHashes) {
+    if (this.replaceIpAddressesWithHashes) {
       try {
         this.secureRandom = SecureRandom.getInstance("SHA1PRNG", "SUN");
       } catch (GeneralSecurityException e) {
@@ -155,7 +152,7 @@ public class SanitizedBridgesWriter extends Thread {
 
     /* Read hex-encoded secrets for replacing IP addresses with hashes
      * from disk. */
-    this.secretsForHashingIPAddresses = new TreeMap<String, byte[]>();
+    this.secretsForHashingIpAddresses = new TreeMap<String, byte[]>();
     this.bridgeIpSecretsFile = new File(statsDirectory,
         "bridge-ip-secrets");
     if (this.bridgeIpSecretsFile.exists()) {
@@ -177,12 +174,12 @@ public class SanitizedBridgesWriter extends Thread {
           }
           String month = parts[0];
           byte[] secret = Hex.decodeHex(parts[1].toCharArray());
-          this.secretsForHashingIPAddresses.put(month, secret);
+          this.secretsForHashingIpAddresses.put(month, secret);
         }
         br.close();
         if (!this.persistenceProblemWithSecrets) {
           this.logger.debug("Read "
-              + this.secretsForHashingIPAddresses.size() + " secrets for "
+              + this.secretsForHashingIpAddresses.size() + " secrets for "
               + "hashing bridge IP addresses.");
         }
       } catch (DecoderException e) {
@@ -197,6 +194,9 @@ public class SanitizedBridgesWriter extends Thread {
         this.persistenceProblemWithSecrets = true;
       }
     }
+
+    long limitBridgeSanitizingInterval =
+        config.getInt(Key.BridgeDescriptorMappingsLimit);
 
     /* If we're configured to keep secrets only for a limited time, define
      * the cut-off day and time. */
@@ -249,7 +249,7 @@ public class SanitizedBridgesWriter extends Thread {
 
   private String scrubIpv4Address(String address, byte[] fingerprintBytes,
       String published) throws IOException {
-    if (this.replaceIPAddressesWithHashes) {
+    if (this.replaceIpAddressesWithHashes) {
       if (this.persistenceProblemWithSecrets) {
         /* There's a persistence problem, so we shouldn't scrub more IP
          * addresses in this execution. */
@@ -278,13 +278,12 @@ public class SanitizedBridgesWriter extends Thread {
   private String scrubIpv6Address(String address, byte[] fingerprintBytes,
       String published) throws IOException {
     StringBuilder sb = new StringBuilder("[fd9f:2e19:3bcf::");
-    if (this.replaceIPAddressesWithHashes) {
+    if (this.replaceIpAddressesWithHashes) {
       if (this.persistenceProblemWithSecrets) {
         /* There's a persistence problem, so we shouldn't scrub more IP
          * addresses in this execution. */
         return null;
       }
-      byte[] hashInput = new byte[16 + 20 + 19];
       String[] doubleColonSeparatedParts = address.substring(1,
           address.length() - 1).split("::", -1);
       if (doubleColonSeparatedParts.length > 2) {
@@ -344,6 +343,7 @@ public class SanitizedBridgesWriter extends Thread {
         /* TODO Invalid IPv6 address. */
         return null;
       }
+      byte[] hashInput = new byte[16 + 20 + 19];
       System.arraycopy(ipBytes, 0, hashInput, 0, 16);
       System.arraycopy(fingerprintBytes, 0, hashInput, 16, 20);
       String month = published.substring(0, "yyyy-MM".length());
@@ -360,12 +360,12 @@ public class SanitizedBridgesWriter extends Thread {
   }
 
   private byte[] getSecretForMonth(String month) throws IOException {
-    if (!this.secretsForHashingIPAddresses.containsKey(month)
-        || this.secretsForHashingIPAddresses.get(month).length == 31) {
+    if (!this.secretsForHashingIpAddresses.containsKey(month)
+        || this.secretsForHashingIpAddresses.get(month).length == 31) {
       byte[] secret = new byte[50];
       this.secureRandom.nextBytes(secret);
-      if (this.secretsForHashingIPAddresses.containsKey(month)) {
-        System.arraycopy(this.secretsForHashingIPAddresses.get(month), 0,
+      if (this.secretsForHashingIpAddresses.containsKey(month)) {
+        System.arraycopy(this.secretsForHashingIpAddresses.get(month), 0,
             secret, 0, 31);
       }
       if (month.compareTo(
@@ -393,9 +393,9 @@ public class SanitizedBridgesWriter extends Thread {
           throw new IOException(e);
         }
       }
-      this.secretsForHashingIPAddresses.put(month, secret);
+      this.secretsForHashingIpAddresses.put(month, secret);
     }
-    return this.secretsForHashingIPAddresses.get(month);
+    return this.secretsForHashingIpAddresses.get(month);
   }
 
   private String maxNetworkStatusPublishedTime = "1970-01-01 00:00:00";
@@ -467,9 +467,7 @@ public class SanitizedBridgesWriter extends Thread {
 
           /* Parse the relevant parts of this r line. */
           String[] parts = line.split(" ");
-          String nickname = parts[1];
           fingerprintBytes = Base64.decodeBase64(parts[2] + "==");
-          String descriptorIdentifier = parts[3];
           descPublicationTime = parts[4] + " " + parts[5];
           String address = parts[6];
           String orPort = parts[7];
@@ -489,12 +487,14 @@ public class SanitizedBridgesWriter extends Thread {
               hashedBridgeIdentity).substring(0, 27);
           hashedBridgeIdentityHex = Hex.encodeHexString(
               hashedBridgeIdentity);
+          String descriptorIdentifier = parts[3];
           String hashedDescriptorIdentifier = Base64.encodeBase64String(
               DigestUtils.sha(Base64.decodeBase64(descriptorIdentifier
               + "=="))).substring(0, 27);
           String scrubbedAddress = scrubIpv4Address(address,
               fingerprintBytes,
               descPublicationTime);
+          String nickname = parts[1];
           scrubbed.append("r " + nickname + " "
               + hashedBridgeIdentityBase64 + " "
               + hashedDescriptorIdentifier + " " + descPublicationTime
@@ -1242,8 +1242,8 @@ public class SanitizedBridgesWriter extends Thread {
   public void finishWriting() {
 
     /* Delete secrets that we don't need anymore. */
-    if (!this.secretsForHashingIPAddresses.isEmpty()
-        && this.secretsForHashingIPAddresses.firstKey().compareTo(
+    if (!this.secretsForHashingIpAddresses.isEmpty()
+        && this.secretsForHashingIpAddresses.firstKey().compareTo(
         this.bridgeSanitizingCutOffTimestamp) < 0) {
       try {
         int kept = 0;
@@ -1251,7 +1251,7 @@ public class SanitizedBridgesWriter extends Thread {
         BufferedWriter bw = new BufferedWriter(new FileWriter(
             this.bridgeIpSecretsFile));
         for (Map.Entry<String, byte[]> e :
-            this.secretsForHashingIPAddresses.entrySet()) {
+            this.secretsForHashingIpAddresses.entrySet()) {
           if (e.getKey().compareTo(
               this.bridgeSanitizingCutOffTimestamp) < 0) {
             deleted++;
@@ -1310,7 +1310,7 @@ public class SanitizedBridgesWriter extends Thread {
     }
   }
 
-  /* Delete all files from the rsync directory that have not been modified
+  /** Delete all files from the rsync directory that have not been modified
    * in the last three days, and remove the .tmp extension from newly
    * written files. */
   public void cleanUpRsyncDirectory() {

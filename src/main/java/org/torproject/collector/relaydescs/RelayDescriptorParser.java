@@ -70,6 +70,7 @@ public class RelayDescriptorParser {
     this.ar = ar;
   }
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public boolean parse(byte[] data) {
     boolean stored = false;
     try {
@@ -325,6 +326,7 @@ public class RelayDescriptorParser {
     return stored;
   }
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public void storeMicrodescriptor(byte[] data, String digest256Hex,
       String digest256Base64, long validAfter) {
     if (this.aw != null) {

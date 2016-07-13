@@ -63,10 +63,10 @@ public class ConfigurationTest {
     Configuration conf = new Configuration();
     conf.load(new ByteArrayInputStream(("CompressRelayDescriptorDownloads=false"
         + "\nImportDirectoryArchives = trUe"
-        + "\nReplaceIPAddressesWithHashes= false").getBytes()));
+        + "\nReplaceIpAddressesWithHashes= false").getBytes()));
     assertFalse(conf.getBool(Key.CompressRelayDescriptorDownloads));
     assertTrue(conf.getBool(Key.ImportDirectoryArchives));
-    assertFalse(conf.getBool(Key.ReplaceIPAddressesWithHashes));
+    assertFalse(conf.getBool(Key.ReplaceIpAddressesWithHashes));
   }
 
   @Test()

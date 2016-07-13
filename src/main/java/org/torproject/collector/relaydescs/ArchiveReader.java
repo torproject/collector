@@ -43,6 +43,7 @@ public class ArchiveReader {
   private Map<String, Set<String>> microdescriptorValidAfterTimes =
       new HashMap<String, Set<String>>();
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public ArchiveReader(RelayDescriptorParser rdp, File archivesDirectory,
       File statsDirectory, boolean keepImportHistory) {
 
@@ -271,6 +272,7 @@ public class ArchiveReader {
         + ignoredFiles + " files.");
   }
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public void haveParsedMicrodescConsensus(String validAfterTime,
       SortedSet<String> microdescriptorDigests) {
     for (String microdescriptor : microdescriptorDigests) {

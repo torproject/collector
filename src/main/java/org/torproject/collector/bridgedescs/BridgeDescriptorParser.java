@@ -16,12 +16,14 @@ public class BridgeDescriptorParser {
 
   private Logger logger;
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public BridgeDescriptorParser(SanitizedBridgesWriter sbw) {
     this.sbw = sbw;
     this.logger =
         LoggerFactory.getLogger(BridgeDescriptorParser.class);
   }
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public void parse(byte[] allData, String dateTime) {
     try {
       BufferedReader br = new BufferedReader(new StringReader(

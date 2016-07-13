@@ -35,6 +35,8 @@ import java.util.TreeSet;
  * into directory structure in directory-archive/.
  */
 public class CachedRelayDescriptorReader {
+
+  @SuppressWarnings("checkstyle:javadocmethod")
   public CachedRelayDescriptorReader(RelayDescriptorParser rdp,
       String[] inputDirectories, File statsDirectory) {
 

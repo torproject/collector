@@ -52,6 +52,7 @@ public class CreateIndexJson {
 
   static final TimeZone dateTimezone = TimeZone.getTimeZone("UTC");
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public static void main(Configuration config)
       throws ConfigurationException, IOException {
     indexJsonFile =  new File(config.getPath(Key.IndexPath).toFile(), "index.json");
@@ -73,11 +74,12 @@ public class CreateIndexJson {
       this.directories = directories;
     }
 
-    public int compareTo(DirectoryNode o) {
-      return this.path.compareTo(o.path);
+    public int compareTo(DirectoryNode other) {
+      return this.path.compareTo(other.path);
     }
   }
 
+  @SuppressWarnings({"checkstyle:membername", "checkstyle:parametername"})
   static class IndexNode {
     String index_created;
     String path;
@@ -94,6 +96,7 @@ public class CreateIndexJson {
     }
   }
 
+  @SuppressWarnings({"checkstyle:membername", "checkstyle:parametername"})
   static class FileNode implements Comparable<FileNode> {
     String path;
     long size;
@@ -105,8 +108,8 @@ public class CreateIndexJson {
       this.last_modified = last_modified;
     }
 
-    public int compareTo(FileNode o) {
-      return this.path.compareTo(o.path);
+    public int compareTo(FileNode other) {
+      return this.path.compareTo(other.path);
     }
   }
 

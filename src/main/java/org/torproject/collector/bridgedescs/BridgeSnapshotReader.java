@@ -27,10 +27,11 @@ import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TreeSet;
 
-/**
- * Reads the half-hourly snapshots of bridge descriptors from Tonga.
- */
 public class BridgeSnapshotReader {
+
+  /**
+   * Reads the half-hourly snapshots of bridge descriptors from Tonga.
+   */
   public BridgeSnapshotReader(BridgeDescriptorParser bdp,
       File bridgeDirectoriesDir, File statsDirectory) {
 

@@ -68,6 +68,7 @@ public class ReferenceChecker {
 
   private static final long THIRTY_DAYS = 30L * ONE_DAY;
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public ReferenceChecker(File descriptorsDir, File referencesFile,
       File historyFile) {
     this.descriptorsDir = descriptorsDir;
@@ -75,6 +76,7 @@ public class ReferenceChecker {
     this.historyFile = historyFile;
   }
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public void check() {
     this.getCurrentTimeMillis();
     this.readReferencesFile();

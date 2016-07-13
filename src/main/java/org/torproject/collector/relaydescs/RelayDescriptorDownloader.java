@@ -49,13 +49,14 @@ public class RelayDescriptorDownloader {
   /**
    * Text file containing the descriptors that we are missing and that we
    * want to download. Lines are formatted as:
-   *
-   * - "consensus,<validafter>,<parsed>",
-   * - "consensus-microdesc,<validafter>,<parsed>",
-   * - "vote,<validafter>,<fingerprint>,<parsed>",
-   * - "server,<published>,<relayid>,<descid>,<parsed>",
-   * - "extra,<published>,<relayid>,<descid>,<parsed>", or
-   * - "micro,<validafter>,<relayid>,<descid>,<parsed>".
+   * <p>
+   * - "consensus,&lt;validafter&gt;,&lt;parsed&gt;",
+   * - "consensus-microdesc,&lt;validafter&gt;,&lt;parsed&gt;",
+   * - "vote,&lt;validafter&gt;,&lt;fingerprint&gt;,&lt;parsed&gt;",
+   * - "server,&lt;published&gt;,&lt;relayid&gt;,&lt;descid&gt;,&lt;parsed&gt;",
+   * - "extra,&lt;published&gt;,&lt;relayid&gt;,&lt;descid&gt;,&lt;parsed&gt;", or
+   * - "micro,&lt;validafter&gt;,&lt;relayid&gt;,&lt;descid&gt;,&lt;parsed&gt;".
+   * </p>
    */
   private File missingDescriptorsFile;
 
@@ -69,10 +70,10 @@ public class RelayDescriptorDownloader {
 
   /**
    * Map from base64 microdescriptor digests to keys in missingDescriptors
-   * ("micro,<validafter>,<relayid>,<descid>"). We need this map, because
-   * we can't learn <validafter> or <relayid> from parsing
-   * microdescriptors, but we need to know <validafter> to store
-   * microdescriptors to disk and both <validafter> and <relayid> to
+   * ("micro,&lt;validafter&gt;,&lt;relayid&gt;,&lt;descid&gt;"). We need this map, because
+   * we can't learn &lt;validafter&gt; or &lt;relayid&gt; from parsing
+   * microdescriptors, but we need to know &lt;validafter&gt; to store
+   * microdescriptors to disk and both &lt;validafter&gt; and &lt;relayid&gt; to
    * remove microdescriptors from the missing list. There are potentially
    * many matching keys in missingDescriptors for the same microdescriptor
    * digest. Also, in rare cases relays share the same microdescriptor
@@ -83,7 +84,7 @@ public class RelayDescriptorDownloader {
 
   /**
    * Set of microdescriptor digests that are currently missing. Used for
-   * logging statistics instead of "micro,<validafter>,..." keys which may
+   * logging statistics instead of "micro,&lt;validafter&gt;,..." keys which may
    * contain the same microdescriptor digest multiple times.
    */
   private Set<String> missingMicrodescriptors;
@@ -122,54 +123,54 @@ public class RelayDescriptorDownloader {
   private List<String> authorityFingerprints;
 
   /**
-   * Should we try to download the current consensus if we don't have it?
+   * Try to download the current consensus if we don't have it.
    */
   private boolean downloadCurrentConsensus;
 
   /**
-   * Should we try to download the current microdesc consensus if we don't
-   * have it?
+   * Try to download the current microdesc consensus if we don't
+   * have it.
    */
   private boolean downloadCurrentMicrodescConsensus;
 
   /**
-   * Should we try to download current votes if we don't have them?
+   * Try to download current votes if we don't have them.
    */
   private boolean downloadCurrentVotes;
 
   /**
-   * Should we try to download missing server descriptors that have been
-   * published within the past 24 hours?
+   * Try to download missing server descriptors that have been
+   * published within the past 24 hours.
    */
   private boolean downloadMissingServerDescriptors;
 
   /**
-   * Should we try to download missing extra-info descriptors that have
-   * been published within the past 24 hours?
+   * Try to download missing extra-info descriptors that have
+   * been published within the past 24 hours.
    */
   private boolean downloadMissingExtraInfos;
 
   /**
-   * Should we try to download missing microdescriptors that have been
-   * published within the past 24 hours?
+   * Try to download missing microdescriptors that have been
+   * published within the past 24 hours.
    */
   private boolean downloadMissingMicrodescriptors;
 
   /**
-   * Should we try to download all server descriptors from the authorities
-   * once every 24 hours?
+   * Try to download all server descriptors from the authorities
+   * once every 24 hours.
    */
   private boolean downloadAllServerDescriptors;
 
   /**
-   * Should we try to download all extra-info descriptors from the
-   * authorities once every 24 hours?
+   * Try to download all extra-info descriptors from the
+   * authorities once every 24 hours.
    */
   private boolean downloadAllExtraInfos;
 
   /**
-   * Should we download zlib-compressed versions of descriptors by adding
-   * ".z" to URLs?
+   * Download zlib-compressed versions of descriptors by adding
+   * ".z" to URLs.
    */
   private boolean downloadCompressed;
 
@@ -475,7 +476,7 @@ public class RelayDescriptorDownloader {
    * We have parsed a consensus. Take this consensus off the missing list
    * and add the votes created by the given <code>authorities</code> and
    * the <code>serverDescriptors</code> which are in the format
-   * "<published>,<relayid>,<descid>" to that list.
+   * "&lt;published&gt;,&lt;relayid&gt;,&lt;descid&gt;" to that list.
    */
   public void haveParsedConsensus(String validAfter,
       Set<String> authorities, Set<String> serverDescriptors) {
@@ -512,7 +513,7 @@ public class RelayDescriptorDownloader {
   /**
    * We have parsed a microdesc consensus. Take this microdesc consensus
    * off the missing list and add the <code>microdescriptors</code> which
-   * are in the format "<validafter>,<relayid>,<descid>" to that
+   * are in the format "&lt;validafter&gt;,&lt;relayid&gt;,&lt;descid&gt;" to that
    * list.
    */
   public void haveParsedMicrodescConsensus(String validAfter,
@@ -571,7 +572,7 @@ public class RelayDescriptorDownloader {
   /**
    * We have parsed a vote. Take this vote off the missing list and add
    * the <code>serverDescriptors</code> which are in the format
-   * "<published>,<relayid>,<descid>" to that list.
+   * "&lt;published&gt;,&lt;relayid&gt;,&lt;descid&gt;" to that list.
    */
   public void haveParsedVote(String validAfter, String fingerprint,
       Set<String> serverDescriptors) {
@@ -865,8 +866,8 @@ public class RelayDescriptorDownloader {
     String fullUrl = "http://" + authority + resource
         + (this.downloadCompressed && !resource.startsWith("/tor/extra/")
         ? ".z" : "");
-    URL u = new URL(fullUrl);
-    HttpURLConnection huc = (HttpURLConnection) u.openConnection();
+    URL url = new URL(fullUrl);
+    HttpURLConnection huc = (HttpURLConnection) url.openConnection();
     huc.setRequestMethod("GET");
     huc.connect();
     int response = huc.getResponseCode();
@@ -1038,7 +1039,6 @@ public class RelayDescriptorDownloader {
       this.logger.warn("Failed writing "
           + this.missingDescriptorsFile.getAbsolutePath() + "!", e);
     }
-    int missingMicrodescriptors = this.missingMicrodescriptors.size();
 
     /* Write text file containing the directory authorities and when we
      * last downloaded all server and extra-info descriptors from them to
@@ -1124,7 +1124,8 @@ public class RelayDescriptorDownloader {
         + missingMicrodescConsensuses + " microdesc consensus(es), "
         + missingVotes + " vote(s), " + missingServerDescriptors
         + " server descriptor(s), " + missingExtraInfoDescriptors
-        + " extra-info descriptor(s), and " + missingMicrodescriptors
+        + " extra-info descriptor(s), and "
+        + this.missingMicrodescriptors.size()
         + " microdescriptor(s), some of which we may try in the next "
         + "execution.");
   }

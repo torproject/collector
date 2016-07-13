@@ -36,6 +36,7 @@ public class ExitListDownloader extends Thread {
 
   private static Logger logger = LoggerFactory.getLogger(ExitListDownloader.class);
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public static void main(Configuration config) throws ConfigurationException {
     logger.info("Starting exit-lists module of CollecTor.");
 
@@ -54,6 +55,7 @@ public class ExitListDownloader extends Thread {
 
   public ExitListDownloader(Configuration config) {}
 
+  @Override
   public void run() {
     try {
       startProcessing();
@@ -79,8 +81,8 @@ public class ExitListDownloader extends Thread {
           + "\n");
       String exitAddressesUrl =
           "http://exitlist.torproject.org/exit-addresses";
-      URL u = new URL(exitAddressesUrl);
-      HttpURLConnection huc = (HttpURLConnection) u.openConnection();
+      URL url = new URL(exitAddressesUrl);
+      HttpURLConnection huc = (HttpURLConnection) url.openConnection();
       huc.setRequestMethod("GET");
       huc.connect();
       int response = huc.getResponseCode();
@@ -194,7 +196,7 @@ public class ExitListDownloader extends Thread {
     this.cleanUpRsyncDirectory();
   }
 
-  /* Delete all files from the rsync directory that have not been modified
+  /** Delete all files from the rsync directory that have not been modified
    * in the last three days. */
   public void cleanUpRsyncDirectory() {
     long cutOffMillis = System.currentTimeMillis()

@@ -28,6 +28,7 @@ public class LockFile {
     this.moduleName = moduleName;
   }
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public boolean acquireLock() {
     this.logger.debug("Trying to acquire lock...");
     try {
@@ -53,6 +54,7 @@ public class LockFile {
     }
   }
 
+  @SuppressWarnings("checkstyle:javadocmethod")
   public void releaseLock() {
     this.logger.debug("Releasing lock...");
     this.lockFile.delete();
