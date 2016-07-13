@@ -3,12 +3,14 @@
 # Copyright 2016 The Tor Project
 # See LICENSE for licensing information.
 #
-# Script for creating descriptor tarballs on a CollecTor instance.
+# Script for creating descriptor tarballs on a CollecTor instance,
+# and creating/touching the symlinks for the web-app.
 #
 ####
 # Configuration section:
 # The following path should be adjusted, if the CollecTor server layout differs.
 # OUTDIR and TARBALLTARGETDIR have to be given absolute or relative to WORKDIR.
+ARCHIVEDIR="archive"
 WORKDIR="tarballs"
 OUTDIR="../out"
 TARBALLTARGETDIR="../data"
@@ -104,5 +106,43 @@ echo `date` "Moving tarballs into place"
 mv *.tar.xz $TARBALLTARGETDIR
 
 cd $CURRENTPATH
-echo `date` "Finished."
 
+echo `date` "Finished tarball creation.  Starting symlink-update ..."
+
+mkdir -p $ARCHIVEDIR/bridge-descriptors/
+ln -f -s -t $ARCHIVEDIR/bridge-descriptors/ $TARBALLTARGETDIR/bridge-descriptors-20??-??.tar.xz
+
+mkdir -p $ARCHIVEDIR/bridge-pool-assignments/
+ln -f -s -t $ARCHIVEDIR/bridge-pool-assignments/ $TARBALLTARGETDIR/bridge-pool-assignments-20??-??.tar.xz
+
+mkdir -p $ARCHIVEDIR/exit-lists/
+ln -f -s -t $ARCHIVEDIR/exit-lists/ $TARBALLTARGETDIR/exit-list-20??-??.tar.xz
+
+mkdir -p $ARCHIVEDIR/relay-descriptors/
+ln -f -s -t $ARCHIVEDIR/relay-descriptors/ $TARBALLTARGETDIR/certs.tar.xz
+
+mkdir -p $ARCHIVEDIR/relay-descriptors/consensuses/
+ln -f -s -t $ARCHIVEDIR/relay-descriptors/consensuses/ $TARBALLTARGETDIR/consensuses-20??-??.tar.xz
+
+mkdir -p $ARCHIVEDIR/relay-descriptors/extra-infos/
+ln -f -s -t $ARCHIVEDIR/relay-descriptors/extra-infos/ $TARBALLTARGETDIR/extra-infos-20??-??.tar.xz
+
+mkdir -p $ARCHIVEDIR/relay-descriptors/microdescs/
+ln -f -s -t $ARCHIVEDIR/relay-descriptors/microdescs/ $TARBALLTARGETDIR/microdescs-20??-??.tar.xz
+
+mkdir -p $ARCHIVEDIR/relay-descriptors/server-descriptors/
+ln -f -s -t $ARCHIVEDIR/relay-descriptors/server-descriptors/ $TARBALLTARGETDIR/server-descriptors-20??-??.tar.xz
+
+mkdir -p $ARCHIVEDIR/relay-descriptors/statuses/
+ln -f -s -t $ARCHIVEDIR/relay-descriptors/statuses/ $TARBALLTARGETDIR/statuses-20??-??.tar.xz
+
+mkdir -p $ARCHIVEDIR/relay-descriptors/tor/
+ln -f -s -t $ARCHIVEDIR/relay-descriptors/tor/ $TARBALLTARGETDIR/tor-20??-??.tar.xz
+
+mkdir -p $ARCHIVEDIR/relay-descriptors/votes/
+ln -f -s -t $ARCHIVEDIR/relay-descriptors/votes/ $TARBALLTARGETDIR/votes-20??-??.tar.xz
+
+mkdir -p $ARCHIVEDIR/torperf/
+ln -f -s -t $ARCHIVEDIR/torperf/ $TARBALLTARGETDIR/torperf-20??-??.tar.xz
+
+echo `date` "Finished."
