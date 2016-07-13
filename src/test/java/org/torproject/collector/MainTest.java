@@ -57,12 +57,17 @@ public class MainTest {
   private void changeLockFilePath(File f, File l) throws Exception {
     List<String> lines = Files.readAllLines(f.toPath());
     BufferedWriter bw = Files.newBufferedWriter(f.toPath());
+    File in = tmpf.newFolder();
     File out = tmpf.newFolder();
+    String inStr = "in/";
+    String outStr = "out/";
     for(String line : lines) {
       if (line.contains(Key.LockFilePath.name())) {
         line = Key.LockFilePath.name() + " = " + l.toString();
-      } else if (line.contains("out")) {
-        line = line.replace("out", out.toString() + "out");
+      } else if (line.contains(inStr)) {
+        line = line.replace(inStr, in.toString() + inStr);
+      } else if (line.contains(outStr)) {
+        line = line.replace(outStr, out.toString() + outStr);
       }
       bw.write(line);
       bw.newLine();
