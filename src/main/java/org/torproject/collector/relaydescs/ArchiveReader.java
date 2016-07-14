@@ -6,7 +6,6 @@ package org.torproject.collector.relaydescs;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

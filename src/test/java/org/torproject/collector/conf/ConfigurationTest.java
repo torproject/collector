@@ -4,20 +4,15 @@ package org.torproject.collector.conf;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
-
-import org.junit.Test;
 
 public class ConfigurationTest {
 

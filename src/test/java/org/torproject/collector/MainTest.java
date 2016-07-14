@@ -2,34 +2,23 @@
  * See LICENSE for licensing information */
 package org.torproject.collector;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import org.torproject.collector.conf.Key;
-import org.torproject.collector.conf.ConfigurationException;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.net.URL;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.AccessControlException;
-import java.security.Policy;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
-
-import org.junit.rules.TemporaryFolder;
-import org.junit.Rule;
-import org.junit.Test;
 
 public class MainTest {
 
