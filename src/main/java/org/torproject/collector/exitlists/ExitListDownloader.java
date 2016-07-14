@@ -36,7 +36,7 @@ public class ExitListDownloader extends Thread {
 
   private static Logger logger = LoggerFactory.getLogger(ExitListDownloader.class);
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Execute the exit-lists module using the given configuration. */
   public static void main(Configuration config) throws ConfigurationException {
     logger.info("Starting exit-lists module of CollecTor.");
 

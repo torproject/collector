@@ -36,7 +36,7 @@ import java.util.TreeMap;
 public class TorperfDownloader extends Thread {
   private static Logger logger = LoggerFactory.getLogger(TorperfDownloader.class);
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Executes the torperf module using the given configuration. */
   public static void main(Configuration config) throws ConfigurationException {
     logger.info("Starting torperf module of CollecTor.");
 

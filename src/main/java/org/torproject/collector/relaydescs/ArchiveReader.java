@@ -43,7 +43,9 @@ public class ArchiveReader {
   private Map<String, Set<String>> microdescriptorValidAfterTimes =
       new HashMap<String, Set<String>>();
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Reads all descriptors from the given directory, possibly using a
+   * parse history file, and passes them to the given descriptor
+   * parser. */
   public ArchiveReader(RelayDescriptorParser rdp, File archivesDirectory,
       File statsDirectory, boolean keepImportHistory) {
 
@@ -272,7 +274,10 @@ public class ArchiveReader {
         + ignoredFiles + " files.");
   }
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Stores the valid-after time and microdescriptor digests of a given
+   * microdesc consensus, so that microdescriptors (which don't contain a
+   * publication time) can later be sorted into the correct month
+   * folders. */
   public void haveParsedMicrodescConsensus(String validAfterTime,
       SortedSet<String> microdescriptorDigests) {
     for (String microdescriptor : microdescriptorDigests) {

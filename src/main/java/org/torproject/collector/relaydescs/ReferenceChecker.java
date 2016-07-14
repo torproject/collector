@@ -68,7 +68,7 @@ public class ReferenceChecker {
 
   private static final long THIRTY_DAYS = 30L * ONE_DAY;
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Initializes a reference checker using the given file paths. */
   public ReferenceChecker(File descriptorsDir, File referencesFile,
       File historyFile) {
     this.descriptorsDir = descriptorsDir;
@@ -76,7 +76,8 @@ public class ReferenceChecker {
     this.historyFile = historyFile;
   }
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Checks references between descriptors, and if too many referenced
+   * descriptors are missing, puts out a warning to the logs. */
   public void check() {
     this.getCurrentTimeMillis();
     this.readReferencesFile();

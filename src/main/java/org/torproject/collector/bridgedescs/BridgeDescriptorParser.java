@@ -16,14 +16,16 @@ public class BridgeDescriptorParser {
 
   private Logger logger;
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Initializes a new bridge descriptor parser and links it to a
+   * sanitized bridges writer to sanitize and store bridge descriptors. */
   public BridgeDescriptorParser(SanitizedBridgesWriter sbw) {
     this.sbw = sbw;
     this.logger =
         LoggerFactory.getLogger(BridgeDescriptorParser.class);
   }
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Parses the first line of the given descriptor data to determine the
+   * descriptor type and passes it to the sanitized bridges writer. */
   public void parse(byte[] allData, String dateTime) {
     try {
       BufferedReader br = new BufferedReader(new StringReader(

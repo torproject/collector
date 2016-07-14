@@ -108,7 +108,8 @@ public class ArchiveWriter extends Thread {
   private static final String MICRODESC = "microdesc";
   private static final String MICRODESCS = "microdescs";
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Executes the relay-descriptors module using the given
+   * configuration. */
   public static void main(Configuration config) throws ConfigurationException {
 
     logger.info("Starting relay-descriptors module of CollecTor.");
@@ -134,7 +135,7 @@ public class ArchiveWriter extends Thread {
     logger.info("Terminating relay-descriptors module of CollecTor.");
   }
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Initialize an archive writer with a given configuration. */
   public ArchiveWriter(Configuration config) throws ConfigurationException {
     this.config = config;
     storedServerDescriptorsFile =
@@ -319,7 +320,8 @@ public class ArchiveWriter extends Thread {
     }
   }
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Compiles a message with statistics on stored descriptors by type for
+   * later inclusion in the log and resets counters. */
   public void intermediateStats(String event) {
     intermediateStats.append("While " + event + ", we stored "
         + this.storedConsensusesCounter + " consensus(es), "
@@ -649,7 +651,8 @@ public class ArchiveWriter extends Thread {
     }
   }
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Stores a consensus to disk and adds all referenced votes and server
+   * descriptors to the list of missing descriptors. */
   public void storeConsensus(byte[] data, long validAfter,
       SortedSet<String> dirSources,
       SortedSet<String> serverDescriptorDigests) {
@@ -672,7 +675,8 @@ public class ArchiveWriter extends Thread {
     }
   }
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Stores a microdesc consensus to disk and adds all referenced
+   * microdescriptors to the list of missing descriptors. */
   public void storeMicrodescConsensus(byte[] data, long validAfter,
       SortedSet<String> microdescriptorDigests) {
     SimpleDateFormat yearMonthDirectoryFormat = new SimpleDateFormat(
@@ -699,7 +703,8 @@ public class ArchiveWriter extends Thread {
     }
   }
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Stores a vote to disk and adds all referenced server descriptors to
+   * the list of missing descriptors. */
   public void storeVote(byte[] data, long validAfter,
       String fingerprint, String digest,
       SortedSet<String> serverDescriptorDigests) {
@@ -727,7 +732,7 @@ public class ArchiveWriter extends Thread {
     }
   }
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Stores a key certificate to disk. */
   public void storeCertificate(byte[] data, String fingerprint,
       long published) {
     SimpleDateFormat printFormat = new SimpleDateFormat(
@@ -741,7 +746,8 @@ public class ArchiveWriter extends Thread {
     }
   }
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Stores a server descriptor to disk and adds the referenced
+   * extra-info descriptor to the list of missing descriptors. */
   public void storeServerDescriptor(byte[] data, String digest,
       long published, String extraInfoDigest) {
     SimpleDateFormat printFormat = new SimpleDateFormat("yyyy/MM/");
@@ -770,7 +776,7 @@ public class ArchiveWriter extends Thread {
     }
   }
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Stores an extra-info descriptor to disk. */
   public void storeExtraInfoDescriptor(byte[] data,
       String extraInfoDigest, long published) {
     SimpleDateFormat descriptorFormat = new SimpleDateFormat("yyyy/MM/");
@@ -798,7 +804,7 @@ public class ArchiveWriter extends Thread {
     }
   }
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Stores a microdescriptor to disk. */
   public void storeMicrodescriptor(byte[] data,
       String microdescriptorDigest, long validAfter) {
     /* TODO We could check here whether we already stored the

@@ -54,7 +54,8 @@ public class SanitizedBridgesWriter extends Thread {
 
   private static Logger logger = LoggerFactory.getLogger(SanitizedBridgesWriter.class);
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Executes the bridge-descriptors module using the given
+   * configuration. */
   public static void main(Configuration config) throws ConfigurationException {
 
     logger.info("Starting bridge-descriptors module of CollecTor.");

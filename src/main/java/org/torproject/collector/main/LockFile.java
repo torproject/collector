@@ -28,7 +28,9 @@ public class LockFile {
     this.moduleName = moduleName;
   }
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Acquires the lock by checking whether a lock file already exists,
+   * and if not, by creating one with the current system time as
+   * content. */
   public boolean acquireLock() {
     this.logger.debug("Trying to acquire lock...");
     try {
@@ -54,7 +56,7 @@ public class LockFile {
     }
   }
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Releases the lock by deleting the lock file, if present. */
   public void releaseLock() {
     this.logger.debug("Releasing lock...");
     this.lockFile.delete();

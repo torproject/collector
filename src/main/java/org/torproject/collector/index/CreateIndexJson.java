@@ -52,7 +52,8 @@ public class CreateIndexJson {
 
   static final TimeZone dateTimezone = TimeZone.getTimeZone("UTC");
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Creates indexes of directories containing archived and recent
+   * descriptors and write index files to disk. */
   public static void main(Configuration config)
       throws ConfigurationException, IOException {
     indexJsonFile =  new File(config.getPath(Key.IndexPath).toFile(), "index.json");

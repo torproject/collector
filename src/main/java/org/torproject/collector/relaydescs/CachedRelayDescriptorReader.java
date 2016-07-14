@@ -36,7 +36,8 @@ import java.util.TreeSet;
  */
 public class CachedRelayDescriptorReader {
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Reads cached-descriptor files from one or more directories and
+   * passes them to the given descriptor parser. */
   public CachedRelayDescriptorReader(RelayDescriptorParser rdp,
       String[] inputDirectories, File statsDirectory) {
 

@@ -70,7 +70,10 @@ public class RelayDescriptorParser {
     this.ar = ar;
   }
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Parses the given bytes to find out the contained descriptor type,
+   * forwards them to the archive writer to store them to disk, and tells
+   * the relay descriptor downloader and archive reader about the
+   * contained descriptor and all referenced descriptors. */
   public boolean parse(byte[] data) {
     boolean stored = false;
     try {
@@ -326,7 +329,9 @@ public class RelayDescriptorParser {
     return stored;
   }
 
-  @SuppressWarnings("checkstyle:javadocmethod")
+  /** Forwards the given microdescriptor to the archive writer to store
+   * it to disk and tells the relay descriptor downloader that this
+   * microdescriptor is not missing anymore. */
   public void storeMicrodescriptor(byte[] data, String digest256Hex,
       String digest256Base64, long validAfter) {
     if (this.aw != null) {
