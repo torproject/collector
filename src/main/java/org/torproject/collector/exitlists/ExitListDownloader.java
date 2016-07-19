@@ -53,7 +53,12 @@ public class ExitListDownloader extends Thread {
     logger.info("Terminating exit-lists module of CollecTor.");
   }
 
-  public ExitListDownloader(Configuration config) {}
+  private Configuration config;
+
+  /** Instanciate the exit-lists module using the given configuration. */
+  public ExitListDownloader(Configuration config) {
+    this.config = config;
+  }
 
   @Override
   public void run() {
@@ -113,8 +118,8 @@ public class ExitListDownloader extends Thread {
     SimpleDateFormat tarballFormat =
         new SimpleDateFormat("yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
     tarballFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    File tarballFile = new File("out/exit-lists/" + tarballFormat.format(
-        downloadedDate));
+    File tarballFile = new File(config.getPath(Key.ExitlistOutputDirectory)
+        + tarballFormat.format(downloadedDate));
 
     long maxScanMillis = 0L;
     try {
@@ -146,8 +151,8 @@ public class ExitListDownloader extends Thread {
     }
 
     /* Write to disk. */
-    File rsyncFile = new File("recent/exit-lists/"
-        + tarballFile.getName());
+    File rsyncFile = new File(config.getPath(Key.RecentPath).toFile(),
+        "exit-lists/" + tarballFile.getName());
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
     for (File outputFile : outputFiles) {
       try {
@@ -166,7 +171,7 @@ public class ExitListDownloader extends Thread {
     StringBuilder dumpStats = new StringBuilder("Finished downloading "
         + "exit list.\nLast three exit lists are:");
     Stack<File> filesInInputDir = new Stack<File>();
-    filesInInputDir.add(new File("out/exit-lists"));
+    filesInInputDir.add(config.getPath(Key.ExitlistOutputDirectory).toFile());
     SortedSet<File> lastThreeExitLists = new TreeSet<File>();
     while (!filesInInputDir.isEmpty()) {
       File pop = filesInInputDir.pop();
@@ -198,11 +203,12 @@ public class ExitListDownloader extends Thread {
 
   /** Delete all files from the rsync directory that have not been modified
    * in the last three days. */
-  public void cleanUpRsyncDirectory() {
+  public void cleanUpRsyncDirectory() throws ConfigurationException {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
     Stack<File> allFiles = new Stack<File>();
-    allFiles.add(new File("recent/exit-lists"));
+    allFiles.add(new File(config.getPath(Key.RecentPath).toFile(),
+        "/exit-lists"));
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();
       if (file.isDirectory()) {

@@ -62,6 +62,7 @@ public class TorperfDownloader extends Thread {
   private Map<String, String> torperfSources = new HashMap<>();
   private String[] torperfFilesLines = null;
   private SimpleDateFormat dateFormat;
+  private File torperfLastMergedFile;
 
   @Override
   public void run() {
@@ -77,6 +78,8 @@ public class TorperfDownloader extends Thread {
     this.torperfFilesLines = config.getStringArray(Key.TorperfFilesLines);
     this.torperfOutputDirectory = config.getPath(Key.TorperfOutputDirectory)
         .toFile();
+    this.torperfLastMergedFile = new File(config.getPath(Key.StatsPath).toFile(),
+       "torperf-last-merged");
     if (!this.torperfOutputDirectory.exists()) {
       this.torperfOutputDirectory.mkdirs();
     }
@@ -93,9 +96,6 @@ public class TorperfDownloader extends Thread {
 
     this.cleanUpRsyncDirectory();
   }
-
-  private File torperfLastMergedFile =
-      new File("stats/torperf-last-merged");
 
   SortedMap<String, String> lastMergedTimestamps =
       new TreeMap<String, String>();
@@ -160,7 +160,8 @@ public class TorperfDownloader extends Thread {
     }
   }
 
-  private void downloadAndMergeFiles(String torperfFilesLine) {
+  private void downloadAndMergeFiles(String torperfFilesLine)
+      throws ConfigurationException {
     String[] parts = torperfFilesLine.split(" ");
     String sourceName = parts[0];
     int fileSize = -1;
@@ -306,7 +307,8 @@ public class TorperfDownloader extends Thread {
   }
 
   private String mergeFiles(File dataFile, File extradataFile,
-      String source, int fileSize, String skipUntil) throws IOException {
+      String source, int fileSize, String skipUntil) throws IOException,
+      ConfigurationException {
     SortedMap<String, String> config = new TreeMap<String, String>();
     config.put("SOURCE", source);
     config.put("FILESIZE", String.valueOf(fileSize));
@@ -548,7 +550,8 @@ public class TorperfDownloader extends Thread {
   private SortedMap<String, String> cachedTpfLines;
 
   private void writeTpfLine(String source, int fileSize,
-      SortedMap<String, String> keysAndValues) throws IOException {
+      SortedMap<String, String> keysAndValues) throws ConfigurationException,
+      IOException {
     StringBuilder sb = new StringBuilder();
     int written = 0;
     for (Map.Entry<String, String> keyAndValue :
@@ -602,7 +605,8 @@ public class TorperfDownloader extends Thread {
     br.close();
   }
 
-  private void writeCachedTpfLines() throws IOException {
+  private void writeCachedTpfLines() throws ConfigurationException,
+      IOException {
     if (this.cachedSource == null || this.cachedFileSize == 0
         || this.cachedStartDate == null || this.cachedTpfLines == null) {
       return;
@@ -612,7 +616,8 @@ public class TorperfDownloader extends Thread {
         + "/" + this.cachedSource + "-"
         + String.valueOf(this.cachedFileSize) + "-"
         + this.cachedStartDate + ".tpf");
-    File rsyncFile = new File("recent/torperf/" + tarballFile.getName());
+    File rsyncFile = new File(config.getPath(Key.RecentPath).toFile(),
+        "torperf/" + tarballFile.getName());
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
     for (File outputFile : outputFiles) {
       outputFile.getParentFile().mkdirs();
@@ -631,11 +636,11 @@ public class TorperfDownloader extends Thread {
 
   /** Delete all files from the rsync directory that have not been modified
    * in the last three days. */
-  public void cleanUpRsyncDirectory() {
+  public void cleanUpRsyncDirectory() throws ConfigurationException {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
     Stack<File> allFiles = new Stack<File>();
-    allFiles.add(new File("recent/torperf"));
+    allFiles.add(new File(config.getPath(Key.RecentPath).toFile(), "torperf"));
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();
       if (file.isDirectory()) {

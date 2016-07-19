@@ -8,6 +8,8 @@ import java.nio.file.Path;
  */
 public enum Key {
 
+  ExitlistOutputDirectory(Path.class),
+  InstanceBaseUrl(String.class),
   LockFilePath(Path.class),
   ArchivePath(Path.class),
   RecentPath(Path.class),

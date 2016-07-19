@@ -120,7 +120,7 @@ public class SanitizedBridgesWriter extends Thread {
         config.getPath(Key.BridgeSnapshotsDirectory).toFile();
     File sanitizedBridgesDirectory =
         config.getPath(Key.SanitizedBridgesWriteDirectory).toFile();
-    File statsDirectory = new File("stats");
+    File statsDirectory = config.getPath(Key.StatsPath).toFile();
 
     if (bridgeDirectoriesDirectory == null
         || sanitizedBridgesDirectory == null || statsDirectory == null) {
@@ -923,12 +923,12 @@ public class SanitizedBridgesWriter extends Thread {
         + "/" + descriptorDigest.charAt(0) + "/"
         + descriptorDigest.charAt(1) + "/"
         + descriptorDigest);
-    File rsyncCatFile = new File("recent/bridge-descriptors/"
-        + "server-descriptors/" + this.rsyncCatString
-        + "-server-descriptors.tmp");
-    File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
-    boolean[] append = new boolean[] { false, true };
     try {
+      File rsyncCatFile = new File(config.getPath(Key.RecentPath).toFile(),
+          "bridge-descriptors/server-descriptors/" + this.rsyncCatString
+          + "-server-descriptors.tmp");
+      File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
+      boolean[] append = new boolean[] { false, true };
       for (int i = 0; i < outputFiles.length; i++) {
         File outputFile = outputFiles[i];
         boolean appendToFile = append[i];
@@ -950,7 +950,7 @@ public class SanitizedBridgesWriter extends Thread {
             + "\n");
         bw.close();
       }
-    } catch (IOException e) {
+    } catch (ConfigurationException | IOException e) {
       this.logger.warn("Could not write sanitized server "
           + "descriptor to disk.", e);
       return;
@@ -1201,11 +1201,12 @@ public class SanitizedBridgesWriter extends Thread {
         + descriptorDigest.charAt(0) + "/"
         + descriptorDigest.charAt(1) + "/"
         + descriptorDigest);
-    File rsyncCatFile = new File("recent/bridge-descriptors/"
-        + "extra-infos/" + this.rsyncCatString + "-extra-infos.tmp");
-    File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
-    boolean[] append = new boolean[] { false, true };
     try {
+      File rsyncCatFile = new File(config.getPath(Key.RecentPath).toFile(),
+          "bridge-descriptors/extra-infos/" + this.rsyncCatString
+          + "-extra-infos.tmp");
+      File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
+      boolean[] append = new boolean[] { false, true };
       for (int i = 0; i < outputFiles.length; i++) {
         File outputFile = outputFiles[i];
         boolean appendToFile = append[i];
@@ -1313,11 +1314,12 @@ public class SanitizedBridgesWriter extends Thread {
   /** Delete all files from the rsync directory that have not been modified
    * in the last three days, and remove the .tmp extension from newly
    * written files. */
-  public void cleanUpRsyncDirectory() {
+  public void cleanUpRsyncDirectory() throws ConfigurationException {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
     Stack<File> allFiles = new Stack<File>();
-    allFiles.add(new File("recent/bridge-descriptors"));
+    allFiles.add(new File(config.getPath(Key.RecentPath).toFile(),
+        "bridge-descriptors"));
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();
       if (file.isDirectory()) {

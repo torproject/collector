@@ -39,7 +39,7 @@ public class CreateIndexJson {
 
   private static File indexJsonFile;
 
-  private static String basePath = "https://collector.torproject.org";
+  private static String basePath;
 
   private static File[] indexedDirectories;
 
@@ -54,9 +54,10 @@ public class CreateIndexJson {
   public static void main(Configuration config)
       throws ConfigurationException, IOException {
     indexJsonFile =  new File(config.getPath(Key.IndexPath).toFile(), "index.json");
+    basePath = config.getProperty(Key.InstanceBaseUrl.name());
     indexedDirectories = new File[] {
-        new File(config.getPath(Key.ArchivePath).toFile(), "archive"),
-        new File(config.getPath(Key.RecentPath).toFile(), "recent") };
+        config.getPath(Key.ArchivePath).toFile(),
+        config.getPath(Key.RecentPath).toFile() };
     writeIndex(indexDirectories());
   }
 
