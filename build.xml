@@ -141,9 +141,18 @@
         <include name="collector.properties"/>
         <include name="logback.xml"/>
       </fileset>
-      <zipgroupfileset dir="${libs}" >
-        <patternset refid="runtime" />
-      </zipgroupfileset>
+      <restrict>
+        <not>
+          <name name="META-INF/*" />
+        </not>
+        <archives>
+          <zips>
+            <fileset dir="${libs}">
+              <patternset refid="runtime" />
+            </fileset>
+          </zips>
+        </archives>
+      </restrict>
       <manifest>
         <attribute name="Created-By" value="The Tor Project" />
         <attribute name="Implementation-Title" value="${name}"/>
