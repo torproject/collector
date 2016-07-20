@@ -136,7 +136,7 @@ public class ArchiveWriter extends CollecTorMain {
   }
 
   private void startProcessing() throws ConfigurationException {
-    File statsDirectory = new File("stats");
+    File statsDirectory = config.getPath(Key.StatsPath).toFile();
     this.outputDirectory = config.getPath(Key.DirectoryArchivesOutputDirectory).toString();
     SimpleDateFormat rsyncCatFormat = new SimpleDateFormat(
         "yyyy-MM-dd-HH-mm-ss");
