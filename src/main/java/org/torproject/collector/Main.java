@@ -5,6 +5,9 @@ package org.torproject.collector;
 
 import org.torproject.collector.bridgedescs.SanitizedBridgesWriter;
 import org.torproject.collector.conf.Configuration;
+import org.torproject.collector.conf.Key;
+import org.torproject.collector.cron.CollecTorMain;
+import org.torproject.collector.cron.Scheduler;
 import org.torproject.collector.exitlists.ExitListDownloader;
 import org.torproject.collector.index.CreateIndexJson;
 import org.torproject.collector.relaydescs.ArchiveWriter;
@@ -37,34 +40,31 @@ public class Main {
   /** All possible main classes.
    * If a new CollecTorMain class is available, just add it to this map.
    */
-  static final Map<String, Class> collecTorMains = new HashMap<>();
+  static final Map<Key, Class<? extends CollecTorMain>> collecTorMains = new HashMap<>();
 
   static { // add a new main class here
-    collecTorMains.put("bridgedescs", SanitizedBridgesWriter.class);
-    collecTorMains.put("exitlists", ExitListDownloader.class);
-    collecTorMains.put("updateindex", CreateIndexJson.class);
-    collecTorMains.put("relaydescs", ArchiveWriter.class);
-    collecTorMains.put("torperf", TorperfDownloader.class);
+    collecTorMains.put(Key.BridgedescsActivated, SanitizedBridgesWriter.class);
+    collecTorMains.put(Key.ExitlistsActivated, ExitListDownloader.class);
+    collecTorMains.put(Key.UpdateindexActivated, CreateIndexJson.class);
+    collecTorMains.put(Key.RelaydescsActivated, ArchiveWriter.class);
+    collecTorMains.put(Key.TorperfActivated, TorperfDownloader.class);
   }
-
-  private static final String modules = collecTorMains.keySet().toString()
-      .replace("[", "").replace("]", "").replaceAll(", ", "|");
 
   private static Configuration conf = new Configuration();
 
   /**
-   * One argument is necessary.
+   * At most one argument.
    * See class description {@link Main}.
    */
   public static void main(String[] args) throws Exception {
     File confFile = null;
-    if (null == args || args.length < 1 || args.length > 2) {
-      printUsage("CollecTor needs one or two arguments.");
-      return;
-    } else if (args.length == 1) {
+    if (args == null || args.length == 0) {
       confFile = new File(CONF_FILE);
-    } else if (args.length == 2) {
-      confFile = new File(args[1]);
+    } else if (args.length == 1) {
+      confFile = new File(args[0]);
+    } else {
+      printUsage("CollecTor takes at most one argument.");
+      return;
     }
     if (!confFile.exists() || confFile.length() < 1L) {
       writeDefaultConfig(confFile);
@@ -72,12 +72,12 @@ public class Main {
     } else {
       readConfigurationFrom(confFile);
     }
-    invokeGivenMain(args[0]);
+    Scheduler.getInstance().scheduleModuleRuns(collecTorMains, conf);
   }
 
   private static void printUsage(String msg) {
     final String usage = "Usage:\njava -jar collector.jar "
-        + "<" + modules + ">  [path/to/configFile]";
+        + "[path/to/configFile]";
     System.out.println(msg + "\n" + usage);
   }
 
@@ -105,23 +105,5 @@ public class Main {
     }
   }
 
-  private static void invokeGivenMain(String mainId) {
-    Class clazz = collecTorMains.get(mainId);
-    if (null == clazz) {
-      printUsage("Unknown argument: " + mainId);
-    }
-    invokeMainOnClass(clazz);
-  }
-
-  private static void invokeMainOnClass(Class clazz) {
-    try {
-      clazz.getMethod("main", new Class[] { Configuration.class })
-          .invoke(null, (Object) conf);
-    } catch (NoSuchMethodException | IllegalAccessException
-       | InvocationTargetException e) {
-      log.error("Cannot invoke 'main' method on "
-          + clazz.getName() + ". " + e, e);
-    }
-  }
 }
 

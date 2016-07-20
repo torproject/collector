@@ -6,7 +6,7 @@ package org.torproject.collector.bridgedescs;
 import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
-import org.torproject.collector.main.LockFile;
+import org.torproject.collector.cron.CollecTorMain;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
@@ -49,36 +49,12 @@ import java.util.TreeMap;
  * by the bridge to advertise their capabilities), and extra-info
  * descriptors (published by the bridge, mainly for statistical analysis).</p>
  */
-public class SanitizedBridgesWriter extends Thread {
+public class SanitizedBridgesWriter extends CollecTorMain {
 
   private static Logger logger = LoggerFactory.getLogger(SanitizedBridgesWriter.class);
 
-  /** Executes the bridge-descriptors module using the given
-   * configuration. */
-  public static void main(Configuration config) throws ConfigurationException {
-
-    logger.info("Starting bridge-descriptors module of CollecTor.");
-
-    // Use lock file to avoid overlapping runs
-    LockFile lf = new LockFile(config.getPath(Key.LockFilePath).toString(), "bridge-descriptors");
-    lf.acquireLock();
-
-    // Sanitize bridge descriptors
-    new SanitizedBridgesWriter(config).run();
-
-    // Remove lock file
-    lf.releaseLock();
-
-    logger.info("Terminating bridge-descriptors module of CollecTor.");
-  }
-
-  private Configuration config;
-
-  /**
-   * Initializes this class.
-   */
   public SanitizedBridgesWriter(Configuration config) {
-    this.config = config;
+    super(config);
   }
 
   private String rsyncCatString;
@@ -106,12 +82,14 @@ public class SanitizedBridgesWriter extends Thread {
 
   @Override
   public void run() {
+    logger.info("Starting bridge-descriptors module of CollecTor.");
     try {
       startProcessing();
     } catch (ConfigurationException ce) {
       logger.error("Configuration failed: " + ce, ce);
       throw new RuntimeException(ce);
     }
+    logger.info("Terminating bridge-descriptors module of CollecTor.");
   }
 
   private void startProcessing() throws ConfigurationException {

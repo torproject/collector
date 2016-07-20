@@ -6,7 +6,7 @@ package org.torproject.collector.relaydescs;
 import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
-import org.torproject.collector.main.LockFile;
+import org.torproject.collector.cron.CollecTorMain;
 import org.torproject.descriptor.DescriptorParseException;
 import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
@@ -38,11 +38,9 @@ import java.util.Stack;
 import java.util.TimeZone;
 import java.util.TreeMap;
 
-public class ArchiveWriter extends Thread {
+public class ArchiveWriter extends CollecTorMain {
 
   private static Logger logger = LoggerFactory.getLogger(ArchiveWriter.class);
-
-  private Configuration config;
 
   private long now = System.currentTimeMillis();
   private String outputDirectory;
@@ -99,64 +97,45 @@ public class ArchiveWriter extends Thread {
 
   private StringBuilder intermediateStats = new StringBuilder();
 
-  private static Path recentPath;
-  private static String recentPathName;
+  private Path recentPath;
+  private String recentPathName;
   private static final String RELAY_DESCRIPTORS = "relay-descriptors";
   private static final String MICRO = "micro";
   private static final String CONSENSUS_MICRODESC = "consensus-microdesc";
   private static final String MICRODESC = "microdesc";
   private static final String MICRODESCS = "microdescs";
 
-  /** Executes the relay-descriptors module using the given
-   * configuration. */
-  public static void main(Configuration config) throws ConfigurationException {
-
-    logger.info("Starting relay-descriptors module of CollecTor.");
-
-    // Use lock file to avoid overlapping runs
-    LockFile lf = new LockFile(config.getPath(Key.LockFilePath).toString(), RELAY_DESCRIPTORS);
-    lf.acquireLock();
-
-    recentPath = config.getPath(Key.RecentPath);
-    recentPathName = recentPath.toString();
-
-    // Import/download relay descriptors from the various sources
-    new ArchiveWriter(config).run();
-
-    new ReferenceChecker(
-        recentPath.toFile(),
-        new File(config.getPath(Key.StatsPath).toFile(), "references"),
-        new File(config.getPath(Key.StatsPath).toFile(), "references-history")).check();
-
-    // Remove lock file
-    lf.releaseLock();
-
-    logger.info("Terminating relay-descriptors module of CollecTor.");
-  }
-
   /** Initialize an archive writer with a given configuration. */
   public ArchiveWriter(Configuration config) throws ConfigurationException {
-    this.config = config;
-    storedServerDescriptorsFile =
-        new File(config.getPath(Key.StatsPath).toFile(), "stored-server-descriptors");
-    storedExtraInfoDescriptorsFile =
-        new File(config.getPath(Key.StatsPath).toFile(), "stored-extra-info-descriptors");
-    storedMicrodescriptorsFile =
-        new File(config.getPath(Key.StatsPath).toFile(), "stored-microdescriptors");
+    super(config);
   }
 
   @Override
   public void run() {
+    logger.info("Starting relay-descriptors module of CollecTor.");
     try {
+      recentPath = config.getPath(Key.RecentPath);
+      recentPathName = recentPath.toString();
+      File statsDir = config.getPath(Key.StatsPath).toFile();
+      storedServerDescriptorsFile =
+          new File(statsDir, "stored-server-descriptors");
+      storedExtraInfoDescriptorsFile =
+          new File(statsDir, "stored-extra-info-descriptors");
+      storedMicrodescriptorsFile =
+          new File(statsDir, "stored-microdescriptors");
+
       startProcessing();
+      new ReferenceChecker(recentPath.toFile(),
+          new File(statsDir, "references"),
+          new File(statsDir, "references-history")).check();
     } catch (ConfigurationException ce) {
       logger.error("Configuration failed: " + ce, ce);
       throw new RuntimeException(ce);
     }
+    logger.info("Terminating relay-descriptors module of CollecTor.");
   }
 
   private void startProcessing() throws ConfigurationException {
-
     File statsDirectory = new File("stats");
     this.outputDirectory = config.getPath(Key.DirectoryArchivesOutputDirectory).toString();
     SimpleDateFormat rsyncCatFormat = new SimpleDateFormat(

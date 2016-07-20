@@ -6,6 +6,7 @@ package org.torproject.collector.index;
 import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
+import org.torproject.collector.cron.CollecTorMain;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -35,7 +36,7 @@ import java.util.zip.GZIPOutputStream;
  * cache index parts of directories or files that haven't changed.
  * Example: if we parse include cryptographic hashes or @type information,
  * we'll likely have to do that. */
-public class CreateIndexJson {
+public class CreateIndexJson extends CollecTorMain {
 
   private static File indexJsonFile;
 
@@ -51,14 +52,24 @@ public class CreateIndexJson {
 
   /** Creates indexes of directories containing archived and recent
    * descriptors and write index files to disk. */
-  public static void main(Configuration config)
-      throws ConfigurationException, IOException {
-    indexJsonFile =  new File(config.getPath(Key.IndexPath).toFile(), "index.json");
-    basePath = config.getProperty(Key.InstanceBaseUrl.name());
-    indexedDirectories = new File[] {
-        config.getPath(Key.ArchivePath).toFile(),
-        config.getPath(Key.RecentPath).toFile() };
-    writeIndex(indexDirectories());
+  public CreateIndexJson(Configuration conf) {
+    super(conf);
+  }
+
+  @Override
+  public void run() {
+    try {
+      indexJsonFile =  new File(config.getPath(Key.IndexPath).toFile(),
+          "index.json");
+      basePath = config.getProperty(Key.InstanceBaseUrl.name());
+      indexedDirectories = new File[] {
+          config.getPath(Key.ArchivePath).toFile(),
+          config.getPath(Key.RecentPath).toFile() };
+      writeIndex(indexDirectories());
+    } catch (Exception e) {
+      throw new RuntimeException("Cannot run index creation: " + e.getMessage(),
+          e);
+    }
   }
 
   static class DirectoryNode implements Comparable<DirectoryNode> {

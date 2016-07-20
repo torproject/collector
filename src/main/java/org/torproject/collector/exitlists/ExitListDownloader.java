@@ -6,7 +6,7 @@ package org.torproject.collector.exitlists;
 import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
-import org.torproject.collector.main.LockFile;
+import org.torproject.collector.cron.CollecTorMain;
 import org.torproject.descriptor.Descriptor;
 import org.torproject.descriptor.DescriptorParseException;
 import org.torproject.descriptor.DescriptorParser;
@@ -32,42 +32,25 @@ import java.util.Stack;
 import java.util.TimeZone;
 import java.util.TreeSet;
 
-public class ExitListDownloader extends Thread {
+public class ExitListDownloader extends CollecTorMain {
 
   private static Logger logger = LoggerFactory.getLogger(ExitListDownloader.class);
 
-  /** Execute the exit-lists module using the given configuration. */
-  public static void main(Configuration config) throws ConfigurationException {
-    logger.info("Starting exit-lists module of CollecTor.");
-
-    // Use lock file to avoid overlapping runs
-    LockFile lf = new LockFile(config.getPath(Key.LockFilePath).toString(), "exit-lists");
-    lf.acquireLock();
-
-    // Download exit list and store it to disk
-    new ExitListDownloader(config).run();
-
-    // Remove lock file
-    lf.releaseLock();
-
-    logger.info("Terminating exit-lists module of CollecTor.");
-  }
-
-  private Configuration config;
-
   /** Instanciate the exit-lists module using the given configuration. */
   public ExitListDownloader(Configuration config) {
-    this.config = config;
+    super(config);
   }
 
   @Override
   public void run() {
+    logger.info("Starting exit-lists module of CollecTor.");
     try {
       startProcessing();
     } catch (ConfigurationException ce) {
       logger.error("Configuration failed: " + ce, ce);
       throw new RuntimeException(ce);
     }
+    logger.info("Terminating exit-lists module of CollecTor.");
   }
 
   private void startProcessing() throws ConfigurationException {

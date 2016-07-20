@@ -6,7 +6,7 @@ package org.torproject.collector.torperf;
 import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
-import org.torproject.collector.main.LockFile;
+import org.torproject.collector.cron.CollecTorMain;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,30 +32,11 @@ import java.util.TreeMap;
 /* Download possibly truncated Torperf .data and .extradata files from
  * configured sources, append them to the files we already have, and merge
  * the two files into the .tpf format. */
-public class TorperfDownloader extends Thread {
+public class TorperfDownloader extends CollecTorMain {
   private static Logger logger = LoggerFactory.getLogger(TorperfDownloader.class);
 
-  /** Executes the torperf module using the given configuration. */
-  public static void main(Configuration config) throws ConfigurationException {
-    logger.info("Starting torperf module of CollecTor.");
-
-    // Use lock file to avoid overlapping runs
-    LockFile lf = new LockFile(config.getPath(Key.LockFilePath).toString(), "torperf");
-    lf.acquireLock();
-
-    // Process Torperf files
-    new TorperfDownloader(config).run();
-
-    // Remove lock file
-    lf.releaseLock();
-
-    logger.info("Terminating torperf module of CollecTor.");
-  }
-
-  private Configuration config;
-
   public TorperfDownloader(Configuration config) {
-    this.config = config;
+    super(config);
   }
 
   private File torperfOutputDirectory = null;
@@ -66,12 +47,14 @@ public class TorperfDownloader extends Thread {
 
   @Override
   public void run() {
+    logger.info("Starting torperf module of CollecTor.");
     try {
       startProcessing();
     } catch (ConfigurationException ce) {
       logger.error("Configuration failed: " + ce, ce);
       throw new RuntimeException(ce);
     }
+    logger.info("Terminating torperf module of CollecTor.");
   }
 
   private void startProcessing() throws ConfigurationException {
@@ -309,9 +292,6 @@ public class TorperfDownloader extends Thread {
   private String mergeFiles(File dataFile, File extradataFile,
       String source, int fileSize, String skipUntil) throws IOException,
       ConfigurationException {
-    SortedMap<String, String> config = new TreeMap<String, String>();
-    config.put("SOURCE", source);
-    config.put("FILESIZE", String.valueOf(fileSize));
     if (!dataFile.exists() || !extradataFile.exists()) {
       this.logger.warn("File " + dataFile.getAbsolutePath() + " or "
           + extradataFile.getAbsolutePath() + " is missing.");
@@ -426,11 +406,12 @@ public class TorperfDownloader extends Thread {
       /* Write output line to .tpf file. */
       SortedMap<String, String> keysAndValues =
           new TreeMap<String, String>();
+      keysAndValues.put("SOURCE", source);
+      keysAndValues.put("FILESIZE", String.valueOf(fileSize));
       if (extradata != null) {
         keysAndValues.putAll(extradata);
       }
       keysAndValues.putAll(data);
-      keysAndValues.putAll(config);
       this.logger.debug("Writing " + dataFile.getName() + ":"
           + skippedLineCount++ + ".");
       lineD = brD.readLine();
