@@ -84,9 +84,7 @@ public class ExitListDownloader extends Thread {
       sb.append("@type tordnsel 1.0\n");
       sb.append("Downloaded " + dateTimeFormat.format(downloadedDate)
           + "\n");
-      String exitAddressesUrl =
-          "http://exitlist.torproject.org/exit-addresses";
-      URL url = new URL(exitAddressesUrl);
+      URL url = config.getUrl(Key.ExitlistUrl);
       HttpURLConnection huc = (HttpURLConnection) url.openConnection();
       huc.setRequestMethod("GET");
       huc.connect();

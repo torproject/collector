@@ -3,6 +3,8 @@
 
 package org.torproject.collector.conf;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
@@ -110,6 +112,20 @@ public class Configuration extends Properties {
     } catch (RuntimeException re) {
       throw new ConfigurationException("Corrupt property: " + key
           + " reason: " + re.getMessage(), re);
+    }
+  }
+
+  /**
+   * Returns a {@code URL} property, e.g.
+   * {@code urlProperty = https://my.url.here}.
+   */
+  public URL getUrl(Key key) throws ConfigurationException {
+    try {
+      checkClass(key, URL.class);
+      return new URL(getProperty(key.name()));
+    } catch (MalformedURLException mue) {
+      throw new ConfigurationException("Corrupt property: " + key
+          + " reason: " + mue.getMessage(), mue);
     }
   }
 

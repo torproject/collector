@@ -22,7 +22,7 @@ public class ConfigurationTest {
   public void testKeyCount() throws Exception {
     assertEquals("The number of properties keys in enum Key changed."
         + "\n This test class should be adapted.",
-        32, Key.values().length);
+        33, Key.values().length);
   }
 
   @Test()
@@ -126,6 +126,13 @@ public class ConfigurationTest {
     Configuration conf = new Configuration();
     conf.load(new ByteArrayInputStream("DirectoryArchivesDirectory = \\u0000:".getBytes()));
     conf.getPath(Key.DirectoryArchivesDirectory);
+  }
+
+  @Test( expected = ConfigurationException.class)
+  public void testUrlValueException() throws Exception {
+    Configuration conf = new Configuration();
+    conf.load(new ByteArrayInputStream("ExitlistUrl = xxx://y.y.y".getBytes()));
+    conf.getUrl(Key.ExitlistUrl);
   }
 
   @Test( expected = ConfigurationException.class)

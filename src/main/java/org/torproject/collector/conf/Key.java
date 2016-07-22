@@ -1,5 +1,6 @@
 package org.torproject.collector.conf;
 
+import java.net.URL;
 import java.nio.file.Path;
 
 /**
@@ -9,6 +10,7 @@ import java.nio.file.Path;
 public enum Key {
 
   ExitlistOutputDirectory(Path.class),
+  ExitlistUrl(URL.class),
   InstanceBaseUrl(String.class),
   LockFilePath(Path.class),
   ArchivePath(Path.class),
