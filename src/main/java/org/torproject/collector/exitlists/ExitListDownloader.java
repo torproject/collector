@@ -42,18 +42,12 @@ public class ExitListDownloader extends CollecTorMain {
   }
 
   @Override
-  public void run() {
-    logger.info("Starting exit-lists module of CollecTor.");
-    try {
-      startProcessing();
-    } catch (ConfigurationException ce) {
-      logger.error("Configuration failed: " + ce, ce);
-      throw new RuntimeException(ce);
-    }
-    logger.info("Terminating exit-lists module of CollecTor.");
+  public String module() {
+    return "exitlists";
   }
 
-  private void startProcessing() throws ConfigurationException {
+  @Override
+  protected void startProcessing() throws ConfigurationException {
 
     SimpleDateFormat dateTimeFormat =
         new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -92,7 +86,7 @@ public class ExitListDownloader extends CollecTorMain {
       return;
     }
     if (downloadedExitList == null) {
-      logger.warn("Failed downloading exit list");
+      logger.warn("Failed downloading exit list.");
       return;
     }
 

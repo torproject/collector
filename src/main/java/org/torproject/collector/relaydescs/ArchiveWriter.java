@@ -111,33 +111,24 @@ public class ArchiveWriter extends CollecTorMain {
   }
 
   @Override
-  public void run() {
-    logger.info("Starting relay-descriptors module of CollecTor.");
-    try {
-      recentPath = config.getPath(Key.RecentPath);
-      recentPathName = recentPath.toString();
-      File statsDir = config.getPath(Key.StatsPath).toFile();
-      storedServerDescriptorsFile =
-          new File(statsDir, "stored-server-descriptors");
-      storedExtraInfoDescriptorsFile =
-          new File(statsDir, "stored-extra-info-descriptors");
-      storedMicrodescriptorsFile =
-          new File(statsDir, "stored-microdescriptors");
-
-      startProcessing();
-      new ReferenceChecker(recentPath.toFile(),
-          new File(statsDir, "references"),
-          new File(statsDir, "references-history")).check();
-    } catch (ConfigurationException ce) {
-      logger.error("Configuration failed: " + ce, ce);
-      throw new RuntimeException(ce);
-    }
-    logger.info("Terminating relay-descriptors module of CollecTor.");
+  public String module() {
+    return "relaydescs";
   }
 
-  private void startProcessing() throws ConfigurationException {
+  @Override
+  protected void startProcessing() throws ConfigurationException {
+    recentPath = config.getPath(Key.RecentPath);
+    recentPathName = recentPath.toString();
+    File statsDir = config.getPath(Key.StatsPath).toFile();
+    storedServerDescriptorsFile
+        = new File(statsDir, "stored-server-descriptors");
+    storedExtraInfoDescriptorsFile
+        = new File(statsDir, "stored-extra-info-descriptors");
+    storedMicrodescriptorsFile
+        = new File(statsDir, "stored-microdescriptors");
     File statsDirectory = config.getPath(Key.StatsPath).toFile();
-    this.outputDirectory = config.getPath(Key.DirectoryArchivesOutputDirectory).toString();
+    this.outputDirectory = config.getPath(Key.DirectoryArchivesOutputDirectory)
+        .toString();
     SimpleDateFormat rsyncCatFormat = new SimpleDateFormat(
         "yyyy-MM-dd-HH-mm-ss");
     rsyncCatFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -197,6 +188,10 @@ public class ArchiveWriter extends CollecTorMain {
     this.cleanUpRsyncDirectory();
 
     this.saveDescriptorDigests();
+
+    new ReferenceChecker(recentPath.toFile(),
+        new File(statsDir, "references"),
+        new File(statsDir, "references-history")).check();
   }
 
   private void loadDescriptorDigests() {

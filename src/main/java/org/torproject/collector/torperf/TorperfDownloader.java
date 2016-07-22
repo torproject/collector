@@ -46,18 +46,12 @@ public class TorperfDownloader extends CollecTorMain {
   private File torperfLastMergedFile;
 
   @Override
-  public void run() {
-    logger.info("Starting torperf module of CollecTor.");
-    try {
-      startProcessing();
-    } catch (ConfigurationException ce) {
-      logger.error("Configuration failed: " + ce, ce);
-      throw new RuntimeException(ce);
-    }
-    logger.info("Terminating torperf module of CollecTor.");
+  public String module() {
+    return "torperf";
   }
 
-  private void startProcessing() throws ConfigurationException {
+  @Override
+  protected void startProcessing() throws ConfigurationException {
     this.torperfFilesLines = config.getStringArray(Key.TorperfFilesLines);
     this.torperfOutputDirectory = config.getPath(Key.TorperfOutputDirectory)
         .toFile();

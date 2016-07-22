@@ -81,18 +81,12 @@ public class SanitizedBridgesWriter extends CollecTorMain {
   private SecureRandom secureRandom;
 
   @Override
-  public void run() {
-    logger.info("Starting bridge-descriptors module of CollecTor.");
-    try {
-      startProcessing();
-    } catch (ConfigurationException ce) {
-      logger.error("Configuration failed: " + ce, ce);
-      throw new RuntimeException(ce);
-    }
-    logger.info("Terminating bridge-descriptors module of CollecTor.");
+  public String module() {
+    return "bridgedescs";
   }
 
-  private void startProcessing() throws ConfigurationException {
+  @Override
+  protected void startProcessing() throws ConfigurationException {
 
     File bridgeDirectoriesDirectory =
         config.getPath(Key.BridgeSnapshotsDirectory).toFile();
@@ -102,7 +96,9 @@ public class SanitizedBridgesWriter extends CollecTorMain {
 
     if (bridgeDirectoriesDirectory == null
         || sanitizedBridgesDirectory == null || statsDirectory == null) {
-      throw new IllegalArgumentException();
+      throw new ConfigurationException("BridgeSnapshotsDirectory, "
+          + "SanitizedBridgesWriteDirectory, StatsPath should be set. "
+          + "Please, edit the 'collector.properties' file.");
     }
 
     /* Memorize argument values. */

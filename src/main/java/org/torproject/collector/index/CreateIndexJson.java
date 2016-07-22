@@ -13,6 +13,8 @@ import com.google.gson.GsonBuilder;
 
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -38,17 +40,19 @@ import java.util.zip.GZIPOutputStream;
  * we'll likely have to do that. */
 public class CreateIndexJson extends CollecTorMain {
 
+  private static Logger log = LoggerFactory.getLogger(CreateIndexJson.class);
+
   private static File indexJsonFile;
 
   private static String basePath;
 
   private static File[] indexedDirectories;
 
-  static final String dateTimePattern = "yyyy-MM-dd HH:mm";
+  private static final String dateTimePattern = "yyyy-MM-dd HH:mm";
 
-  static final Locale dateTimeLocale = Locale.US;
+  private static final Locale dateTimeLocale = Locale.US;
 
-  static final TimeZone dateTimezone = TimeZone.getTimeZone("UTC");
+  private static final TimeZone dateTimezone = TimeZone.getTimeZone("UTC");
 
   /** Creates indexes of directories containing archived and recent
    * descriptors and write index files to disk. */
@@ -57,7 +61,12 @@ public class CreateIndexJson extends CollecTorMain {
   }
 
   @Override
-  public void run() {
+  public String module() {
+    return "updateindex";
+  }
+
+  @Override
+  protected void startProcessing() throws ConfigurationException {
     try {
       indexJsonFile =  new File(config.getPath(Key.IndexPath).toFile(),
           "index.json");
@@ -67,12 +76,12 @@ public class CreateIndexJson extends CollecTorMain {
           config.getPath(Key.RecentPath).toFile() };
       writeIndex(indexDirectories());
     } catch (Exception e) {
-      throw new RuntimeException("Cannot run index creation: " + e.getMessage(),
-          e);
+      log.error("Cannot run index creation: " + e.getMessage(), e);
+      throw new RuntimeException(e);
     }
   }
 
-  static class DirectoryNode implements Comparable<DirectoryNode> {
+  private class DirectoryNode implements Comparable<DirectoryNode> {
     String path;
     SortedSet<FileNode> files;
     SortedSet<DirectoryNode> directories;
@@ -90,7 +99,7 @@ public class CreateIndexJson extends CollecTorMain {
   }
 
   @SuppressWarnings({"checkstyle:membername", "checkstyle:parametername"})
-  static class IndexNode {
+  private class IndexNode {
     String index_created;
     String path;
     SortedSet<FileNode> files;
@@ -107,7 +116,7 @@ public class CreateIndexJson extends CollecTorMain {
   }
 
   @SuppressWarnings({"checkstyle:membername", "checkstyle:parametername"})
-  static class FileNode implements Comparable<FileNode> {
+  private class FileNode implements Comparable<FileNode> {
     String path;
     long size;
     String last_modified;
@@ -123,7 +132,7 @@ public class CreateIndexJson extends CollecTorMain {
     }
   }
 
-  static DateFormat dateTimeFormat;
+  private static DateFormat dateTimeFormat;
 
   static {
     dateTimeFormat = new SimpleDateFormat(dateTimePattern,
@@ -132,30 +141,44 @@ public class CreateIndexJson extends CollecTorMain {
     dateTimeFormat.setTimeZone(dateTimezone);
   }
 
-  static IndexNode indexDirectories() {
+  private IndexNode indexDirectories() {
     SortedSet<DirectoryNode> directoryNodes =
         new TreeSet<DirectoryNode>();
+    log.trace("indexing: " + indexedDirectories[0] + " "
+        + indexedDirectories[1]);
     for (File directory : indexedDirectories) {
       if (directory.exists() && directory.isDirectory()) {
-        directoryNodes.add(indexDirectory(directory));
+        DirectoryNode dn = indexDirectory(directory);
+        if (null != dn) {
+          directoryNodes.add(dn);
+        }
       }
     }
     return new IndexNode(dateTimeFormat.format(
         System.currentTimeMillis()), basePath, null, directoryNodes);
   }
 
-  static DirectoryNode indexDirectory(File directory) {
+  private DirectoryNode indexDirectory(File directory) {
     SortedSet<FileNode> fileNodes = new TreeSet<FileNode>();
     SortedSet<DirectoryNode> directoryNodes =
         new TreeSet<DirectoryNode>();
-    for (File fileOrDirectory : directory.listFiles()) {
+    log.trace("indexing: " + directory);
+    File[] fileList = directory.listFiles();
+    if (null == fileList) {
+      log.warn("Indexing dubious directory: " + directory);
+      return null;
+    }
+    for (File fileOrDirectory : fileList) {
       if (fileOrDirectory.getName().startsWith(".")) {
         continue;
       }
       if (fileOrDirectory.isFile()) {
         fileNodes.add(indexFile(fileOrDirectory));
       } else {
-        directoryNodes.add(indexDirectory(fileOrDirectory));
+        DirectoryNode dn = indexDirectory(fileOrDirectory);
+        if (null != dn) {
+          directoryNodes.add(dn);
+        }
       }
     }
     DirectoryNode directoryNode = new DirectoryNode(
@@ -164,13 +187,13 @@ public class CreateIndexJson extends CollecTorMain {
     return directoryNode;
   }
 
-  static FileNode indexFile(File file) {
+  private FileNode indexFile(File file) {
     FileNode fileNode = new FileNode(file.getName(), file.length(),
         dateTimeFormat.format(file.lastModified()));
     return fileNode;
   }
 
-  static void writeIndex(IndexNode indexNode) throws IOException {
+  private void writeIndex(IndexNode indexNode) throws IOException {
     Gson gson = new GsonBuilder().create();
     String indexNodeString = gson.toJson(indexNode);
     Writer[] writers = new Writer[] {

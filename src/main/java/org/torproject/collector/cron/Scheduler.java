@@ -16,22 +16,28 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Scheduler that starts the modules configured in collector.properties.
  */
-public class Scheduler {
+public class Scheduler implements ThreadFactory {
 
   public static final String ACTIVATED = "Activated";
   public static final String PERIODMIN = "PeriodMinutes";
   public static final String OFFSETMIN = "OffsetMinutes";
 
-  private final Logger log = LoggerFactory.getLogger(Scheduler.class);
+  private static final Logger log = LoggerFactory.getLogger(Scheduler.class);
+
+  private final ThreadFactory threads = Executors.defaultThreadFactory();
+
+  private int currentThreadNo = 0;
 
   private final ScheduledExecutorService scheduler =
-      Executors.newScheduledThreadPool(1);
+      Executors.newScheduledThreadPool(10, this);
 
   private static Scheduler instance = new Scheduler();
 
@@ -60,11 +66,10 @@ public class Scheduler {
         }
       } catch (ConfigurationException | IllegalAccessException
           | InstantiationException | InvocationTargetException
-          | NoSuchMethodException | RuntimeException ex) {
+          | NoSuchMethodException | RejectedExecutionException
+          | NullPointerException ex) {
         log.error("Cannot schedule " + ctmEntry.getValue().getName()
             + ". Reason: " + ex.getMessage(), ex);
-        shutdownScheduler();
-        throw new RuntimeException("Halted scheduling.", ex);
       }
     }
   }
@@ -73,12 +78,13 @@ public class Scheduler {
     this.log.info("Periodic updater started for " + ctm.getClass().getName()
         +  "; offset=" + offset + ", period=" + period + ".");
     int currentMinute = Calendar.getInstance().get(Calendar.MINUTE);
-    int initialDelay = (60 - currentMinute + offset) % 60;
+    int initialDelay = (period - (currentMinute % period)  + offset) % period;
 
     /* Run after initialDelay delay and then every period min. */
     this.log.info("Periodic updater will start every " + period + "th min "
-        + "at minute " + ((currentMinute + initialDelay) % 60) + ".");
-    this.scheduler.scheduleAtFixedRate(ctm, initialDelay, 60,
+        + "at minute " + ((currentMinute + initialDelay) % period) + "."
+        + "  The first start will happen in " + initialDelay + " minute(s).");
+    this.scheduler.scheduleAtFixedRate(ctm, initialDelay, period,
         TimeUnit.MINUTES);
   }
 
@@ -98,5 +104,17 @@ public class Scheduler {
       }
     }
   }
+
+  /**
+   * Provide a nice name for debugging and log thread creation.
+   */
+  @Override
+  public Thread newThread(Runnable runner) {
+    Thread newThread = threads.newThread(runner);
+    newThread.setName("CollecTor-Scheduled-Thread-" + ++currentThreadNo);
+    log.info("New Thread created: " + newThread.getName());
+    return newThread;
+  }
+
 }
 
