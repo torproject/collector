@@ -68,7 +68,7 @@ public class CreateIndexJson extends CollecTorMain {
   @Override
   protected void startProcessing() throws ConfigurationException {
     try {
-      indexJsonFile =  new File(config.getPath(Key.IndexPath).toFile(),
+      indexJsonFile = new File(config.getPath(Key.IndexPath).toFile(),
           "index.json");
       basePath = config.getProperty(Key.InstanceBaseUrl.name());
       indexedDirectories = new File[] {

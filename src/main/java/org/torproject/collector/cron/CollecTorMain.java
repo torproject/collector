@@ -23,7 +23,7 @@ public abstract class CollecTorMain implements Runnable {
 
   protected Configuration config;
 
-  public CollecTorMain( Configuration conf) {
+  public CollecTorMain(Configuration conf) {
     this.config = conf;
   }
 

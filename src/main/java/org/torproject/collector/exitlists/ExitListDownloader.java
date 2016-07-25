@@ -77,7 +77,7 @@ public class ExitListDownloader extends CollecTorMain {
       byte[] data = new byte[1024];
       while ((len = in.read(data, 0, 1024)) >= 0) {
         sb.append(new String(data, 0, len));
-      }   
+      }
       in.close();
       downloadedExitList = sb.toString();
       logger.debug("Finished downloading exit list.");

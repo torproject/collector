@@ -100,42 +100,42 @@ public class ConfigurationTest {
     assertArrayEquals(sourceStrings, conf.getStringArrayArray(Key.TorperfSources));
   }
 
-  @Test( expected = ConfigurationException.class)
+  @Test(expected = ConfigurationException.class)
   public void testArrayArrayValueException() throws Exception {
     Configuration conf = new Configuration();
     conf.load(new ByteArrayInputStream("CachedRelayDescriptorsDirectories".getBytes()));
     conf.getStringArrayArray(Key.TorperfOutputDirectory);
   }
 
-  @Test( expected = ConfigurationException.class)
+  @Test(expected = ConfigurationException.class)
   public void testArrayValueException() throws Exception {
     Configuration conf = new Configuration();
     conf.load(new ByteArrayInputStream("CachedRelayDescriptorsDirectories".getBytes()));
     conf.getStringArray(Key.TorperfSources);
   }
 
-  @Test( expected = ConfigurationException.class)
+  @Test(expected = ConfigurationException.class)
   public void testBoolValueException() throws Exception {
     Configuration conf = new Configuration();
     conf.load(new ByteArrayInputStream("TorperfSource = http://x.y.z".getBytes()));
     conf.getBool(Key.CachedRelayDescriptorsDirectories);
   }
 
-  @Test( expected = ConfigurationException.class)
+  @Test(expected = ConfigurationException.class)
   public void testPathValueException() throws Exception {
     Configuration conf = new Configuration();
     conf.load(new ByteArrayInputStream("DirectoryArchivesDirectory = \\u0000:".getBytes()));
     conf.getPath(Key.DirectoryArchivesDirectory);
   }
 
-  @Test( expected = ConfigurationException.class)
+  @Test(expected = ConfigurationException.class)
   public void testUrlValueException() throws Exception {
     Configuration conf = new Configuration();
     conf.load(new ByteArrayInputStream("ExitlistUrl = xxx://y.y.y".getBytes()));
     conf.getUrl(Key.ExitlistUrl);
   }
 
-  @Test( expected = ConfigurationException.class)
+  @Test(expected = ConfigurationException.class)
   public void testIntValueException() throws Exception {
     Configuration conf = new Configuration();
     conf.load(new ByteArrayInputStream("BridgeDescriptorMappingsLimit = y7".getBytes()));

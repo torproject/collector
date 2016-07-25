@@ -53,10 +53,10 @@ public class Scheduler implements ThreadFactory {
    */
   public void scheduleModuleRuns(Map<Key,
       Class<? extends CollecTorMain>> collecTorMains, Configuration conf) {
-    for ( Map.Entry<Key, Class<? extends CollecTorMain>> ctmEntry
-        : collecTorMains.entrySet() ) {
+    for (Map.Entry<Key, Class<? extends CollecTorMain>> ctmEntry
+        : collecTorMains.entrySet()) {
       try {
-        if ( conf.getBool(ctmEntry.getKey()) ) {
+        if (conf.getBool(ctmEntry.getKey())) {
           String prefix = ctmEntry.getKey().name().replace(ACTIVATED, "");
           CollecTorMain ctm = ctmEntry.getValue()
               .getConstructor(Configuration.class).newInstance(conf);
@@ -76,9 +76,9 @@ public class Scheduler implements ThreadFactory {
 
   private void scheduleExecutions(CollecTorMain ctm, int offset, int period) {
     this.log.info("Periodic updater started for " + ctm.getClass().getName()
-        +  "; offset=" + offset + ", period=" + period + ".");
+        + "; offset=" + offset + ", period=" + period + ".");
     int currentMinute = Calendar.getInstance().get(Calendar.MINUTE);
-    int initialDelay = (period - (currentMinute % period)  + offset) % period;
+    int initialDelay = (period - (currentMinute % period) + offset) % period;
 
     /* Run after initialDelay delay and then every period min. */
     this.log.info("Periodic updater will start every " + period + "th min "
@@ -96,10 +96,10 @@ public class Scheduler implements ThreadFactory {
       scheduler.shutdown();
       scheduler.awaitTermination(20L, java.util.concurrent.TimeUnit.MINUTES);
       log.info("Shutdown of all scheduled tasks completed successfully.");
-    } catch ( InterruptedException ie ) {
+    } catch (InterruptedException ie) {
       List<Runnable> notTerminated = scheduler.shutdownNow();
       log.error("Regular shutdown failed for: " + notTerminated);
-      if ( !notTerminated.isEmpty() ) {
+      if (!notTerminated.isEmpty()) {
         log.error("Forced shutdown failed for: " + notTerminated);
       }
     }
@@ -115,6 +115,5 @@ public class Scheduler implements ThreadFactory {
     log.info("New Thread created: " + newThread.getName());
     return newThread;
   }
-
 }
 

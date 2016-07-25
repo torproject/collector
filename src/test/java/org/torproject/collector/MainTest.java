@@ -52,7 +52,7 @@ public class MainTest {
   public void testInitializationEmptyArgs() throws Exception {
     File conf = new File(Main.CONF_FILE);
     assertFalse("Please remove " + Main.CONF_FILE + " before running tests!", conf.exists());
-    Main.main(new String[]{});
+    Main.main(new String[] { });
     assertTrue(conf.exists());
     assertTrue(conf.delete());
   }
@@ -61,7 +61,7 @@ public class MainTest {
   public void testInitializationTooManyArgs() throws Exception {
     File conf = new File(Main.CONF_FILE);
     assertFalse("Please remove " + Main.CONF_FILE + " before running tests!", conf.exists());
-    Main.main(new String[]{"x", "y"});
+    Main.main(new String[] { "x", "y" });
     assertFalse(conf.exists());
   }
 
@@ -74,7 +74,7 @@ public class MainTest {
     assertTrue(4_000L <= conf.length());
     changeFilePathsAndSetActivation(conf, lockPath, "TorperfActivated");
     Main.main(new String[]{conf.toString()});
-    for(int t=0; t<1_000_000; t++) { }
+    for(int t = 0; t < 1_000_000; t++) { }
   }
 
   private void changeFilePathsAndSetActivation(File f, File l, String a) throws Exception {
@@ -133,7 +133,7 @@ public class MainTest {
     String[] runConfigSettings = new String[] {Scheduler.ACTIVATED,
         Scheduler.PERIODMIN, Scheduler.OFFSETMIN};
     for (Key key : Main.collecTorMains.keySet()) {
-      for ( String part : runConfigSettings ){
+      for (String part : runConfigSettings) {
         String key2 = key.name().replace("Activated", part);
         assertNotNull("Property '" + key2 + "' not specified in "
             + Main.CONF_FILE + ".",
@@ -141,8 +141,8 @@ public class MainTest {
       }
     }
     for (String propName : props.stringPropertyNames()) {
-      for ( String part : runConfigSettings ){
-        if( propName.contains(part) ){
+      for (String part : runConfigSettings) {
+        if (propName.contains(part)) {
           String key2 = propName.replace(part, "");
           assertTrue("CollecTorMain '" + key2
               + "' not specified in Main.class.",

@@ -392,7 +392,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
 
     if (this.bridgeSanitizingCutOffTimestamp
         .compareTo(publicationTime) > 0) {
-      String text =  "Sanitizing and storing network status with "
+      String text = "Sanitizing and storing network status with "
           + "publication time outside our descriptor sanitizing "
           + "interval.";
       if (this.haveWarnedAboutInterval) {
