@@ -118,6 +118,7 @@ public class ArchiveWriter extends CollecTorMain {
   @Override
   protected void startProcessing() throws ConfigurationException {
     recentPath = config.getPath(Key.RecentPath);
+    CollecTorMain.checkAvailableSpace(recentPath);
     recentPathName = recentPath.toString();
     File statsDir = config.getPath(Key.StatsPath).toFile();
     storedServerDescriptorsFile
@@ -192,6 +193,7 @@ public class ArchiveWriter extends CollecTorMain {
     new ReferenceChecker(recentPath.toFile(),
         new File(statsDir, "references"),
         new File(statsDir, "references-history")).check();
+    CollecTorMain.checkAvailableSpace(recentPath);
   }
 
   private void loadDescriptorDigests() {
