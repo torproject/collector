@@ -126,6 +126,14 @@
     <appender-ref ref="FILEUPDATEINDEX" />
   </logger>
 
+  <logger name="org.torproject.collector.conf" >
+    <appender-ref ref="FILEBRIDGEDESCS" />
+    <appender-ref ref="FILEEXITLISTS" />
+    <appender-ref ref="FILERELAYDESCS" />
+    <appender-ref ref="FILETORPERF" />
+    <appender-ref ref="FILEUPDATEINDEX" />
+  </logger>
+
   <logger name="org.torproject.collector.cron" >
     <appender-ref ref="FILEBRIDGEDESCS" />
     <appender-ref ref="FILEEXITLISTS" />

@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Scheduler that starts the modules configured in collector.properties.
  */
-public class Scheduler implements ThreadFactory {
+public final class Scheduler implements ThreadFactory {
 
   public static final String ACTIVATED = "Activated";
   public static final String PERIODMIN = "PeriodMinutes";

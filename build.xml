@@ -239,12 +239,12 @@
       </fileset>
     </cobertura-report>
     <cobertura-check totallinerate="5" totalbranchrate="1" >
-      <regex pattern="org.torproject.collector.conf.*" branchrate="100" linerate="100"/>
-      <regex pattern="org.torproject.collector.cron.CollecTorMain"
-             branchrate="50" linerate="63" />
-      <regex pattern="org.torproject.collector.cron.Scheduler"
-             branchrate="75" linerate="82" />
-      <regex pattern="org.torproject.collector.Main" branchrate="66" linerate="94" />
+      <regex pattern="org.torproject.collector.conf"
+             branchrate="87" linerate="100"/>
+      <regex pattern="org.torproject.collector.cron"
+             branchrate="50" linerate="71" />
+      <regex pattern="org.torproject.collector.Main"
+             branchrate="100" linerate="100" />
     </cobertura-check>
   </target>
   <target name="test" depends="compile,compile-tests">

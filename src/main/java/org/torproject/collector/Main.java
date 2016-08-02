@@ -21,6 +21,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,20 +59,20 @@ public class Main {
    * See class description {@link Main}.
    */
   public static void main(String[] args) throws Exception {
-    File confFile = null;
+    Path confPath = null;
     if (args == null || args.length == 0) {
-      confFile = new File(CONF_FILE);
+      confPath = Paths.get(CONF_FILE);
     } else if (args.length == 1) {
-      confFile = new File(args[0]);
+      confPath = Paths.get(args[0]);
     } else {
       printUsage("CollecTor takes at most one argument.");
       return;
     }
-    if (!confFile.exists() || confFile.length() < 1L) {
-      writeDefaultConfig(confFile);
+    if (!confPath.toFile().exists() || confPath.toFile().length() < 1L) {
+      writeDefaultConfig(confPath);
       return;
     } else {
-      readConfigurationFrom(confFile);
+      conf.setWatchableSourceAndLoad(confPath);
     }
     Scheduler.getInstance().scheduleModuleRuns(collecTorMains, conf);
   }
@@ -81,10 +83,10 @@ public class Main {
     System.out.println(msg + "\n" + usage);
   }
 
-  private static void writeDefaultConfig(File confFile) {
+  private static void writeDefaultConfig(Path confPath) {
     try {
       Files.copy(Main.class.getClassLoader().getResource(CONF_FILE).openStream(),
-          confFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+          confPath, StandardCopyOption.REPLACE_EXISTING);
       printUsage("Could not find config file. In the default "
           + "configuration, we are not configured to read data from any "
           + "data source or write data to any data sink. You need to "
@@ -93,15 +95,7 @@ public class Main {
           + "Refer to the manual for more information.");
     } catch (IOException e) {
       log.error("Cannot write default configuration. Reason: " + e, e);
-    }
-  }
-
-  private static void readConfigurationFrom(File confFile) throws Exception {
-    try (FileInputStream fis = new FileInputStream(confFile)) {
-      conf.load(fis);
-    } catch (Exception e) { // catch all possible problems
-      log.error("Cannot read configuration. Reason: " + e, e);
-      throw e;
+      throw new RuntimeException(e);
     }
   }
 

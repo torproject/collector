@@ -16,27 +16,45 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Calendar;
 import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class CollecTorMain implements Runnable {
+public abstract class CollecTorMain implements Observer, Runnable {
 
   private static Logger log = LoggerFactory.getLogger(CollecTorMain.class);
 
   private static final long LIMIT_MB = 200;
 
-  protected Configuration config;
+  private final AtomicBoolean newConfigAvailable = new AtomicBoolean(false);
+
+  protected Configuration config = new Configuration();
+
+  private Configuration newConfig;
 
   public CollecTorMain(Configuration conf) {
-    this.config = conf;
+    this.config.putAll(conf.getPropertiesCopy());
+    conf.addObserver(this);
   }
 
   /**
-   * Log errors preventing successful completion of the module.
+   * Log all errors preventing successful completion of the module.
    */
   @Override
   public final void run() {
+    synchronized (this) {
+      if (newConfigAvailable.get()) {
+        log.info("Module {} received new configuration.", module());
+        synchronized (newConfig) {
+          config.clear();
+          config.putAll(newConfig.getPropertiesCopy());
+          newConfigAvailable.set(false);
+        }
+      }
+    }
     log.info("Starting {} module of CollecTor.", module());
     try {
       startProcessing();
@@ -44,6 +62,14 @@ public abstract class CollecTorMain implements Runnable {
       log.error("The {} module failed: {}", module(), th.getMessage(), th);
     }
     log.info("Terminating {} module of CollecTor.", module());
+  }
+
+  @Override
+  public synchronized void update(Observable obs, Object obj) {
+    newConfigAvailable.set(true);
+    if (obs instanceof Configuration) {
+      newConfig = (Configuration) obs;
+    }
   }
 
   /**

@@ -9,6 +9,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.torproject.collector.conf.Key;
+import org.torproject.collector.conf.Configuration;
+import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.cron.Scheduler;
 
 import org.junit.Rule;
@@ -19,39 +21,50 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
-import java.util.Random;
 
 public class MainTest {
-
-  private Random randomSource = new Random();
 
   @Rule
   public TemporaryFolder tmpf = new TemporaryFolder();
 
-  @Test(expected = IOException.class)
+  @Test(expected = ConfigurationException.class)
   public void testInitializationConfigException() throws Exception {
     File conf = new File(Main.CONF_FILE);
-    assertFalse("Please remove " + Main.CONF_FILE + " before running tests!", conf.exists());
+    checkCleanEnv(conf);
     Main.main(new String[] {"/tmp/"});
     assertTrue(conf.exists());
     assertTrue(conf.delete());
   }
 
+  private void checkCleanEnv(File conf) {
+    assertFalse("Please remove " + Main.CONF_FILE + " before running tests!",
+        conf.exists());
+  }
+
   @Test()
   public void testInitializationNullArgs() throws Exception {
     File conf = new File(Main.CONF_FILE);
-    assertFalse("Please remove " + Main.CONF_FILE + " before running tests!", conf.exists());
+    checkCleanEnv(conf);
     Main.main(null);
     assertTrue(conf.exists());
     assertTrue(conf.delete());
   }
 
+  @Test(expected = RuntimeException.class)
+  public void testInitializationUnwritable() throws Exception {
+    File conf = tmpf.newFolder("folder");
+
+    Main.main(new String[] {
+        Paths.get(conf.toString(), "x", "y", "z").toString()});
+  }
+
   @Test()
   public void testInitializationEmptyArgs() throws Exception {
     File conf = new File(Main.CONF_FILE);
-    assertFalse("Please remove " + Main.CONF_FILE + " before running tests!", conf.exists());
+    checkCleanEnv(conf);
     Main.main(new String[] { });
     assertTrue(conf.exists());
     assertTrue(conf.delete());
@@ -60,7 +73,7 @@ public class MainTest {
   @Test()
   public void testInitializationTooManyArgs() throws Exception {
     File conf = new File(Main.CONF_FILE);
-    assertFalse("Please remove " + Main.CONF_FILE + " before running tests!", conf.exists());
+    checkCleanEnv(conf);
     Main.main(new String[] { "x", "y" });
     assertFalse(conf.exists());
   }
@@ -72,12 +85,23 @@ public class MainTest {
     assertEquals(0L, conf.length());
     Main.main(new String[]{conf.toString()});
     assertTrue(4_000L <= conf.length());
-    changeFilePathsAndSetActivation(conf, lockPath, "TorperfActivated");
+    changeFilePathsAndSetActivation(conf, lockPath,
+        Key.TorperfActivated.name());
     Main.main(new String[]{conf.toString()});
-    for(int t = 0; t < 1_000_000; t++) { }
+    waitSec(2);
   }
 
-  private void changeFilePathsAndSetActivation(File f, File l, String a) throws Exception {
+  public static void waitSec(int sec) {
+    long now = System.currentTimeMillis();
+    while (System.currentTimeMillis() - now < 1_000L * sec) {
+      try {
+        Thread.sleep(sec * 1_000L);
+      } catch (Exception e) {/* ignored */}
+    }
+  }
+
+  private void changeFilePathsAndSetActivation(File f, File l, String a)
+      throws Exception {
     List<String> lines = Files.readAllLines(f.toPath());
     BufferedWriter bw = Files.newBufferedWriter(f.toPath());
     File in = tmpf.newFolder();

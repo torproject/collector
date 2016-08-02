@@ -3,20 +3,124 @@
 
 package org.torproject.collector.conf;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.attribute.FileTime;
+import java.util.List;
+import java.util.Observable;
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Initialize configuration with defaults from collector.properties,
  * unless a configuration properties file is available.
  */
-public class Configuration extends Properties {
+public class Configuration extends Observable implements Cloneable {
+
+  private static final Logger log = LoggerFactory.getLogger(Configuration.class);
+
+  private final ScheduledExecutorService scheduler =
+      Executors.newScheduledThreadPool(1);
 
   public static final String FIELDSEP = ",";
   public static final String ARRAYSEP = ";";
+
+  private final Properties props = new Properties();
+  private Path configurationFile;
+  private FileTime ft;
+
+  /**
+   * Load the configuration from the given path and start monitoring changes.
+   * If the file was changed, re-read and inform all observers.
+   */
+  public void setWatchableSourceAndLoad(final Path confPath) throws
+      ConfigurationException {
+    this.configurationFile = confPath;
+    try {
+      ft = Files.getLastModifiedTime(confPath);
+      reload();
+    } catch (IOException e) {
+      throw new ConfigurationException("Cannot watch configuration file. "
+          + "Reason: " + e.getMessage(), e);
+    }
+    this.scheduler.scheduleAtFixedRate(new Runnable() {
+        public void run() {
+          log.trace("Check configuration file.");
+            try {
+              FileTime ftNow = Files.getLastModifiedTime(confPath);
+              if (ft.compareTo(ftNow) < 0) {
+                log.info("Configuration file was changed.");
+                reload();
+                setChanged();
+                notifyObservers(null);
+              }
+              ft = ftNow;
+            } catch (IOException | RuntimeException re) {
+              log.error("Cannot reload configuration file.", re);
+            }
+        }
+      }, 1, 1, TimeUnit.MINUTES);
+  }
+
+  private final void reload() throws IOException {
+    props.clear();
+    try (FileInputStream fis
+        = new FileInputStream(configurationFile.toFile())) {
+      props.load(fis);
+    }
+  }
+
+  /** Return a copy of all properties. */
+  public Properties getPropertiesCopy() {
+    return (Properties) props.clone();
+  }
+
+  /**
+   * Loads properties from the given stream.
+   */
+  public void load(InputStream fis) throws IOException {
+    props.load(fis);
+  }
+
+  /** Retrieves the value for key. */
+  public String getProperty(String key) {
+    return props.getProperty(key);
+  }
+
+  /** Sets the value for key. */
+  public void setProperty(String key, String value) {
+    props.setProperty(key, value);
+  }
+
+  /** clears all properties. */
+  public void clear() {
+    props.clear();
+  }
+
+  /** Add all given properties. */
+  public void putAll(Properties allProps) {
+    props.putAll(allProps);
+  }
+
+  /** Count of properties. */
+  public int size() {
+    return props.size();
+  }
 
   /**
    * Returns {@code String[][]} from a property. Commas seperate array elements
@@ -26,7 +130,7 @@ public class Configuration extends Properties {
   public String[][] getStringArrayArray(Key key) throws ConfigurationException {
     try {
       checkClass(key, String[][].class);
-      String[] interim = getProperty(key.name()).split(ARRAYSEP);
+      String[] interim = props.getProperty(key.name()).split(ARRAYSEP);
       String[][] res = new String[interim.length][];
       for (int i = 0; i < interim.length; i++) {
         res[i] = interim[i].trim().split(FIELDSEP);
@@ -49,7 +153,7 @@ public class Configuration extends Properties {
   public String[] getStringArray(Key key) throws ConfigurationException {
     try {
       checkClass(key, String[].class);
-      String[] res = getProperty(key.name()).split(FIELDSEP);
+      String[] res = props.getProperty(key.name()).split(FIELDSEP);
       for (int i = 0; i < res.length; i++) {
         res[i] = res[i].trim();
       }
@@ -74,7 +178,7 @@ public class Configuration extends Properties {
   public boolean getBool(Key key) throws ConfigurationException {
     try {
       checkClass(key, Boolean.class);
-      return Boolean.parseBoolean(getProperty(key.name()));
+      return Boolean.parseBoolean(props.getProperty(key.name()));
     } catch (RuntimeException re) {
       throw new ConfigurationException("Corrupt property: " + key
           + " reason: " + re.getMessage(), re);
@@ -89,7 +193,7 @@ public class Configuration extends Properties {
   public int getInt(Key key) throws ConfigurationException {
     try {
       checkClass(key, Integer.class);
-      String prop = getProperty(key.name());
+      String prop = props.getProperty(key.name());
       if ("inf".equals(prop)) {
         return Integer.MAX_VALUE;
       } else {
@@ -108,7 +212,7 @@ public class Configuration extends Properties {
   public Path getPath(Key key) throws ConfigurationException {
     try {
       checkClass(key, Path.class);
-      return Paths.get(getProperty(key.name()));
+      return Paths.get(props.getProperty(key.name()));
     } catch (RuntimeException re) {
       throw new ConfigurationException("Corrupt property: " + key
           + " reason: " + re.getMessage(), re);
@@ -122,7 +226,7 @@ public class Configuration extends Properties {
   public URL getUrl(Key key) throws ConfigurationException {
     try {
       checkClass(key, URL.class);
-      return new URL(getProperty(key.name()));
+      return new URL(props.getProperty(key.name()));
     } catch (MalformedURLException mue) {
       throw new ConfigurationException("Corrupt property: " + key
           + " reason: " + mue.getMessage(), mue);
