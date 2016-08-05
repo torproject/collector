@@ -93,8 +93,9 @@ public class ExitListDownloader extends CollecTorMain {
     SimpleDateFormat tarballFormat =
         new SimpleDateFormat("yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
     tarballFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    File tarballFile = new File(config.getPath(Key.ExitlistOutputDirectory)
-        + tarballFormat.format(downloadedDate));
+    File tarballFile = new File(
+        config.getPath(Key.ExitlistOutputDirectory).toFile(),
+        tarballFormat.format(downloadedDate));
 
     long maxScanMillis = 0L;
     try {
