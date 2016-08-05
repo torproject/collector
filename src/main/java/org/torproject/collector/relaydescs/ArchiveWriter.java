@@ -824,9 +824,13 @@ public class ArchiveWriter extends CollecTorMain {
       if (this.descriptorParser.parseDescriptors(data,
           outputFiles[0].getName()).size() != 1) {
         logger.info("Relay descriptor file " + outputFiles[0]
-            + " doesn't contain exactly one descriptor.  Not storing.");
-        return false;
+            + " doesn't contain exactly one descriptor.  Storing anyway.");
       }
+    } catch (DescriptorParseException e) {
+      this.logger.info("Could not parse relay descriptor "
+          + outputFiles[0] + " before storing it to disk.  Storing anyway.", e);
+    }
+    try {
       for (int i = 0; i < outputFiles.length; i++) {
         File outputFile = outputFiles[i];
         boolean appendToFile = append == null ? false : append[i];
@@ -840,9 +844,6 @@ public class ArchiveWriter extends CollecTorMain {
         bos.close();
       }
       return true;
-    } catch (DescriptorParseException e) {
-      logger.warn("Could not parse relay descriptor "
-          + outputFiles[0] + " before storing it to disk.  Skipping.", e);
     } catch (IOException e) {
       logger.warn("Could not store relay descriptor "
           + outputFiles[0], e);
