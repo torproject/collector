@@ -63,8 +63,9 @@ public abstract class CollecTorMain implements Runnable {
    */
   public static void checkAvailableSpace(Path location) {
     try {
-      long megaBytes = (long) (Files.getFileStore(location).getUsableSpace()
-          / 1024 / 1024);
+      long megaBytes = (long) (Files.getFileStore(location.toFile()
+          .getAbsoluteFile().toPath().getRoot()).getUsableSpace()
+              / 1024 / 1024);
       if (megaBytes < LIMIT_MB) {
         log.warn("Available storage critical for {}; only {} MiB left.",
             location, megaBytes);
@@ -72,8 +73,8 @@ public abstract class CollecTorMain implements Runnable {
         log.trace("Available storage for {}: {} MiB", location, megaBytes);
       }
     } catch (IOException ioe) {
-      log.warn("Cannot access {}; reason: {}", location, ioe.getMessage(),
-          ioe);
+      throw new RuntimeException("Cannot access " + location + " reason: "
+          + ioe.getMessage(), ioe);
     }
   }
 }
