@@ -74,18 +74,27 @@ public class Scheduler implements ThreadFactory {
     }
   }
 
+  private static final long MILLIS_IN_A_MINUTE = 60_000L;
+
   private void scheduleExecutions(CollecTorMain ctm, int offset, int period) {
     this.log.info("Periodic updater started for " + ctm.getClass().getName()
         + "; offset=" + offset + ", period=" + period + ".");
-    int currentMinute = Calendar.getInstance().get(Calendar.MINUTE);
-    int initialDelay = (period - (currentMinute % period) + offset) % period;
+    long periodMillis = period * MILLIS_IN_A_MINUTE;
+    long initialDelayMillis = computeInitialDelayMillis(
+        System.currentTimeMillis(), offset * MILLIS_IN_A_MINUTE, periodMillis);
 
     /* Run after initialDelay delay and then every period min. */
-    this.log.info("Periodic updater will start every " + period + "th min "
-        + "at minute " + ((currentMinute + initialDelay) % period) + "."
-        + "  The first start will happen in " + initialDelay + " minute(s).");
-    this.scheduler.scheduleAtFixedRate(ctm, initialDelay, period,
-        TimeUnit.MINUTES);
+    log.info("Periodic updater will first run in {} and then every {} minutes.",
+        initialDelayMillis < MILLIS_IN_A_MINUTE ? "under 1 minute"
+        : (initialDelayMillis / MILLIS_IN_A_MINUTE) + " minute(s)", period);
+    this.scheduler.scheduleAtFixedRate(ctm, initialDelayMillis, periodMillis,
+        TimeUnit.MILLISECONDS);
+  }
+
+  protected static long computeInitialDelayMillis(long currentMillis,
+      long offsetMillis, long periodMillis) {
+    return (periodMillis - (currentMillis % periodMillis) + offsetMillis)
+        % periodMillis;
   }
 
   /**

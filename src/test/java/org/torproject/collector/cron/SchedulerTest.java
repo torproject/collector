@@ -60,5 +60,16 @@ public class SchedulerTest {
     Scheduler.getInstance().shutdownScheduler();
   }
 
+  @Test()
+  public void testDelayComputation() {
+    assertEquals(59_993L,
+        Scheduler.computeInitialDelayMillis(7L, 60_000L, 300_000L));
+    assertEquals(7L,
+        Scheduler.computeInitialDelayMillis(59_993L, 60_000L, 300_000L));
+    assertEquals(299_999L,
+        Scheduler.computeInitialDelayMillis(60_001L, 60_000L, 300_000L));
+    assertEquals(60_009L,
+        Scheduler.computeInitialDelayMillis(299_991L, 60_000L, 300_000L));
+  }
 }
 
