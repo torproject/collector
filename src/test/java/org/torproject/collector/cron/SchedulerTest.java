@@ -57,7 +57,6 @@ public class SchedulerTest {
         schedulerField.get(Scheduler.getInstance());
     assertTrue(stpe.getQueue().isEmpty());
     Scheduler.getInstance().scheduleModuleRuns(ctms, conf);
-    Scheduler.getInstance().shutdownScheduler();
   }
 
   @Test()
@@ -70,6 +69,26 @@ public class SchedulerTest {
         Scheduler.computeInitialDelayMillis(60_001L, 60_000L, 300_000L));
     assertEquals(60_009L,
         Scheduler.computeInitialDelayMillis(299_991L, 60_000L, 300_000L));
+  }
+
+  @Test()
+  public void testRunOnce() throws Exception {
+    Map<Key, Class<? extends CollecTorMain>> ctms = new HashMap<>();
+    Configuration conf = new Configuration();
+    conf.load(new ByteArrayInputStream(runConfigProperties.getBytes()));
+    conf.setProperty(Key.RunOnce.name(), "true");
+    ctms.put(Key.TorperfActivated, Counter.class);
+    ctms.put(Key.BridgedescsActivated, Counter.class);
+    ctms.put(Key.RelaydescsActivated, Counter.class);
+    ctms.put(Key.ExitlistsActivated, Counter.class);
+    ctms.put(Key.UpdateindexActivated, Counter.class);
+    Field schedulerField = Scheduler.class.getDeclaredField("scheduler");
+    schedulerField.setAccessible(true);
+    ScheduledThreadPoolExecutor stpe = (ScheduledThreadPoolExecutor)
+        schedulerField.get(Scheduler.getInstance());
+    Scheduler.getInstance().scheduleModuleRuns(ctms, conf);
+    Scheduler.getInstance().shutdownScheduler();
+    assertEquals(5, Counter.count.get());
   }
 }
 

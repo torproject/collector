@@ -9,6 +9,7 @@ import java.nio.file.Path;
  */
 public enum Key {
 
+  RunOnce(Boolean.class),
   ExitlistOutputDirectory(Path.class),
   ExitlistUrl(URL.class),
   InstanceBaseUrl(String.class),

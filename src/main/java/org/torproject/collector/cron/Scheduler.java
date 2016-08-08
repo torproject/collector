@@ -60,7 +60,7 @@ public class Scheduler implements ThreadFactory {
           String prefix = ctmEntry.getKey().name().replace(ACTIVATED, "");
           CollecTorMain ctm = ctmEntry.getValue()
               .getConstructor(Configuration.class).newInstance(conf);
-          scheduleExecutions(ctm,
+          scheduleExecutions(conf.getBool(Key.RunOnce), ctm,
               conf.getInt(Key.valueOf(prefix + OFFSETMIN)),
               conf.getInt(Key.valueOf(prefix + PERIODMIN)));
         }
@@ -76,19 +76,26 @@ public class Scheduler implements ThreadFactory {
 
   private static final long MILLIS_IN_A_MINUTE = 60_000L;
 
-  private void scheduleExecutions(CollecTorMain ctm, int offset, int period) {
-    this.log.info("Periodic updater started for " + ctm.getClass().getName()
-        + "; offset=" + offset + ", period=" + period + ".");
-    long periodMillis = period * MILLIS_IN_A_MINUTE;
-    long initialDelayMillis = computeInitialDelayMillis(
-        System.currentTimeMillis(), offset * MILLIS_IN_A_MINUTE, periodMillis);
+  private void scheduleExecutions(boolean runOnce, CollecTorMain ctm,
+      int offset, int period) {
+    if (runOnce) {
+      this.log.info("Single run for " + ctm.getClass().getName() + ".");
+      this.scheduler.execute(ctm);
+    } else {
+      this.log.info("Periodic updater started for " + ctm.getClass().getName()
+          + "; offset=" + offset + ", period=" + period + ".");
+      long periodMillis = period * MILLIS_IN_A_MINUTE;
+      long initialDelayMillis = computeInitialDelayMillis(
+          System.currentTimeMillis(), offset * MILLIS_IN_A_MINUTE, periodMillis);
 
-    /* Run after initialDelay delay and then every period min. */
-    log.info("Periodic updater will first run in {} and then every {} minutes.",
-        initialDelayMillis < MILLIS_IN_A_MINUTE ? "under 1 minute"
-        : (initialDelayMillis / MILLIS_IN_A_MINUTE) + " minute(s)", period);
-    this.scheduler.scheduleAtFixedRate(ctm, initialDelayMillis, periodMillis,
-        TimeUnit.MILLISECONDS);
+      /* Run after initialDelay delay and then every period min. */
+      log.info("Periodic updater will first run in {} and then every {} "
+          + "minutes.", initialDelayMillis < MILLIS_IN_A_MINUTE
+          ? "under 1 minute"
+          : (initialDelayMillis / MILLIS_IN_A_MINUTE) + " minute(s)", period);
+      this.scheduler.scheduleAtFixedRate(ctm, initialDelayMillis, periodMillis,
+          TimeUnit.MILLISECONDS);
+    }
   }
 
   protected static long computeInitialDelayMillis(long currentMillis,
