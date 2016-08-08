@@ -90,5 +90,28 @@ public class SchedulerTest {
     Scheduler.getInstance().shutdownScheduler();
     assertEquals(5, Counter.count.get());
   }
+
+  @Ignore("This test takes 180 seconds, which is too long.")
+  @Test()
+  public void testScheduleBrokenClass() throws Exception {
+    Map<Key, Class<? extends CollecTorMain>> ctms = new HashMap<>();
+    Configuration conf = new Configuration();
+    conf.load(new ByteArrayInputStream(runConfigProperties.getBytes()));
+    ctms.put(Key.TorperfActivated, Broken.class);
+    ctms.put(Key.BridgedescsActivated, Broken.class);
+    ctms.put(Key.RelaydescsActivated, Broken.class);
+    ctms.put(Key.ExitlistsActivated, Broken.class);
+    ctms.put(Key.UpdateindexActivated, Broken.class);
+    Field schedulerField = Scheduler.class.getDeclaredField("scheduler");
+    schedulerField.setAccessible(true);
+    ScheduledThreadPoolExecutor stpe = (ScheduledThreadPoolExecutor)
+        schedulerField.get(Scheduler.getInstance());
+    Scheduler.getInstance().scheduleModuleRuns(ctms, conf);
+    long sysNow = System.currentTimeMillis();
+    while (System.currentTimeMillis() - sysNow < 180_000) {
+      try { Thread.sleep(10_000);} catch (Exception e) { /* ignored */ }
+    }
+    assertEquals(15, Broken.count.intValue());
+  }
 }
 

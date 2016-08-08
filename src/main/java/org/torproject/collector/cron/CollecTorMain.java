@@ -40,8 +40,8 @@ public abstract class CollecTorMain implements Runnable {
     log.info("Starting {} module of CollecTor.", module());
     try {
       startProcessing();
-    } catch (ConfigurationException | RuntimeException ce) {
-      log.error("The {} module failed: {}", module(), ce.getMessage(), ce);
+    } catch (Throwable th) { // Catching all to prevent #19771
+      log.error("The {} module failed: {}", module(), th.getMessage(), th);
     }
     log.info("Terminating {} module of CollecTor.", module());
   }
