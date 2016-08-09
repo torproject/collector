@@ -11,6 +11,7 @@ import org.torproject.collector.conf.Key;
 import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.cron.Scheduler;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
