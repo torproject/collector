@@ -47,7 +47,7 @@ public abstract class CollecTorMain implements Observer, Runnable {
   public final void run() {
     synchronized (this) {
       if (newConfigAvailable.get()) {
-        log.info("Module {} received new configuration.", module());
+        log.info("Module {} is using the new configuration.", module());
         synchronized (newConfig) {
           config.clear();
           config.putAll(newConfig.getPropertiesCopy());
@@ -69,6 +69,7 @@ public abstract class CollecTorMain implements Observer, Runnable {
     newConfigAvailable.set(true);
     if (obs instanceof Configuration) {
       newConfig = (Configuration) obs;
+      log.info("Module {} just received a new configuration.", module());
     }
   }
 

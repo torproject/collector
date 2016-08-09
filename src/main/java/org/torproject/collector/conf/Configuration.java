@@ -70,11 +70,11 @@ public class Configuration extends Observable implements Cloneable {
                 notifyObservers(null);
               }
               ft = ftNow;
-            } catch (IOException | RuntimeException re) {
-              log.error("Cannot reload configuration file.", re);
+            } catch (Throwable th) { // Catch all and keep running.
+              log.error("Cannot reload configuration file.", th);
             }
         }
-      }, 1, 1, TimeUnit.MINUTES);
+      }, 5, 5, TimeUnit.SECONDS);
   }
 
   private final void reload() throws IOException {

@@ -8,6 +8,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.torproject.collector.MainTest;
+import org.torproject.collector.cron.CollecTorMain;
+import org.torproject.collector.cron.Dummy;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -15,6 +17,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Observable;
@@ -170,7 +173,7 @@ public class ConfigurationTest {
     conf.setWatchableSourceAndLoad(Paths.get("/tmp/phantom.path"));
   }
 
-    @Test()
+  @Test()
   public void testConfigChange() throws Exception {
     Configuration conf = new Configuration();
     final AtomicBoolean called = new AtomicBoolean(false);
@@ -182,15 +185,36 @@ public class ConfigurationTest {
     File confFile = tmpf.newFile("empty");
     conf.setWatchableSourceAndLoad(confFile.toPath());
     confFile.setLastModified(System.currentTimeMillis());
-    MainTest.waitSec(90);
+    MainTest.waitSec(6);
     assertTrue("Update was not called.", called.get());
     called.set(false);
-    MainTest.waitSec(60);
+    MainTest.waitSec(6);
     assertFalse("Update was called.", called.get());
+  }
+
+  @Test()
+  public void testConfigUnreadable() throws Exception {
+    Configuration conf = new Configuration();
+    final AtomicBoolean called = new AtomicBoolean(false);
+    conf.addObserver(new Observer() {
+        public void update(Observable obs, Object obj) {
+          called.set(true);
+        }
+      });
+    File confFile = tmpf.newFile("empty");
+    conf.setWatchableSourceAndLoad(confFile.toPath());
     confFile.delete();
+    conf.setProperty(Key.CompressRelayDescriptorDownloads.name(), "false");
+    conf.setProperty(Key.ImportDirectoryArchives.name(), "false");
+    Dummy dummy = new Dummy(conf);
     tmpf.newFolder("empty");
-    MainTest.waitSec(60);
+    MainTest.waitSec(6);
+    assertFalse("Update was called.", called.get());
     assertEquals(0, conf.size());
+    Field confField = CollecTorMain.class.getDeclaredField("config");
+    confField.setAccessible(true);
+    int size = ((Configuration)(confField.get(dummy))).size();
+    assertEquals(2, size);
   }
 
 }
