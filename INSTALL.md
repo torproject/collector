@@ -15,47 +15,62 @@ In the following we'll assume that the host runs Debian stable as
 operating system, but it should work on any other Linux or possibly even
 *BSD.  Though you'll be mostly on your own with those.
 
+As Java is available on a variety of other operating systems, these might
+work, too.  But again you'll be on your own.
 
 Prepare the system
 ------------------
 
-Create a working directory for CollecTor.  In this guide, we'll assume
-that you're using `/srv/collector.torproject.org/` as working directory,
-but feel free to use another directory that better suits your needs.
+CollecTor is provided by The Tor Project and can be found here:
+    https://dist.torproject.org/collector/
+Download the tar.gz file with the version number listed in build.xml.
+The README inside the tar.gz file has all the information about CollecTor
+and explains how to verify the downloaded files.
 
-$ sudo mkdir -p /srv/collector.torproject.org/
+You need a Java installation.  On Debian you can just run:
 
-Install a few packages:
-
-$ sudo apt-get ant junit4 libasm4-java libcommons-codec-java \
-  libcommons-compress-java libcommons-lang3-java libgoogle-gson-java \
-  liblogback-java liboro-java libslf4j-java libxz-java openjdk-7-jdk
-
-
-Compile CollecTor
------------------
-
-$ ant compile
-
+$ sudo apt-get openjdk-7-jdk
 
 Configure the relay descriptor downloader
 -----------------------------------------
 
 Run
-$ java -DLOGBASE=/path/to/logs -jar collector-<version>.jar releaydescs
+$ java -DLOGBASE=/path/to/logs -jar collector-<version>.jar
 once in order to obtain a configuration properties file.
+
+There are quite a few options to set in collector.properties and the comments
+explain their meaning.  So, you can set the options to the values you want.
+
+Create the paths you set in collector.properties.
+
+Example: run the relay descriptor downloader
+--------------------------------------------
+
+This is a small example about how CollecTor is used.  All the other
+settings are explained in the default collector.properties.
+
+For running the relay descriptor downloader:
 
 Edit collector.properties and set at least the following value to true:
 
 DownloadRelayDescriptors = true
 
-
-Run the relay descriptor downloader
------------------------------------
-
-$ java -DLOGBASE=/path/to/logs -jar collector-<version>.jar relaydescs
+$ java -DLOGBASE=/path/to/logs -jar collector-<version>.jar </place/of/collector.properties>
 
 Watch out for INFO-level logs in the log directory you configured.  In
 particular, the lines following "Statistics on the completeness of written
 relay descriptors:" are quite important.
+
+In case of the unforeseen ERROR and WARN level logs should help you troubleshoot
+your installation.
+
+Maintenance
+-----------
+
+CollecTor is designed to keep running and attempts to re-run modules even
+when previous runs stopped because of a problem.  Thus, it is very important
+to watch out for WARNING level and especially ERROR level log statements.
+
+These often will point to problems you can do something about, e.g. a full disk
+or missing file system permissions.
 
