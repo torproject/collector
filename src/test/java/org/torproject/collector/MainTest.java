@@ -79,11 +79,10 @@ public class MainTest {
   @Test()
   public void testSmoke() throws Exception {
     File conf = tmpf.newFile("test.conf");
-    File lockPath = tmpf.newFolder("test.lock");
     assertEquals(0L, conf.length());
     Main.main(new String[]{conf.toString()});
     assertTrue(4_000L <= conf.length());
-    changeFilePathsAndSetActivation(conf, lockPath,
+    changeFilePathsAndSetActivation(conf,
         Key.TorperfActivated.name());
     Main.main(new String[]{conf.toString()});
     waitSec(2);
@@ -98,7 +97,7 @@ public class MainTest {
     }
   }
 
-  private void changeFilePathsAndSetActivation(File f, File l, String a)
+  private void changeFilePathsAndSetActivation(File f, String a)
       throws Exception {
     List<String> lines = Files.readAllLines(f.toPath());
     BufferedWriter bw = Files.newBufferedWriter(f.toPath());
@@ -107,9 +106,7 @@ public class MainTest {
     String inStr = "in/";
     String outStr = "out/";
     for(String line : lines) {
-      if (line.contains(Key.LockFilePath.name())) {
-        line = Key.LockFilePath.name() + " = " + l.toString();
-      } else if (line.contains(inStr)) {
+      if (line.contains(inStr)) {
         line = line.replace(inStr, in.toString() + inStr);
       } else if (line.contains(outStr)) {
         line = line.replace(outStr, out.toString() + outStr);

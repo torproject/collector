@@ -37,7 +37,7 @@ public class ConfigurationTest {
   public void testKeyCount() throws Exception {
     assertEquals("The number of properties keys in enum Key changed."
         + "\n This test class should be adapted.",
-        49, Key.values().length);
+        48, Key.values().length);
   }
 
   @Test()

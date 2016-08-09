@@ -13,7 +13,6 @@ public enum Key {
   ExitlistOutputDirectory(Path.class),
   ExitlistUrl(URL.class),
   InstanceBaseUrl(String.class),
-  LockFilePath(Path.class),
   ArchivePath(Path.class),
   RecentPath(Path.class),
   IndexPath(Path.class),
