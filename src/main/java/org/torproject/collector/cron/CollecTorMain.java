@@ -5,22 +5,15 @@ package org.torproject.collector.cron;
 
 import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.ConfigurationException;
-import org.torproject.collector.conf.Key;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Calendar;
-import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class CollecTorMain implements Observer, Runnable {

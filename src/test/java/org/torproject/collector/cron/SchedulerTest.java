@@ -3,30 +3,18 @@
 package org.torproject.collector.cron;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
-import org.torproject.collector.conf.Key;
 import org.torproject.collector.conf.Configuration;
-import org.torproject.collector.cron.Scheduler;
+import org.torproject.collector.conf.Key;
 
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
-import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.lang.reflect.Field;
-import java.nio.file.Files;
-import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
-import java.util.Random;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 public class SchedulerTest {

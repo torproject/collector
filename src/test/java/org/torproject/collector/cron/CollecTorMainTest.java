@@ -2,14 +2,8 @@
  * See LICENSE for licensing information */
 package org.torproject.collector.cron;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import org.torproject.collector.conf.Key;
-import org.torproject.collector.conf.Configuration;
-import org.torproject.collector.cron.Scheduler;
 
 import org.junit.Rule;
 import org.junit.Test;

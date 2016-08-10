@@ -3,14 +3,13 @@
 package org.torproject.collector;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import org.torproject.collector.conf.Key;
-import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.ConfigurationException;
+import org.torproject.collector.conf.Key;
 import org.torproject.collector.cron.Scheduler;
 
 import org.junit.Rule;
@@ -18,7 +17,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.BufferedWriter;
-import java.io.IOException;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;

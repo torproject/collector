@@ -6,13 +6,11 @@ package org.torproject.collector.cron;
 import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
-import org.torproject.collector.cron.CollecTorMain;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
