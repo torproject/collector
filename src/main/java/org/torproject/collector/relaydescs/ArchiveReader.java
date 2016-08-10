@@ -39,6 +39,9 @@ import java.util.TreeSet;
  */
 public class ArchiveReader {
 
+  private static final Logger logger = LoggerFactory.getLogger(
+      ArchiveReader.class);
+
   private Map<String, Set<String>> microdescriptorValidAfterTimes =
       new HashMap<String, Set<String>>();
 
@@ -56,7 +59,6 @@ public class ArchiveReader {
     rdp.setArchiveReader(this);
     int parsedFiles = 0;
     int ignoredFiles = 0;
-    Logger logger = LoggerFactory.getLogger(ArchiveReader.class);
     SortedSet<String> archivesImportHistory = new TreeSet<String>();
     File archivesImportHistoryFile = new File(statsDirectory,
         "archives-import-history");

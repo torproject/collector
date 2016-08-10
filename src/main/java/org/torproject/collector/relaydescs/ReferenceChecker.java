@@ -37,7 +37,8 @@ import java.util.TreeSet;
 
 public class ReferenceChecker {
 
-  private Logger log = LoggerFactory.getLogger(ReferenceChecker.class);
+  private static final Logger logger = LoggerFactory.getLogger(
+      ReferenceChecker.class);
 
   private File descriptorsDir;
 
@@ -145,7 +146,7 @@ public class ReferenceChecker {
           Reference[].class)));
       fr.close();
     } catch (IOException e) {
-      this.log.warn("Cannot read existing references file "
+      logger.warn("Cannot read existing references file "
           + "from previous run.", e);
     }
   }
@@ -301,9 +302,9 @@ public class ReferenceChecker {
             totalMissingDescriptorsWeight));
       }
     }
-    this.log.info(sb.toString());
+    logger.info(sb.toString());
     if (totalMissingDescriptorsWeight > 0.999) {
-      this.log.warn("Missing too many referenced "
+      logger.warn("Missing too many referenced "
           + "descriptors (" + totalMissingDescriptorsWeight + ").");
     }
   }
@@ -315,7 +316,7 @@ public class ReferenceChecker {
       gson.toJson(this.references, fw);
       fw.close();
     } catch (IOException e) {
-      this.log.warn("Cannot write references file for next "
+      logger.warn("Cannot write references file for next "
           + "run.", e);
     }
   }

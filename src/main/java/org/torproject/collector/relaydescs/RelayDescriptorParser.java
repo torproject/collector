@@ -43,7 +43,8 @@ public class RelayDescriptorParser {
   /**
    * Logger for this class.
    */
-  private Logger logger;
+  private static final Logger logger = LoggerFactory.getLogger(
+      RelayDescriptorParser.class);
 
   private SimpleDateFormat dateTimeFormat;
 
@@ -52,9 +53,6 @@ public class RelayDescriptorParser {
    */
   public RelayDescriptorParser(ArchiveWriter aw) {
     this.aw = aw;
-
-    /* Initialize logger. */
-    this.logger = LoggerFactory.getLogger(RelayDescriptorParser.class);
 
     this.dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     this.dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -86,7 +84,7 @@ public class RelayDescriptorParser {
         line = br.readLine();
       } while (line != null && line.startsWith("@"));
       if (line == null) {
-        this.logger.debug("We were given an empty descriptor for "
+        logger.debug("We were given an empty descriptor for "
             + "parsing. Ignoring.");
         return false;
       }
@@ -154,7 +152,7 @@ public class RelayDescriptorParser {
                   + lastRelayIdentity + "," + serverDesc);
               serverDescriptorDigests.add(serverDesc);
             } else {
-              this.logger.warn("Could not parse r line '"
+              logger.warn("Could not parse r line '"
                   + line + "' in descriptor. Skipping.");
               break;
             }
@@ -171,7 +169,7 @@ public class RelayDescriptorParser {
             } else if (parts.length != 3
                 || !parts[2].startsWith("sha256=")
                 || parts[2].length() != 50) {
-              this.logger.warn("Could not parse m line '"
+              logger.warn("Could not parse m line '"
                   + line + "' in descriptor. Skipping.");
               break;
             }
@@ -319,10 +317,10 @@ public class RelayDescriptorParser {
       }
       br.close();
     } catch (IOException e) {
-      this.logger.warn("Could not parse descriptor. "
+      logger.warn("Could not parse descriptor. "
           + "Skipping.", e);
     } catch (ParseException e) {
-      this.logger.warn("Could not parse descriptor. "
+      logger.warn("Could not parse descriptor. "
           + "Skipping.", e);
     }
     return stored;

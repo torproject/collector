@@ -28,7 +28,7 @@ public final class Scheduler implements ThreadFactory {
   public static final String PERIODMIN = "PeriodMinutes";
   public static final String OFFSETMIN = "OffsetMinutes";
 
-  private static final Logger log = LoggerFactory.getLogger(Scheduler.class);
+  private static final Logger logger = LoggerFactory.getLogger(Scheduler.class);
 
   private final ThreadFactory threads = Executors.defaultThreadFactory();
 
@@ -66,7 +66,7 @@ public final class Scheduler implements ThreadFactory {
           | InstantiationException | InvocationTargetException
           | NoSuchMethodException | RejectedExecutionException
           | NullPointerException ex) {
-        log.error("Cannot schedule " + ctmEntry.getValue().getName()
+        logger.error("Cannot schedule " + ctmEntry.getValue().getName()
             + ". Reason: " + ex.getMessage(), ex);
       }
     }
@@ -77,17 +77,17 @@ public final class Scheduler implements ThreadFactory {
   private void scheduleExecutions(boolean runOnce, CollecTorMain ctm,
       int offset, int period) {
     if (runOnce) {
-      this.log.info("Single run for " + ctm.getClass().getName() + ".");
+      logger.info("Single run for " + ctm.getClass().getName() + ".");
       this.scheduler.execute(ctm);
     } else {
-      this.log.info("Periodic updater started for " + ctm.getClass().getName()
+      logger.info("Periodic updater started for " + ctm.getClass().getName()
           + "; offset=" + offset + ", period=" + period + ".");
       long periodMillis = period * MILLIS_IN_A_MINUTE;
       long initialDelayMillis = computeInitialDelayMillis(
           System.currentTimeMillis(), offset * MILLIS_IN_A_MINUTE, periodMillis);
 
       /* Run after initialDelay delay and then every period min. */
-      log.info("Periodic updater will first run in {} and then every {} "
+      logger.info("Periodic updater will first run in {} and then every {} "
           + "minutes.", initialDelayMillis < MILLIS_IN_A_MINUTE
           ? "under 1 minute"
           : (initialDelayMillis / MILLIS_IN_A_MINUTE) + " minute(s)", period);
@@ -109,12 +109,12 @@ public final class Scheduler implements ThreadFactory {
     try {
       scheduler.shutdown();
       scheduler.awaitTermination(20L, java.util.concurrent.TimeUnit.MINUTES);
-      log.info("Shutdown of all scheduled tasks completed successfully.");
+      logger.info("Shutdown of all scheduled tasks completed successfully.");
     } catch (InterruptedException ie) {
       List<Runnable> notTerminated = scheduler.shutdownNow();
-      log.error("Regular shutdown failed for: " + notTerminated);
+      logger.error("Regular shutdown failed for: " + notTerminated);
       if (!notTerminated.isEmpty()) {
-        log.error("Forced shutdown failed for: " + notTerminated);
+        logger.error("Forced shutdown failed for: " + notTerminated);
       }
     }
   }
@@ -126,7 +126,7 @@ public final class Scheduler implements ThreadFactory {
   public Thread newThread(Runnable runner) {
     Thread newThread = threads.newThread(runner);
     newThread.setName("CollecTor-Scheduled-Thread-" + ++currentThreadNo);
-    log.info("New Thread created: " + newThread.getName());
+    logger.info("New Thread created: " + newThread.getName());
     return newThread;
   }
 }

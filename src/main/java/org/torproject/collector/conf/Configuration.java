@@ -27,7 +27,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class Configuration extends Observable implements Cloneable {
 
-  private static final Logger log = LoggerFactory.getLogger(Configuration.class);
+  private static final Logger logger = LoggerFactory.getLogger(
+      Configuration.class);
 
   private final ScheduledExecutorService scheduler =
       Executors.newScheduledThreadPool(1);
@@ -55,18 +56,18 @@ public class Configuration extends Observable implements Cloneable {
     }
     this.scheduler.scheduleAtFixedRate(new Runnable() {
         public void run() {
-          log.trace("Check configuration file.");
+          logger.trace("Check configuration file.");
             try {
               FileTime ftNow = Files.getLastModifiedTime(confPath);
               if (ft.compareTo(ftNow) < 0) {
-                log.info("Configuration file was changed.");
+                logger.info("Configuration file was changed.");
                 reload();
                 setChanged();
                 notifyObservers(null);
               }
               ft = ftNow;
             } catch (Throwable th) { // Catch all and keep running.
-              log.error("Cannot reload configuration file.", th);
+              logger.error("Cannot reload configuration file.", th);
             }
         }
       }, 5, 5, TimeUnit.SECONDS);

@@ -18,7 +18,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class CollecTorMain implements Observer, Runnable {
 
-  private static Logger log = LoggerFactory.getLogger(CollecTorMain.class);
+  private static final Logger logger = LoggerFactory.getLogger(
+      CollecTorMain.class);
 
   private static final long LIMIT_MB = 200;
 
@@ -40,7 +41,7 @@ public abstract class CollecTorMain implements Observer, Runnable {
   public final void run() {
     synchronized (this) {
       if (newConfigAvailable.get()) {
-        log.info("Module {} is using the new configuration.", module());
+        logger.info("Module {} is using the new configuration.", module());
         synchronized (newConfig) {
           config.clear();
           config.putAll(newConfig.getPropertiesCopy());
@@ -48,13 +49,13 @@ public abstract class CollecTorMain implements Observer, Runnable {
         }
       }
     }
-    log.info("Starting {} module of CollecTor.", module());
+    logger.info("Starting {} module of CollecTor.", module());
     try {
       startProcessing();
     } catch (Throwable th) { // Catching all to prevent #19771
-      log.error("The {} module failed: {}", module(), th.getMessage(), th);
+      logger.error("The {} module failed: {}", module(), th.getMessage(), th);
     }
-    log.info("Terminating {} module of CollecTor.", module());
+    logger.info("Terminating {} module of CollecTor.", module());
   }
 
   @Override
@@ -62,7 +63,7 @@ public abstract class CollecTorMain implements Observer, Runnable {
     newConfigAvailable.set(true);
     if (obs instanceof Configuration) {
       newConfig = (Configuration) obs;
-      log.info("Module {} just received a new configuration.", module());
+      logger.info("Module {} just received a new configuration.", module());
     }
   }
 
@@ -87,10 +88,10 @@ public abstract class CollecTorMain implements Observer, Runnable {
           .getAbsoluteFile().toPath().getRoot()).getUsableSpace()
               / 1024 / 1024);
       if (megaBytes < LIMIT_MB) {
-        log.warn("Available storage critical for {}; only {} MiB left.",
+        logger.warn("Available storage critical for {}; only {} MiB left.",
             location, megaBytes);
       } else {
-        log.trace("Available storage for {}: {} MiB", location, megaBytes);
+        logger.trace("Available storage for {}: {} MiB", location, megaBytes);
       }
     } catch (IOException ioe) {
       throw new RuntimeException("Cannot access " + location + " reason: "

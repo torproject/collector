@@ -16,14 +16,13 @@ public class BridgeDescriptorParser {
 
   private SanitizedBridgesWriter sbw;
 
-  private Logger logger;
+  private static final Logger logger = LoggerFactory.getLogger(
+      BridgeDescriptorParser.class);
 
   /** Initializes a new bridge descriptor parser and links it to a
    * sanitized bridges writer to sanitize and store bridge descriptors. */
   public BridgeDescriptorParser(SanitizedBridgesWriter sbw) {
     this.sbw = sbw;
-    this.logger =
-        LoggerFactory.getLogger(BridgeDescriptorParser.class);
   }
 
   /** Parses the first line of the given descriptor data to determine the
@@ -50,7 +49,7 @@ public class BridgeDescriptorParser {
         }
       }
     } catch (IOException e) {
-      this.logger.warn("Could not parse bridge descriptor.", e);
+      logger.warn("Could not parse bridge descriptor.", e);
       return;
     }
   }

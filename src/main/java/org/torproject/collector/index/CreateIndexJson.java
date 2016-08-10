@@ -40,7 +40,8 @@ import java.util.zip.GZIPOutputStream;
  * we'll likely have to do that. */
 public class CreateIndexJson extends CollecTorMain {
 
-  private static Logger log = LoggerFactory.getLogger(CreateIndexJson.class);
+  private static final Logger logger =
+      LoggerFactory.getLogger(CreateIndexJson.class);
 
   private static File indexJsonFile;
 
@@ -76,7 +77,7 @@ public class CreateIndexJson extends CollecTorMain {
           config.getPath(Key.RecentPath).toFile() };
       writeIndex(indexDirectories());
     } catch (Exception e) {
-      log.error("Cannot run index creation: " + e.getMessage(), e);
+      logger.error("Cannot run index creation: " + e.getMessage(), e);
       throw new RuntimeException(e);
     }
   }
@@ -144,7 +145,7 @@ public class CreateIndexJson extends CollecTorMain {
   private IndexNode indexDirectories() {
     SortedSet<DirectoryNode> directoryNodes =
         new TreeSet<DirectoryNode>();
-    log.trace("indexing: " + indexedDirectories[0] + " "
+    logger.trace("indexing: " + indexedDirectories[0] + " "
         + indexedDirectories[1]);
     for (File directory : indexedDirectories) {
       if (directory.exists() && directory.isDirectory()) {
@@ -162,10 +163,10 @@ public class CreateIndexJson extends CollecTorMain {
     SortedSet<FileNode> fileNodes = new TreeSet<FileNode>();
     SortedSet<DirectoryNode> directoryNodes =
         new TreeSet<DirectoryNode>();
-    log.trace("indexing: " + directory);
+    logger.trace("indexing: " + directory);
     File[] fileList = directory.listFiles();
     if (null == fileList) {
-      log.warn("Indexing dubious directory: " + directory);
+      logger.warn("Indexing dubious directory: " + directory);
       return null;
     }
     for (File fileOrDirectory : fileList) {

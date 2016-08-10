@@ -34,6 +34,9 @@ import java.util.TreeSet;
  */
 public class CachedRelayDescriptorReader {
 
+  private static final Logger logger = LoggerFactory.getLogger(
+      CachedRelayDescriptorReader.class);
+
   /** Reads cached-descriptor files from one or more directories and
    * passes them to the given descriptor parser. */
   public CachedRelayDescriptorReader(RelayDescriptorParser rdp,
@@ -46,7 +49,6 @@ public class CachedRelayDescriptorReader {
 
     StringBuilder dumpStats = new StringBuilder("Finished importing "
         + "relay descriptors from local Tor data directories:");
-    Logger logger = LoggerFactory.getLogger(CachedRelayDescriptorReader.class);
 
     /* Read import history containing SHA-1 digests of previously parsed
      * statuses and descriptors, so that we can skip them in this run. */

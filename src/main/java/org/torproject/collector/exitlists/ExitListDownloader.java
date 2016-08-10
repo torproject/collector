@@ -34,7 +34,8 @@ import java.util.TreeSet;
 
 public class ExitListDownloader extends CollecTorMain {
 
-  private static Logger logger = LoggerFactory.getLogger(ExitListDownloader.class);
+  private static final Logger logger = LoggerFactory.getLogger(
+      ExitListDownloader.class);
 
   /** Instanciate the exit-lists module using the given configuration. */
   public ExitListDownloader(Configuration config) {

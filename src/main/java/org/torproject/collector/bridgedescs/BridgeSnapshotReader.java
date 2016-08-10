@@ -30,6 +30,9 @@ import java.util.TreeSet;
 
 public class BridgeSnapshotReader {
 
+  private static final Logger logger = LoggerFactory.getLogger(
+      BridgeSnapshotReader.class);
+
   /**
    * Reads the half-hourly snapshots of bridge descriptors from Tonga.
    */
@@ -41,7 +44,6 @@ public class BridgeSnapshotReader {
       throw new IllegalArgumentException();
     }
 
-    Logger logger = LoggerFactory.getLogger(BridgeSnapshotReader.class);
     SortedSet<String> parsed = new TreeSet<String>();
     File bdDir = bridgeDirectoriesDir;
     File pbdFile = new File(statsDirectory, "parsed-bridge-directories");

@@ -40,7 +40,8 @@ import java.util.TreeMap;
 
 public class ArchiveWriter extends CollecTorMain {
 
-  private static Logger logger = LoggerFactory.getLogger(ArchiveWriter.class);
+  private static final Logger logger = LoggerFactory.getLogger(
+      ArchiveWriter.class);
 
   private long now = System.currentTimeMillis();
   private String outputDirectory;
@@ -208,7 +209,7 @@ public class ArchiveWriter extends CollecTorMain {
         while ((line = br.readLine()) != null) {
           String[] parts = line.split(",");
           if (parts.length != 3) {
-            this.logger.warn("Could not load server descriptor "
+            logger.warn("Could not load server descriptor "
                 + "digests because of illegal line '" + line + "'.  We "
                 + "might not be able to correctly check descriptors for "
                 + "completeness.");
@@ -237,7 +238,7 @@ public class ArchiveWriter extends CollecTorMain {
         while ((line = br.readLine()) != null) {
           String[] parts = line.split(",");
           if (parts.length != 2) {
-            this.logger.warn("Could not load extra-info descriptor "
+            logger.warn("Could not load extra-info descriptor "
                 + "digests because of illegal line '" + line + "'.  We "
                 + "might not be able to correctly check descriptors for "
                 + "completeness.");
@@ -264,7 +265,7 @@ public class ArchiveWriter extends CollecTorMain {
         while ((line = br.readLine()) != null) {
           String[] parts = line.split(",");
           if (parts.length != 2) {
-            this.logger.warn("Could not load microdescriptor digests "
+            logger.warn("Could not load microdescriptor digests "
                 + "because of illegal line '" + line + "'.  We might not "
                 + "be able to correctly check descriptors for "
                 + "completeness.");
@@ -285,11 +286,11 @@ public class ArchiveWriter extends CollecTorMain {
         br.close();
       }
     } catch (ParseException e) {
-      this.logger.warn("Could not load descriptor "
+      logger.warn("Could not load descriptor "
           + "digests.  We might not be able to correctly check "
           + "descriptors for completeness.", e);
     } catch (IOException e) {
-      this.logger.warn("Could not load descriptor "
+      logger.warn("Could not load descriptor "
           + "digests.  We might not be able to correctly check "
           + "descriptors for completeness.", e);
     }
@@ -475,9 +476,9 @@ public class ArchiveWriter extends CollecTorMain {
         missingVotes = true;
       }
     }
-    this.logger.info(sb.toString());
+    logger.info(sb.toString());
     if (missingDescriptors) {
-      this.logger.debug("We are missing at least 0.5% of server or "
+      logger.debug("We are missing at least 0.5% of server or "
           + "extra-info descriptors referenced from a consensus or "
           + "vote or at least 0.5% of microdescriptors referenced from a "
           + "microdesc consensus.");
@@ -485,13 +486,13 @@ public class ArchiveWriter extends CollecTorMain {
     if (missingVotes) {
       /* TODO Shouldn't warn if we're not trying to archive votes at
        * all. */
-      this.logger.debug("We are missing at least one vote that was "
+      logger.debug("We are missing at least one vote that was "
           + "referenced from a consensus.");
     }
     if (missingMicrodescConsensus) {
       /* TODO Shouldn't warn if we're not trying to archive microdesc
        * consensuses at all. */
-      this.logger.debug("We are missing at least one microdesc "
+      logger.debug("We are missing at least one microdesc "
           + "consensus that was published together with a known "
           + "consensus.");
     }
@@ -504,14 +505,14 @@ public class ArchiveWriter extends CollecTorMain {
     long tooOldMillis = this.now - 330L * 60L * 1000L;
     if (!this.storedConsensuses.isEmpty()
         && this.storedConsensuses.lastKey() < tooOldMillis) {
-      this.logger.warn("The last known relay network status "
+      logger.warn("The last known relay network status "
           + "consensus was valid after "
           + dateTimeFormat.format(this.storedConsensuses.lastKey())
           + ", which is more than 5:30 hours in the past.");
     }
     if (!this.storedMicrodescConsensuses.isEmpty()
         && this.storedMicrodescConsensuses.lastKey() < tooOldMillis) {
-      this.logger.warn("The last known relay network status "
+      logger.warn("The last known relay network status "
           + "microdesc consensus was valid after "
           + dateTimeFormat.format(
           this.storedMicrodescConsensuses.lastKey())
@@ -519,28 +520,28 @@ public class ArchiveWriter extends CollecTorMain {
     }
     if (!this.storedVotes.isEmpty()
         && this.storedVotes.lastKey() < tooOldMillis) {
-      this.logger.warn("The last known relay network status vote "
+      logger.warn("The last known relay network status vote "
           + "was valid after " + dateTimeFormat.format(
           this.storedVotes.lastKey()) + ", which is more than 5:30 hours "
           + "in the past.");
     }
     if (!this.storedServerDescriptors.isEmpty()
         && this.storedServerDescriptors.lastKey() < tooOldMillis) {
-      this.logger.warn("The last known relay server descriptor was "
+      logger.warn("The last known relay server descriptor was "
           + "published at "
           + dateTimeFormat.format(this.storedServerDescriptors.lastKey())
           + ", which is more than 5:30 hours in the past.");
     }
     if (!this.storedExtraInfoDescriptors.isEmpty()
         && this.storedExtraInfoDescriptors.lastKey() < tooOldMillis) {
-      this.logger.warn("The last known relay extra-info descriptor "
+      logger.warn("The last known relay extra-info descriptor "
           + "was published at " + dateTimeFormat.format(
           this.storedExtraInfoDescriptors.lastKey())
           + ", which is more than 5:30 hours in the past.");
     }
     if (!this.storedMicrodescriptors.isEmpty()
         && this.storedMicrodescriptors.lastKey() < tooOldMillis) {
-      this.logger.warn("The last known relay microdescriptor was "
+      logger.warn("The last known relay microdescriptor was "
           + "contained in a microdesc consensus that was valid after "
           + dateTimeFormat.format(this.storedMicrodescriptors.lastKey())
           + ", which is more than 5:30 hours in the past.");
@@ -620,7 +621,7 @@ public class ArchiveWriter extends CollecTorMain {
       }
       bw.close();
     } catch (IOException e) {
-      this.logger.warn("Could not save descriptor "
+      logger.warn("Could not save descriptor "
           + "digests.  We might not be able to correctly check "
           + "descriptors for completeness in the next run.", e);
     }
@@ -819,10 +820,10 @@ public class ArchiveWriter extends CollecTorMain {
   private boolean store(byte[] typeAnnotation, byte[] data,
       File[] outputFiles, boolean[] append) {
     try {
-      this.logger.trace("Storing " + outputFiles[0]);
+      logger.trace("Storing " + outputFiles[0]);
       if (this.descriptorParser.parseDescriptors(data,
           outputFiles[0].getName()).size() != 1) {
-        this.logger.info("Relay descriptor file " + outputFiles[0]
+        logger.info("Relay descriptor file " + outputFiles[0]
             + " doesn't contain exactly one descriptor.  Not storing.");
         return false;
       }
@@ -840,10 +841,10 @@ public class ArchiveWriter extends CollecTorMain {
       }
       return true;
     } catch (DescriptorParseException e) {
-      this.logger.warn("Could not parse relay descriptor "
+      logger.warn("Could not parse relay descriptor "
           + outputFiles[0] + " before storing it to disk.  Skipping.", e);
     } catch (IOException e) {
-      this.logger.warn("Could not store relay descriptor "
+      logger.warn("Could not store relay descriptor "
           + outputFiles[0], e);
     }
     return false;
