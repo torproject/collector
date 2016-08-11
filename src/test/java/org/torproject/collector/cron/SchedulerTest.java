@@ -5,6 +5,7 @@ package org.torproject.collector.cron;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import org.torproject.collector.MainTest;
 import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.Key;
 
@@ -97,9 +98,7 @@ public class SchedulerTest {
         schedulerField.get(Scheduler.getInstance());
     Scheduler.getInstance().scheduleModuleRuns(ctms, conf);
     long sysNow = System.currentTimeMillis();
-    while (System.currentTimeMillis() - sysNow < 180_000) {
-      try { Thread.sleep(10_000);} catch (Exception e) { /* ignored */ }
-    }
+    MainTest.waitSec(180);
     assertEquals(15, Broken.count.intValue());
   }
 }
