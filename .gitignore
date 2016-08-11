@@ -13,4 +13,5 @@
 /lib
 cobertura.ser
 *~
+build.properties
 

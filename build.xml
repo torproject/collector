@@ -1,10 +1,11 @@
 <project default="compile" name="CollecTor" basedir=".">
-  <property name="release.version" value="0.9.0-dev" />
+  <property name="release.version" value="1.0.0" />
   <property name="name" value="CollecTor"/>
-  <property name="descriptorversion" value="1.3.0" />
+  <property name="descriptorversion" value="1.3.1" />
   <property name="source-and-target-java-version" value="1.7" />
   <property name="sources" value="src/main/java"/>
   <property name="resources" value="src/main/resources/"/>
+  <property name="webappsources" value="src/main/webapp"/>
   <property name="generated" value="generated/"/>
   <property name="testresult" value="${generated}/test-results"/>
   <property name="testsources" value="src/test/java"/>
@@ -19,6 +20,9 @@
   <property name="jarfile" value="collector-${release.version}.jar" />
   <property name="jarsourcesfile" value="collector-${release.version}-sources.jar" />
   <property name="jarjavadocfile" value="collector-${release.version}-javadoc.jar" />
+  <property name="release.tarball"
+            value="collector-${release.version}.tar.gz" />
+  <property file="build.properties" />
   <patternset id="runtime" >
       <include name="commons-codec-1.9.jar"/>
       <include name="commons-compress-1.9.jar"/>
@@ -89,6 +93,7 @@
     <delete file="${jarfile}" quiet="true"/>
     <delete file="${jarsourcesfile}" quiet="true"/>
     <delete file="${jarjavadocfile}" quiet="true"/>
+    <delete file="${release.tarball}"/>
   </target>
   <target name="compile" depends="init">
     <javac srcdir="${sources}"
@@ -136,7 +141,6 @@
     </exec>
     <jar destfile="${jarfile}"
          basedir="${classes}">
-      <fileset dir="${classes}"/>
       <fileset dir="${resources}" >
         <include name="collector.properties"/>
         <include name="logback.xml"/>
@@ -181,6 +185,44 @@
                    value="${release.version}-${git.revision}"/>
       </manifest>
     </jar>
+  </target>
+  <target name="signjar" depends="jar">
+    <signjar alias="${jarsigner.alias}"
+             storepass="${jarsigner.storepass}"
+             sigalg="SHA256withRSA"
+             digestalg="SHA-256"
+             tsaurl="http://timestamp.digicert.com">
+      <path>
+        <pathelement path="${jarfile}"/>
+        <pathelement path="${jarsourcesfile}"/>
+        <pathelement path="${jarjavadocfile}"/>
+      </path>
+    </signjar>
+  </target>
+  <target name="tar" depends="signjar">
+    <tar destfile="${release.tarball}" compression="gzip">
+      <tarfileset dir="." prefix="collector-${release.version}">
+        <include name="${jarfile}" />
+        <include name="${jarsourcesfile}" />
+        <include name="${jarjavadocfile}" />
+        <include name="build.xml" />
+        <include name="LICENSE" />
+        <include name="CERT" />
+        <include name="*.md" />
+      </tarfileset>
+      <tarfileset dir="${sources}"
+                  prefix="collector-${release.version}/${sources}" />
+      <tarfileset dir="${resources}"
+                  prefix="collector-${release.version}/${resources}" />
+      <tarfileset dir="${webappsources}"
+                  prefix="collector-${release.version}/${webappsources}" />
+      <tarfileset dir="${testsources}"
+                  prefix="collector-${release.version}/${testsources}" />
+      <tarfileset dir="${testresources}"
+                  prefix="collector-${release.version}/${testresources}" />
+      <tarfileset dir="${libs}"
+                  prefix="collector-${release.version}/${libs}" />
+    </tar>
   </target>
   <taskdef resource="com/puppycrawl/tools/checkstyle/ant/checkstyle-ant-task.properties">
     <classpath refid="checkstyle.classpath" />
