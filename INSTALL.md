@@ -74,3 +74,17 @@ to watch out for WARNING level and especially ERROR level log statements.
 These often will point to problems you can do something about, e.g. a full disk
 or missing file system permissions.
 
+Logging Configuration
+---------------------
+
+Some hints for those who are familiar with Logback:
+
+If you want to use your own logging configuration for Logback you can simply
+create your own logback.xml or logback.groovy and start CollecTor in the
+following way:
+
+java -cp /folder/with/logback:collector-1.0.0.jar org.torproject.collector.Main
+ </place/of/collector.properties>
+
+The default configuration can be found in the tar-ball you downloaded, in
+the subdirectory collector-1.0.0/src/main/resources.
