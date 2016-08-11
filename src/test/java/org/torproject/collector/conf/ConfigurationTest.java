@@ -11,7 +11,6 @@ import org.torproject.collector.MainTest;
 import org.torproject.collector.cron.CollecTorMain;
 import org.torproject.collector.cron.Dummy;
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -173,7 +172,6 @@ public class ConfigurationTest {
     conf.setWatchableSourceAndLoad(Paths.get("/tmp/phantom.path"));
   }
 
-  @Ignore("Test fails: Update was not called.")
   @Test()
   public void testConfigChange() throws Exception {
     Configuration conf = new Configuration();
@@ -194,7 +192,6 @@ public class ConfigurationTest {
     assertFalse("Update was called.", called.get());
   }
 
-  @Ignore("Test fails: expected:<0> but was:<2>")
   @Test()
   public void testConfigUnreadable() throws Exception {
     Configuration conf = new Configuration();
