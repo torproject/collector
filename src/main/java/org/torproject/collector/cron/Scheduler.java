@@ -125,6 +125,7 @@ public final class Scheduler implements ThreadFactory {
   @Override
   public Thread newThread(Runnable runner) {
     Thread newThread = threads.newThread(runner);
+    newThread.setDaemon(true);
     newThread.setName("CollecTor-Scheduled-Thread-" + ++currentThreadNo);
     logger.info("New Thread created: " + newThread.getName());
     return newThread;

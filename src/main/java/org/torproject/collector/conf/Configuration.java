@@ -55,6 +55,9 @@ public class Configuration extends Observable implements Cloneable {
       throw new ConfigurationException("Cannot watch configuration file. "
           + "Reason: " + e.getMessage(), e);
     }
+    if (this.getBool(Key.RunOnce)) { // no need to watch
+      return;
+    }
     this.scheduler.scheduleAtFixedRate(new Runnable() {
         public void run() {
           logger.trace("Check configuration file.");
