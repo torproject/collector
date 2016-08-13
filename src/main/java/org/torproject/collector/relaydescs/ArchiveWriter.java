@@ -195,6 +195,18 @@ public class ArchiveWriter extends CollecTorMain {
         new File(statsDir, "references"),
         new File(statsDir, "references-history")).check();
     CollecTorMain.checkAvailableSpace(recentPath);
+    cleanUp();
+  }
+
+  private void cleanUp() {
+    this.expectedVotes.clear();
+    this.intermediateStats = new StringBuilder();
+    this.storedConsensuses.clear();
+    this.storedMicrodescConsensuses.clear();
+    this.storedVotes.clear();
+    this.storedServerDescriptors.clear();
+    this.storedExtraInfoDescriptors.clear();
+    this.storedMicrodescriptors.clear();
   }
 
   private void loadDescriptorDigests() {
