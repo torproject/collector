@@ -50,6 +50,7 @@ public class Configuration extends Observable implements Cloneable {
     try {
       ft = Files.getLastModifiedTime(confPath);
       reload();
+      anythingActivated();
     } catch (IOException e) {
       throw new ConfigurationException("Cannot watch configuration file. "
           + "Reason: " + e.getMessage(), e);
@@ -78,6 +79,17 @@ public class Configuration extends Observable implements Cloneable {
     try (FileInputStream fis
         = new FileInputStream(configurationFile.toFile())) {
       props.load(fis);
+    }
+  }
+
+  private void anythingActivated() throws ConfigurationException {
+    if (!(this.getBool(Key.RelaydescsActivated)
+        || this.getBool(Key.BridgedescsActivated)
+        || this.getBool(Key.ExitlistsActivated)
+        || this.getBool(Key.UpdateindexActivated)
+        || this.getBool(Key.TorperfActivated))) {
+      throw new ConfigurationException("Nothing is activated!\n"
+          + "Please edit collector.properties. Exiting.");
     }
   }
 

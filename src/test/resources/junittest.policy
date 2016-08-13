@@ -7,6 +7,7 @@ grant {
   permission java.lang.RuntimePermission "accessClassInPackage.sun.nio.fs";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.RuntimePermission "getFileStoreAttributes";
+  permission java.lang.RuntimePermission "getStackTrace";
   permission java.lang.RuntimePermission "modifyThread";
   permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
   permission java.lang.RuntimePermission "shutdownHooks";

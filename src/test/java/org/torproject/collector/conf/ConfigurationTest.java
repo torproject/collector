@@ -18,6 +18,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Observable;
@@ -182,6 +183,8 @@ public class ConfigurationTest {
         }
       });
     File confFile = tmpf.newFile("empty");
+    Files.write(confFile.toPath(), (Key.RelaydescsActivated.name() + "=true")
+        .getBytes());
     conf.setWatchableSourceAndLoad(confFile.toPath());
     MainTest.waitSec(1);
     confFile.setLastModified(System.currentTimeMillis());
@@ -202,10 +205,11 @@ public class ConfigurationTest {
         }
       });
     File confFile = tmpf.newFile("empty");
+    Files.write(confFile.toPath(), (Key.RelaydescsActivated.name() + "=true")
+        .getBytes());
     conf.setWatchableSourceAndLoad(confFile.toPath());
     MainTest.waitSec(1);
     confFile.delete();
-    conf.setProperty(Key.CompressRelayDescriptorDownloads.name(), "false");
     conf.setProperty(Key.ImportDirectoryArchives.name(), "false");
     Dummy dummy = new Dummy(conf);
     tmpf.newFolder("empty");

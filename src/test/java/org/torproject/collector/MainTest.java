@@ -171,5 +171,18 @@ public class MainTest {
     }
   }
 
+  @Test(expected = ConfigurationException.class)
+  public void testNoModuleActivated() throws Exception {
+    File conf = tmpf.newFile("test.conf");
+    try {
+      assertEquals(0L, conf.length());
+      // create default configuration
+      Main.main(new String[]{conf.toString()});
+    } catch (ConfigurationException ce) {
+      fail("This should not cause a ConfigurationException: " + ce);
+    }
+    // no module activated; the following should throw a ConfigurationException
+    Main.main(new String[]{conf.toString()});
+  }
 }
 
