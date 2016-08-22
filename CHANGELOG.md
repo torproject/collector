@@ -1,3 +1,9 @@
+# Changes in version 1.1.0 - 2016-08-31
+
+ * Minor changes
+   - Remove quotes around base URL in index.json.
+
+
 # Changes in version 1.0.1 - 2016-08-22
 
  * Medium changes
