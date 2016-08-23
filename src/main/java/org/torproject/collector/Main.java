@@ -5,6 +5,7 @@ package org.torproject.collector;
 
 import org.torproject.collector.bridgedescs.SanitizedBridgesWriter;
 import org.torproject.collector.conf.Configuration;
+import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
 import org.torproject.collector.cron.CollecTorMain;
 import org.torproject.collector.cron.Scheduler;
@@ -57,22 +58,27 @@ public class Main {
    * See class description {@link Main}.
    */
   public static void main(String[] args) throws Exception {
-    Path confPath = null;
-    if (args == null || args.length == 0) {
-      confPath = Paths.get(CONF_FILE);
-    } else if (args.length == 1) {
-      confPath = Paths.get(args[0]);
-    } else {
-      printUsage("CollecTor takes at most one argument.");
+    try {
+      Path confPath = null;
+      if (args == null || args.length == 0) {
+        confPath = Paths.get(CONF_FILE);
+      } else if (args.length == 1) {
+        confPath = Paths.get(args[0]);
+      } else {
+        printUsage("CollecTor takes at most one argument.");
+        return;
+      }
+      if (!confPath.toFile().exists() || confPath.toFile().length() < 1L) {
+        writeDefaultConfig(confPath);
+        return;
+      } else {
+        conf.setWatchableSourceAndLoad(confPath);
+      }
+      Scheduler.getInstance().scheduleModuleRuns(collecTorMains, conf);
+    } catch (ConfigurationException ce) {
+      printUsage(ce.getMessage());
       return;
     }
-    if (!confPath.toFile().exists() || confPath.toFile().length() < 1L) {
-      writeDefaultConfig(confPath);
-      return;
-    } else {
-      conf.setWatchableSourceAndLoad(confPath);
-    }
-    Scheduler.getInstance().scheduleModuleRuns(collecTorMains, conf);
   }
 
   private static void printUsage(String msg) {
