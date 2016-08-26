@@ -379,7 +379,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
    * Sanitizes a network status and writes it to disk.
    */
   public void sanitizeAndStoreNetworkStatus(byte[] data,
-      String publicationTime) throws ConfigurationException {
+      String publicationTime, String authorityFingerprint)
+      throws ConfigurationException {
 
     if (this.persistenceProblemWithSecrets) {
       /* There's a persistence problem, so we shouldn't scrub more IP
@@ -546,8 +547,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       File tarballFile = new File(
           this.sanitizedBridgesDirectory.getAbsolutePath() + "/" + syear
           + "/" + smonth + "/statuses/" + sday + "/" + syear + smonth
-          + sday + "-" + stime + "-"
-          + "4A0CCD2DDC7995083D73F5D667100C8A5831F16D");
+          + sday + "-" + stime + "-" + authorityFingerprint);
       File rsyncFile = new File(config.getPath(Key.RecentPath).toFile(),
           "bridge-descriptors/statuses/" + tarballFile.getName());
       File[] outputFiles = new File[] { tarballFile, rsyncFile };

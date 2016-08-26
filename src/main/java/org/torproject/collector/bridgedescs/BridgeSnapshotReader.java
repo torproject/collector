@@ -100,9 +100,35 @@ public class BridgeSnapshotReader {
               }
               BufferedInputStream bis = new BufferedInputStream(tais);
               String fn = pop.getName();
-              String dateTime = fn.substring(11, 21) + " "
-                    + fn.substring(22, 24) + ":" + fn.substring(24, 26)
-                    + ":" + fn.substring(26, 28);
+              String[] fnParts = fn.split("-");
+              if (fnParts.length != 5) {
+                logger.warn("Invalid bridge descriptor tarball file name: "
+                    + fn + ".  Skipping.");
+                continue;
+              }
+              String authorityPart = String.format("%s-%s-", fnParts[0],
+                  fnParts[1]);
+              String datePart = String.format("%s-%s-%s", fnParts[2],
+                  fnParts[3], fnParts[4]);
+              String authorityFingerprint;
+              switch (authorityPart) {
+                case "from-tonga-":
+                  authorityFingerprint =
+                      "4A0CCD2DDC7995083D73F5D667100C8A5831F16D";
+                  break;
+                case "from-bifroest-":
+                  authorityFingerprint =
+                      "1D8F3A91C37C5D1C4C19B1AD1D0CFBE8BF72D8E1";
+                  break;
+                default:
+                  logger.warn("Did not recognize the bridge authority that "
+                      + "generated " + fn + ".  Skipping.");
+                  continue;
+              }
+              String dateTime = datePart.substring(0, 10) + " "
+                  + datePart.substring(11, 13) + ":"
+                  + datePart.substring(13, 15) + ":"
+                  + datePart.substring(15, 17);
               while ((tais.getNextTarEntry()) != null) {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 int len;
@@ -130,7 +156,7 @@ public class BridgeSnapshotReader {
                 if (firstLine.startsWith("published ")
                     || firstLine.startsWith("flag-thresholds ")
                     || firstLine.startsWith("r ")) {
-                  bdp.parse(allData, dateTime);
+                  bdp.parse(allData, dateTime, authorityFingerprint);
                   parsedStatuses++;
                 } else if (descriptorImportHistory.contains(fileDigest)) {
                   /* Skip server descriptors or extra-info descriptors if
@@ -167,7 +193,7 @@ public class BridgeSnapshotReader {
                         DigestUtils.sha(descBytes));
                     if (!descriptorImportHistory.contains(
                         descriptorDigest)) {
-                      bdp.parse(descBytes, dateTime);
+                      bdp.parse(descBytes, dateTime, authorityFingerprint);
                       descriptorImportHistory.add(descriptorDigest);
                       if (firstLine.startsWith("router ")) {
                         parsedServerDescriptors++;

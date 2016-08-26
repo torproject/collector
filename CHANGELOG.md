@@ -1,5 +1,8 @@
 # Changes in version 1.1.0 - 2016-08-31
 
+ * Medium changes
+   - Add support for Bifroest's bridge descriptor tarballs.
+
  * Minor changes
    - Remove quotes around base URL in index.json.
 
