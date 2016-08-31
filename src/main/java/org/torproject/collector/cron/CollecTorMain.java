@@ -14,9 +14,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class CollecTorMain implements Observer, Runnable {
+public abstract class CollecTorMain implements Callable<Object>, Observer,
+    Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(
       CollecTorMain.class);
@@ -56,6 +58,13 @@ public abstract class CollecTorMain implements Observer, Runnable {
       logger.error("The {} module failed: {}", module(), th.getMessage(), th);
     }
     logger.info("Terminating {} module of CollecTor.", module());
+  }
+
+  /** Wrapper for <code>run</code>. */
+  @Override
+  public final Object call() {
+    run();
+    return null;
   }
 
   @Override

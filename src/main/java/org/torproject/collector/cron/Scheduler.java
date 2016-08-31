@@ -11,8 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
@@ -51,6 +53,7 @@ public final class Scheduler implements ThreadFactory {
    */
   public void scheduleModuleRuns(Map<Key,
       Class<? extends CollecTorMain>> collecTorMains, Configuration conf) {
+    List<Callable<Object>> runOnceMains = new ArrayList<>();
     for (Map.Entry<Key, Class<? extends CollecTorMain>> ctmEntry
         : collecTorMains.entrySet()) {
       try {
@@ -58,9 +61,15 @@ public final class Scheduler implements ThreadFactory {
           String prefix = ctmEntry.getKey().name().replace(ACTIVATED, "");
           CollecTorMain ctm = ctmEntry.getValue()
               .getConstructor(Configuration.class).newInstance(conf);
-          scheduleExecutions(conf.getBool(Key.RunOnce), ctm,
-              conf.getInt(Key.valueOf(prefix + OFFSETMIN)),
-              conf.getInt(Key.valueOf(prefix + PERIODMIN)));
+          if (conf.getBool(Key.RunOnce)) {
+            logger.info("Prepare single run for " + ctm.getClass().getName()
+                + ".");
+            runOnceMains.add(Executors.callable(ctm));
+          } else {
+            scheduleExecutions(ctm,
+                conf.getInt(Key.valueOf(prefix + OFFSETMIN)),
+                conf.getInt(Key.valueOf(prefix + PERIODMIN)));
+          }
         }
       } catch (ConfigurationException | IllegalAccessException
           | InstantiationException | InvocationTargetException
@@ -70,30 +79,32 @@ public final class Scheduler implements ThreadFactory {
             + ". Reason: " + ex.getMessage(), ex);
       }
     }
+    try {
+      if (conf.getBool(Key.RunOnce)) {
+        scheduler.invokeAll(runOnceMains);
+      }
+    } catch (ConfigurationException | InterruptedException
+        | RejectedExecutionException | NullPointerException ex) {
+      logger.error("Cannot schedule run-once: " + ex.getMessage(), ex);
+    }
   }
 
   private static final long MILLIS_IN_A_MINUTE = 60_000L;
 
-  private void scheduleExecutions(boolean runOnce, CollecTorMain ctm,
-      int offset, int period) {
-    if (runOnce) {
-      logger.info("Single run for " + ctm.getClass().getName() + ".");
-      this.scheduler.execute(ctm);
-    } else {
-      logger.info("Periodic updater started for " + ctm.getClass().getName()
-          + "; offset=" + offset + ", period=" + period + ".");
-      long periodMillis = period * MILLIS_IN_A_MINUTE;
-      long initialDelayMillis = computeInitialDelayMillis(
-          System.currentTimeMillis(), offset * MILLIS_IN_A_MINUTE, periodMillis);
+  private void scheduleExecutions(CollecTorMain ctm, int offset, int period) {
+    logger.info("Periodic updater started for " + ctm.getClass().getName()
+        + "; offset=" + offset + ", period=" + period + ".");
+    long periodMillis = period * MILLIS_IN_A_MINUTE;
+    long initialDelayMillis = computeInitialDelayMillis(
+        System.currentTimeMillis(), offset * MILLIS_IN_A_MINUTE, periodMillis);
 
-      /* Run after initialDelay delay and then every period min. */
-      logger.info("Periodic updater will first run in {} and then every {} "
-          + "minutes.", initialDelayMillis < MILLIS_IN_A_MINUTE
-          ? "under 1 minute"
-          : (initialDelayMillis / MILLIS_IN_A_MINUTE) + " minute(s)", period);
-      this.scheduler.scheduleAtFixedRate(ctm, initialDelayMillis, periodMillis,
-          TimeUnit.MILLISECONDS);
-    }
+    /* Run after initialDelay delay and then every period min. */
+    logger.info("Periodic updater will first run in {} and then every {} "
+        + "minutes.", initialDelayMillis < MILLIS_IN_A_MINUTE
+        ? "under 1 minute"
+        : (initialDelayMillis / MILLIS_IN_A_MINUTE) + " minute(s)", period);
+    this.scheduler.scheduleAtFixedRate(ctm, initialDelayMillis, periodMillis,
+        TimeUnit.MILLISECONDS);
   }
 
   protected static long computeInitialDelayMillis(long currentMillis,
