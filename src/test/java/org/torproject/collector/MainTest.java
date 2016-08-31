@@ -8,17 +8,21 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
 import org.torproject.collector.cron.Scheduler;
 
+import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
@@ -28,13 +32,19 @@ public class MainTest {
   @Rule
   public TemporaryFolder tmpf = new TemporaryFolder();
 
-  @Test(expected = ConfigurationException.class)
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
+
+  @Test()
   public void testInitializationConfigException() throws Exception {
-    File conf = new File(Main.CONF_FILE);
-    checkCleanEnv(conf);
-    Main.main(new String[] {"/tmp/"});
-    assertTrue(conf.exists());
-    assertTrue(conf.delete());
+    File tmpFolder = tmpf.newFolder();
+    Configuration conf = new Configuration();
+    thrown.expect(ConfigurationException.class);
+    thrown.expectMessage(Matchers
+         .containsString("Cannot watch configuration file."));
+
+    // dir instead of file; the following should throw a ConfigurationException
+    conf.setWatchableSourceAndLoad(tmpFolder.toPath());
   }
 
   private void checkCleanEnv(File conf) {
@@ -51,9 +61,14 @@ public class MainTest {
     assertTrue(conf.delete());
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test()
   public void testInitializationUnwritable() throws Exception {
     File conf = tmpf.newFolder("folder");
+
+    thrown.expect(RuntimeException.class);
+    thrown.expectMessage(Matchers
+        .allOf(Matchers.containsString("NoSuchFileException"),
+             Matchers.containsString("/x/y/z")));
 
     Main.main(new String[] {
         Paths.get(conf.toString(), "x", "y", "z").toString()});
@@ -171,18 +186,22 @@ public class MainTest {
     }
   }
 
-  @Test(expected = ConfigurationException.class)
+  @Test()
   public void testNoModuleActivated() throws Exception {
-    File conf = tmpf.newFile("test.conf");
-    try {
-      assertEquals(0L, conf.length());
-      // create default configuration
-      Main.main(new String[]{conf.toString()});
-    } catch (ConfigurationException ce) {
-      fail("This should not cause a ConfigurationException: " + ce);
-    }
+    Path confPath = tmpf.newFile("test.conf").toPath();
+    assertEquals(0L, confPath.toFile().length());
+
+    // create default configuration
+    Main.main(new String[]{confPath.toFile().toString()});
+    assertTrue(0L < confPath.toFile().length());
+
+    Configuration conf = new Configuration();
+
+    thrown.expect(ConfigurationException.class);
+    thrown.expectMessage(Matchers.containsString("Nothing is activated!"));
+
     // no module activated; the following should throw a ConfigurationException
-    Main.main(new String[]{conf.toString()});
+    conf.setWatchableSourceAndLoad(confPath);
   }
 }
 
