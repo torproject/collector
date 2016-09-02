@@ -1,4 +1,3 @@
-Options +Indexes
 IndexOptions IgnoreCase FancyIndexing FoldersFirst HTMLTable NameWidth=* DescriptionWidth=* SuppressIcon SuppressDescription SuppressHTMLPreamble
 IndexOrderDefault Descending Name
 IndexIgnore *.tmp
