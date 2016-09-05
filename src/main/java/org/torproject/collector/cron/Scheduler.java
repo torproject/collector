@@ -29,6 +29,8 @@ public final class Scheduler implements ThreadFactory {
   public static final String ACTIVATED = "Activated";
   public static final String PERIODMIN = "PeriodMinutes";
   public static final String OFFSETMIN = "OffsetMinutes";
+  private static final long GRACE_MIN = 20L;
+  private static final long MILLIS_IN_A_MINUTE = 60_000L;
 
   private static final Logger logger = LoggerFactory.getLogger(Scheduler.class);
 
@@ -89,8 +91,6 @@ public final class Scheduler implements ThreadFactory {
     }
   }
 
-  private static final long MILLIS_IN_A_MINUTE = 60_000L;
-
   private void scheduleExecutions(CollecTorMain ctm, int offset, int period) {
     logger.info("Periodic updater started for " + ctm.getClass().getName()
         + "; offset=" + offset + ", period=" + period + ".");
@@ -118,8 +118,10 @@ public final class Scheduler implements ThreadFactory {
    */
   public void shutdownScheduler() {
     try {
+      logger.info("Waiting at most {} minutes for termination "
+          + "of running tasks ... ", GRACE_MIN);
       scheduler.shutdown();
-      scheduler.awaitTermination(20L, java.util.concurrent.TimeUnit.MINUTES);
+      scheduler.awaitTermination(GRACE_MIN, java.util.concurrent.TimeUnit.MINUTES);
       logger.info("Shutdown of all scheduled tasks completed successfully.");
     } catch (InterruptedException ie) {
       List<Runnable> notTerminated = scheduler.shutdownNow();

@@ -25,6 +25,12 @@
     </filter>
   </appender>
 
+  <appender name="SHUTDOWN" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>${utc-date-pattern} %level %logger{20}:%line %msg%n</pattern>
+    </encoder>
+  </appender>
+
   <appender name="FILEALL" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <file>${fileall-logname}.log</file>
     <encoder>
@@ -146,6 +152,9 @@
     <appender-ref ref="CONSOLE" />
   </logger>
 
+  <logger name="org.torproject.collector.cron.ShutdownHook" >
+    <appender-ref ref="SHUTDOWN" />
+  </logger>
 
   <root level="ALL">
     <appender-ref ref="FILEALL" />

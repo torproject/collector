@@ -280,13 +280,13 @@
         <include name="**/*.java" />
       </fileset>
     </cobertura-report>
-    <cobertura-check totallinerate="5" totalbranchrate="1" >
+    <cobertura-check totallinerate="7" totalbranchrate="2" >
       <regex pattern="org.torproject.collector.conf"
              branchrate="87" linerate="100"/>
       <regex pattern="org.torproject.collector.cron"
              branchrate="50" linerate="71" />
       <regex pattern="org.torproject.collector.Main"
-             branchrate="100" linerate="100" />
+             branchrate="100" linerate="91" />
     </cobertura-check>
   </target>
   <target name="test" depends="compile,compile-tests">

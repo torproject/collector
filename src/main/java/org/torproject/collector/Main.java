@@ -9,6 +9,7 @@ import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
 import org.torproject.collector.cron.CollecTorMain;
 import org.torproject.collector.cron.Scheduler;
+import org.torproject.collector.cron.ShutdownHook;
 import org.torproject.collector.exitlists.ExitListDownloader;
 import org.torproject.collector.index.CreateIndexJson;
 import org.torproject.collector.relaydescs.ArchiveWriter;
@@ -79,6 +80,7 @@ public class Main {
       printUsage(ce.getMessage());
       return;
     }
+    Runtime.getRuntime().addShutdownHook(new ShutdownHook());
   }
 
   private static void printUsage(String msg) {
