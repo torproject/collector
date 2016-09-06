@@ -217,6 +217,21 @@ public class Configuration extends Observable implements Cloneable {
   }
 
   /**
+   * Parse a long property.
+   * Verifies that this enum is a Key for a Long value.
+   */
+  public long getLong(Key key) throws ConfigurationException {
+    try {
+      checkClass(key, Long.class);
+      String prop = props.getProperty(key.name());
+      return Long.parseLong(prop);
+    } catch (RuntimeException re) {
+      throw new ConfigurationException("Corrupt property: " + key
+          + " reason: " + re.getMessage(), re);
+    }
+  }
+
+  /**
    * Returns a {@code Path} property, e.g.
    * {@code pathProperty = /my/path/file}.
    */

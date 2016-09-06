@@ -9,6 +9,7 @@ import java.nio.file.Path;
  */
 public enum Key {
 
+  ShutdownGraceWaitMinutes(Long.class),
   RunOnce(Boolean.class),
   ExitlistOutputDirectory(Path.class),
   ExitlistUrl(URL.class),

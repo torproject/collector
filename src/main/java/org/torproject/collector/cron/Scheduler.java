@@ -29,7 +29,6 @@ public final class Scheduler implements ThreadFactory {
   public static final String ACTIVATED = "Activated";
   public static final String PERIODMIN = "PeriodMinutes";
   public static final String OFFSETMIN = "OffsetMinutes";
-  private static final long GRACE_MIN = 20L;
   private static final long MILLIS_IN_A_MINUTE = 60_000L;
 
   private static final Logger logger = LoggerFactory.getLogger(Scheduler.class);
@@ -37,6 +36,7 @@ public final class Scheduler implements ThreadFactory {
   private final ThreadFactory threads = Executors.defaultThreadFactory();
 
   private int currentThreadNo = 0;
+  private long gracePeriodMinutes = 20L;
 
   private final ScheduledExecutorService scheduler =
       Executors.newScheduledThreadPool(10, this);
@@ -55,6 +55,12 @@ public final class Scheduler implements ThreadFactory {
    */
   public void scheduleModuleRuns(Map<Key,
       Class<? extends CollecTorMain>> collecTorMains, Configuration conf) {
+    try {
+      gracePeriodMinutes = conf.getLong(Key.ShutdownGraceWaitMinutes);
+    } catch (ConfigurationException ce) {
+      logger.warn("Cannot read grace period: {}", ce);
+      gracePeriodMinutes = 20L;
+    }
     List<Callable<Object>> runOnceMains = new ArrayList<>();
     for (Map.Entry<Key, Class<? extends CollecTorMain>> ctmEntry
         : collecTorMains.entrySet()) {
@@ -119,9 +125,10 @@ public final class Scheduler implements ThreadFactory {
   public void shutdownScheduler() {
     try {
       logger.info("Waiting at most {} minutes for termination "
-          + "of running tasks ... ", GRACE_MIN);
+          + "of running tasks ... ", gracePeriodMinutes);
       scheduler.shutdown();
-      scheduler.awaitTermination(GRACE_MIN, java.util.concurrent.TimeUnit.MINUTES);
+      scheduler.awaitTermination(gracePeriodMinutes,
+          java.util.concurrent.TimeUnit.MINUTES);
       logger.info("Shutdown of all scheduled tasks completed successfully.");
     } catch (InterruptedException ie) {
       List<Runnable> notTerminated = scheduler.shutdownNow();
