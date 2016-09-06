@@ -7,6 +7,7 @@
 
  * Minor changes
    - Remove quotes around base URL in index.json.
+   - Change default log thresholds from TRACE to INFO.
 
 
 # Changes in version 1.0.1 - 2016-08-22

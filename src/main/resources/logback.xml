@@ -46,6 +46,9 @@
         <maxFileSize>1MB</maxFileSize>
       </timeBasedFileNamingAndTriggeringPolicy>
     </rollingPolicy>
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>INFO</level>
+    </filter>
   </appender>
 
   <appender name="FILEBRIDGEDESCS" class="ch.qos.logback.core.FileAppender">
@@ -55,7 +58,7 @@
     </encoder>
 
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-      <level>TRACE</level>
+      <level>INFO</level>
     </filter>
   </appender>
 
@@ -66,7 +69,7 @@
     </encoder>
 
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-      <level>TRACE</level>
+      <level>INFO</level>
     </filter>
   </appender>
 
@@ -77,7 +80,7 @@
     </encoder>
 
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-      <level>TRACE</level>
+      <level>INFO</level>
     </filter>
   </appender>
 
@@ -88,7 +91,7 @@
     </encoder>
 
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-      <level>TRACE</level>
+      <level>INFO</level>
     </filter>
   </appender>
 
