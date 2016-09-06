@@ -36,7 +36,7 @@ public final class Scheduler implements ThreadFactory {
   private final ThreadFactory threads = Executors.defaultThreadFactory();
 
   private int currentThreadNo = 0;
-  private long gracePeriodMinutes = 20L;
+  private long gracePeriodMinutes = 10L;
 
   private final ScheduledExecutorService scheduler =
       Executors.newScheduledThreadPool(10, this);
@@ -59,7 +59,7 @@ public final class Scheduler implements ThreadFactory {
       gracePeriodMinutes = conf.getLong(Key.ShutdownGraceWaitMinutes);
     } catch (ConfigurationException ce) {
       logger.warn("Cannot read grace period: {}", ce);
-      gracePeriodMinutes = 20L;
+      gracePeriodMinutes = 10L;
     }
     List<Callable<Object>> runOnceMains = new ArrayList<>();
     for (Map.Entry<Key, Class<? extends CollecTorMain>> ctmEntry
