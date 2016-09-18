@@ -56,8 +56,12 @@ TARBALLS=(
   server-descriptors-$YEARTWO-$MONTHTWO
   extra-infos-$YEARONE-$MONTHONE
   extra-infos-$YEARTWO-$MONTHTWO
-  bridge-descriptors-$YEARONE-$MONTHONE
-  bridge-descriptors-$YEARTWO-$MONTHTWO
+  bridge-statuses-$YEARONE-$MONTHONE
+  bridge-statuses-$YEARTWO-$MONTHTWO
+  bridge-server-descriptors-$YEARONE-$MONTHONE
+  bridge-server-descriptors-$YEARTWO-$MONTHTWO
+  bridge-extra-infos-$YEARONE-$MONTHONE
+  bridge-extra-infos-$YEARTWO-$MONTHTWO
 )
 TARBALLS=($(printf "%s\n" "${TARBALLS[@]}" | uniq))
 
@@ -77,8 +81,12 @@ DIRECTORIES=(
   $OUTDIR/relay-descriptors/server-descriptor/$YEARTWO/$MONTHTWO/
   $OUTDIR/relay-descriptors/extra-info/$YEARONE/$MONTHONE/
   $OUTDIR/relay-descriptors/extra-info/$YEARTWO/$MONTHTWO/
-  $OUTDIR/bridge-descriptors/$YEARONE/$MONTHONE/
-  $OUTDIR/bridge-descriptors/$YEARTWO/$MONTHTWO/
+  $OUTDIR/bridge-descriptors/$YEARONE/$MONTHONE/statuses/
+  $OUTDIR/bridge-descriptors/$YEARTWO/$MONTHTWO/statuses/
+  $OUTDIR/bridge-descriptors/$YEARONE/$MONTHONE/server-descriptors/
+  $OUTDIR/bridge-descriptors/$YEARTWO/$MONTHTWO/server-descriptors/
+  $OUTDIR/bridge-descriptors/$YEARONE/$MONTHONE/extra-infos/
+  $OUTDIR/bridge-descriptors/$YEARTWO/$MONTHTWO/extra-infos/
 )
 DIRECTORIES=($(printf "%s\n" "${DIRECTORIES[@]}" | uniq))
 
@@ -109,8 +117,14 @@ cd $CURRENTPATH
 
 echo `date` "Finished tarball creation.  Starting symlink-update ..."
 
-mkdir -p $ARCHIVEDIR/bridge-descriptors/
-ln -f -s -t $ARCHIVEDIR/bridge-descriptors/ $TARBALLTARGETDIR/bridge-descriptors-20??-??.tar.xz
+mkdir -p $ARCHIVEDIR/bridge-descriptors/statuses/
+ln -f -s -t $ARCHIVEDIR/bridge-descriptors/statuses/ $TARBALLTARGETDIR/bridge-statuses-20??-??.tar.xz
+
+mkdir -p $ARCHIVEDIR/bridge-descriptors/server-descriptors/
+ln -f -s -t $ARCHIVEDIR/bridge-descriptors/server-descriptors/ $TARBALLTARGETDIR/bridge-server-descriptors-20??-??.tar.xz
+
+mkdir -p $ARCHIVEDIR/bridge-descriptors/extra-infos/
+ln -f -s -t $ARCHIVEDIR/bridge-descriptors/extra-infos/ $TARBALLTARGETDIR/bridge-extra-infos-20??-??.tar.xz
 
 mkdir -p $ARCHIVEDIR/bridge-pool-assignments/
 ln -f -s -t $ARCHIVEDIR/bridge-pool-assignments/ $TARBALLTARGETDIR/bridge-pool-assignments-20??-??.tar.xz

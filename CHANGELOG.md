@@ -6,6 +6,10 @@
      minutes to finish properly, rather than killing them immediately.
    - Replace TCP ports with hashes in @type bridge-network-status 1.1
      and @type bridge-server-descriptor 1.2.
+   - Split up bridge descriptor tarballs into one tarball per month
+     and descriptor type: bridge-statuses-YYYY-MM.tar.xz,
+     bridge-server-descriptors-YYYY-MM.tar.xz and
+     bridge-extra-infos-YYYY-MM.tar.xz.
 
  * Minor changes
    - Remove quotes around base URL in index.json.

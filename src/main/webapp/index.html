@@ -168,21 +168,21 @@
   <td>Bridge Network Statuses</td>
   <td><tt>@type bridge-network-status 1.1</tt></td>
   <td><a href="recent/bridge-descriptors/statuses/" class="btn btn-primary btn-xs">recent</a></td>
-  <td><a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="archive/bridge-descriptors/statuses/" class="btn btn-primary btn-xs">archive</a></td>
   <td><a href="#type-bridge-network-status" class="btn btn-default btn-xs">format</a></td>
 </tr>
 <tr>
   <td>Bridge Server Descriptors</td>
   <td><tt>@type bridge-server-descriptor 1.2</tt></td>
   <td><a href="recent/bridge-descriptors/server-descriptors/" class="btn btn-primary btn-xs">recent</a></td>
-  <td><a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="archive/bridge-descriptors/server-descriptors/" class="btn btn-primary btn-xs">archive</a></td>
   <td><a href="#type-bridge-server-descriptor" class="btn btn-default btn-xs">format</a></td>
 </tr>
 <tr>
   <td>Bridge Extra-info Descriptors</td>
   <td><tt>@type bridge-extra-info 1.3</tt></td>
   <td><a href="recent/bridge-descriptors/extra-infos/" class="btn btn-primary btn-xs">recent</a></td>
-  <td><a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs">archive</a></td>
+  <td><a href="archive/bridge-descriptors/extra-infos/" class="btn btn-primary btn-xs">archive</a></td>
   <td><a href="#type-bridge-extra-info" class="btn btn-default btn-xs">format</a></td>
 </tr>
 <tr>
@@ -500,8 +500,6 @@ descriptor including all signatures.</li>
 Sanitized bridge network statuses are similar to version 2 relay network
 statuses, but with only a <tt>published</tt> line in the header and
 without any lines in the footer.
-The bridge descriptor archive tarballs contain all bridge
-descriptors of a given month, not just network statuses.
 The format has changed over time to accomodate changes to the sanitizing
 process, with earlier versions being:
 </p>
@@ -523,10 +521,8 @@ ports.</li>
 <p>
 Bridge server descriptors follow the same format as relay server
 descriptors, except for the sanitizing steps described above.
-The bridge descriptor archive tarballs contain all bridge
-descriptors of a given month, not just server descriptors.
-These tarballs contain one descriptor per file, whereas recently published bridge descriptor
-files
+The bridge server descriptor archive tarballs contain one descriptor per
+file, whereas recently published bridge server descriptor files
 contain all descriptors collected in an hour concatenated into a single
 file to reduce the number of files.
 The format has changed over time to accomodate changes to the sanitizing
@@ -579,9 +575,8 @@ published by bridges using an Ed25519 master key.</li>
 </ul>
 
 <p>
-The bridge descriptor archive tarballs contain all bridge
-descriptors of a given month, not just extra-info descriptors.
-These tarballs contain one descriptor per file, whereas recently published bridge descriptor
+The bridge extra-info descriptor archive tarballs contain one descriptor
+per file, whereas recently published bridge extra-info descriptor
 files contain all descriptors collected in an hour concatenated into a single
 file to reduce the number of files.
 </p>
