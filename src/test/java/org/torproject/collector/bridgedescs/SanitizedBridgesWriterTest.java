@@ -231,25 +231,29 @@ public class SanitizedBridgesWriterTest {
   }
 
   @Test
-  public void testServerDescriptorHashedIp() throws Exception {
+  public void testServerDescriptorHashedIpAndTcp() throws Exception {
     this.configuration.setProperty(Key.ReplaceIpAddressesWithHashes.name(),
         "true");
     this.configuration.setProperty(Key.BridgeDescriptorMappingsLimit.name(),
         "30000");
     this.defaultServerDescriptorBuilder.insertBeforeLineStartingWith(
         "platform ", Arrays.asList("or-address [2:5:2:5:2:5:2:5]:25"));
+    File bridgeIpSecretsFile = new File(statsDirectory, "bridge-ip-secrets");
+    BufferedWriter writer = new BufferedWriter(new FileWriter(
+        bridgeIpSecretsFile));
+    writer.write("2016-06,8ad0d1410d64256bdaa3977427f6db012c5809082a464c658d651"
+        + "304e25654902ed0df551c8eed19913ab7aaf6243cb3adc0f4a4b93ee77991b8c572e"
+        + "a25ca2ea5cd311dabe2f8b72243837ec88bcb0c758657\n");
+    writer.close();
     this.runTest();
-    int foundLinesContainingHashedIps = 0;
-    for (String line : this.parsedServerDescriptors.get(0)) {
-      if (line.startsWith("router MeekGoogle 10.")
-          && line.endsWith(" 0 0")) {
-        foundLinesContainingHashedIps++;
-      } else if (line.startsWith("or-address [fd9f:2e19:3bcf::")) {
-        foundLinesContainingHashedIps++;
-      }
-    }
-    assertEquals("Expected 2 lines containing hashed IP addresses and TCP "
-        + "ports.", 2, foundLinesContainingHashedIps);
+    assertFalse("Server descriptor not sanitized.",
+        this.parsedServerDescriptors.isEmpty());
+    assertTrue("IPv4 address and/or TCP port not sanitized as expected.",
+        this.parsedServerDescriptors.get(0).contains(
+        "router MeekGoogle 10.51.223.72 56172 0 0"));
+    assertTrue("IPv6 address and/or TCP port not sanitized as expected.",
+        this.parsedServerDescriptors.get(0).contains(
+        "or-address [fd9f:2e19:3bcf::0c:b8a6]:59690"));
   }
 
   @Test
