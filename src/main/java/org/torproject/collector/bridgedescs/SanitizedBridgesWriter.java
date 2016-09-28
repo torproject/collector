@@ -826,6 +826,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
             || line.startsWith("platform ")
             || line.startsWith("opt protocols ")
             || line.startsWith("protocols ")
+            || line.startsWith("proto ")
             || line.startsWith("uptime ")
             || line.startsWith("bandwidth ")
             || line.startsWith("opt hibernating ")

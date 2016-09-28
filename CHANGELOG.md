@@ -10,6 +10,8 @@
      and descriptor type: bridge-statuses-YYYY-MM.tar.xz,
      bridge-server-descriptors-YYYY-MM.tar.xz and
      bridge-extra-infos-YYYY-MM.tar.xz.
+   - Keep "proto" lines in bridge server descriptors as introduced in
+     proposal 264.
 
  * Minor changes
    - Remove quotes around base URL in index.json.
