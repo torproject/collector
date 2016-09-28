@@ -301,6 +301,18 @@ public class SanitizedBridgesWriterTest {
   }
 
   @Test
+  public void testServerDescriptorExtraInfoDigestInvalidBase64()
+      throws Exception {
+    this.defaultServerDescriptorBuilder.replaceLineStartingWith(
+        "extra-info-digest ", Arrays.asList("extra-info-digest "
+        + "6D03E80568DEFA102968D144CB35FFA6E3355B8A "
+        + "#*?$%§@nxukmmcT1+UnDg4qh0yKbjVUYKhGL8VksoJA"));
+    this.runTest();
+    assertTrue("Invalid base64 in server descriptor accepted.",
+        this.parsedServerDescriptors.isEmpty());
+  }
+
+  @Test
   public void testServerDescriptorExtraInfoDigestSha1Only()
       throws Exception {
     this.defaultServerDescriptorBuilder.replaceLineStartingWith(
@@ -494,6 +506,17 @@ public class SanitizedBridgesWriterTest {
     this.defaultNetworkStatusBuilder.replaceLineStartingWith("r ",
         Arrays.asList("r MeekGoogle"));
     this.runTest();
+  }
+
+  @Test
+  public void testNetworkStatusRlineInvalidBase64() throws Exception {
+    this.defaultNetworkStatusBuilder.replaceLineStartingWith("r ",
+        Arrays.asList("r MeekGoogle R#SnE*e4+lFag:xr_XxSL+J;ZVs "
+        + "g+M7'w+lG$mv6NW9&RmvzLO(R0Y 2016-06-30 21:43:52 "
+        + "198.50.200.131 8008 0"));
+    this.runTest();
+    assertTrue("Should not have accepted invalid base64.",
+        this.parsedNetworkStatuses.isEmpty());
   }
 
   @Test

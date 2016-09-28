@@ -479,6 +479,11 @@ public class SanitizedBridgesWriter extends CollecTorMain {
                 + "status.  Skipping descriptor.");
             return;
           }
+          if (!Base64.isBase64(parts[2])) {
+            logger.warn("Illegal base64 character in r line '" + parts[2]
+                + "'.  Skipping descriptor.");
+            return;
+          }
           fingerprintBytes = Base64.decodeBase64(parts[2] + "==");
           descPublicationTime = parts[4] + " " + parts[5];
           String address = parts[6];
@@ -776,6 +781,11 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           scrubbed.append("extra-info-digest " + DigestUtils.shaHex(
               Hex.decodeHex(parts[1].toCharArray())).toUpperCase());
           if (parts.length > 2) {
+            if (!Base64.isBase64(parts[2])) {
+              logger.warn("Illegal base64 character in extra-info-digest line '"
+                  + line + "'.  Skipping descriptor.");
+              return;
+            }
             scrubbed.append(" " + Base64.encodeBase64String(
                 DigestUtils.sha256(Base64.decodeBase64(parts[2])))
                 .replaceAll("=", ""));
