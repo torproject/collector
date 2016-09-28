@@ -313,6 +313,18 @@ public class SanitizedBridgesWriterTest {
   }
 
   @Test
+  public void testServerDescriptorExtraInfoDigestThirdArgument()
+      throws Exception {
+    this.defaultServerDescriptorBuilder.replaceLineStartingWith(
+        "extra-info-digest ", Arrays.asList("extra-info-digest "
+        + "6D03E80568DEFA102968D144CB35FFA6E3355B8A "
+        + "cy/LwP7nxukmmcT1+UnDg4qh0yKbjVUYKhGL8VksoJA 00"));
+    this.runTest();
+    assertTrue("Third argument to extra-info-digest line should not be "
+        + "dropped silently.", this.parsedServerDescriptors.isEmpty());
+  }
+
+  @Test
   public void testServerDescriptorExtraInfoDigestOpt() throws Exception {
     this.defaultServerDescriptorBuilder.replaceLineStartingWith(
         "extra-info-digest ", Arrays.asList("opt extra-info-digest "

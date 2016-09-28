@@ -768,6 +768,11 @@ public class SanitizedBridgesWriter extends CollecTorMain {
             scrubbed.append("opt ");
             parts = line.substring(4).split(" ");
           }
+          if (parts.length > 3) {
+            logger.warn("extra-info-digest line contains more arguments than"
+                + "expected: '" + line + "'.  Skipping descriptor.");
+            return;
+          }
           scrubbed.append("extra-info-digest " + DigestUtils.shaHex(
               Hex.decodeHex(parts[1].toCharArray())).toUpperCase());
           if (parts.length > 2) {
