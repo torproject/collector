@@ -414,6 +414,14 @@ public class SanitizedBridgesWriterTest {
   }
 
   @Test
+  public void testExtraInfoDescriptorExtraInfoLineTruncated()
+      throws Exception {
+    this.defaultExtraInfoDescriptorBuilder.replaceLineStartingWith(
+        "extra-info ", Arrays.asList("extra-info "));
+    this.runTest();
+  }
+
+  @Test
   public void testExtraInfoDescriptorExtraInfoInvalidHex()
       throws Exception {
     this.defaultExtraInfoDescriptorBuilder.replaceLineStartingWith(

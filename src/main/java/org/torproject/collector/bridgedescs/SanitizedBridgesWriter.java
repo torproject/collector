@@ -1071,6 +1071,11 @@ public class SanitizedBridgesWriter extends CollecTorMain {
          * its hash in the sanitized descriptor. */
         String[] parts = line.split(" ");
         if (line.startsWith("extra-info ")) {
+          if (parts.length < 3) {
+            logger.debug("Illegal line in extra-info descriptor: '" + line
+                + "'.  Skipping descriptor.");
+            return;
+          }
           hashedBridgeIdentity = DigestUtils.shaHex(Hex.decodeHex(
               parts[2].toCharArray())).toLowerCase();
           scrubbed = new StringBuilder("extra-info " + parts[1] + " "
