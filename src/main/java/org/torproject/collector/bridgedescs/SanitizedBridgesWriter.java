@@ -541,7 +541,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
             || line.startsWith("p ") || line.equals("p")) {
           scrubbed.append(line + "\n");
 
-        /* There should be nothing else but r, w, p, and s lines in the
+        /* There should be nothing else but r, a, w, p, and s lines in the
          * network status.  If there is, we should probably learn before
          * writing anything to the sanitized descriptors. */
         } else {

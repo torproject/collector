@@ -587,6 +587,15 @@ public class SanitizedBridgesWriterTest {
   }
 
   @Test
+  public void testNetworkStatusVLineUnknown() throws Exception {
+    this.defaultNetworkStatusBuilder.insertBeforeLineStartingWith("w ",
+        Arrays.asList("v Tor 0.2.7.6"));
+    this.runTest();
+    assertTrue("Should not have sanitized status with v line which is unknown "
+        + "in this descriptor type.", this.parsedNetworkStatuses.isEmpty());
+  }
+
+  @Test
   public void testNetworkStatusFromBifroest() throws Exception {
     this.defaultTarballBuilder.setTarballFileName(
         this.defaultTarballBuilder.getTarballFileName()
