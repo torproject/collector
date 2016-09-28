@@ -757,8 +757,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           scrubbedDesc = scrubbedRouterLine;
           if (scrubbedOrAddresses != null) {
             for (String scrubbedOrAddress : scrubbedOrAddresses) {
-              scrubbedDesc = scrubbedDesc += "or-address "
-                  + scrubbedOrAddress + "\n";
+              scrubbedDesc += "or-address " + scrubbedOrAddress + "\n";
             }
           }
           scrubbedDesc += scrubbed.toString();
