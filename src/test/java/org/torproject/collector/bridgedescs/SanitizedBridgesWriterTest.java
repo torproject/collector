@@ -497,6 +497,26 @@ public class SanitizedBridgesWriterTest {
   }
 
   @Test
+  public void testExtraInfoDescriptorTransportSpace() throws Exception {
+    this.defaultExtraInfoDescriptorBuilder.replaceLineStartingWith(
+        "transport ", Arrays.asList("transport "));
+    this.runTest();
+    assertTrue("Sanitized extra-info descriptor with invalid transport "
+        + "line.", this.parsedExtraInfoDescriptors.isEmpty());
+  }
+
+  @Test
+  public void testExtraInfoDescriptorTransportInfoRemoved() throws Exception {
+    this.defaultExtraInfoDescriptorBuilder.insertBeforeLineStartingWith(
+        "bridge-stats-end ", Arrays.asList("transport-info secretkey"));
+    this.runTest();
+    for (String line : this.parsedExtraInfoDescriptors.get(0)) {
+      assertFalse("transport-info line should not have been retained.",
+          line.startsWith("transport-info "));
+    }
+  }
+
+  @Test
   public void testExtraInfoDescriptorRouterSignatureLineSpace()
       throws Exception {
     this.defaultExtraInfoDescriptorBuilder.replaceLineStartingWith(
