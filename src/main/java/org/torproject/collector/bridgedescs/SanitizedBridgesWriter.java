@@ -474,6 +474,11 @@ public class SanitizedBridgesWriter extends CollecTorMain {
 
           /* Parse the relevant parts of this r line. */
           String[] parts = line.split(" ");
+          if (parts.length < 9) {
+            logger.warn("Illegal line '" + line + "' in bridge network "
+                + "status.  Skipping descriptor.");
+            return;
+          }
           fingerprintBytes = Base64.decodeBase64(parts[2] + "==");
           descPublicationTime = parts[4] + " " + parts[5];
           String address = parts[6];

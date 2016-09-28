@@ -447,6 +447,13 @@ public class SanitizedBridgesWriterTest {
   }
 
   @Test
+  public void testNetworkStatusRlineTruncated() throws Exception {
+    this.defaultNetworkStatusBuilder.replaceLineStartingWith("r ",
+        Arrays.asList("r MeekGoogle"));
+    this.runTest();
+  }
+
+  @Test
   public void testNetworkStatusAlinePortMissing() throws Exception {
     this.configuration.setProperty(Key.ReplaceIpAddressesWithHashes.name(),
         "true");
