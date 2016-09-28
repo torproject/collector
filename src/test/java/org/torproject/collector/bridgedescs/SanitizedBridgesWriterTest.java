@@ -468,6 +468,27 @@ public class SanitizedBridgesWriterTest {
   }
 
   @Test
+  public void testNetworkStatusFromBifroest() throws Exception {
+    this.defaultTarballBuilder.setTarballFileName(
+        this.defaultTarballBuilder.getTarballFileName()
+        .replaceAll("tonga", "bifroest"));
+    this.runTest();
+    assertTrue("Sanitized status should contain Bifroest's fingerprint.",
+        this.parsedFiles.containsKey("2016/06/statuses/30/"
+        + "20160630-234028-1D8F3A91C37C5D1C4C19B1AD1D0CFBE8BF72D8E1"));
+  }
+
+  @Test
+  public void testNetworkStatusFromTrifroest() throws Exception {
+    this.defaultTarballBuilder.setTarballFileName(
+        this.defaultTarballBuilder.getTarballFileName()
+        .replaceAll("tonga", "trifroest"));
+    this.runTest();
+    assertTrue("Should not have recognized unknown bridge authority Trifroest.",
+        this.parsedNetworkStatuses.isEmpty());
+  }
+
+  @Test
   public void testTarballContainsSameFileTwice() throws Exception {
     this.defaultTarballBuilder.add("cached-extrainfo.new", 1467331623000L,
         Arrays.asList(new DescriptorBuilder[] {
