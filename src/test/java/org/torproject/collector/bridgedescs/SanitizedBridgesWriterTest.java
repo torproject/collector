@@ -4,6 +4,7 @@
 package org.torproject.collector.bridgedescs;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -227,6 +228,28 @@ public class SanitizedBridgesWriterTest {
     this.runTest();
     assertEquals("Expected 3 sanitized descriptors.", 3,
         this.parsedFiles.size());
+  }
+
+  @Test
+  public void testServerDescriptorHashedIp() throws Exception {
+    this.configuration.setProperty(Key.ReplaceIpAddressesWithHashes.name(),
+        "true");
+    this.configuration.setProperty(Key.BridgeDescriptorMappingsLimit.name(),
+        "30000");
+    this.defaultServerDescriptorBuilder.insertBeforeLineStartingWith(
+        "platform ", Arrays.asList("or-address [2:5:2:5:2:5:2:5]:25"));
+    this.runTest();
+    int foundLinesContainingHashedIps = 0;
+    for (String line : this.parsedServerDescriptors.get(0)) {
+      if (line.startsWith("router MeekGoogle 10.")
+          && line.endsWith(" 0 0")) {
+        foundLinesContainingHashedIps++;
+      } else if (line.startsWith("or-address [fd9f:2e19:3bcf::")) {
+        foundLinesContainingHashedIps++;
+      }
+    }
+    assertEquals("Expected 2 lines containing hashed IP addresses and TCP "
+        + "ports.", 2, foundLinesContainingHashedIps);
   }
 
   @Test
@@ -550,6 +573,88 @@ public class SanitizedBridgesWriterTest {
     this.runTest();
     assertTrue("Continued despite not being able to read "
         + "parsed-bridge-directories.", this.parsedFiles.isEmpty());
+  }
+
+  @Test
+  public void testBridgeIpSecretsWritten() throws Exception {
+    this.configuration.setProperty(Key.ReplaceIpAddressesWithHashes.name(),
+        "true");
+    this.configuration.setProperty(Key.BridgeDescriptorMappingsLimit.name(),
+        "30000");
+    this.runTest();
+    File bridgeIpSecretsFile = new File(statsDirectory,
+        "bridge-ip-secrets");
+    BufferedReader reader = new BufferedReader(new FileReader(
+        bridgeIpSecretsFile));
+    String line;
+    while ((line = reader.readLine()) != null) {
+      assertTrue("Secrets line should start with month 2016-06.",
+          line.startsWith("2016-06,"));
+      assertEquals("Secrets line should have 7 + 1 + 166 = 174 chars.",
+          174, line.length());
+    }
+    reader.close();
+  }
+
+  @Test
+  public void testBridgeIpSecretsRead() throws Exception {
+    File bridgeIpSecretsFile = new File(statsDirectory,
+        "bridge-ip-secrets");
+    BufferedWriter writer = new BufferedWriter(new FileWriter(
+        bridgeIpSecretsFile));
+    String secretLine = "2016-06,8ad0d1410d64256bdaa3977427f6db012c5809082a464c"
+        + "658d651304e25654902ed0df551c8eed19913ab7aaf6243cb3adc0f4a4b93ee77991"
+        + "b8c572ea25ca2ea5cd311dabe2f8b72243837ec88bcb0c758657";
+    writer.write(secretLine + "\n");
+    writer.close();
+    this.configuration.setProperty(Key.ReplaceIpAddressesWithHashes.name(),
+        "true");
+    this.configuration.setProperty(Key.BridgeDescriptorMappingsLimit.name(),
+        "30000");
+    this.runTest();
+    assertEquals("Didn't sanitize descriptors.", 3,
+        this.parsedFiles.size());
+    BufferedReader reader = new BufferedReader(new FileReader(
+        bridgeIpSecretsFile));
+    String line;
+    while ((line = reader.readLine()) != null) {
+      assertEquals("Secrets line was changed.", secretLine, line);
+    }
+    reader.close();
+  }
+
+  @Test
+  public void testBridgeIpSecretsIsDirectory() throws Exception {
+    File bridgeIpSecretsFile = new File(statsDirectory, "bridge-ip-secrets");
+    bridgeIpSecretsFile.mkdirs();
+    this.runTest();
+    assertTrue("Sanitized server descriptors without secrets.",
+        this.parsedServerDescriptors.isEmpty());
+    assertFalse("Didn't sanitize extra-info descriptors.",
+        this.parsedExtraInfoDescriptors.isEmpty());
+    assertTrue("Sanitized network statuses without secrets.",
+        this.parsedNetworkStatuses.isEmpty());
+  }
+
+  @Test
+  public void testBridgeIpSecretsTruncatedLine() throws Exception {
+    this.configuration.setProperty(Key.ReplaceIpAddressesWithHashes.name(),
+        "true");
+    this.configuration.setProperty(Key.BridgeDescriptorMappingsLimit.name(),
+        "30000");
+    File bridgeIpSecretsFile = new File(statsDirectory,
+        "bridge-ip-secrets");
+    BufferedWriter writer = new BufferedWriter(new FileWriter(
+        bridgeIpSecretsFile));
+    writer.write("2016-06,x");
+    writer.close();
+    this.runTest();
+    assertTrue("Sanitized server descriptors without secrets.",
+        this.parsedServerDescriptors.isEmpty());
+    assertFalse("Didn't sanitize extra-info descriptors.",
+        this.parsedExtraInfoDescriptors.isEmpty());
+    assertTrue("Sanitized network statuses without secrets.",
+        this.parsedNetworkStatuses.isEmpty());
   }
 }
 
