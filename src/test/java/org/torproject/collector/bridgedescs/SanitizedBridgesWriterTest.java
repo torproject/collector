@@ -262,6 +262,16 @@ public class SanitizedBridgesWriterTest {
   }
 
   @Test
+  public void testServerDescriptorProtoLine() throws Exception {
+    this.defaultServerDescriptorBuilder.replaceLineStartingWith("protocols ",
+        Arrays.asList("proto Cons=1-2 Desc=1-2 DirCache=1 HSDir=1 HSIntro=3 "
+        + "HSRend=1-2 Link=1-4 LinkAuth=1 Microdesc=1-2 Relay=1-2"));
+    this.runTest();
+    assertFalse("Sanitized server descriptor with valid proto line.",
+        this.parsedServerDescriptors.isEmpty());
+  }
+
+  @Test
   public void testServerDescriptorFingerprintTruncated() throws Exception {
     this.defaultServerDescriptorBuilder.replaceLineStartingWith(
         "fingerprint ", Arrays.asList("fingerprint 4"));
