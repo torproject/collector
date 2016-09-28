@@ -153,6 +153,9 @@ public class BridgeSnapshotReader {
                     break;
                   }
                 }
+                if (firstLine == null) {
+                  continue;
+                }
                 if (firstLine.startsWith("published ")
                     || firstLine.startsWith("flag-thresholds ")
                     || firstLine.startsWith("r ")) {

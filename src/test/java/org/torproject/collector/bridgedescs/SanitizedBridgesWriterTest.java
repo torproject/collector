@@ -214,6 +214,12 @@ public class SanitizedBridgesWriterTest {
   }
 
   @Test
+  public void testServerDescriptorOnlyAnnotation() throws Exception {
+    this.defaultServerDescriptorBuilder.removeAllExcept("@purpose bridge");
+    this.runTest();
+  }
+
+  @Test
   public void testServerDescriptorAdditionalAnnotation()
       throws Exception {
     this.defaultServerDescriptorBuilder.insertBeforeLineStartingWith(
