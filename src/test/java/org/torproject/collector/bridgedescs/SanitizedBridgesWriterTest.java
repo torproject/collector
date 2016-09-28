@@ -379,6 +379,45 @@ public class SanitizedBridgesWriterTest {
   }
 
   @Test
+  public void testServerDescriptorEd25519IdentityA() throws Exception {
+    this.defaultServerDescriptorBuilder.replaceLineStartingWith(
+        "identity-ed25519", Arrays.asList("identity-ed25519",
+        "-----BEGIN ED25519 CERT-----",
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+        "-----END ED25519 CERT-----"));
+    this.runTest();
+    assertTrue("Ed25519 identity all A's conflicts with master key?",
+        this.parsedServerDescriptors.isEmpty());
+  }
+
+  @Test
+  public void testServerDescriptorEd25519IdentityEToF() throws Exception {
+    String change9sTo6s =
+        "ZEXE7RkiEJ1l5Ij9hc9TJOpM7/9XSPZnF/PbMfE0u3n3JbOO3s82GN6BPuA0v2Cs";
+    this.defaultServerDescriptorBuilder.replaceLineStartingWith(change9sTo6s,
+        Arrays.asList(change9sTo6s.replaceAll("9", "6")));
+    this.runTest();
+    assertTrue("Mismatch between identity and master key.",
+        this.parsedServerDescriptors.isEmpty());
+  }
+
+  @Test
+  public void testServerDescriptorEd25519IdentitySlash() throws Exception {
+    this.defaultServerDescriptorBuilder.replaceLineStartingWith(
+        "identity-ed25519", Arrays.asList("identity-ed25519",
+        "-----BEGIN ED25519 CERT-----",
+        "////////////////////////////////////////////////////////////////",
+        "////////////////////////////////////////////////////////////////",
+        "///////////////////////////////////////////////////////////=",
+        "-----END ED25519 CERT-----"));
+    this.runTest();
+    assertTrue("Ed25519 identity all slashes conflicts with master key.",
+        this.parsedServerDescriptors.isEmpty());
+  }
+
+  @Test
   public void testServerDescriptorFamilyInvalidFingerprint()
       throws Exception {
     this.defaultServerDescriptorBuilder.insertBeforeLineStartingWith(

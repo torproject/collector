@@ -816,6 +816,11 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           masterKeyEd25519FromIdentityEd25519 =
               this.parseMasterKeyEd25519FromIdentityEd25519(
               sb.toString());
+          if (masterKeyEd25519FromIdentityEd25519 == null) {
+            logger.warn("Could not parse master-key-ed25519 from "
+                + "identity-ed25519.  Skipping descriptor.");
+            return;
+          }
           String sha256MasterKeyEd25519 = Base64.encodeBase64String(
               DigestUtils.sha256(Base64.decodeBase64(
               masterKeyEd25519FromIdentityEd25519 + "=")))
