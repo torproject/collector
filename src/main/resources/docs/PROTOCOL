@@ -1,0 +1,384 @@
+
+             Protocol of CollecTor's File Structure
+                            DRAFT
+
+1.0 Introduction
+
+   This protocol describes the file structure of the data offered by
+   CollecTor mirrors.  The description of the data contained in the
+   structure is not part of this protocol and can be found on the
+   main page of a CollecTor instance, e.g. https://collector.torproject.org
+
+   CollecTor's data resides in three top elements:
+
+   * archive folder
+   * index files
+   * recent folder
+
+   These can be located anywhere on the providing systems memory, permanent
+   or in-memory.  As long as they can be accesses from the root folder of
+   the web-interface, i.e.
+
+     https://collector.someinstance.org/archive
+     https://collector.someinstance.org/index.json*
+     https://collector.someinstance.org/recent
+
+   The fourth file system structure that is part of the protocol is the
+   output directory (in the following referred to as 'out'), which is not
+   directly visible to CollecTor's clients.  This directory is the place
+   for internal storage and its file system structure is later contained
+   in the provided tar-balls with archived data.
+
+   The following sections describe the substructure of the storage locations.
+
+2.0 The 'archive' Folder
+
+   The 'archive' folder contains the Tor network history as compressed
+   tarballs.
+
+2.1 Immediate Subfolders of 'archive'
+
+   The top structure of 'archive' is comprised of
+
+   * bridge-descriptors
+   * bridge-pool-assignments
+   * exit-lists
+   * relay-descriptors
+   * torperf
+
+   The substructure of these folders differs depending on their content.
+
+2.2 'bridge-pool-assignments', 'exit-lists', and 'torperf' below 'archive'
+
+   'bridge-pool-assignments', 'exit-lists', and 'torperf' directly contain the
+   compressed tar-balls named according to the following rules:
+
+   marker DASH year DASH month DOT TAR DOT compression-type
+
+   DASH is the "-" symbol.
+   DOT a dot ".".
+   TAR is the string "tar".
+
+   'marker' is the either 'bridge-pool-assignments', 'torperf', or 'exit-lists'.
+   'year' and 'month' are derived from the published dates (bridge pool
+   assignments), measurement dates (torperf), or download dates (exit lists) of
+   the contained data.
+   The 'compression-type' is one element of "xz", "gz", "bz2", or "zip".  The
+   current default compression type is set to "xz".
+
+2.3 'bridge-descriptors' below 'archive'
+
+   'bridge-descriptors' contains the following subdirectories:
+
+   * extra-infos
+   * server-descriptors
+   * statuses
+
+   These directories contain compressed tar-balls of the respective descriptors.
+   The compressed tar-balls are named in the following way:
+
+   BRIDGE DASH marker DASH year DASH month DOT TAR DOT compression-type
+
+   BRIDGE is the string "bridge".
+
+   'marker' is one of 'extra-infos', 'server-descriptors', or 'statuses'.
+   'year' and 'month' are derived from the published dates of the contained
+   data.
+
+2.4 'relay-descriptors' below 'archive'
+
+   'relay-descriptors' contains  the following substructure:
+
+   * consensuses
+   * extra-infos
+   * microdescs
+   * server-descriptors
+   * statuses
+   * tor
+   * votes
+   * certs.tar.xz
+
+   'consensuses', 'extra-infos', 'microdescs', 'server-descriptors',
+   'statuses', 'tor', and 'votes' contain compressed tar-balls of the
+   respective descriptors.
+   The compressed tar-balls are named in the following way:
+
+   marker DASH year DASH month DOT TAR DOT compression-type
+
+   'marker' is one of    'consensuses', 'extra-infos', 'microdescs',
+   'server-descriptors', 'statuses', 'tor', or 'votes'
+   'year' and 'month' are derived from different dates found in the data:
+
+   * for consensuses, microdescs, and votes from the valid-after dates,
+   * for extra-infos, server-descriptors, statuses, and tor from the
+     published dates.
+
+3.0 Index Files
+
+   The index.json file and its compressed versions of various types are
+   contained under the web-root of the main CollecTor instance.
+   Future versions of this protocol might move these files to a separate
+   'index' folder.
+
+4.0 The 'recent' folder
+
+   'recent' provides data from the last 72 hours in the following
+   subfolders:
+
+   * bridge-descriptors
+   * exit-lists
+   * relay-descriptors
+   * torperf
+
+4.1 'exit-lists' and 'torperf' below 'recent'
+
+4.1.1
+   'exit-lists' and 'torperf' directly contain the data files.
+   The exit-list files are named
+
+   year DASH month DASH day DASH hour DASH minute DASH second
+
+   Where these are derived from the download time (exit lists) or measurement
+   time (torperf).
+
+4.1.2
+   'torperf' contains files named
+
+   source DASH kilobytes DASH year DASH month DASH day DOT extension
+
+   Where 'source' is defined by the CollecTor instance and can
+   be mapped to a URL.  'year', 'month', and 'day' are taken from
+   the download date.  'extension' is 'tpf'.
+
+4.2 'bridge-descriptors' below 'recent'
+
+   'bridge-descriptors' contains the following subdirectories:
+
+   * extra-infos
+   * server-descriptors
+   * statuses
+
+4.2.1
+   'extra-infos' and 'server-descriptors' contain data files named
+   in the following way:
+
+   year DASH month DASH day DASH hour DASH minute DASH second
+   DASH marker
+
+   Where 'marker' is one of the strings "extra-infos" or "server-descriptors".
+   All time related values are derived from the download time.
+
+4.2.2
+   'statuses' contains data files named
+
+   year month day DASH hour minute second DASH fingerprint
+
+   All time related values are derived from the published time and
+   'fingerprint' is the fingerprint of the providing bridge
+   authority.
+
+4.3 'relay-descriptors' below 'recent'
+
+   'relay-descriptors' contains  the following substructure:
+
+   * consensuses
+   * extra-infos
+   * microdescs
+   * server-descriptors
+   * votes
+
+4.3.1
+   'consensuses' contains consensus documents named according:
+
+   year DASH month DASH day DASH hour DASH minute DASH second
+   DASH CONSENSUS
+
+   Where CONSENSUS is the string "consensus" and all time related
+   values are derived from the valid-after dates.
+
+4.3.2
+   'extra-infos' and 'server-descriptors' contain data files as
+   the corresponding folder described in section 4.2.1.
+
+4.3.3
+   'votes' contains files named
+
+   year DASH month DASH day DASH hour DASH minute DASH second
+   DASH VOTE DASH fingerprint DASH digest
+
+   Where VOTE is the string "vote" and all time related
+   values are derived from the valid-after dates. 'fingerprint'
+   is the fingerprint of the authority and 'digest' is the SHA1
+   digest of the authority's medium term signing key.
+
+4.3.4
+   'microdescs' contains the subfolders
+
+   * consensus-microdesc
+   * micro
+
+   'consensus-microdesc' contains files named
+
+   year DASH month DASH day DASH hour DASH minute DASH second
+   DASH CONSENSUSMICRO
+
+   Where CONSENSUSMICRO is the string "consensus-microdesc" and
+   all time related values are derived from the valid-after dates.
+
+4.3.5
+   'micro' serves files named
+
+   year DASH month DASH day DASH hour DASH minute DASH second
+   DASH MICRO
+
+   Where MICRO is the string "micro" and all time related values
+   are derived from the valid-after dates of the referencing microdesc
+   consensus.
+
+5.0 The Tar-ball's Directory Structure and the Internal Structure
+
+   The 'out' directory is the internal storage that is used for
+   preparing tar-balls.  So, the following structures occur also
+   partially in the tars that are currently prepared per month.
+
+   The top level of subdirectories is
+
+   * bridge-descriptors
+   * exit-lists
+   * relay-descriptors
+   * torperf
+
+   (There has been a fifth subdirectory 'bridge-pool-assignments' which has been
+   removed when CollecTor stopped collecting those descriptors.  However, it's
+   structure can still be found in the tarballs.)
+
+5.1 'exit-lists' and 'torperf' Tars
+
+5.1.1
+   'exit-lists' and 'torperf' tars are taken from the following
+   subdirectory structure
+
+   year SEP month SEP day
+
+   Where SEP is the path separator (usually *nix type "/") and
+   year, month, and day are derived from the download dates (exit lists) or
+   measurement dates (torperf).
+   Files insides the day directory level are named according to the
+   rules in 4.1.1 and 4.1.2.
+
+   Thus, monthly tars are named according to section 2.2 and contain
+   the following structure
+
+   marker DASH year DASH month SEP day
+
+   Where 'marker' stands for the strings "torperf" or "exit-list".
+
+5.1.2
+   The 'torperf' directory also contains summary files named
+
+   source DASH amount DOT extension
+
+   Where 'source' is the data source defined in the CollecTor instance,
+   amount is a number with appended "kb" or "mb", and 'extension' is
+   either "data" or "extradata".
+
+5.2 'bridge-descriptors' below 'out'
+
+   'bridge-descriptors' contains the following subdirectories:
+
+   * extra-infos
+   * server-descriptors
+   * statuses
+
+5.2.1
+   'extra-infos' and 'server-descriptors' have the following
+   subdirectory structure
+
+   year SEP month SEP first SEP second
+
+   Where year is derived from the published date.
+   'first' and 'second' are the first and second symbol from the
+   router-digest, which also serves as the filename for the files
+   in the 'second' level directories.
+
+   Tars are named according to section 2.3 and have the following
+   substructure using the definitions from 2.3:
+
+   BRIDGE DASH marker DASH year DASH month SEP first SEP second
+
+5.2.2
+   'statuses' have a different substructure
+
+   year SEP month SEP day
+
+   Where 'year', 'month', and 'day' are derived from the published dates.
+   Files insides the 'day' directory level are named according to the
+   rules in 4.2.2.
+
+   The tars are named as in 2.3 with the substructure
+
+   BRIDGE DASH STATUSES DASH year DASH month SEP day
+
+   Where STATUSES is the string "statuses".
+
+5.3 'relay-descriptors' below 'out'
+
+   'relay-descriptors' contains  the following substructure:
+
+   * certs
+   * consensus
+   * extra-info
+   * microdesc
+   * server-descriptor
+   * vote
+
+5.3.1
+   'certs' contains certificate files named
+
+   fingerprint DASH year DASH month DASH day DASH hour DASH minute DASH second
+
+   All time related values are derived from the key-published time and
+   'fingerprint' is the fingerprint of the authority.
+
+5.3.2
+   'consensus' and 'vote' contain the subdirectory structure
+
+   year SEP month SEP day
+
+   Where the time related values are taken from the valid-after dates.
+
+   'extra-info' and 'server-descriptor' follow the naming and subdirectory
+   structure as described in 5.2.1.  'consensus' and 'vote' tars use the
+   substructure of 'statuses' as described in 5.2.2.
+
+5.3.3
+   'microdesc' has a more complex subdirectory structure
+
+   year SEP month
+
+   Where the time related values are taken from the valid-after dates.
+   Inside the 'month' folders are two directories
+
+   * consensus-microdesc
+   * micro
+
+5.3.4
+   'consensus-microdesc' contains 'day' subdirectories derived from the
+   valid-after dates and files named according to 4.3.4.
+
+   'micro' follows the subdirectory structure of
+
+   first SEP second
+
+   Where year is derived from the published date.
+   'first' and 'second' are the first and second symbol from the SHA-256
+   digest, which also serves as the filename for the files
+   in the 'second' level directories.
+
+   The monthly tars are named according to 2.4 and contain
+
+   MICRODESCS DASH year DASH month
+
+   and below the subdirectories of 'micro' and 'consensus-microdescs'.
+
+
