@@ -13,7 +13,7 @@ class ServerDescriptorBuilder extends DescriptorBuilder {
 
   /** Initializes the descriptor builder. */
   ServerDescriptorBuilder() {
-    this.lines = new ArrayList<>(Arrays.asList(
+    this.addAll(Arrays.asList(
         "@purpose bridge",
         "router MeekGoogle 198.50.200.131 8008 0 0",
         "identity-ed25519",

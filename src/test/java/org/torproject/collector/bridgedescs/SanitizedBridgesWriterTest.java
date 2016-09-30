@@ -21,10 +21,13 @@ import org.junit.rules.TemporaryFolder;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -41,17 +44,17 @@ public class SanitizedBridgesWriterTest {
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   /** Directory containing bridge descriptor tarballs to sanitize. */
-  private File bridgeDirectoriesDir;
+  private String bridgeDirectoriesDir;
 
   /** Directory holding recent descriptor files served by CollecTor. */
   private File recentDirectory;
 
   /** Directory storing all intermediate state that needs to be preserved
    * between processing runs. */
-  private File statsDirectory;
+  private String statsDirectory;
 
   /** Directory holding sanitized bridge descriptor files. */
-  private File sanitizedBridgesDirectory;
+  private Path sanitizedBridgesDirectory;
 
   /** CollecTor configuration for this test. */
   private Configuration configuration;
@@ -94,10 +97,11 @@ public class SanitizedBridgesWriterTest {
   @Before
   public void createTemporaryFolderAndBuilders()
       throws IOException {
-    this.bridgeDirectoriesDir = this.temporaryFolder.newFolder("in");
+    this.bridgeDirectoriesDir = this.temporaryFolder.newFolder("in").toString();
     this.recentDirectory = this.temporaryFolder.newFolder("recent");
-    this.statsDirectory = this.temporaryFolder.newFolder("stats");
-    this.sanitizedBridgesDirectory = this.temporaryFolder.newFolder("out");
+    this.statsDirectory = this.temporaryFolder.newFolder("stats").toString();
+    this.sanitizedBridgesDirectory =
+        this.temporaryFolder.newFolder("out").toPath();
     this.initializeTestConfiguration();
     this.defaultServerDescriptorBuilder = new ServerDescriptorBuilder();
     this.defaultExtraInfoDescriptorBuilder = new ExtraInfoDescriptorBuilder();
@@ -127,54 +131,46 @@ public class SanitizedBridgesWriterTest {
     this.configuration.setProperty(Key.BridgedescsActivated.name(), "true");
     this.configuration.setProperty(Key.RecentPath.name(),
         recentDirectory.getAbsolutePath());
-    this.configuration.setProperty(Key.StatsPath.name(),
-        statsDirectory.getAbsolutePath());
+    this.configuration.setProperty(Key.StatsPath.name(), statsDirectory);
     this.configuration.setProperty(Key.BridgeSnapshotsDirectory.name(),
-        bridgeDirectoriesDir.getAbsolutePath());
+        bridgeDirectoriesDir);
     this.configuration.setProperty(Key.SanitizedBridgesWriteDirectory.name(),
-        sanitizedBridgesDirectory.getAbsolutePath());
+        sanitizedBridgesDirectory.toString());
   }
 
   /** Runs this test by executing all builders, performing the sanitizing
    * process, and parsing sanitized bridge descriptors for inspection. */
   private void runTest() throws IOException, ConfigurationException {
     for (TarballBuilder tarballBuilder : this.tarballBuilders) {
-      tarballBuilder.build(this.bridgeDirectoriesDir);
+      tarballBuilder.build(new File(this.bridgeDirectoriesDir));
     }
     SanitizedBridgesWriter sbw = new SanitizedBridgesWriter(configuration);
     sbw.startProcessing();
-    List<File> files = new ArrayList<>();
-    files.add(sanitizedBridgesDirectory);
-    String basePath = sanitizedBridgesDirectory.getAbsolutePath() + "/";
     this.parsedFiles = new LinkedHashMap<>();
     this.parsedServerDescriptors = new ArrayList<>();
     this.parsedExtraInfoDescriptors = new ArrayList<>();
     this.parsedNetworkStatuses = new ArrayList<>();
-    while (!files.isEmpty()) {
-      File file = files.remove(0);
-      if (file.isDirectory()) {
-        files.addAll(Arrays.asList(file.listFiles()));
-      } else {
-        List<String> parsedLines = new ArrayList<>();
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        String line;
-        while ((line = reader.readLine()) != null) {
-          parsedLines.add(line);
-        }
-        reader.close();
-        String relativePath = file.getAbsolutePath().substring(
-            basePath.length());
-        if (parsedLines.get(0).startsWith("@type bridge-server-descriptor ")) {
-          this.parsedServerDescriptors.add(parsedLines);
-        } else if (parsedLines.get(0).startsWith("@type bridge-extra-info ")) {
-          this.parsedExtraInfoDescriptors.add(parsedLines);
-        } else if (parsedLines.get(0).startsWith(
-            "@type bridge-network-status ")) {
-          this.parsedNetworkStatuses.add(parsedLines);
-        }
-        this.parsedFiles.put(relativePath, parsedLines);
-      }
-    }
+    Files.walkFileTree(sanitizedBridgesDirectory,
+        new SimpleFileVisitor<Path>() {
+          @Override
+          public FileVisitResult visitFile(Path path, BasicFileAttributes bfa)
+              throws IOException {
+            List<String> parsedLines = Files.readAllLines(path);
+            if (parsedLines.get(0).startsWith(
+                "@type bridge-server-descriptor ")) {
+              parsedServerDescriptors.add(parsedLines);
+            } else if (parsedLines.get(0).startsWith(
+                "@type bridge-extra-info ")) {
+              parsedExtraInfoDescriptors.add(parsedLines);
+            } else if (parsedLines.get(0).startsWith(
+                "@type bridge-network-status ")) {
+              parsedNetworkStatuses.add(parsedLines);
+            }
+            parsedFiles.put(sanitizedBridgesDirectory.relativize(path)
+                .toString(), parsedLines);
+            return FileVisitResult.CONTINUE;
+          }
+        });
   }
 
   @Test
@@ -208,7 +204,7 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testServerDescriptorEmpty() throws Exception {
-    this.defaultServerDescriptorBuilder.removeAllLines();
+    this.defaultServerDescriptorBuilder.clear();
     this.runTest();
     assertTrue("No server descriptor provided as input.",
         this.parsedServerDescriptors.isEmpty());
@@ -238,9 +234,8 @@ public class SanitizedBridgesWriterTest {
         "30000");
     this.defaultServerDescriptorBuilder.insertBeforeLineStartingWith(
         "platform ", Arrays.asList("or-address [2:5:2:5:2:5:2:5]:25"));
-    File bridgeIpSecretsFile = new File(statsDirectory, "bridge-ip-secrets");
-    BufferedWriter writer = new BufferedWriter(new FileWriter(
-        bridgeIpSecretsFile));
+    Path bridgeIpSecretsFile = Paths.get(statsDirectory, "bridge-ip-secrets");
+    BufferedWriter writer = Files.newBufferedWriter(bridgeIpSecretsFile);
     writer.write("2016-06,8ad0d1410d64256bdaa3977427f6db012c5809082a464c658d651"
         + "304e25654902ed0df551c8eed19913ab7aaf6243cb3adc0f4a4b93ee77991b8c572e"
         + "a25ca2ea5cd311dabe2f8b72243837ec88bcb0c758657\n");
@@ -641,17 +636,18 @@ public class SanitizedBridgesWriterTest {
     this.defaultTarballBuilder.add("cached-extrainfo.new", 1467331623000L,
         Arrays.asList(new DescriptorBuilder[] {
             this.defaultExtraInfoDescriptorBuilder }));
+    this.runTest();
+    assertEquals("There should only be one.",
+        1, this.parsedExtraInfoDescriptors.size());
   }
 
   @Test
   public void testTarballCorrupt() throws Exception {
     this.tarballBuilders.clear();
-    File tarballFile = new File(bridgeDirectoriesDir,
+    Path tarballPath = Paths.get(bridgeDirectoriesDir,
         "from-tonga-2016-07-01T000702Z.tar.gz");
-    FileOutputStream stream = new FileOutputStream(tarballFile);
-    stream.write(new byte[] { 0x00 });
-    stream.close();
-    tarballFile.setLastModified(1467331624000L);
+    Files.write(tarballPath, new byte[] { 0x00 });
+    tarballPath.toFile().setLastModified(1467331624000L);
     this.runTest();
     assertTrue("Sanitized descriptors from corrupt tarball.",
         this.parsedFiles.isEmpty());
@@ -679,10 +675,10 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testParsedBridgeDirectoriesSkipTarball() throws Exception {
-    File parsedBridgeDirectoriesFile = new File(statsDirectory,
+    Path parsedBridgeDirectoriesFile = Paths.get(statsDirectory,
         "parsed-bridge-directories");
-    BufferedWriter writer = new BufferedWriter(new FileWriter(
-        parsedBridgeDirectoriesFile));
+    BufferedWriter writer = Files.newBufferedWriter(
+        parsedBridgeDirectoriesFile);
     writer.write(this.tarballBuilders.get(0).getTarballFileName() + "\n");
     writer.close();
     this.runTest();
@@ -707,10 +703,9 @@ public class SanitizedBridgesWriterTest {
     this.configuration.setProperty(Key.BridgeDescriptorMappingsLimit.name(),
         "30000");
     this.runTest();
-    File bridgeIpSecretsFile = new File(statsDirectory,
+    Path bridgeIpSecretsFile = Paths.get(statsDirectory,
         "bridge-ip-secrets");
-    BufferedReader reader = new BufferedReader(new FileReader(
-        bridgeIpSecretsFile));
+    BufferedReader reader = Files.newBufferedReader(bridgeIpSecretsFile);
     String line;
     while ((line = reader.readLine()) != null) {
       assertTrue("Secrets line should start with month 2016-06.",
@@ -723,10 +718,8 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testBridgeIpSecretsRead() throws Exception {
-    File bridgeIpSecretsFile = new File(statsDirectory,
-        "bridge-ip-secrets");
-    BufferedWriter writer = new BufferedWriter(new FileWriter(
-        bridgeIpSecretsFile));
+    Path bridgeIpSecretsFile = Paths.get(statsDirectory, "bridge-ip-secrets");
+    BufferedWriter writer = Files.newBufferedWriter(bridgeIpSecretsFile);
     String secretLine = "2016-06,8ad0d1410d64256bdaa3977427f6db012c5809082a464c"
         + "658d651304e25654902ed0df551c8eed19913ab7aaf6243cb3adc0f4a4b93ee77991"
         + "b8c572ea25ca2ea5cd311dabe2f8b72243837ec88bcb0c758657";
@@ -739,8 +732,7 @@ public class SanitizedBridgesWriterTest {
     this.runTest();
     assertEquals("Didn't sanitize descriptors.", 3,
         this.parsedFiles.size());
-    BufferedReader reader = new BufferedReader(new FileReader(
-        bridgeIpSecretsFile));
+    BufferedReader reader = Files.newBufferedReader(bridgeIpSecretsFile);
     String line;
     while ((line = reader.readLine()) != null) {
       assertEquals("Secrets line was changed.", secretLine, line);
@@ -750,8 +742,7 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testBridgeIpSecretsIsDirectory() throws Exception {
-    File bridgeIpSecretsFile = new File(statsDirectory, "bridge-ip-secrets");
-    bridgeIpSecretsFile.mkdirs();
+    Files.createDirectory(Paths.get(statsDirectory, "bridge-ip-secrets"));
     this.runTest();
     assertTrue("Sanitized server descriptors without secrets.",
         this.parsedServerDescriptors.isEmpty());
@@ -767,10 +758,9 @@ public class SanitizedBridgesWriterTest {
         "true");
     this.configuration.setProperty(Key.BridgeDescriptorMappingsLimit.name(),
         "30000");
-    File bridgeIpSecretsFile = new File(statsDirectory,
+    Path bridgeIpSecretsFile = Paths.get(statsDirectory,
         "bridge-ip-secrets");
-    BufferedWriter writer = new BufferedWriter(new FileWriter(
-        bridgeIpSecretsFile));
+    BufferedWriter writer = Files.newBufferedWriter(bridgeIpSecretsFile);
     writer.write("2016-06,x");
     writer.close();
     this.runTest();

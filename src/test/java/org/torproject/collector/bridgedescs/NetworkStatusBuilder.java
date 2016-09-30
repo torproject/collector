@@ -13,7 +13,7 @@ class NetworkStatusBuilder extends DescriptorBuilder {
 
   /** Initializes the descriptor builder. */
   NetworkStatusBuilder() {
-    this.lines = new ArrayList<>(Arrays.asList(
+    this.addAll(Arrays.asList(
         "published 2016-06-30 23:40:28",
         "flag-thresholds stable-uptime=807660 stable-mtbf=1425164 "
             + "fast-speed=47000 guard-wfu=98.000% guard-tk=691200 "

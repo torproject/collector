@@ -13,7 +13,7 @@ class ExtraInfoDescriptorBuilder extends DescriptorBuilder {
 
   /** Initializes the descriptor builder. */
   ExtraInfoDescriptorBuilder() {
-    this.lines = new ArrayList<>(Arrays.asList(
+    this.addAll(Arrays.asList(
         "extra-info MeekGoogle "
             + "46D4A71197B8FA515A826C6B017C522FE264655B",
         "identity-ed25519",

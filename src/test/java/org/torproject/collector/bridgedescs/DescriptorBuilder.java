@@ -8,32 +8,25 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 /** Builds a descriptor by concatenating the given lines with newlines and
  * writing the output to the given output stream. */
-abstract class DescriptorBuilder {
-
-  /** Descriptor lines. */
-  List<String> lines;
-
-  /** Removes all lines. */
-  void removeAllLines() {
-    this.lines.clear();
-  }
+abstract class DescriptorBuilder extends ArrayList<String> {
 
   /** Removes the given line, or fails if that line cannot be found. */
   void removeLine(String line) {
-    if (!this.lines.remove(line)) {
+    if (!this.remove(line)) {
       fail("Line not contained: " + line);
     }
   }
 
   /** Removes all but the given line, or fails if that line cannot be found. */
   void removeAllExcept(String line) {
-    assertTrue("Line not contained: " + line, this.lines.contains(line));
-    this.lines.retainAll(Arrays.asList(line));
+    assertTrue("Line not contained: " + line, this.contains(line));
+    this.retainAll(Arrays.asList(line));
   }
 
   /** Finds the first line that starts with the given line start and inserts the
@@ -41,9 +34,9 @@ abstract class DescriptorBuilder {
    * start. */
   void insertBeforeLineStartingWith(String lineStart,
       List<String> linesToInsert) {
-    for (int i = 0; i < this.lines.size(); i++) {
-      if (this.lines.get(i).startsWith(lineStart)) {
-        this.lines.addAll(i, linesToInsert);
+    for (int i = 0; i < this.size(); i++) {
+      if (this.get(i).startsWith(lineStart)) {
+        this.addAll(i, linesToInsert);
         return;
       }
     }
@@ -54,12 +47,12 @@ abstract class DescriptorBuilder {
    * that line and possibly subsequent lines, or fails if no line can be found
    * with that line start or there are not enough lines left to replace. */
   void replaceLineStartingWith(String lineStart, List<String> linesToReplace) {
-    for (int i = 0; i < this.lines.size(); i++) {
-      if (this.lines.get(i).startsWith(lineStart)) {
+    for (int i = 0; i < this.size(); i++) {
+      if (this.get(i).startsWith(lineStart)) {
         for (int j = 0; j < linesToReplace.size(); j++) {
           assertTrue("Not enough lines left to replace.",
-              this.lines.size() > i + j);
-          this.lines.set(i + j, linesToReplace.get(j));
+              this.size() > i + j);
+          this.set(i + j, linesToReplace.get(j));
         }
         return;
       }
@@ -69,7 +62,7 @@ abstract class DescriptorBuilder {
 
   /** Writes all descriptor lines with newlines to the given output stream. */
   void build(OutputStream outputStream) throws IOException {
-    for (String line : lines) {
+    for (String line : this) {
       outputStream.write((line + "\n").getBytes());
     }
   }
