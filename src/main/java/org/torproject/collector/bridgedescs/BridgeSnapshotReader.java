@@ -34,7 +34,7 @@ public class BridgeSnapshotReader {
       BridgeSnapshotReader.class);
 
   /**
-   * Reads the half-hourly snapshots of bridge descriptors from Tonga.
+   * Reads the half-hourly snapshots of bridge descriptors from Bifroest.
    */
   public BridgeSnapshotReader(BridgeDescriptorParser bdp,
       File bridgeDirectoriesDir, File statsDirectory) throws ConfigurationException {
@@ -241,13 +241,11 @@ public class BridgeSnapshotReader {
           + "(skipped " + skippedExtraInfoDescriptors + ").");
       if (!parsed.isEmpty() && modified) {
         logger.debug("Writing file " + pbdFile.getAbsolutePath() + "...");
-        try {
-          pbdFile.getParentFile().mkdirs();
-          BufferedWriter bw = new BufferedWriter(new FileWriter(pbdFile));
+        pbdFile.getParentFile().mkdirs();
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(pbdFile))) {
           for (String f : parsed) {
             bw.append(f + "\n");
           }
-          bw.close();
           logger.debug("Finished writing file " + pbdFile.getAbsolutePath()
               + ".");
         } catch (IOException e) {
