@@ -22,6 +22,10 @@ public class BridgeDescriptorParser {
   /** Initializes a new bridge descriptor parser and links it to a
    * sanitized bridges writer to sanitize and store bridge descriptors. */
   public BridgeDescriptorParser(SanitizedBridgesWriter sbw) {
+    if (null == sbw) {
+      throw new IllegalArgumentException("SanitizedBridgesWriter has to be "
+          + "provided, but was null.");
+    }
     this.sbw = sbw;
   }
 
@@ -35,22 +39,17 @@ public class BridgeDescriptorParser {
       String line = br.readLine();
       if (line == null) {
         return;
-      } else if (line.startsWith("router ")) {
-        if (this.sbw != null) {
-          this.sbw.sanitizeAndStoreServerDescriptor(allData);
-        }
+      }
+      if (line.startsWith("router ")) {
+        this.sbw.sanitizeAndStoreServerDescriptor(allData);
       } else if (line.startsWith("extra-info ")) {
-        if (this.sbw != null) {
-          this.sbw.sanitizeAndStoreExtraInfoDescriptor(allData);
-        }
+        this.sbw.sanitizeAndStoreExtraInfoDescriptor(allData);
       } else {
-        if (this.sbw != null) {
-          this.sbw.sanitizeAndStoreNetworkStatus(allData, dateTime,
-              authorityFingerprint);
-        }
+        this.sbw.sanitizeAndStoreNetworkStatus(allData, dateTime,
+            authorityFingerprint);
       }
     } catch (IOException e) {
-      logger.warn("Could not parse bridge descriptor.", e);
+      logger.warn("Could not parse or write bridge descriptor.", e);
       return;
     }
   }
