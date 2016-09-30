@@ -12,10 +12,14 @@
      bridge-extra-infos-YYYY-MM.tar.xz.
    - Keep "proto" lines in bridge server descriptors as introduced in
      proposal 264.
+   - Add tests for the bridgedescs module.
+   - Validate bridge tarballs from the bridge authority more
+     rigorously.
 
  * Minor changes
    - Remove quotes around base URL in index.json.
    - Change default log thresholds from TRACE to INFO.
+   - Extend checkstyle to also check test sources.
 
 
 # Changes in version 1.0.1 - 2016-08-22
