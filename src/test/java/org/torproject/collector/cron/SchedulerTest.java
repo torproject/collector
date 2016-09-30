@@ -65,7 +65,8 @@ public class SchedulerTest {
   public void testRunOnce() throws Exception {
     Map<Key, Class<? extends CollecTorMain>> ctms = new HashMap<>();
     Configuration conf = new Configuration();
-    conf.load(new ByteArrayInputStream(runConfigProperties.getBytes()));
+    conf.load(new ByteArrayInputStream(("ShutdownGraceWaitMinutes=1\n"
+        + runConfigProperties).getBytes()));
     conf.setProperty(Key.RunOnce.name(), "true");
     ctms.put(Key.TorperfActivated, Counter.class);
     ctms.put(Key.BridgedescsActivated, Counter.class);
