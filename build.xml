@@ -229,6 +229,8 @@
   </taskdef>
   <target name="checks" depends="compile">
     <checkstyle config="${testresources}/metrics_checks.xml">
+      <fileset dir="${testsources}"
+               includes="**/*.java" />
       <fileset dir="${sources}"
                includes="**/*.java" />
       <classpath>

@@ -1,5 +1,6 @@
 /* Copyright 2016 The Tor Project
  * See LICENSE for licensing information */
+
 package org.torproject.collector.cron;
 
 import static org.junit.Assert.assertEquals;
@@ -21,15 +22,15 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 public class SchedulerTest {
 
   private static final String runConfigProperties =
-    "TorperfActivated=true\nTorperfPeriodMinutes=1\nTorperfOffsetMinutes=0\n"
-    + "RelaydescsActivated=true\nRelaydescsPeriodMinutes=1"
-    + "\nRelaydescsOffsetMinutes=0\n"
-    + "ExitlistsActivated=true\nExitlistsPeriodMinutes=1\n"
-    + "ExitlistsOffsetMinutes=0\n"
-    + "UpdateindexActivated=true\nUpdateindexPeriodMinutes=1\n"
-    + "UpdateindexOffsetMinutes=0\n"
-    + "BridgedescsActivated=true\nBridgedescsPeriodMinutes=1\n"
-    + "BridgedescsOffsetMinutes=0\n";
+      "TorperfActivated=true\nTorperfPeriodMinutes=1\nTorperfOffsetMinutes=0\n"
+      + "RelaydescsActivated=true\nRelaydescsPeriodMinutes=1"
+      + "\nRelaydescsOffsetMinutes=0\n"
+      + "ExitlistsActivated=true\nExitlistsPeriodMinutes=1\n"
+      + "ExitlistsOffsetMinutes=0\n"
+      + "UpdateindexActivated=true\nUpdateindexPeriodMinutes=1\n"
+      + "UpdateindexOffsetMinutes=0\n"
+      + "BridgedescsActivated=true\nBridgedescsPeriodMinutes=1\n"
+      + "BridgedescsOffsetMinutes=0\n";
 
   @Test()
   public void testSimpleSchedule() throws Exception {

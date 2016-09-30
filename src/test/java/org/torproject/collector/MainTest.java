@@ -1,5 +1,6 @@
 /* Copyright 2016 The Tor Project
  * See LICENSE for licensing information */
+
 package org.torproject.collector;
 
 import static org.junit.Assert.assertEquals;
@@ -103,29 +104,34 @@ public class MainTest {
     waitSec(2);
   }
 
+  /** Wait for the given number of seconds. */
   public static void waitSec(int sec) {
-    long now = System.currentTimeMillis();
-    while (System.currentTimeMillis() - now < 1_000L * sec) {
+    long start = System.currentTimeMillis();
+    long toWait = 1_000L * sec;
+    do {
       try {
-        Thread.sleep(sec * 1_000L);
-      } catch (Exception e) {/* ignored */}
-    }
+        Thread.sleep(toWait);
+      } catch (InterruptedException e) {
+        /* Ignore the interruption, but possibly resume sleeping if we didn't
+         * sleep long enough. */
+      }
+    } while ((toWait = start + 1_000L * sec - System.currentTimeMillis()) > 0);
   }
 
-  private void changeFilePathsAndSetActivation(File f, String a)
+  private void changeFilePathsAndSetActivation(File file, String activation)
       throws Exception {
-    List<String> lines = Files.readAllLines(f.toPath());
-    BufferedWriter bw = Files.newBufferedWriter(f.toPath());
+    List<String> lines = Files.readAllLines(file.toPath());
+    BufferedWriter bw = Files.newBufferedWriter(file.toPath());
     File in = tmpf.newFolder();
     File out = tmpf.newFolder();
     String inStr = "in/";
     String outStr = "out/";
-    for(String line : lines) {
+    for (String line : lines) {
       if (line.contains(inStr)) {
         line = line.replace(inStr, in.toString() + inStr);
       } else if (line.contains(outStr)) {
         line = line.replace(outStr, out.toString() + outStr);
-      } else if (line.contains(a)) {
+      } else if (line.contains(activation)) {
         line = line.replace("false", "true");
       }
       bw.write(line);

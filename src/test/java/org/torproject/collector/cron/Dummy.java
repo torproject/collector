@@ -5,8 +5,8 @@ import org.torproject.collector.conf.ConfigurationException;
 
 public class Dummy extends CollecTorMain {
 
-  public Dummy(Configuration c) {
-    super(c);
+  public Dummy(Configuration conf) {
+    super(conf);
   }
 
   @Override

@@ -12,8 +12,8 @@ public class Broken extends CollecTorMain {
 
   static AtomicInteger count = new AtomicInteger(0);
 
-  public Broken(Configuration c) {
-    super(c);
+  public Broken(Configuration conf) {
+    super(conf);
   }
 
   @Override

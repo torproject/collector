@@ -9,8 +9,8 @@ public class Counter extends CollecTorMain {
 
   static AtomicInteger count = new AtomicInteger(0);
 
-  public Counter(Configuration c) {
-    super(c);
+  public Counter(Configuration conf) {
+    super(conf);
   }
 
   @Override

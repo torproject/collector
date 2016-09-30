@@ -1,5 +1,6 @@
 /* Copyright 2016 The Tor Project
  * See LICENSE for licensing information */
+
 package org.torproject.collector.conf;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -56,7 +57,7 @@ public class ConfigurationTest {
   @Test()
   public void testArrayValues() throws Exception {
     String[] array = new String[randomSource.nextInt(30) + 1];
-    for (int i = 0; i < array.length; i++){
+    for (int i = 0; i < array.length; i++) {
       array[i] = Integer.toBinaryString(randomSource.nextInt(100));
     }
     String[] arrays = new String[] {
@@ -65,7 +66,7 @@ public class ConfigurationTest {
           .replaceAll(" ", "")
     };
     Configuration conf = new Configuration();
-    for(String input : arrays) {
+    for (String input : arrays) {
       conf.clear();
       conf.setProperty(Key.CachedRelayDescriptorsDirectories.name(), input);
       assertArrayEquals("expected " + Arrays.toString(array) + "\nreceived: "
@@ -92,19 +93,20 @@ public class ConfigurationTest {
     conf.setProperty(Key.BridgeDescriptorMappingsLimit.name(), "inf");
     assertEquals(Integer.MAX_VALUE,
         conf.getInt(Key.BridgeDescriptorMappingsLimit));
-    int r = randomSource.nextInt(Integer.MAX_VALUE);
+    int randomInt = randomSource.nextInt(Integer.MAX_VALUE);
     conf.clear();
     conf.load(new ByteArrayInputStream(
-        propLine(Key.BridgeDescriptorMappingsLimit, "" + r).getBytes()));
-    assertEquals(r,
+        propLine(Key.BridgeDescriptorMappingsLimit,
+        "" + randomInt).getBytes()));
+    assertEquals(randomInt,
         conf.getInt(Key.BridgeDescriptorMappingsLimit));
-   }
+  }
 
   @Test()
   public void testFileValues() throws Exception {
     String[] files = new String[] { "/the/path/file.txt", "another/path"};
     Configuration conf = new Configuration();
-    for(String file : files) {
+    for (String file : files) {
       conf.clear();
       conf.setProperty(Key.DirectoryArchivesOutputDirectory.name(), file);
       assertEquals(new File(file),
@@ -122,7 +124,7 @@ public class ConfigurationTest {
         Arrays.deepToString(sourceStrings).replace("[[", "").replace("]]", "")
             .replace("], [", Configuration.ARRAYSEP));
     assertArrayEquals(sourceStrings,
-       conf.getStringArrayArray(Key.TorperfSources));
+        conf.getStringArrayArray(Key.TorperfSources));
   }
 
   @Test(expected = ConfigurationException.class)
@@ -211,7 +213,7 @@ public class ConfigurationTest {
     MainTest.waitSec(1);
     confFile.delete();
     conf.setProperty(Key.ImportDirectoryArchives.name(), "false");
-    Dummy dummy = new Dummy(conf);
+    final Dummy dummy = new Dummy(conf);
     tmpf.newFolder("empty");
     MainTest.waitSec(6);
     assertFalse("Update was called.", called.get());

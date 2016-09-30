@@ -1,5 +1,6 @@
 /* Copyright 2016 The Tor Project
  * See LICENSE for licensing information */
+
 package org.torproject.collector.cron;
 
 import static org.junit.Assert.assertTrue;
