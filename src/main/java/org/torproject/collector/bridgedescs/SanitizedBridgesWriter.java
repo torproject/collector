@@ -356,8 +356,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       byte[] secret = this.getSecretForMonth(month);
       System.arraycopy(secret, 50, hashInput, 22, 33);
       byte[] hashOutput = DigestUtils.sha256(hashInput);
-      int hashedPort = ((((hashOutput[0] & 0xFF) << 8)
-          | (hashOutput[1] & 0xFF)) >> 2) | 0xC000;
+      int hashedPort = ((((hashOutput[0] & 0b1111_1111) << 8)
+          | (hashOutput[1] & 0b1111_1111)) >> 2) | 0b1100_0000_0000_0000;
       return String.valueOf(hashedPort);
     } else {
       return "1";
