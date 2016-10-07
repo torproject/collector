@@ -1,4 +1,4 @@
-# Changes in version 1.1.0 - 2016-09-xx
+# Changes in version 1.0.2 - 2016-10-07
 
  * Medium changes
    - Add support for Bifroest's bridge descriptor tarballs.

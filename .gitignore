@@ -1,12 +1,12 @@
 /.classpath
 /.project
 /classes/
-/config
+/collector.properties
 /data/
 /in/
 /out/
 /log/
-/rsync/
+/recent/
 /stats/
 /tarballs/
 /generated
@@ -14,4 +14,5 @@
 cobertura.ser
 *~
 build.properties
+/index.json*
 
