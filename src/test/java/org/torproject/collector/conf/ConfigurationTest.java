@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ConfigurationTest {
@@ -40,7 +41,7 @@ public class ConfigurationTest {
   public void testKeyCount() throws Exception {
     assertEquals("The number of properties keys in enum Key changed."
         + "\n This test class should be adapted.",
-        46, Key.values().length);
+        50, Key.values().length);
   }
 
   @Test()
@@ -70,11 +71,11 @@ public class ConfigurationTest {
     Configuration conf = new Configuration();
     for (String input : arrays) {
       conf.clear();
-      conf.setProperty(Key.CachedRelayDescriptorsDirectories.name(), input);
+      conf.setProperty(Key.RelayCacheOrigins.name(), input);
       assertArrayEquals("expected " + Arrays.toString(array) + "\nreceived: "
           + Arrays.toString(conf
-              .getStringArray(Key.CachedRelayDescriptorsDirectories)),
-          array, conf.getStringArray(Key.CachedRelayDescriptorsDirectories));
+              .getStringArray(Key.RelayCacheOrigins)),
+          array, conf.getStringArray(Key.RelayCacheOrigins));
     }
   }
 
@@ -82,10 +83,10 @@ public class ConfigurationTest {
   public void testBoolValues() throws Exception {
     Configuration conf = new Configuration();
     conf.setProperty(Key.CompressRelayDescriptorDownloads.name(), "false");
-    conf.setProperty(Key.ImportDirectoryArchives.name(), "trUe");
+    conf.setProperty(Key.RunOnce.name(), "trUe");
     conf.setProperty(Key.ReplaceIpAddressesWithHashes.name(), "false");
     assertFalse(conf.getBool(Key.CompressRelayDescriptorDownloads));
-    assertTrue(conf.getBool(Key.ImportDirectoryArchives));
+    assertTrue(conf.getBool(Key.RunOnce));
     assertFalse(conf.getBool(Key.ReplaceIpAddressesWithHashes));
   }
 
@@ -117,6 +118,19 @@ public class ConfigurationTest {
   }
 
   @Test()
+  public void testSourceTypeValues() throws Exception {
+    String[] types = new String[] { "Local", "Cache", "Remote", "Sync"};
+    Configuration conf = new Configuration();
+    for (String type : types) {
+      conf.clear();
+      conf.setProperty(Key.BridgeSources.name(), type);
+      Set<SourceType> sts = conf.getSourceTypeSet(Key.BridgeSources);
+      assertEquals(1, sts.size());
+      assertTrue(sts.contains(SourceType.valueOf(type)));
+    }
+  }
+
+  @Test()
   public void testArrayArrayValues() throws Exception {
     String[][] sourceStrings = new String[][] {
       new String[]{"localsource", "http://127.0.0.1:12345"},
@@ -129,17 +143,36 @@ public class ConfigurationTest {
         conf.getStringArrayArray(Key.TorperfSources));
   }
 
+  @Test()
+  public void testUrlArrayValues() throws Exception {
+    URL[] array = new URL[randomSource.nextInt(30) + 1];
+    for (int i = 0; i < array.length; i++) {
+      array[i] = new URL("https://"
+          + Integer.toBinaryString(randomSource.nextInt(100)) + ".dummy.org");
+    }
+    String input =
+        Arrays.toString(array).replace("[", "").replace("]", "")
+            .replaceAll(" ", "");
+    Configuration conf = new Configuration();
+    conf.clear();
+    conf.setProperty(Key.RelaySyncOrigins.name(), input);
+    assertArrayEquals("expected " + Arrays.toString(array) + "\nreceived: "
+        + Arrays.toString(conf
+            .getUrlArray(Key.RelaySyncOrigins)),
+        array, conf.getUrlArray(Key.RelaySyncOrigins));
+  }
+
   @Test(expected = ConfigurationException.class)
   public void testArrayArrayValueException() throws Exception {
     Configuration conf = new Configuration();
-    conf.setProperty(Key.CachedRelayDescriptorsDirectories.name(), "");
+    conf.setProperty(Key.RelayCacheOrigins.name(), "");
     conf.getStringArrayArray(Key.OutputPath);
   }
 
   @Test(expected = ConfigurationException.class)
   public void testArrayValueException() throws Exception {
     Configuration conf = new Configuration();
-    conf.setProperty(Key.CachedRelayDescriptorsDirectories.name(), "");
+    conf.setProperty(Key.RelayCacheOrigins.name(), "");
     conf.getStringArray(Key.TorperfSources);
   }
 
@@ -147,14 +180,14 @@ public class ConfigurationTest {
   public void testBoolValueException() throws Exception {
     Configuration conf = new Configuration();
     conf.setProperty(Key.TorperfSources.name(), "http://x.y.z");
-    conf.getBool(Key.CachedRelayDescriptorsDirectories);
+    conf.getBool(Key.RelayCacheOrigins);
   }
 
   @Test(expected = ConfigurationException.class)
   public void testPathValueException() throws Exception {
     Configuration conf = new Configuration();
-    conf.setProperty(Key.DirectoryArchivesDirectory.name(), "\\\u0000:");
-    conf.getPath(Key.DirectoryArchivesDirectory);
+    conf.setProperty(Key.RelayLocalOrigins.name(), "\\\u0000:");
+    conf.getPath(Key.RelayLocalOrigins);
   }
 
   @Test(expected = ConfigurationException.class)
@@ -214,7 +247,7 @@ public class ConfigurationTest {
     conf.setWatchableSourceAndLoad(confFile.toPath());
     MainTest.waitSec(1);
     confFile.delete();
-    conf.setProperty(Key.ImportDirectoryArchives.name(), "false");
+    conf.setProperty(Key.RunOnce.name(), "false");
     final Dummy dummy = new Dummy(conf);
     tmpf.newFolder("empty");
     MainTest.waitSec(6);

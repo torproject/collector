@@ -6,6 +6,7 @@ package org.torproject.collector.relaydescs;
 import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
+import org.torproject.collector.conf.SourceType;
 import org.torproject.collector.cron.CollecTorMain;
 import org.torproject.descriptor.DescriptorParseException;
 import org.torproject.descriptor.DescriptorParser;
@@ -146,7 +147,9 @@ public class ArchiveWriter extends CollecTorMain {
     RelayDescriptorParser rdp = new RelayDescriptorParser(this);
 
     RelayDescriptorDownloader rdd = null;
-    if (config.getBool(Key.DownloadRelayDescriptors)) {
+
+    Set<SourceType> sources = config.getSourceTypeSet(Key.RelaySources);
+    if (sources.contains(SourceType.Remote)) {
       String[] dirSources =
           config.getStringArray(Key.DirectoryAuthoritiesAddresses);
       rdd = new RelayDescriptorDownloader(rdp, dirSources,
@@ -162,15 +165,15 @@ public class ArchiveWriter extends CollecTorMain {
           config.getBool(Key.CompressRelayDescriptorDownloads));
       rdp.setRelayDescriptorDownloader(rdd);
     }
-    if (config.getBool(Key.ImportCachedRelayDescriptors)) {
+    if (sources.contains(SourceType.Cache)) {
       new CachedRelayDescriptorReader(rdp,
-          config.getStringArray(Key.CachedRelayDescriptorsDirectories), statsDirectory);
+          config.getStringArray(Key.RelayCacheOrigins), statsDirectory);
       this.intermediateStats("importing relay descriptors from local "
           + "Tor data directories");
     }
-    if (config.getBool(Key.ImportDirectoryArchives)) {
+    if (sources.contains(SourceType.Local)) {
       new ArchiveReader(rdp,
-                        config.getPath(Key.DirectoryArchivesDirectory).toFile(),
+          config.getPath(Key.RelayLocalOrigins).toFile(),
           statsDirectory,
           config.getBool(Key.KeepDirectoryArchiveImportHistory));
       this.intermediateStats("importing relay descriptors from local "

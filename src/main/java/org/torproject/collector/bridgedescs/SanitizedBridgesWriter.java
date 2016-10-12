@@ -100,7 +100,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     recentPathName = Paths.get(config.getPath(Key.RecentPath).toString(),
         BRIDGE_DESCRIPTORS).toString();
     File bridgeDirectoriesDirectory =
-        config.getPath(Key.BridgeSnapshotsDirectory).toFile();
+        config.getPath(Key.BridgeLocalOrigins).toFile();
     File sanitizedBridgesDirectory = new File(outputPathName);
     File statsDirectory = config.getPath(Key.StatsPath).toFile();
 

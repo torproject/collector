@@ -3,6 +3,8 @@
  * Medium changes
    - Replace four properties for configuring where to write
      descriptors by a single 'OutPath' property.
+   - Introduced *Sources and *Origins properties to simplify
+     data source definition.
 
 
 # Changes in version 1.0.2 - 2016-10-07

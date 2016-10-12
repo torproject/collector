@@ -132,7 +132,7 @@ public class SanitizedBridgesWriterTest {
     this.configuration.setProperty(Key.RecentPath.name(),
         recentDirectory.getAbsolutePath());
     this.configuration.setProperty(Key.StatsPath.name(), statsDirectory);
-    this.configuration.setProperty(Key.BridgeSnapshotsDirectory.name(),
+    this.configuration.setProperty(Key.BridgeLocalOrigins.name(),
         bridgeDirectoriesDir);
     this.configuration.setProperty(Key.OutputPath.name(),
         sanitizedBridgesDirectory.toFile().getParent().toString());

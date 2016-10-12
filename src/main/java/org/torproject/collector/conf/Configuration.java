@@ -15,8 +15,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
+import java.util.EnumSet;
 import java.util.Observable;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -244,6 +246,30 @@ public class Configuration extends Observable implements Cloneable {
     try {
       checkClass(key, Path.class);
       return Paths.get(props.getProperty(key.name()));
+    } catch (RuntimeException re) {
+      throw new ConfigurationException("Corrupt property: " + key
+          + " reason: " + re.getMessage(), re);
+    }
+  }
+
+  /**
+   * Returns a {@code SourceType} as List, e.g.
+   * {@code sourcetypeproperty = Remote, Sync}.
+   */
+  public Set<SourceType> getSourceTypeSet(Key key) throws ConfigurationException {
+    Set<SourceType> res = null;
+    try {
+      checkClass(key, SourceType[].class);
+      String[] interim = props.getProperty(key.name()).split(FIELDSEP);
+      for (int i = 0; i < interim.length; i++) {
+        SourceType st = SourceType.valueOf(interim[i].trim());
+        if (null == res) {
+          res = EnumSet.of(st);
+        } else {
+          res.add(st);
+        }
+      }
+      return res;
     } catch (RuntimeException re) {
       throw new ConfigurationException("Corrupt property: " + key
           + " reason: " + re.getMessage(), re);
