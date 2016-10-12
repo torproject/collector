@@ -113,6 +113,11 @@ public class Configuration extends Observable implements Cloneable {
     return props.getProperty(key);
   }
 
+  /** Retrieves the value for key returning a default for non-existing keys. */
+  public String getProperty(String key, String def) {
+    return props.getProperty(key, def);
+  }
+
   /** Sets the value for key. */
   public void setProperty(String key, String value) {
     props.setProperty(key, value);
@@ -253,9 +258,29 @@ public class Configuration extends Observable implements Cloneable {
     try {
       checkClass(key, URL.class);
       return new URL(props.getProperty(key.name()));
-    } catch (MalformedURLException mue) {
+    } catch (MalformedURLException | RuntimeException mue) {
       throw new ConfigurationException("Corrupt property: " + key
           + " reason: " + mue.getMessage(), mue);
+    }
+  }
+
+  /**
+   * Returns {@code URL[]} from a property. Commas seperate array elements,
+   * e.g.,
+   * {@code propertyname = a1.example.org, a2.example2.com, a3.example3.net}
+   */
+  public URL[] getUrlArray(Key key) throws ConfigurationException {
+    try {
+      checkClass(key, URL[].class);
+      String[] interim = props.getProperty(key.name()).split(FIELDSEP);
+      URL[] res = new URL[interim.length];
+      for (int i = 0; i < interim.length; i++) {
+        res[i] = new URL(interim[i].trim());
+      }
+      return res;
+    } catch (MalformedURLException | RuntimeException re) {
+      throw new ConfigurationException("Corrupt property: " + key
+          + " reason: " + re.getMessage(), re);
     }
   }
 

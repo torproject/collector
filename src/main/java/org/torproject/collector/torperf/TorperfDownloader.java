@@ -37,6 +37,8 @@ public class TorperfDownloader extends CollecTorMain {
   private static final Logger logger = LoggerFactory.getLogger(
       TorperfDownloader.class);
 
+  private static final String TORPERF = "torperf";
+
   public TorperfDownloader(Configuration config) {
     super(config);
   }
@@ -49,14 +51,14 @@ public class TorperfDownloader extends CollecTorMain {
 
   @Override
   public String module() {
-    return "torperf";
+    return TORPERF;
   }
 
   @Override
   protected void startProcessing() throws ConfigurationException {
     this.torperfFilesLines = config.getStringArray(Key.TorperfFilesLines);
-    this.torperfOutputDirectory = config.getPath(Key.TorperfOutputDirectory)
-        .toFile();
+    this.torperfOutputDirectory
+        = new File(config.getPath(Key.OutputPath).toString(), TORPERF);
     this.torperfLastMergedFile = new File(config.getPath(Key.StatsPath).toFile(),
        "torperf-last-merged");
     if (!this.torperfOutputDirectory.exists()) {
@@ -617,7 +619,7 @@ public class TorperfDownloader extends CollecTorMain {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
     Stack<File> allFiles = new Stack<File>();
-    allFiles.add(new File(config.getPath(Key.RecentPath).toFile(), "torperf"));
+    allFiles.add(new File(config.getPath(Key.RecentPath).toFile(), TORPERF));
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();
       if (file.isDirectory()) {

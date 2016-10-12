@@ -1,3 +1,10 @@
+# Changes in version 1.1.0 - 2016-10-XX
+
+ * Medium changes
+   - Replace four properties for configuring where to write
+     descriptors by a single 'OutPath' property.
+
+
 # Changes in version 1.0.2 - 2016-10-07
 
  * Medium changes

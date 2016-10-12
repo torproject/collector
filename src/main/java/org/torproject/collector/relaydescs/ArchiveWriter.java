@@ -129,8 +129,9 @@ public class ArchiveWriter extends CollecTorMain {
     storedMicrodescriptorsFile
         = new File(statsDir, "stored-microdescriptors");
     File statsDirectory = config.getPath(Key.StatsPath).toFile();
-    this.outputDirectory = config.getPath(Key.DirectoryArchivesOutputDirectory)
-        .toString();
+    this.outputDirectory
+        = Paths.get(config.getPath(Key.OutputPath).toString(),
+              RELAY_DESCRIPTORS).toString();
     SimpleDateFormat rsyncCatFormat = new SimpleDateFormat(
         "yyyy-MM-dd-HH-mm-ss");
     rsyncCatFormat.setTimeZone(TimeZone.getTimeZone("UTC"));

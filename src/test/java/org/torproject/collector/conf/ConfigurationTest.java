@@ -8,6 +8,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.torproject.collector.Main;
 import org.torproject.collector.MainTest;
 import org.torproject.collector.cron.CollecTorMain;
 import org.torproject.collector.cron.Dummy;
@@ -19,6 +20,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.lang.reflect.Field;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -38,16 +40,16 @@ public class ConfigurationTest {
   public void testKeyCount() throws Exception {
     assertEquals("The number of properties keys in enum Key changed."
         + "\n This test class should be adapted.",
-        49, Key.values().length);
+        46, Key.values().length);
   }
 
   @Test()
   public void testConfiguration() throws Exception {
     Configuration conf = new Configuration();
     String val = "xyz";
-    conf.setProperty(Key.TorperfOutputDirectory.name(), val);
+    conf.setProperty(Key.OutputPath.name(), val);
     assertEquals(1, conf.size());
-    assertEquals(val, conf.getProperty(Key.TorperfOutputDirectory.name()));
+    assertEquals(val, conf.getProperty(Key.OutputPath.name()));
   }
 
   private String propLine(Key key, String val) {
@@ -108,9 +110,9 @@ public class ConfigurationTest {
     Configuration conf = new Configuration();
     for (String file : files) {
       conf.clear();
-      conf.setProperty(Key.DirectoryArchivesOutputDirectory.name(), file);
+      conf.setProperty(Key.OutputPath.name(), file);
       assertEquals(new File(file),
-          conf.getPath(Key.DirectoryArchivesOutputDirectory).toFile());
+          conf.getPath(Key.OutputPath).toFile());
     }
   }
 
@@ -131,7 +133,7 @@ public class ConfigurationTest {
   public void testArrayArrayValueException() throws Exception {
     Configuration conf = new Configuration();
     conf.setProperty(Key.CachedRelayDescriptorsDirectories.name(), "");
-    conf.getStringArrayArray(Key.TorperfOutputDirectory);
+    conf.getStringArrayArray(Key.OutputPath);
   }
 
   @Test(expected = ConfigurationException.class)

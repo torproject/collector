@@ -23,6 +23,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -36,6 +37,12 @@ public class ExitListDownloader extends CollecTorMain {
 
   private static final Logger logger = LoggerFactory.getLogger(
       ExitListDownloader.class);
+
+  private static final String EXITLISTS = "exit-lists";
+
+  private String outputPathName;
+
+  private String recentPathName;
 
   /** Instanciate the exit-lists module using the given configuration. */
   public ExitListDownloader(Configuration config) {
@@ -53,7 +60,10 @@ public class ExitListDownloader extends CollecTorMain {
     SimpleDateFormat dateTimeFormat =
         new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-
+    outputPathName = Paths.get(config.getPath(Key.OutputPath).toString(),
+        EXITLISTS).toString();
+    recentPathName = Paths.get(config.getPath(Key.RecentPath).toString(),
+        EXITLISTS).toString();
     Date downloadedDate = new Date();
     String downloadedExitList = null;
     try {
@@ -94,9 +104,8 @@ public class ExitListDownloader extends CollecTorMain {
     SimpleDateFormat tarballFormat =
         new SimpleDateFormat("yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
     tarballFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    File tarballFile = new File(
-        config.getPath(Key.ExitlistOutputDirectory).toFile(),
-        tarballFormat.format(downloadedDate));
+    File tarballFile = Paths.get(outputPathName,
+        tarballFormat.format(downloadedDate)).toFile();
 
     long maxScanMillis = 0L;
     try {
@@ -128,8 +137,7 @@ public class ExitListDownloader extends CollecTorMain {
     }
 
     /* Write to disk. */
-    File rsyncFile = new File(config.getPath(Key.RecentPath).toFile(),
-        "exit-lists/" + tarballFile.getName());
+    File rsyncFile = new File(recentPathName, tarballFile.getName());
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
     for (File outputFile : outputFiles) {
       try {
@@ -148,7 +156,7 @@ public class ExitListDownloader extends CollecTorMain {
     StringBuilder dumpStats = new StringBuilder("Finished downloading "
         + "exit list.\nLast three exit lists are:");
     Stack<File> filesInInputDir = new Stack<File>();
-    filesInInputDir.add(config.getPath(Key.ExitlistOutputDirectory).toFile());
+    filesInInputDir.add(new File(outputPathName));
     SortedSet<File> lastThreeExitLists = new TreeSet<File>();
     while (!filesInInputDir.isEmpty()) {
       File pop = filesInInputDir.pop();
@@ -184,8 +192,7 @@ public class ExitListDownloader extends CollecTorMain {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
     Stack<File> allFiles = new Stack<File>();
-    allFiles.add(new File(config.getPath(Key.RecentPath).toFile(),
-        "/exit-lists"));
+    allFiles.add(new File(recentPathName, EXITLISTS));
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();
       if (file.isDirectory()) {

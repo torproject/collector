@@ -1,3 +1,6 @@
+/* Copyright 2016 The Tor Project
+ * See LICENSE for licensing information */
+
 package org.torproject.collector.conf;
 
 import java.net.URL;
@@ -11,11 +14,11 @@ public enum Key {
 
   ShutdownGraceWaitMinutes(Long.class),
   RunOnce(Boolean.class),
-  ExitlistOutputDirectory(Path.class),
   ExitlistUrl(URL.class),
   InstanceBaseUrl(String.class),
   ArchivePath(Path.class),
   RecentPath(Path.class),
+  OutputPath(Path.class),
   IndexPath(Path.class),
   StatsPath(Path.class),
   BridgedescsActivated(Boolean.class),
@@ -37,7 +40,6 @@ public enum Key {
   CachedRelayDescriptorsDirectories(String[].class),
   CompressRelayDescriptorDownloads(Boolean.class),
   DirectoryArchivesDirectory(Path.class),
-  DirectoryArchivesOutputDirectory(Path.class),
   DownloadRelayDescriptors(Boolean.class),
   DirectoryAuthoritiesAddresses(String[].class),
   DirectoryAuthoritiesFingerprintsForVotes(String[].class),
@@ -54,8 +56,6 @@ public enum Key {
   KeepDirectoryArchiveImportHistory(Boolean.class),
   ReplaceIpAddressesWithHashes(Boolean.class),
   BridgeDescriptorMappingsLimit(Integer.class),
-  SanitizedBridgesWriteDirectory(Path.class),
-  TorperfOutputDirectory(Path.class),
   TorperfFilesLines(String[].class),
   TorperfSources(String[][].class);
 

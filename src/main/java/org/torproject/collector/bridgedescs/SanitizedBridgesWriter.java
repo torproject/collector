@@ -23,6 +23,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.text.ParseException;
@@ -53,6 +54,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
 
   private static final Logger logger = LoggerFactory.getLogger(
       SanitizedBridgesWriter.class);
+  private static final String BRIDGE_DESCRIPTORS = "bridge-descriptors";
 
   public SanitizedBridgesWriter(Configuration config) {
     super(config);
@@ -81,6 +83,10 @@ public class SanitizedBridgesWriter extends CollecTorMain {
 
   private SecureRandom secureRandom;
 
+  private String outputPathName;
+
+  private String recentPathName;
+
   @Override
   public String module() {
     return "bridgedescs";
@@ -89,10 +95,13 @@ public class SanitizedBridgesWriter extends CollecTorMain {
   @Override
   protected void startProcessing() throws ConfigurationException {
 
+    outputPathName = Paths.get(config.getPath(Key.OutputPath).toString(),
+        BRIDGE_DESCRIPTORS).toString();
+    recentPathName = Paths.get(config.getPath(Key.RecentPath).toString(),
+        BRIDGE_DESCRIPTORS).toString();
     File bridgeDirectoriesDirectory =
         config.getPath(Key.BridgeSnapshotsDirectory).toFile();
-    File sanitizedBridgesDirectory =
-        config.getPath(Key.SanitizedBridgesWriteDirectory).toFile();
+    File sanitizedBridgesDirectory = new File(outputPathName);
     File statsDirectory = config.getPath(Key.StatsPath).toFile();
 
     if (bridgeDirectoriesDirectory == null
@@ -593,8 +602,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           this.sanitizedBridgesDirectory.getAbsolutePath() + "/" + syear
           + "/" + smonth + "/statuses/" + sday + "/" + syear + smonth
           + sday + "-" + stime + "-" + authorityFingerprint);
-      File rsyncFile = new File(config.getPath(Key.RecentPath).toFile(),
-          "bridge-descriptors/statuses/" + tarballFile.getName());
+      File rsyncFile = new File(recentPathName, "statuses/"
+          + tarballFile.getName());
       File[] outputFiles = new File[] { tarballFile, rsyncFile };
       for (File outputFile : outputFiles) {
         outputFile.getParentFile().mkdirs();
@@ -1373,7 +1382,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         - 3L * 24L * 60L * 60L * 1000L;
     Stack<File> allFiles = new Stack<File>();
     allFiles.add(new File(config.getPath(Key.RecentPath).toFile(),
-        "bridge-descriptors"));
+        BRIDGE_DESCRIPTORS));
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();
       if (file.isDirectory()) {

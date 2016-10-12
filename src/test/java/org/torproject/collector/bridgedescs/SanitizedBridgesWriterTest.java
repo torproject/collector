@@ -101,7 +101,7 @@ public class SanitizedBridgesWriterTest {
     this.recentDirectory = this.temporaryFolder.newFolder("recent");
     this.statsDirectory = this.temporaryFolder.newFolder("stats").toString();
     this.sanitizedBridgesDirectory =
-        this.temporaryFolder.newFolder("out").toPath();
+        this.temporaryFolder.newFolder("out", "bridge-descriptors").toPath();
     this.initializeTestConfiguration();
     this.defaultServerDescriptorBuilder = new ServerDescriptorBuilder();
     this.defaultExtraInfoDescriptorBuilder = new ExtraInfoDescriptorBuilder();
@@ -134,8 +134,8 @@ public class SanitizedBridgesWriterTest {
     this.configuration.setProperty(Key.StatsPath.name(), statsDirectory);
     this.configuration.setProperty(Key.BridgeSnapshotsDirectory.name(),
         bridgeDirectoriesDir);
-    this.configuration.setProperty(Key.SanitizedBridgesWriteDirectory.name(),
-        sanitizedBridgesDirectory.toString());
+    this.configuration.setProperty(Key.OutputPath.name(),
+        sanitizedBridgesDirectory.toFile().getParent().toString());
   }
 
   /** Runs this test by executing all builders, performing the sanitizing
@@ -468,7 +468,7 @@ public class SanitizedBridgesWriterTest {
         "router-digest B026CF0F81712D94BBF1362294882688DF247887");
     assertEquals("Sanitized descriptor does not contain expected lines.",
         expectedLines, this.parsedExtraInfoDescriptors.get(0));
-    assertTrue("Sanitized descriptor file name differs.",
+    assertTrue("Sanitized descriptor file name differs. " + this.parsedFiles,
         this.parsedFiles.containsKey("2016/06/extra-infos/b/0/"
         + "b026cf0f81712d94bbf1362294882688df247887"));
   }
