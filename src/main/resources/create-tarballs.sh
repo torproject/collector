@@ -24,9 +24,7 @@ YEARTWO=`date --date='7 days ago' +%Y`
 MONTHTWO=`date --date='7 days ago' +%m`
 CURRENTPATH=`pwd`
 
-if ! test -d $WORKDIR
-  then mkdir $WORKDIR
-fi
+mkdir -p $WORKDIR
 
 cd $WORKDIR
 
@@ -35,10 +33,7 @@ if ! test -d $OUTDIR
   exit 1
 fi
 
-if ! test -d $TARBALLTARGETDIR
-  then echo "$TARBALLTARGETDIR doesn't exist.  Exiting."
-  exit 1
-fi
+mkdir -p $TARBALLTARGETDIR
 
 TARBALLS=(
   exit-list-$YEARONE-$MONTHONE
