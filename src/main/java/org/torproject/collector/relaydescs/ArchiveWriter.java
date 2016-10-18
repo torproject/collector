@@ -154,12 +154,8 @@ public class ArchiveWriter extends CollecTorMain {
           config.getStringArray(Key.DirectoryAuthoritiesAddresses);
       rdd = new RelayDescriptorDownloader(rdp, dirSources,
           config.getStringArray(Key.DirectoryAuthoritiesFingerprintsForVotes),
-          config.getBool(Key.DownloadCurrentConsensus),
-          config.getBool(Key.DownloadCurrentMicrodescConsensus),
-          config.getBool(Key.DownloadCurrentVotes),
-          config.getBool(Key.DownloadMissingServerDescriptors),
-          config.getBool(Key.DownloadMissingExtraInfoDescriptors),
-          config.getBool(Key.DownloadMissingMicrodescriptors),
+          true, true, true, // download current consensus, microcons, and votes
+          true, true, true, // download missing serverdesc, extrainfo, and micro
           config.getBool(Key.DownloadAllServerDescriptors),
           config.getBool(Key.DownloadAllExtraInfoDescriptors),
           config.getBool(Key.CompressRelayDescriptorDownloads));

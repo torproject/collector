@@ -5,6 +5,8 @@
      descriptors by a single 'OutPath' property.
    - Introduced *Sources and *Origins properties to simplify
      data source definition.
+   - Remove six properties for specifying what relay descriptors to
+     download and replace them with hard-coded 'true' values.
 
 
 # Changes in version 1.0.2 - 2016-10-07
