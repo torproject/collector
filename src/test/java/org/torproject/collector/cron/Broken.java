@@ -33,5 +33,11 @@ public class Broken extends CollecTorMain {
   public String module() {
     return "broken";
   }
+
+  @Override
+  protected String syncMarker() {
+    return "Broken";
+  }
+
 }
 

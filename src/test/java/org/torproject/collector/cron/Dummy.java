@@ -18,4 +18,10 @@ public class Dummy extends CollecTorMain {
   public String module() {
     return "dummy";
   }
+
+  @Override
+  protected String syncMarker() {
+    return "Dummy";
+  }
+
 }

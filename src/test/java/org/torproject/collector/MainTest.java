@@ -22,6 +22,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -120,8 +121,10 @@ public class MainTest {
 
   private void changeFilePathsAndSetActivation(File file, String activation)
       throws Exception {
-    List<String> lines = Files.readAllLines(file.toPath());
-    BufferedWriter bw = Files.newBufferedWriter(file.toPath());
+    List<String> lines = Files.readAllLines(file.toPath(),
+        StandardCharsets.UTF_8);
+    BufferedWriter bw = Files.newBufferedWriter(file.toPath(),
+        StandardCharsets.UTF_8);
     File in = tmpf.newFolder();
     File out = tmpf.newFolder();
     String inStr = "in/";

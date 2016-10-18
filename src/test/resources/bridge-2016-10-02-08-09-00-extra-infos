@@ -1,0 +1,221 @@
+@type bridge-extra-info 1.3
+extra-info DragonBridge A8D07F92DF78FA2C208FA6675B56E0A7BB750794
+master-key-ed25519 jBoYHwHIP9vplYgonlMUFJxND0QMEBqCnL2cEe2NbYc
+published 2016-10-02 06:09:10
+write-history 2016-10-02 02:53:12 (14400 s) 4994048,4990976,45120512,42682368,6100992,4891648
+read-history 2016-10-02 02:53:12 (14400 s) 11014144,10854400,47524864,44861440,10661888,10295296
+dirreq-write-history 2016-10-02 02:01:15 (14400 s) 6144,0,3278848,3185664,656384,0
+dirreq-read-history 2016-10-02 02:01:15 (14400 s) 0,0,382976,245760,6144,0
+geoip-db-digest 72F8AD2CD7C97D173AD53276366EAD32B13E0A50
+geoip6-db-digest B6427DEAD2291FBF8311A2233AF4960BF4009713
+dirreq-stats-end 2016-10-01 19:50:12 (86400 s)
+dirreq-v3-ips kz=8,ru=8,us=8
+dirreq-v3-reqs kz=8,ru=8,us=8
+dirreq-v3-resp ok=8,not-enough-sigs=0,unavailable=0,not-found=0,not-modified=0,busy=0
+dirreq-v3-direct-dl complete=0,timeout=0,running=0
+dirreq-v3-tunneled-dl complete=4,timeout=4,running=0
+bridge-stats-end 2016-10-01 19:51:08 (86400 s)
+bridge-ips de=8,kz=8,ru=8,sa=8,us=8
+bridge-ip-versions v4=8,v6=0
+bridge-ip-transports <OR>=8
+router-digest-sha256 6iLwTCaMXDAPrYKRt6Ah6FwwkSsEDGObaNlqfm3cbP4
+router-digest 9F88A7C2ABE6665D204137BA8C2661D42E7C2829
+@type bridge-extra-info 1.3
+extra-info DNCBridgeRPi 867A63A4CCC6D45B15DBFB22003C594042412581
+master-key-ed25519 oUKx6oLteymFt7pwunpZ+B0dhLQAETeAcTNDp/5Amw0
+published 2016-10-02 06:09:12
+write-history 2016-10-02 03:05:33 (14400 s) 462848,778240,7972864,1031168,350208,439296
+read-history 2016-10-02 03:05:33 (14400 s) 5957632,15517696,251645952,6350848,4200448,5956608
+geoip-db-digest 72F8AD2CD7C97D173AD53276366EAD32B13E0A50
+geoip6-db-digest B6427DEAD2291FBF8311A2233AF4960BF4009713
+transport obfs3
+transport scramblesuit
+bridge-stats-end 2016-10-01 14:28:57 (86400 s)
+bridge-ips 
+bridge-ip-versions v4=0,v6=0
+bridge-ip-transports 
+router-digest-sha256 QAvUm+6mXbEibot94d+0ISiLhyks2C6p5A8QBiS2IkE
+router-digest 7A93CA1EDC543E747F1157BC3A557890335311A4
+@type bridge-extra-info 1.3
+extra-info Unnamed 067B8EE79F6FEC65E39C35DD90377010E620881B
+master-key-ed25519 f27btU0vJOYFeJzlOGcQtx+VaVPrvIx9LMBuxjbIPP8
+published 2016-10-02 06:09:25
+write-history 2016-10-02 04:12:16 (14400 s) 384932864,53726208,44402688,59504640,37644288,37881856
+read-history 2016-10-02 04:12:16 (14400 s) 385453056,52590592,44509184,57378816,39064576,36541440
+dirreq-write-history 2016-10-02 04:12:16 (14400 s) 5686272,7923712,6594560,7880704,4802560,6556672
+dirreq-read-history 2016-10-02 04:12:16 (14400 s) 25600,1090560,109568,709632,90112,334848
+geoip-db-digest 72F8AD2CD7C97D173AD53276366EAD32B13E0A50
+geoip6-db-digest B6427DEAD2291FBF8311A2233AF4960BF4009713
+dirreq-stats-end 2016-10-01 11:46:36 (86400 s)
+dirreq-v3-ips cy=8,de=8,ro=8,us=8
+dirreq-v3-reqs us=32,cy=16,de=16,ro=8
+dirreq-v3-resp ok=64,not-enough-sigs=0,unavailable=0,not-found=0,not-modified=24,busy=0
+dirreq-v3-direct-dl complete=0,timeout=0,running=0
+dirreq-v3-tunneled-dl complete=52,timeout=8,running=0,min=7471,d1=238181,d2=334253,q1=387448,d3=421582,d4=498856,md=843571,d6=1722488,d7=2000879,q3=2147673,d8=2171306,d9=2242930,max=2901056
+bridge-stats-end 2016-10-01 11:49:32 (86400 s)
+bridge-ips cn=8,cy=8,de=8,ro=8,us=8
+bridge-ip-versions v4=16,v6=0
+bridge-ip-transports <OR>=16
+router-digest-sha256 Kvt1tnXjhRGF3e5lySLvSE3BnfcrUaJh1aN1lT5VrAU
+router-digest CAB78EA0FFE9A7BC00527FEF19F546C47D59F01A
+@type bridge-extra-info 1.3
+extra-info Unnamed 06AE2FB64ACE4F56DABF87B3D745E19309C8990F
+master-key-ed25519 Nno2yZsZ+hZzoTLIzhE26d8KsmDApCeBohUzJLpmTH8
+published 2016-10-02 06:09:27
+write-history 2016-10-02 03:56:47 (14400 s) 476160,966656,553984,1364992,537600,413696
+read-history 2016-10-02 03:56:47 (14400 s) 5962752,5801984,4738048,7329792,6090752,4809728
+dirreq-write-history 2016-10-01 19:56:47 (14400 s) 3072,0,0,116736,21504,691200
+dirreq-read-history 2016-10-01 19:56:47 (14400 s) 0,0,0,21504,0,126976
+geoip-db-digest 9DD185BEC4F482DDD20A0221B3DD3F40175F0123
+geoip6-db-digest B1C1B6BDC9627E3D87530A2C70578AC69C20C5C6
+dirreq-stats-end 2016-10-01 06:54:40 (86400 s)
+dirreq-v3-ips us=8
+dirreq-v3-reqs us=8
+dirreq-v3-resp ok=8,not-enough-sigs=0,unavailable=0,not-found=0,not-modified=0,busy=0
+dirreq-v3-direct-dl complete=0,timeout=0,running=0
+dirreq-v3-tunneled-dl complete=8,timeout=0,running=0
+transport scramblesuit
+transport obfs3
+transport obfs4
+transport fte
+bridge-stats-end 2016-10-01 06:54:54 (86400 s)
+bridge-ips fr=8
+bridge-ip-versions v4=8,v6=0
+bridge-ip-transports <OR>=8
+router-digest-sha256 svJV07KR8BrXlRwjuNPM7jWTnT6NAXJpDak5PboB/jQ
+router-digest FABD8F614633EC2D2D405F2554E14381BC33D9CB
+@type bridge-extra-info 1.3
+extra-info nonviolencesfuru 1FE57984D6F790D308AC0DC51F06876FA0C9D092
+master-key-ed25519 v0GVsDvzczkWhruhB7DggtWp4gmuyQ72lC1liDtaiOA
+published 2016-10-02 06:09:34
+write-history 2016-10-02 06:00:51 (14400 s) 1972224,632832,1256448,693248
+read-history 2016-10-02 06:00:51 (14400 s) 13751296,5428224,6739968,6522880
+geoip-db-digest 72F8AD2CD7C97D173AD53276366EAD32B13E0A50
+geoip6-db-digest B6427DEAD2291FBF8311A2233AF4960BF4009713
+transport obfs4
+router-digest-sha256 pesHY7Zic6qG+SQPL7uB9kBEcw4nWcR1Y5K6fnRqQFU
+router-digest 31BCEA576E77BA66150F7903B588C919ADAD849C
+@type bridge-extra-info 1.3
+extra-info FieldBridge 2BB592A7687F6DB052FBCBCEC53EDB0891BBAA10
+master-key-ed25519 8kstuC/9InPyoRjGi+acEbI+3RwVm8iVDKJLO+ByZ1M
+published 2016-10-02 06:09:34
+write-history 2016-10-02 02:21:06 (14400 s) 1146579968,67488768,50172928,2017280,481679360,1380119552
+read-history 2016-10-02 02:21:06 (14400 s) 1142456320,70474752,52142080,4246528,484008960,1373639680
+dirreq-write-history 2016-10-02 02:51:10 (14400 s) 52224,1740800,3633152,583680,611328,646144
+dirreq-read-history 2016-10-02 02:51:10 (14400 s) 4096,244736,98304,116736,122880,3072
+geoip-db-digest 72F8AD2CD7C97D173AD53276366EAD32B13E0A50
+geoip6-db-digest B6427DEAD2291FBF8311A2233AF4960BF4009713
+dirreq-stats-end 2016-10-02 03:08:06 (86400 s)
+dirreq-v3-ips ru=8,sy=8,us=8,ve=8
+dirreq-v3-reqs ru=8,sy=8,us=8,ve=8
+dirreq-v3-resp ok=8,not-enough-sigs=0,unavailable=0,not-found=0,not-modified=80,busy=0
+dirreq-v3-direct-dl complete=0,timeout=0,running=0
+dirreq-v3-tunneled-dl complete=8,timeout=4,running=0
+transport obfs3
+bridge-stats-end 2016-10-02 03:12:26 (86400 s)
+bridge-ips de=8,ir=8,pr=8,ru=8,sy=8,us=8
+bridge-ip-versions v4=16,v6=0
+bridge-ip-transports <OR>=8,obfs3=8
+router-digest-sha256 SELWJJ84FSRHscsCZKdnab6ak7Sj4qlGzS/cscyCraA
+router-digest 3412A1DCCD183A1C0BD1B748F34D88594BE6EA52
+@type bridge-extra-info 1.3
+extra-info Unnamed 7AAEEB5BCB33BEA3DFAAE552BCD5B4C8A18358CE
+master-key-ed25519 yejnLM3H00PceT5NFN+Emwk7m6qNhBISX1AeHyswwD0
+published 2016-10-02 06:09:37
+write-history 2016-10-02 03:35:03 (14400 s) 24241152,9177088,8866816,352908288,586409984,2408448
+read-history 2016-10-02 03:35:03 (14400 s) 22291456,11991040,9041920,354052096,589142016,5104640
+dirreq-write-history 2016-10-02 03:35:03 (14400 s) 5920768,752640,2893824,2313216,1603584,1304576
+dirreq-read-history 2016-10-02 03:35:03 (14400 s) 296960,45056,105472,86016,133120,56320
+geoip-db-digest 9DD185BEC4F482DDD20A0221B3DD3F40175F0123
+geoip6-db-digest B1C1B6BDC9627E3D87530A2C70578AC69C20C5C6
+dirreq-stats-end 2016-10-01 07:19:58 (86400 s)
+dirreq-v3-ips kz=16,au=8,ca=8,in=8,ru=8,ua=8,us=8
+dirreq-v3-reqs kz=16,us=16,au=8,ca=8,in=8,ru=8,ua=8
+dirreq-v3-resp ok=32,not-enough-sigs=0,unavailable=0,not-found=0,not-modified=144,busy=0
+dirreq-v3-direct-dl complete=0,timeout=0,running=0
+dirreq-v3-tunneled-dl complete=8,timeout=28,running=0
+transport scramblesuit
+transport obfs3
+transport obfs4
+bridge-stats-end 2016-10-01 07:20:07 (86400 s)
+bridge-ips kz=16,au=8,ca=8,cl=8,de=8,fr=8,gb=8,in=8,nl=8,no=8,ph=8,ru=8,se=8,tw=8,ua=8,us=8
+bridge-ip-versions v4=56,v6=0
+bridge-ip-transports <OR>=8,obfs3=8,obfs4=48
+router-digest-sha256 b/PO7nPdxo+we9Tr/dQt2hAyu1TbtAWdjzac3CWYzpg
+router-digest BCFCBB38B15E9B500B1A6E9B0BCBBCE858660F17
+@type bridge-extra-info 1.3
+extra-info Unnamed 1283EDA3E80CA2D485CCFEDB9715392396DFAD29
+master-key-ed25519 5GUbxrSHFtj6QjHHx5ovS2gAh8/ZjtbjU4yjULS0l0s
+published 2016-10-02 06:09:43
+write-history 2016-10-02 03:06:20 (14400 s) 429056,407552,5811200,446464,3000320,362496
+read-history 2016-10-02 03:06:20 (14400 s) 4418560,3145728,9880576,3460096,6284288,3338240
+dirreq-write-history 2016-10-02 04:20:46 (14400 s) 3072,9216,19456,21504,618496,0
+dirreq-read-history 2016-10-02 04:20:46 (14400 s) 0,50176,325632,160768,4096,0
+geoip-db-digest 9DD185BEC4F482DDD20A0221B3DD3F40175F0123
+geoip6-db-digest B1C1B6BDC9627E3D87530A2C70578AC69C20C5C6
+dirreq-stats-end 2016-10-02 05:32:12 (86400 s)
+dirreq-v3-ips de=8
+dirreq-v3-reqs de=8
+dirreq-v3-resp ok=8,not-enough-sigs=0,unavailable=0,not-found=0,not-modified=0,busy=0
+dirreq-v3-direct-dl complete=0,timeout=0,running=0
+dirreq-v3-tunneled-dl complete=4,timeout=0,running=0
+transport scramblesuit
+transport obfs3
+transport obfs4
+bridge-stats-end 2016-10-02 05:32:19 (86400 s)
+bridge-ips cn=8,de=8,is=8,kz=8,mo=8,se=8
+bridge-ip-versions v4=8,v6=0
+bridge-ip-transports obfs4=8
+router-digest-sha256 IsSjkMJzRUIOrEV1yYCV4MIDhBmCy5WHyhF2XyUIJBc
+router-digest EEE0DC51B9A0A71BA73610123B13CEA212B5CF83
+@type bridge-extra-info 1.3
+extra-info Unnamed D0A12927EB4BFE70D0F8D7083BFA29E7FEEE7AF7
+master-key-ed25519 arZQ41IjtMeQYZKOR4CssQD+/xsjrU7I4DmlrKQkwgk
+published 2016-10-02 06:09:46
+write-history 2016-10-02 05:00:46 (14400 s) 674816,471040,483328,1075200,438272,526336
+read-history 2016-10-02 05:00:46 (14400 s) 7834624,5360640,5955584,7250944,4944896,6398976
+dirreq-write-history 2016-10-01 21:00:46 (14400 s) 11264,0,1024,3072,1024,3072
+dirreq-read-history 2016-10-01 21:00:46 (14400 s) 0,0,0,0,0,0
+geoip-db-digest 9DD185BEC4F482DDD20A0221B3DD3F40175F0123
+geoip6-db-digest B1C1B6BDC9627E3D87530A2C70578AC69C20C5C6
+dirreq-stats-end 2016-10-01 07:37:53 (86400 s)
+dirreq-v3-ips us=8
+dirreq-v3-reqs us=8
+dirreq-v3-resp ok=8,not-enough-sigs=0,unavailable=0,not-found=0,not-modified=0,busy=0
+dirreq-v3-direct-dl complete=0,timeout=0,running=0
+dirreq-v3-tunneled-dl complete=0,timeout=4,running=0
+transport scramblesuit
+transport obfs3
+transport obfs4
+transport fte
+bridge-stats-end 2016-10-01 07:38:23 (86400 s)
+bridge-ips de=8,fr=8,gb=8,ir=8,nl=8,no=8,se=8,us=8
+bridge-ip-versions v4=24,v6=0
+bridge-ip-transports obfs3=8,obfs4=24
+router-digest-sha256 QOK8h4YRMrDNlA81Vm+OvHGOtqFsBS3GcKX6hBzogyg
+router-digest 16D2B79FBD0A8567C6AFD7585C775AC7745561E3
+@type bridge-extra-info 1.3
+extra-info lizard 5FA018F8D73451C1C11C2D7A3E7A069C1690FA01
+master-key-ed25519 Xj/ak6iMVsSzHAngW1BfAI1VoF0k0QAefwpIGVWC+3o
+published 2016-10-02 06:09:48
+write-history 2016-10-02 04:04:27 (14400 s) 651264,755712,624640,796672,1170432,667648
+read-history 2016-10-02 04:04:27 (14400 s) 5622784,6710272,5658624,6630400,5582848,6111232
+dirreq-write-history 2016-09-26 12:24:30 (14400 s) 0,0,0,0,0,0
+dirreq-read-history 2016-09-26 12:24:30 (14400 s) 0,0,0,0,0,0
+geoip-db-digest 72F8AD2CD7C97D173AD53276366EAD32B13E0A50
+geoip6-db-digest B6427DEAD2291FBF8311A2233AF4960BF4009713
+dirreq-stats-end 2016-10-01 08:24:30 (86400 s)
+dirreq-v3-ips 
+dirreq-v3-reqs 
+dirreq-v3-resp ok=0,not-enough-sigs=0,unavailable=0,not-found=0,not-modified=0,busy=0
+dirreq-v3-direct-dl complete=0,timeout=0,running=0
+dirreq-v3-tunneled-dl complete=0,timeout=0,running=0
+transport obfs2
+transport obfs3
+transport obfs4
+bridge-stats-end 2016-10-01 08:24:40 (86400 s)
+bridge-ips 
+bridge-ip-versions v4=0,v6=0
+bridge-ip-transports 
+router-digest-sha256 jaw20uUIxGdDCGZYBR6Vn2jwMX3KKQ7lFJ0PMdNHMhQ
+router-digest E11C5239494BAD2F6F3759F1104A2F6182BEAB4D

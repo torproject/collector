@@ -67,6 +67,11 @@ public class CreateIndexJson extends CollecTorMain {
   }
 
   @Override
+  protected String syncMarker() {
+    return "IndexJson";
+  }
+
+  @Override
   protected void startProcessing() throws ConfigurationException {
     try {
       indexJsonFile = new File(config.getPath(Key.IndexPath).toFile(),

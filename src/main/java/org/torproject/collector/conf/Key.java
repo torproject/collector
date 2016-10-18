@@ -5,6 +5,8 @@ package org.torproject.collector.conf;
 
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Enum containing all the properties keys of the configuration.
@@ -55,9 +57,10 @@ public enum Key {
   ReplaceIpAddressesWithHashes(Boolean.class),
   BridgeDescriptorMappingsLimit(Integer.class),
   TorperfFilesLines(String[].class),
-  TorperfSources(String[][].class);
+  TorperfHosts(String[][].class);
 
   private Class clazz;
+  private static Set<String> keys;
 
   /**
    * @param Class of key value.
@@ -68,6 +71,17 @@ public enum Key {
 
   public Class keyClass() {
     return clazz;
+  }
+
+  /** Verifies, if the given string corresponds to an enum value. */
+  public static boolean has(String someKey) {
+    if (null == keys) {
+      keys = new HashSet<>();
+      for (Key key : values()) {
+        keys.add(key.name());
+      }
+    }
+    return keys.contains(someKey);
   }
 
 }

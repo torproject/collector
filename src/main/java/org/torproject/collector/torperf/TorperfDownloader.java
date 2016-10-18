@@ -3,6 +3,7 @@
 
 package org.torproject.collector.torperf;
 
+import org.torproject.collector.conf.Annotation;
 import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
@@ -55,6 +56,11 @@ public class TorperfDownloader extends CollecTorMain {
   }
 
   @Override
+  protected String syncMarker() {
+    return "TorperfFiles";
+  }
+
+  @Override
   protected void startProcessing() throws ConfigurationException {
     this.torperfFilesLines = config.getStringArray(Key.TorperfFilesLines);
     this.torperfOutputDirectory
@@ -67,7 +73,7 @@ public class TorperfDownloader extends CollecTorMain {
     this.dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     this.dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     this.readLastMergedTimestamps();
-    for (String[] source : config.getStringArrayArray(Key.TorperfSources)) {
+    for (String[] source : config.getStringArrayArray(Key.TorperfHosts)) {
       torperfSources.put(source[0], source[1]);
     }
     for (String torperfFilesLine : this.torperfFilesLines) {
@@ -602,7 +608,7 @@ public class TorperfDownloader extends CollecTorMain {
       outputFile.getParentFile().mkdirs();
       BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
       for (String line : this.cachedTpfLines.values()) {
-        bw.write("@type torperf 1.0\n");
+        bw.write(Annotation.Torperf.toString());
         bw.write(line + "\n");
       }
       bw.close();

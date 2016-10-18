@@ -22,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -155,7 +156,8 @@ public class SanitizedBridgesWriterTest {
           @Override
           public FileVisitResult visitFile(Path path, BasicFileAttributes bfa)
               throws IOException {
-            List<String> parsedLines = Files.readAllLines(path);
+            List<String> parsedLines = Files.readAllLines(path,
+                StandardCharsets.UTF_8);
             if (parsedLines.get(0).startsWith(
                 "@type bridge-server-descriptor ")) {
               parsedServerDescriptors.add(parsedLines);
@@ -235,7 +237,8 @@ public class SanitizedBridgesWriterTest {
     this.defaultServerDescriptorBuilder.insertBeforeLineStartingWith(
         "platform ", Arrays.asList("or-address [2:5:2:5:2:5:2:5]:25"));
     Path bridgeIpSecretsFile = Paths.get(statsDirectory, "bridge-ip-secrets");
-    BufferedWriter writer = Files.newBufferedWriter(bridgeIpSecretsFile);
+    BufferedWriter writer = Files.newBufferedWriter(bridgeIpSecretsFile,
+        StandardCharsets.UTF_8);
     writer.write("2016-06,8ad0d1410d64256bdaa3977427f6db012c5809082a464c658d651"
         + "304e25654902ed0df551c8eed19913ab7aaf6243cb3adc0f4a4b93ee77991b8c572e"
         + "a25ca2ea5cd311dabe2f8b72243837ec88bcb0c758657\n");
@@ -677,8 +680,8 @@ public class SanitizedBridgesWriterTest {
   public void testParsedBridgeDirectoriesSkipTarball() throws Exception {
     Path parsedBridgeDirectoriesFile = Paths.get(statsDirectory,
         "parsed-bridge-directories");
-    BufferedWriter writer = Files.newBufferedWriter(
-        parsedBridgeDirectoriesFile);
+    BufferedWriter writer = Files.newBufferedWriter(parsedBridgeDirectoriesFile,
+        StandardCharsets.UTF_8);
     writer.write(this.tarballBuilders.get(0).getTarballFileName() + "\n");
     writer.close();
     this.runTest();
@@ -705,7 +708,8 @@ public class SanitizedBridgesWriterTest {
     this.runTest();
     Path bridgeIpSecretsFile = Paths.get(statsDirectory,
         "bridge-ip-secrets");
-    BufferedReader reader = Files.newBufferedReader(bridgeIpSecretsFile);
+    BufferedReader reader = Files.newBufferedReader(bridgeIpSecretsFile,
+        StandardCharsets.UTF_8);
     String line;
     while ((line = reader.readLine()) != null) {
       assertTrue("Secrets line should start with month 2016-06.",
@@ -719,7 +723,8 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testBridgeIpSecretsRead() throws Exception {
     Path bridgeIpSecretsFile = Paths.get(statsDirectory, "bridge-ip-secrets");
-    BufferedWriter writer = Files.newBufferedWriter(bridgeIpSecretsFile);
+    BufferedWriter writer = Files.newBufferedWriter(bridgeIpSecretsFile,
+        StandardCharsets.UTF_8);
     String secretLine = "2016-06,8ad0d1410d64256bdaa3977427f6db012c5809082a464c"
         + "658d651304e25654902ed0df551c8eed19913ab7aaf6243cb3adc0f4a4b93ee77991"
         + "b8c572ea25ca2ea5cd311dabe2f8b72243837ec88bcb0c758657";
@@ -732,7 +737,8 @@ public class SanitizedBridgesWriterTest {
     this.runTest();
     assertEquals("Didn't sanitize descriptors.", 3,
         this.parsedFiles.size());
-    BufferedReader reader = Files.newBufferedReader(bridgeIpSecretsFile);
+    BufferedReader reader = Files.newBufferedReader(bridgeIpSecretsFile,
+        StandardCharsets.UTF_8);
     String line;
     while ((line = reader.readLine()) != null) {
       assertEquals("Secrets line was changed.", secretLine, line);
@@ -760,7 +766,8 @@ public class SanitizedBridgesWriterTest {
         "30000");
     Path bridgeIpSecretsFile = Paths.get(statsDirectory,
         "bridge-ip-secrets");
-    BufferedWriter writer = Files.newBufferedWriter(bridgeIpSecretsFile);
+    BufferedWriter writer = Files.newBufferedWriter(bridgeIpSecretsFile,
+        StandardCharsets.UTF_8);
     writer.write("2016-06,x");
     writer.close();
     this.runTest();

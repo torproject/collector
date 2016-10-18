@@ -5,6 +5,10 @@ package org.torproject.collector.cron;
 
 import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.ConfigurationException;
+import org.torproject.collector.conf.Key;
+import org.torproject.collector.conf.SourceType;
+import org.torproject.collector.sync.SyncManager;
+import org.torproject.descriptor.Descriptor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,13 +16,16 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class CollecTorMain implements Callable<Object>, Observer,
-    Runnable {
+public abstract class CollecTorMain extends SyncManager
+    implements Callable<Object>, Observer, Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(
       CollecTorMain.class);
@@ -30,6 +37,9 @@ public abstract class CollecTorMain implements Callable<Object>, Observer,
   protected Configuration config = new Configuration();
 
   private Configuration newConfig;
+
+  protected final Map<String, Class<? extends Descriptor>> mapPathDescriptors
+      = new HashMap<>();
 
   public CollecTorMain(Configuration conf) {
     this.config.putAll(conf.getPropertiesCopy());
@@ -51,13 +61,36 @@ public abstract class CollecTorMain implements Callable<Object>, Observer,
         }
       }
     }
-    logger.info("Starting {} module of CollecTor.", module());
     try {
-      startProcessing();
+      if (!isSyncOnly()) {
+        logger.info("Starting {} module of CollecTor.", module());
+        startProcessing();
+        logger.info("Terminating {} module of CollecTor.", module());
+      }
     } catch (Throwable th) { // Catching all to prevent #19771
       logger.error("The {} module failed: {}", module(), th.getMessage(), th);
     }
-    logger.info("Terminating {} module of CollecTor.", module());
+    try {
+      if (isSync()) {
+        logger.info("Starting sync-run of module {} of CollecTor.", module());
+        this.merge(this.config, this.syncMarker(),
+            this.syncMapPathsDescriptors());
+        logger.info("Finished sync-run of module {} of CollecTor.", module());
+      }
+    } catch (Throwable th) { // Catching all (cf. above).
+      logger.error("Sync-run of {} module failed: {}", module(), th.getMessage(), th);
+    }
+  }
+
+  private boolean isSync() throws ConfigurationException {
+    String key = this.syncMarker() + "Sources";
+    return Key.has(key) && config.getSourceTypeSet(Key.valueOf(key))
+        .contains(SourceType.Sync);
+  }
+
+  private boolean isSyncOnly() throws ConfigurationException {
+    String key = this.syncMarker() + "Sources";
+    return this.isSync() && config.getSourceTypeSet(Key.valueOf(key)).size() == 1;
   }
 
   /** Wrapper for <code>run</code>. */
@@ -82,9 +115,19 @@ public abstract class CollecTorMain implements Callable<Object>, Observer,
   protected abstract void startProcessing() throws ConfigurationException;
 
   /**
+   * Returns property prefix/infix/postfix for Sync related properties.
+   */
+  protected abstract String syncMarker();
+
+  /**
    * Returns the module name for logging purposes.
    */
   public abstract String module();
+
+  /** Returns map of path and descriptor type for download. */
+  public Map<String, Class<? extends Descriptor>> syncMapPathsDescriptors() {
+    return Collections.unmodifiableMap(mapPathDescriptors);
+  }
 
   /**
    * Checks the available space for the storage the given path is located on and

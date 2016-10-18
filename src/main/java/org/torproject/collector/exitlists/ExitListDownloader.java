@@ -3,6 +3,7 @@
 
 package org.torproject.collector.exitlists;
 
+import org.torproject.collector.conf.Annotation;
 import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
@@ -47,11 +48,17 @@ public class ExitListDownloader extends CollecTorMain {
   /** Instanciate the exit-lists module using the given configuration. */
   public ExitListDownloader(Configuration config) {
     super(config);
+    this.mapPathDescriptors.put("recent/exit-lists", ExitList.class);
   }
 
   @Override
   public String module() {
     return "exitlists";
+  }
+
+  @Override
+  protected String syncMarker() {
+    return "Exitlists";
   }
 
   @Override
@@ -69,7 +76,7 @@ public class ExitListDownloader extends CollecTorMain {
     try {
       logger.debug("Downloading exit list...");
       StringBuilder sb = new StringBuilder();
-      sb.append("@type tordnsel 1.0\n");
+      sb.append(Annotation.Torperf.toString());
       sb.append("Downloaded " + dateTimeFormat.format(downloadedDate)
           + "\n");
       URL url = config.getUrl(Key.ExitlistUrl);

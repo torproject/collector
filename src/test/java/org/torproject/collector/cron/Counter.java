@@ -22,5 +22,11 @@ public class Counter extends CollecTorMain {
   public String module() {
     return "counter";
   }
+
+  @Override
+  protected String syncMarker() {
+    return "Torperf";
+  }
+
 }
 

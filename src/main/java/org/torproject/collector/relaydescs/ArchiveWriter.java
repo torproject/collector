@@ -3,6 +3,7 @@
 
 package org.torproject.collector.relaydescs;
 
+import org.torproject.collector.conf.Annotation;
 import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
@@ -11,6 +12,10 @@ import org.torproject.collector.cron.CollecTorMain;
 import org.torproject.descriptor.DescriptorParseException;
 import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
+import org.torproject.descriptor.RelayExtraInfoDescriptor;
+import org.torproject.descriptor.RelayNetworkStatusConsensus;
+import org.torproject.descriptor.RelayNetworkStatusVote;
+import org.torproject.descriptor.RelayServerDescriptor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,27 +81,6 @@ public class ArchiveWriter extends CollecTorMain {
   private File storedExtraInfoDescriptorsFile;
   private File storedMicrodescriptorsFile;
 
-  private static final byte[] CONSENSUS_ANNOTATION =
-      "@type network-status-consensus-3 1.0\n".getBytes();
-
-  private static final byte[] MICRODESCCONSENSUS_ANNOTATION =
-      "@type network-status-microdesc-consensus-3 1.0\n".getBytes();
-
-  private static final byte[] VOTE_ANNOTATION =
-      "@type network-status-vote-3 1.0\n".getBytes();
-
-  private static final byte[] CERTIFICATE_ANNOTATION =
-      "@type dir-key-certificate-3 1.0\n".getBytes();
-
-  private static final byte[] SERVER_DESCRIPTOR_ANNOTATION =
-      "@type server-descriptor 1.0\n".getBytes();
-
-  private static final byte[] EXTRA_INFO_ANNOTATION =
-      "@type extra-info 1.0\n".getBytes();
-
-  private static final byte[] MICRODESCRIPTOR_ANNOTATION =
-      "@type microdescriptor 1.0\n".getBytes();
-
   private StringBuilder intermediateStats = new StringBuilder();
 
   private Path recentPath;
@@ -110,11 +94,27 @@ public class ArchiveWriter extends CollecTorMain {
   /** Initialize an archive writer with a given configuration. */
   public ArchiveWriter(Configuration config) throws ConfigurationException {
     super(config);
+    this.mapPathDescriptors.put("recent/relay-descriptors/votes",
+        RelayNetworkStatusVote.class);
+    this.mapPathDescriptors.put("recent/relay-descriptors/consensuses",
+        RelayNetworkStatusConsensus.class);
+    this.mapPathDescriptors.put(
+        "relay-descriptors/microdescs/consensus-microdesc",
+        RelayNetworkStatusConsensus.class);
+    this.mapPathDescriptors.put("recent/relay-descriptors/server-descriptors",
+        RelayServerDescriptor.class);
+    this.mapPathDescriptors.put("recent/relay-descriptors/extra-infos",
+        RelayExtraInfoDescriptor.class);
   }
 
   @Override
   public String module() {
     return "relaydescs";
+  }
+
+  @Override
+  protected String syncMarker() {
+    return "Relay";
   }
 
   @Override
@@ -297,11 +297,7 @@ public class ArchiveWriter extends CollecTorMain {
         }
         br.close();
       }
-    } catch (ParseException e) {
-      logger.warn("Could not load descriptor "
-          + "digests.  We might not be able to correctly check "
-          + "descriptors for completeness.", e);
-    } catch (IOException e) {
+    } catch (IOException | ParseException e) {
       logger.warn("Could not load descriptor "
           + "digests.  We might not be able to correctly check "
           + "descriptors for completeness.", e);
@@ -653,7 +649,7 @@ public class ArchiveWriter extends CollecTorMain {
     File rsyncFile = Paths.get(recentPathName, RELAY_DESCRIPTORS,
         "consensuses", tarballFile.getName()).toFile();
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
-    if (this.store(CONSENSUS_ANNOTATION, data, outputFiles, null)) {
+    if (this.store(Annotation.Consensus.bytes(), data, outputFiles, null)) {
       this.storedConsensusesCounter++;
     }
     if (!tarballFileExistedBefore
@@ -680,7 +676,7 @@ public class ArchiveWriter extends CollecTorMain {
     File rsyncFile = Paths.get(recentPathName, RELAY_DESCRIPTORS, MICRODESCS,
         CONSENSUS_MICRODESC, tarballFile.getName()).toFile();
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
-    if (this.store(MICRODESCCONSENSUS_ANNOTATION, data, outputFiles,
+    if (this.store(Annotation.MicroConsensus.bytes(), data, outputFiles,
         null)) {
       this.storedMicrodescConsensusesCounter++;
     }
@@ -706,7 +702,7 @@ public class ArchiveWriter extends CollecTorMain {
     File rsyncFile = Paths.get(recentPathName, RELAY_DESCRIPTORS, "votes",
         tarballFile.getName()).toFile();
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
-    if (this.store(VOTE_ANNOTATION, data, outputFiles, null)) {
+    if (this.store(Annotation.Vote.bytes(), data, outputFiles, null)) {
       this.storedVotesCounter++;
     }
     if (!tarballFileExistedBefore
@@ -729,7 +725,7 @@ public class ArchiveWriter extends CollecTorMain {
     File tarballFile = Paths.get(this.outputDirectory, "certs",
         fingerprint + "-" + printFormat.format(new Date(published))).toFile();
     File[] outputFiles = new File[] { tarballFile };
-    if (this.store(CERTIFICATE_ANNOTATION, data, outputFiles, null)) {
+    if (this.store(Annotation.Cert.bytes(), data, outputFiles, null)) {
       this.storedCertsCounter++;
     }
   }
@@ -749,7 +745,7 @@ public class ArchiveWriter extends CollecTorMain {
         this.rsyncCatString + "-server-descriptors.tmp").toFile();
     File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
     boolean[] append = new boolean[] { false, true };
-    if (this.store(SERVER_DESCRIPTOR_ANNOTATION, data, outputFiles,
+    if (this.store(Annotation.Server.bytes(), data, outputFiles,
         append)) {
       this.storedServerDescriptorsCounter++;
     }
@@ -779,7 +775,7 @@ public class ArchiveWriter extends CollecTorMain {
         "extra-infos", this.rsyncCatString + "-extra-infos.tmp").toFile();
     File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
     boolean[] append = new boolean[] { false, true };
-    if (this.store(EXTRA_INFO_ANNOTATION, data, outputFiles, append)) {
+    if (this.store(Annotation.ExtraInfo.bytes(), data, outputFiles, append)) {
       this.storedExtraInfoDescriptorsCounter++;
     }
     if (!tarballFileExistedBefore
@@ -814,7 +810,7 @@ public class ArchiveWriter extends CollecTorMain {
         MICRODESCS, MICRO, this.rsyncCatString + "-micro.tmp").toFile();
     File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
     boolean[] append = new boolean[] { false, true };
-    if (this.store(MICRODESCRIPTOR_ANNOTATION, data, outputFiles,
+    if (this.store(Annotation.Microdescriptor.bytes(), data, outputFiles,
         append)) {
       this.storedMicrodescriptorsCounter++;
     }

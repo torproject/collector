@@ -74,6 +74,9 @@ public class SchedulerTest {
     ctms.put(Key.RelaydescsActivated, Counter.class);
     ctms.put(Key.ExitlistsActivated, Counter.class);
     ctms.put(Key.UpdateindexActivated, Counter.class);
+    conf.setProperty(Key.BridgeSources.name(), "Local");
+    conf.setProperty(Key.RelaySources.name(), "Remote");
+    conf.setProperty(Key.ExitlistSources.name(), "Remote");
     Field schedulerField = Scheduler.class.getDeclaredField("scheduler");
     schedulerField.setAccessible(true);
     ScheduledThreadPoolExecutor stpe = (ScheduledThreadPoolExecutor)

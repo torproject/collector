@@ -3,7 +3,6 @@
 
 package org.torproject.collector.bridgedescs;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 /** Builds a non-sanitized bridge extra-info descriptor that comes with an

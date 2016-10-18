@@ -1,5 +1,14 @@
 # Changes in version 1.1.0 - 2016-10-XX
 
+ * Major changes
+   - Provide a facility to synchronize descriptors from other CollecTor
+     instances.  If configured, the synchronization run collects
+     recent descriptors from one or more remote CollecTor instances,
+     verifies descriptors, and sorts them into the local descriptor
+     store.  Synchronization is implemented for relay descriptors
+     (except microdescriptors), sanitized bridge descriptors, and exit
+     lists.
+
  * Medium changes
    - Replace four properties for configuring where to write
      descriptors by a single 'OutPath' property.
@@ -8,6 +17,10 @@
    - Remove six properties for specifying what relay descriptors to
      download and replace them with hard-coded 'true' values.
 
+ * Minor changes
+   - Add enum for descriptor type annotations.
+   - Add modular file persistence to write descriptors to the out/ and
+     recent/ subdirectories..
 
 # Changes in version 1.0.2 - 2016-10-07
 

@@ -3,10 +3,14 @@
 
 package org.torproject.collector.bridgedescs;
 
+import org.torproject.collector.conf.Annotation;
 import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
 import org.torproject.collector.cron.CollecTorMain;
+import org.torproject.descriptor.BridgeExtraInfoDescriptor;
+import org.torproject.descriptor.BridgeNetworkStatus;
+import org.torproject.descriptor.BridgeServerDescriptor;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
@@ -56,8 +60,15 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       SanitizedBridgesWriter.class);
   private static final String BRIDGE_DESCRIPTORS = "bridge-descriptors";
 
+  /** Initialize configuration. */
   public SanitizedBridgesWriter(Configuration config) {
     super(config);
+    this.mapPathDescriptors.put("recent/bridge-descriptors/statuses",
+        BridgeNetworkStatus.class);
+    this.mapPathDescriptors.put("recent/bridge-descriptors/server-descriptors",
+        BridgeServerDescriptor.class);
+    this.mapPathDescriptors.put("recent/bridge-descriptors/extra-infos",
+        BridgeExtraInfoDescriptor.class);
   }
 
   private String rsyncCatString;
@@ -90,6 +101,11 @@ public class SanitizedBridgesWriter extends CollecTorMain {
   @Override
   public String module() {
     return "bridgedescs";
+  }
+
+  @Override
+  protected String syncMarker() {
+    return "Bridge";
   }
 
   @Override
@@ -609,7 +625,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         outputFile.getParentFile().mkdirs();
         BufferedWriter bw = new BufferedWriter(new FileWriter(
             outputFile));
-        bw.write("@type bridge-network-status 1.1\n");
+        bw.write(Annotation.Status.toString());
         bw.write("published " + publicationTime + "\n");
         bw.write(header.toString());
         for (String scrubbed : scrubbedLines.values()) {
@@ -998,7 +1014,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         outputFile.getParentFile().mkdirs();
         BufferedWriter bw = new BufferedWriter(new FileWriter(
             outputFile, appendToFile));
-        bw.write("@type bridge-server-descriptor 1.2\n");
+        bw.write(Annotation.BridgeServer.toString());
         bw.write(scrubbedDesc);
         if (descriptorDigestSha256Base64 != null) {
           bw.write("router-digest-sha256 " + descriptorDigestSha256Base64
@@ -1281,7 +1297,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         outputFile.getParentFile().mkdirs();
         BufferedWriter bw = new BufferedWriter(new FileWriter(
             outputFile, appendToFile));
-        bw.write("@type bridge-extra-info 1.3\n");
+        bw.write(Annotation.BridgeExtraInfo.toString());
         bw.write(scrubbedDesc);
         if (descriptorDigestSha256Base64 != null) {
           bw.write("router-digest-sha256 " + descriptorDigestSha256Base64

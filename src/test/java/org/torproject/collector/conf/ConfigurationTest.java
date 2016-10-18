@@ -8,7 +8,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.torproject.collector.Main;
 import org.torproject.collector.MainTest;
 import org.torproject.collector.cron.CollecTorMain;
 import org.torproject.collector.cron.Dummy;
@@ -136,11 +135,11 @@ public class ConfigurationTest {
       new String[]{"localsource", "http://127.0.0.1:12345"},
       new String[]{"somesource", "https://some.host.org:12345"}};
     Configuration conf = new Configuration();
-    conf.setProperty(Key.TorperfSources.name(),
+    conf.setProperty(Key.TorperfHosts.name(),
         Arrays.deepToString(sourceStrings).replace("[[", "").replace("]]", "")
             .replace("], [", Configuration.ARRAYSEP));
     assertArrayEquals(sourceStrings,
-        conf.getStringArrayArray(Key.TorperfSources));
+        conf.getStringArrayArray(Key.TorperfHosts));
   }
 
   @Test()
@@ -173,13 +172,13 @@ public class ConfigurationTest {
   public void testArrayValueException() throws Exception {
     Configuration conf = new Configuration();
     conf.setProperty(Key.RelayCacheOrigins.name(), "");
-    conf.getStringArray(Key.TorperfSources);
+    conf.getStringArray(Key.TorperfHosts);
   }
 
   @Test(expected = ConfigurationException.class)
   public void testBoolValueException() throws Exception {
     Configuration conf = new Configuration();
-    conf.setProperty(Key.TorperfSources.name(), "http://x.y.z");
+    conf.setProperty(Key.TorperfHosts.name(), "http://x.y.z");
     conf.getBool(Key.RelayCacheOrigins);
   }
 

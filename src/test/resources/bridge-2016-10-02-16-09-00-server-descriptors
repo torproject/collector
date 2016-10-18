@@ -1,0 +1,129 @@
+@type bridge-server-descriptor 1.2
+router Unnamed 10.23.149.63 62046 0 0
+master-key-ed25519 fwl7Q2iVvW01Nk6Jp3+7IExor3985ZMbi4FQw4IYd0k
+platform Tor 0.2.9.2-alpha on Linux
+protocols Link 1 2 Circuit 1
+published 2016-10-02 14:09:07
+fingerprint D2F5 CC2E A5F8 A4F9 1900 56EA 949F 141F C976 1F43
+uptime 2363843
+bandwidth 1073741824 1073741824 206928
+extra-info-digest 85FD94CBACE8C11EB29AC5FECF8A8ABA21F45D0F zeuFBHoAWQAUSjUKVsWMp5XokV0dKROEuqJnFu2w1xg
+hidden-service-dir
+contact somebody
+ntor-onion-key lbN0U275h5s8rwcubhxL2O5F4aoOEvyFmYusL86/lAY=
+reject *:*
+tunnelled-dir-server
+router-digest-sha256 BMvjI22C2J1M9eFmhq/neiqKtjB0kt1ndhuf64vsP8k
+router-digest 5B20316B03AFC98A165A219044B6FA6CA34C58AB
+@type bridge-server-descriptor 1.2
+router Unnamed 10.106.176.73 49689 0 0
+platform Tor 0.2.5.12 on Linux
+protocols Link 1 2 Circuit 1
+published 2016-10-02 14:09:06
+fingerprint C4EE 7161 FE36 8A15 248E 5921 DFEA 6CC2 5BC2 FD83
+uptime 76088
+bandwidth 1073741824 1073741824 53756
+extra-info-digest 2CBC29AA3EE74C72A68B51B1618DA6BAD12DDA49
+hidden-service-dir
+ntor-onion-key y6tnY2qHDTJmZfJMRg0b7LuXRMVQdiRdTEg82ukk1kA=
+reject *:*
+router-digest 614414898EE133EE9BF6B10A9898CAB518C5453E
+@type bridge-server-descriptor 1.2
+router Unnamed 10.8.122.102 50328 0 0
+master-key-ed25519 OICEfZ6Ac3czyEYzzMUcXex8t65UCRLIrnLuh6/VZg0
+platform Tor 0.2.8.8 on Linux
+protocols Link 1 2 Circuit 1
+published 2016-10-02 14:09:12
+fingerprint 072B EBC9 DFBF BA17 D405 131E 12A0 E028 1A60 1320
+uptime 55679
+bandwidth 1073741824 1073741824 57287
+extra-info-digest 2D0BEBE9EF9E8C34673AB468B8949470394163A4 LqFAbouBGR9IJzDP8byRzUZe6jV3IR9N1YhO2dPGws4
+hidden-service-dir
+ntor-onion-key 2RD++gjJa+B9LtiB2Wc62uFZCsYvqjAibdSDeOcBQ1k=
+reject *:*
+tunnelled-dir-server
+router-digest-sha256 lPmHzY+h6fxAGDUHjv/JG5QdVI3nPWwNTfRT3uJcurg
+router-digest E5D46E88CB52D4FC0524398CFB7A6754394BC5E9
+@type bridge-server-descriptor 1.2
+router Unnamed 10.174.130.80 57629 0 0
+master-key-ed25519 RAvid5sMPrWrHNMTyNkh0DHYn0jjvlxYdfkv/oO8vkc
+platform Tor 0.2.8.8 on Linux
+protocols Link 1 2 Circuit 1
+published 2016-10-02 14:09:12
+fingerprint A075 B3AD D7C4 F541 A136 5C48 2151 ED67 8553 FA86
+uptime 163623
+bandwidth 1073741824 1073741824 87469
+extra-info-digest BCCBD433D69FC975DD64F727009E972BE63E671E 67D3Z9VMWihc1eMcv6fvaunhR1vHi+GFFF3aC5a+/ho
+hidden-service-dir
+ntor-onion-key dcyMn617R0CSH8y/GlCuZlcZ072WIzQN1+U4lvNp0lk=
+reject *:*
+tunnelled-dir-server
+router-digest-sha256 eVjr5hvHwAdJSTONZMDFN78pE3WNvh4ZU4agRModeG8
+router-digest 07D952E9020CB68A63D9156653A2E41AF4AF4D44
+@type bridge-server-descriptor 1.2
+router blessedergrisled 10.217.38.130 51273 0 0
+master-key-ed25519 yvr4JbkmyBFCSYIOoSMTLzARyNz5X8aq+FLJuV453Jc
+platform Tor 0.2.8.8 on Linux
+protocols Link 1 2 Circuit 1
+published 2016-10-02 14:09:13
+fingerprint 66B4 1CF3 878A 3725 4511 C5E3 F76F 513F 7407 5464
+uptime 655627
+bandwidth 1073741824 1073741824 70341
+extra-info-digest 8C73935FB0DD6466292F37AA53C3FFC705DA2D43 TXmNoBSMq+aJ7K0XfkzOK+08xeUdpaNYe2LTPp3iKPg
+hidden-service-dir
+ntor-onion-key LFRkxvwu0OTEK7Kffi0aZFsA/CB5q3IiqdmO6DFJlTI=
+reject *:*
+tunnelled-dir-server
+router-digest-sha256 0tuTDs9p0urmMLK1ccd80jT4NJuOYJ6mbNLf9HZAW9E
+router-digest 0A65C636A20631BD5DEB2F10DC664D2032303C46
+@type bridge-server-descriptor 1.2
+router Unnamed 10.59.143.32 52135 0 0
+or-address [fd9f:2e19:3bcf::52:2b3c]:52135
+master-key-ed25519 QuhRmcScbuQLfOlJcNRtvJJUHOEuSJvJkgBCZBnHg8Y
+platform Tor 0.2.8.8 on Linux
+protocols Link 1 2 Circuit 1
+published 2016-10-02 14:09:36
+fingerprint 781E D820 91D2 1012 0D8C FE21 9375 FD1D C887 90C7
+uptime 218584
+bandwidth 1073741824 1073741824 10019
+extra-info-digest 9B0AAFE8FC1ECCCE050DE8144633398A562D8C4E oYEW2A5ElkRF5aLDr7bmqiaQ4I35sQ9nTLlfn5QQ4Ac
+hidden-service-dir
+ntor-onion-key u8PIRBCGac1QK0IFXZavPNMCTO4VVkyX6Y0zruEpMWs=
+reject *:*
+tunnelled-dir-server
+router-digest-sha256 GwsHAZnT8sSGa2QMgsezYwV+bAmolBSEgy+79rJUz48
+router-digest C32ACC52826B37E5319F1BAC2F8812B33A772540
+@type bridge-server-descriptor 1.2
+router arta 10.115.243.0 62765 0 0
+or-address [fd9f:2e19:3bcf::4e:c014]:62765
+master-key-ed25519 Ou7f8sfNQAvQyf9hphrwG3SMfgnixA/J7M8nU8kFMgg
+platform Tor 0.2.8.7 on Linux
+protocols Link 1 2 Circuit 1
+published 2016-10-02 14:09:37
+fingerprint 1E44 F619 5FE2 9654 1ADE 9A8F 26D1 9519 1686 5A56
+uptime 3162219
+bandwidth 1073741824 1073741824 2428592
+extra-info-digest 814696854278895DDB705106AFAEE778F5F74CF3 +jC9kls16zXtbK5KOop0r13CbCPgD7HfDa7gupWbsBI
+hidden-service-dir
+contact somebody
+ntor-onion-key hD5Qf6LDLjsXFWQVehulre2m0TDM3/rVCDAgAG8UuVs=
+reject *:*
+tunnelled-dir-server
+router-digest-sha256 BDlAH4HCpk9W4bvmrtw+tafbttbA/0/TMhjhPbJSpuQ
+router-digest 784D6F9E82426072FBFC7A42F8F7133BA6EC1453
+@type bridge-server-descriptor 1.2
+router grampstupiks 10.222.194.57 60062 0 0
+master-key-ed25519 Y/GsvASLoireD0zMjKFgDQLj0kb4jHvbaVYChGTmns4
+platform Tor 0.2.8.8 on Linux
+protocols Link 1 2 Circuit 1
+published 2016-10-02 14:09:43
+fingerprint 499A 91E7 07DF E7E5 6464 FB50 5E27 5B53 B25E 2FB3
+uptime 655566
+bandwidth 1073741824 1073741824 61534
+extra-info-digest A83F214F81807CA0CAB8C781FDA55AE288C65AE7 xlY9r0t0GA0wzWL2WLZHY3do1GDTfNtoKUvmaorcpgE
+hidden-service-dir
+ntor-onion-key /bLoNdo+uLf6CTkYIpg9Y9bSEZvgrBvl3dw9SwvIUC4=
+reject *:*
+tunnelled-dir-server
+router-digest-sha256 HKcey928PxjBrJ+JTZN84xUqxTDav6ad3jxJMmkapjE
+router-digest A8A5509AD1393C8F36ABD2D8F0DE1BB751926872
