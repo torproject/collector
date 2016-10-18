@@ -16,6 +16,8 @@
 
      - Enabled suppression of warnings using annotations.
 
+     - Added a check for unused imports [UnusedImports].
+
     Checkstyle is very configurable. Be sure to read the documentation at
     http://checkstyle.sf.net (or in your downloaded distribution).
 
@@ -61,6 +63,7 @@
             <property name="tokens" value="LITERAL_TRY, LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE, LITERAL_SWITCH"/>
         </module>
         <module name="NeedBraces"/>
+        <module name="UnusedImports"/>
         <module name="LeftCurly">
             <property name="maxLineLength" value="100"/>
         </module>
