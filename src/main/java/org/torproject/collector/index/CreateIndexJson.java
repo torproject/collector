@@ -195,6 +195,7 @@ public class CreateIndexJson extends CollecTorMain {
   }
 
   private void writeIndex(IndexNode indexNode) throws IOException {
+    indexJsonFile.getParentFile().mkdirs();
     Gson gson = new GsonBuilder().create();
     String indexNodeString = gson.toJson(indexNode);
     Writer[] writers = new Writer[] {
