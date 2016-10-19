@@ -21,6 +21,7 @@
    - Add enum for descriptor type annotations.
    - Add modular file persistence to write descriptors to the out/ and
      recent/ subdirectories..
+   - Exclude temporary files from index.json* files.
 
 # Changes in version 1.0.2 - 2016-10-07
 

@@ -175,7 +175,8 @@ public class CreateIndexJson extends CollecTorMain {
       return null;
     }
     for (File fileOrDirectory : fileList) {
-      if (fileOrDirectory.getName().startsWith(".")) {
+      if (fileOrDirectory.getName().startsWith(".")
+          || fileOrDirectory.getName().endsWith(".tmp")) {
         continue;
       }
       if (fileOrDirectory.isFile()) {
