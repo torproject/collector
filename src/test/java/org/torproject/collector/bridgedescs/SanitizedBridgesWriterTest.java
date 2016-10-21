@@ -318,7 +318,7 @@ public class SanitizedBridgesWriterTest {
     this.defaultServerDescriptorBuilder.replaceLineStartingWith(
         "extra-info-digest ", Arrays.asList("extra-info-digest "
         + "6D03E80568DEFA102968D144CB35FFA6E3355B8A "
-        + "#*?$%§@nxukmmcT1+UnDg4qh0yKbjVUYKhGL8VksoJA"));
+        + "#*?$%x@nxukmmcT1+UnDg4qh0yKbjVUYKhGL8VksoJA"));
     this.runTest();
     assertTrue("Invalid base64 in server descriptor accepted.",
         this.parsedServerDescriptors.isEmpty());
