@@ -9,11 +9,11 @@
 ####
 # Configuration section:
 # The following path should be adjusted, if the CollecTor server layout differs.
-# OUTDIR and TARBALLTARGETDIR have to be given absolute or relative to WORKDIR.
-ARCHIVEDIR="archive"
-WORKDIR="tarballs"
-OUTDIR="../out"
-TARBALLTARGETDIR="../data"
+# All paths should be given absolute.
+ARCHIVEDIR="/srv/collector.torproject.org/collector/archive"
+WORKDIR="/srv/collector.torproject.org/collector/tarballs"
+OUTDIR="/srv/collector.torproject.org/collector/out"
+TARBALLTARGETDIR="/srv/collector.torproject.org/collector/data"
 ### end of configuration section.
 #
 ### script start
