@@ -39,6 +39,9 @@ public class PersistenceUtils {
             outputPath.toFile().getName() + ".tmp").toPath();
         if (Files.exists(outputPath) && StandardOpenOption.APPEND == option) {
           Files.copy(outputPath, tmpPath, StandardCopyOption.REPLACE_EXISTING);
+        } else if (Files.exists(outputPath)
+            && StandardOpenOption.CREATE_NEW == option) {
+          return false;
         }
       }
       StandardOpenOption appendOption = option;
