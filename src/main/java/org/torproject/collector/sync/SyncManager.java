@@ -78,15 +78,16 @@ public class SyncManager {
         DescriptorReader descriptorReader
             = DescriptorSourceFactory.createDescriptorReader();
         descriptorReader.addDirectory(new File(base, entry.getKey()));
+        String histFileEnding = entry.getValue().getSimpleName()
+            + (entry.getKey().contains("consensus-microdesc")
+               ? "-micro" : "");
         descriptorReader.setExcludeFiles(new File(basePath.toFile(),
             "sync-history-" + source.getHost() + "-" + marker + "-"
-            + entry.getValue().getSimpleName()));
-        log.info("Reading {} of type {} ... ", marker,
-            entry.getValue().getSimpleName());
+            + histFileEnding));
+        log.info("Reading {} of type {} ... ", marker, histFileEnding);
         Iterator<DescriptorFile> descriptorFiles
             = descriptorReader.readDescriptors();
-        log.info("Done reading {} of type {}.",
-            marker, entry.getValue().getSimpleName());
+        log.info("Done reading {} of type {}.", marker, histFileEnding);
         Criterium crit = new ProcessCriterium(entry.getValue());
         while (descriptorFiles.hasNext()) {
           DescriptorFile descFile = descriptorFiles.next();
