@@ -31,7 +31,7 @@ public abstract class CollecTorMain extends SyncManager
       CollecTorMain.class);
 
   private static final long LIMIT_MB = 200;
-
+  public static final String SOURCES = "Sources";
   private final AtomicBoolean newConfigAvailable = new AtomicBoolean(false);
 
   protected Configuration config = new Configuration();
@@ -83,13 +83,13 @@ public abstract class CollecTorMain extends SyncManager
   }
 
   private boolean isSync() throws ConfigurationException {
-    String key = this.syncMarker() + "Sources";
+    String key = this.syncMarker() + SOURCES;
     return Key.has(key) && config.getSourceTypeSet(Key.valueOf(key))
         .contains(SourceType.Sync);
   }
 
   private boolean isSyncOnly() throws ConfigurationException {
-    String key = this.syncMarker() + "Sources";
+    String key = this.syncMarker() + SOURCES;
     return this.isSync() && config.getSourceTypeSet(Key.valueOf(key)).size() == 1;
   }
 

@@ -28,6 +28,8 @@ import java.util.Set;
 public class SyncManager {
 
   private static final Logger log = LoggerFactory.getLogger(SyncManager.class);
+  public static final String SYNCORIGINS = "SyncOrigins";
+
   private Date collectionDate;
 
   public SyncManager() { /* empty */ }
@@ -36,7 +38,7 @@ public class SyncManager {
   public void merge(Configuration conf, String marker,
       Map<String, Class<? extends Descriptor>> mapPathDesc)
       throws ConfigurationException {
-    URL[] sources = conf.getUrlArray(Key.valueOf(marker + "SyncOrigins"));
+    URL[] sources = conf.getUrlArray(Key.valueOf(marker + SYNCORIGINS));
     collectionDate = new Date();
     collectFromOtherInstances(sources, mapPathDesc.keySet(), marker, conf);
     mergeWithLocalStorage(sources, mapPathDesc, marker, conf);

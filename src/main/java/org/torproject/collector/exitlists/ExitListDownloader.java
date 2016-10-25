@@ -58,7 +58,7 @@ public class ExitListDownloader extends CollecTorMain {
 
   @Override
   protected String syncMarker() {
-    return "Exitlists";
+    return "Exitlist";
   }
 
   @Override
