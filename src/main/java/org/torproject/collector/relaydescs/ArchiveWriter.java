@@ -99,7 +99,7 @@ public class ArchiveWriter extends CollecTorMain {
     this.mapPathDescriptors.put("recent/relay-descriptors/consensuses",
         RelayNetworkStatusConsensus.class);
     this.mapPathDescriptors.put(
-        "relay-descriptors/microdescs/consensus-microdesc",
+        "recent/relay-descriptors/microdescs/consensus-microdesc",
         RelayNetworkStatusConsensus.class);
     this.mapPathDescriptors.put("recent/relay-descriptors/server-descriptors",
         RelayServerDescriptor.class);
