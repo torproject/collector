@@ -11,6 +11,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,7 +37,7 @@ public class PersistUtilsTest {
     assertFalse("Files shouldn't be created.",
         PersistenceUtils.storeToFileSystem(ANNO1.getBytes(),
         "some text".getBytes(), out, StandardOpenOption.CREATE_NEW, true));
-    List<String> text = Files.readAllLines(out);
+    List<String> text = Files.readAllLines(out, StandardCharsets.UTF_8);
     assertTrue("List should be empty: " + text, text.isEmpty());
   }
 
@@ -48,7 +49,8 @@ public class PersistUtilsTest {
     assertTrue("Files should be created.",
         PersistenceUtils.storeToFileSystem(ANNO1.getBytes(),
         (theText + "\n").getBytes(), pathToCreate, StandardOpenOption.CREATE));
-    List<String> text = Files.readAllLines(pathToCreate);
+    List<String> text = Files.readAllLines(pathToCreate,
+        StandardCharsets.UTF_8);
     assertEquals("File contained: " + text, 2, text.size());
     assertEquals("File contained: " + text, theText, text.get(1));
   }
@@ -61,7 +63,8 @@ public class PersistUtilsTest {
     assertTrue("Files should be created.",
         PersistenceUtils.storeToFileSystem(ANNO1.getBytes(),
         (theText + "\n").getBytes(), pathToCreate, StandardOpenOption.CREATE));
-    List<String> text = Files.readAllLines(pathToCreate);
+    List<String> text = Files.readAllLines(pathToCreate,
+        StandardCharsets.UTF_8);
     assertEquals("File contained: " + text, 2, text.size());
     assertEquals("File contained: " + text, theText, text.get(1));
     String theText2 = "other symbols";
@@ -69,7 +72,7 @@ public class PersistUtilsTest {
         PersistenceUtils.storeToFileSystem((ANNO2).getBytes(),
         (theText2 + "\n").getBytes(), pathToCreate,
         StandardOpenOption.TRUNCATE_EXISTING));
-    text = Files.readAllLines(pathToCreate);
+    text = Files.readAllLines(pathToCreate, StandardCharsets.UTF_8);
     assertEquals("File contained: " + text, 2, text.size());
     assertEquals("File contained: " + text, "2@annotation", text.get(0));
     assertEquals("File contained: " + text, theText2, text.get(1));
@@ -83,14 +86,15 @@ public class PersistUtilsTest {
     assertTrue("Files should be created.",
         PersistenceUtils.storeToFileSystem(ANNO1.getBytes(),
         (theText + "\n").getBytes(), pathToCreate, StandardOpenOption.CREATE));
-    List<String> text = Files.readAllLines(pathToCreate);
+    List<String> text = Files.readAllLines(pathToCreate,
+        StandardCharsets.UTF_8);
     assertEquals("File contained: " + text, 2, text.size());
     assertEquals("File contained: " + text, theText, text.get(1));
     String theText2 = "other symbols";
     assertTrue("Files should be created.",
         PersistenceUtils.storeToFileSystem((ANNO2).getBytes(),
         (theText2 + "\n").getBytes(), pathToCreate, StandardOpenOption.APPEND));
-    text = Files.readAllLines(pathToCreate);
+    text = Files.readAllLines(pathToCreate, StandardCharsets.UTF_8);
     assertEquals("File contained: " + text, 4, text.size());
     assertEquals("File contained: " + text, "1@annotation", text.get(0));
     assertEquals("File contained: " + text, theText, text.get(1));
