@@ -45,10 +45,15 @@ public class PersistUtilsTest {
   public void testCreate() throws Exception {
     Path out = tmpf.newFolder().toPath();
     Path pathToCreate = Paths.get(out.toString(), "very-new-file");
+    Path pathToCreateTmp = Paths
+        .get(out.toString(), "very-new-file" + PersistenceUtils.TEMPFIX);
     String theText = "some text";
     assertTrue("Files should be created.",
         PersistenceUtils.storeToFileSystem(ANNO1.getBytes(),
-        (theText + "\n").getBytes(), pathToCreate, StandardOpenOption.CREATE));
+        (theText + "\n").getBytes(), pathToCreate, StandardOpenOption.CREATE,
+        true));
+    assertTrue("File wasn't created.", Files.exists(pathToCreateTmp));
+    PersistenceUtils.cleanDirectory(out);
     List<String> text = Files.readAllLines(pathToCreate,
         StandardCharsets.UTF_8);
     assertEquals("File contained: " + text, 2, text.size());

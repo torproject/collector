@@ -9,10 +9,14 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
@@ -22,6 +26,8 @@ public class PersistenceUtils {
   private static final Logger log = LoggerFactory.getLogger(
       PersistenceUtils.class);
 
+  public static final String TEMPFIX = ".tmp";
+
   /** Stores a descriptor adding missing annotations with the given options. */
   public static boolean storeToFileSystem(byte[] typeAnnotation, byte[] data,
       Path outputPath, StandardOpenOption option) {
@@ -29,34 +35,25 @@ public class PersistenceUtils {
   }
 
   /** Stores a descriptor adding missing annotations with the given options.
-   * Uses a temporary file and the copies to the final location. */
-  public static boolean storeToFileSystem(byte[] typeAnnotation, byte[] data,
-      Path outputPath, StandardOpenOption option, boolean useTmp) {
+   * Uses a temporary file and requires a run of cleanDirectory for moving
+   * files to the final location. */
+  public static boolean storeToFileSystem(byte[] typeAnnotation,
+      byte[] data, Path outputPath, StandardOpenOption option, boolean useTmp) {
     Path tmpPath = outputPath;
     try {
       if (useTmp) {
         tmpPath = new File(outputPath.toFile().getParent(),
-            outputPath.toFile().getName() + ".tmp").toPath();
-        if (Files.exists(outputPath) && StandardOpenOption.APPEND == option) {
-          Files.copy(outputPath, tmpPath, StandardCopyOption.REPLACE_EXISTING);
-        } else if (Files.exists(outputPath)
+            outputPath.toFile().getName() + TEMPFIX).toPath();
+        if (Files.exists(outputPath)
             && StandardOpenOption.CREATE_NEW == option) {
           return false;
         }
+        if (Files.exists(outputPath) && !Files.exists(tmpPath)
+            && StandardOpenOption.APPEND == option) {
+          Files.copy(outputPath, tmpPath, StandardCopyOption.REPLACE_EXISTING);
+        }
       }
-      StandardOpenOption appendOption = option;
-      Files.createDirectories(tmpPath.getParent());
-      if (data.length > 0 && data[0] != '@') {
-        Files.write(tmpPath, typeAnnotation, appendOption,
-            StandardOpenOption.CREATE);
-        appendOption = StandardOpenOption.APPEND;
-      }
-      Files.write(tmpPath, data, appendOption, StandardOpenOption.CREATE);
-      if (useTmp) {
-        Files.deleteIfExists(outputPath);
-        tmpPath.toFile().renameTo(outputPath.toFile());
-      }
-      return true;
+      return createOrAppend(typeAnnotation, data, tmpPath, option);
     } catch (FileAlreadyExistsException faee) {
       log.debug("Already have descriptor(s) of type '{}': {}. Skipping.",
           new String(typeAnnotation), outputPath);
@@ -69,6 +66,37 @@ public class PersistenceUtils {
           outputPath, new String(typeAnnotation), th);
     }
     return false;
+  }
+
+  private static boolean createOrAppend(byte[] annotation, byte[] data,
+      Path path, StandardOpenOption option) throws IOException {
+    StandardOpenOption appendOption = option;
+    Files.createDirectories(path.getParent());
+    if (data.length > 0 && data[0] != '@') {
+      Files.write(path, annotation, appendOption, StandardOpenOption.CREATE);
+      appendOption = StandardOpenOption.APPEND;
+    }
+    Files.write(path, data, appendOption, StandardOpenOption.CREATE);
+    return true;
+  }
+
+  /** Move temporary files to their final location. */
+  public static void cleanDirectory(Path pathToClean) throws IOException {
+    SimpleFileVisitor<Path> sfv = new SimpleFileVisitor<Path>() {
+      @Override
+      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+          throws IOException {
+        String tempName = file.toString();
+        if (tempName.endsWith(TEMPFIX)) {
+          Path outputPath = Paths
+              .get(tempName.substring(0, tempName.length() - TEMPFIX.length()));
+          Files.deleteIfExists(outputPath);
+          file.toFile().renameTo(outputPath.toFile());
+        }
+        return FileVisitResult.CONTINUE;
+      }
+    };
+    Files.walkFileTree(pathToClean, sfv);
   }
 
   /** Return all date-time parts as array. */

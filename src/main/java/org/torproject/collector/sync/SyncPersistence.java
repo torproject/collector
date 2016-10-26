@@ -13,6 +13,7 @@ import org.torproject.collector.persist.DescriptorPersistence;
 import org.torproject.collector.persist.ExitlistPersistence;
 import org.torproject.collector.persist.ExtraInfoPersistence;
 import org.torproject.collector.persist.MicroConsensusPersistence;
+import org.torproject.collector.persist.PersistenceUtils;
 import org.torproject.collector.persist.ServerDescriptorPersistence;
 import org.torproject.collector.persist.StatusPersistence;
 import org.torproject.collector.persist.VotePersistence;
@@ -29,6 +30,7 @@ import org.torproject.descriptor.RelayServerDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -115,6 +117,11 @@ public class SyncPersistence {
         log.error("Unknown descriptor type {} implementing {}.",
             desc.getClass().getSimpleName(), desc.getClass().getInterfaces());
       }
+    }
+    try {
+      PersistenceUtils.cleanDirectory(recentPath);
+    } catch (IOException ioe) {
+      log.error("Cleaning of {} failed.", recentPath.toString(), ioe);
     }
   }
 
