@@ -52,7 +52,8 @@ public class SyncManager {
     DescriptorCollector descriptorCollector = new DescriptorIndexCollector();
     for (URL source : sources) {
       try {
-        File storage = new File(basePath.toFile(), source.getHost());
+        File storage = new File(basePath.toFile(),
+            marker + "-" + source.getHost());
         storage.mkdirs();
         log.info("Collecting {} from {} ...", marker, source.getHost());
         descriptorCollector.collectDescriptors(source.toString(),
