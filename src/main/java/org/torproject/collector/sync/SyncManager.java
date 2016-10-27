@@ -71,7 +71,7 @@ public class SyncManager {
     Path basePath = conf.getPath(Key.SyncPath);
     SyncPersistence persist = new SyncPersistence(conf);
     for (URL source : sources) {
-      File base = new File(basePath.toFile(), source.getHost());
+      File base = new File(basePath.toFile(), marker + "-" + source.getHost());
       log.info("Merging {} from {} into storage ...", marker,
           source.getHost());
       for (Map.Entry<String, Class<? extends Descriptor>> entry
