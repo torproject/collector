@@ -1,4 +1,4 @@
-# Changes in version 1.1.0 - 2016-10-XX
+# Changes in version 1.1.0 - 2016-10-28
 
  * Major changes
    - Provide a facility to synchronize descriptors from other CollecTor
@@ -12,8 +12,8 @@
  * Medium changes
    - Replace four properties for configuring where to write
      descriptors by a single 'OutPath' property.
-   - Introduced *Sources and *Origins properties to simplify
-     data source definition.
+   - Introduce *Sources and *Origins properties to simplify data
+     source definition.
    - Remove six properties for specifying what relay descriptors to
      download and replace them with hard-coded 'true' values.
 
@@ -22,6 +22,8 @@
    - Add modular file persistence to write descriptors to the out/ and
      recent/ subdirectories..
    - Exclude temporary files from index.json* files.
+   - Expand the operator's guide in INSTALL.md.
+
 
 # Changes in version 1.0.2 - 2016-10-07
 
