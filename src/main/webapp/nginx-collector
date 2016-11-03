@@ -1,0 +1,33 @@
+##
+# The following is a simple nginx configuration to run CollecTor.
+##
+server {
+
+  # We assume the you have copied the content of webapp to
+  # /var/www/collector/html
+
+  root /var/www/collector/html;
+
+  # This option make sure that nginx will follow symlinks to the appropriate
+  # CollecTor folders
+  autoindex on;
+
+  index index.html;
+
+  # You can change the specified servername. If you leave it as it is you will
+  # need to add an entry on /etc/hosts for collector
+  server_name collector;
+
+  location / {
+    fancyindex on;
+    fancyindex_exact_size off;
+    fancyindex_header /header.html;
+    fancyindex_footer /footer.html;
+    try_files $uri $uri/ =404;
+  }
+
+  location ~/\.ht {
+    deny all;
+  }
+}
+

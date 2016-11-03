@@ -43,8 +43,8 @@ of other operating systems, those might work, too, but, again, you'll be on your
 own.
 
 CollecTor does not require installing many or specific dependencies on the host
-system.  All it needs are a Java Runtime Environment version 7 or higher and an
-Apache HTTP Server version 2 or higher.
+system.  All it needs are a Java Runtime Environment version 7 or higher and
+either Apache or nginx as HTTP Server.
 
 The CollecTor service runs entirely under a non-privileged user account.  Any
 user account will do, but feel free to create a new user account just for the
@@ -53,14 +53,14 @@ CollecTor service, if you prefer.
 The CollecTor service requires running in a working directory where it can store
 Tor network data and state files.  This working directory can be located
 anywhere in the file system as long as there is enough disk space available.
-The Apache service will later need to know where to find files to serve to web
-clients including other CollecTor instances.
+The Apache or nginx service will later need to know where to find files to serve
+to web clients including other CollecTor instances.
 
 CollecTor does not require setting up a database.
 
 This concludes the host setup.  Later in the process you'll once more need root
-privileges to configure Apache to serve CollecTor files.  But until then you can
-do all setup steps with the non-privileged user account.
+privileges to configure Apache or nginx to serve CollecTor files.  But until
+then you can do all setup steps with the non-privileged user account.
 
 
 ## Setting up the service
@@ -120,7 +120,8 @@ Run the Java process using:
 
 The option `-Xmx2g` sets the maximum heap space to 2G, which is based on the
 recommended 4G total RAM size for the host.  If you have more memory to spare,
-feel free to adapt this option as needed.
+feel free to adapt this option as needed.  Note that there is no option to limit
+the amount of disk space used.
 
 This may take a while, depending on which modules you activated.  Read the logs
 to learn if the run was successful.  If it wasn't, go back to editing the
@@ -131,7 +132,8 @@ Complete the initialization step by copying the shell script
 `collector-<version>/src/main/resources/create-tarballs.sh` from the release
 tarball to the working directory or another location of your choice, editing the
 contained paths, and executing it.  Note that this script will at least partly
-fail if one or more modules are deactivated.
+fail if one or more modules are deactivated, and that if you haven't edited any
+paths, the script will write to `/srv/collector.torproject.org/collector/`.
 
 
 ### Scheduling periodic runs
@@ -162,8 +164,15 @@ refer to settings in `collector.properties`):
  * `<IndexPath>`, and
  * `<RecentPath>`.
 
-Use your browser to make sure that your instance serves the web pages and data
-that you'd expect.
+You can also configure nginx as the web server of your choice.  If you use
+nginx you will need to use the FancyIndex module to be able to include the
+provided footer and header of the webapp.  Copy
+`collector-<version>/src/main/webapp/nginx-collector` to
+`/etc/nginx/sites-available/` and make a symbolic link in
+`/etc/nginx/sites-enabled/` to enable it.
+
+Now, use your browser to make sure that your instance serves the web pages and
+data that you'd expect.
 
 
 ## Maintaining the service
