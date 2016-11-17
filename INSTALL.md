@@ -167,7 +167,7 @@ refer to settings in `collector.properties`):
 You can also configure nginx as the web server of your choice.  If you use
 nginx you will need to use the FancyIndex module to be able to include the
 provided footer and header of the webapp.  Copy
-`collector-<version>/src/main/webapp/nginx-collector` to
+`collector-<version>/src/main/resources/nginx-collector` to
 `/etc/nginx/sites-available/` and make a symbolic link in
 `/etc/nginx/sites-enabled/` to enable it.
 
