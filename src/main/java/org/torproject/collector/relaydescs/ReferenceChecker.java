@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -102,6 +103,8 @@ public class ReferenceChecker {
 
     private long expiresAfterMillis;
 
+    public Reference() { /* empty */ }
+
     public Reference(String referencing, String referenced, double weight,
         long expiresAfterMillis) {
       this.referencing = referencing;
@@ -140,14 +143,24 @@ public class ReferenceChecker {
       return;
     }
     Gson gson = new Gson();
-    try {
-      FileReader fr = new FileReader(this.referencesFile);
+    try (FileReader fr = new FileReader(this.referencesFile)) {
       this.references.addAll(Arrays.asList(gson.fromJson(fr,
           Reference[].class)));
-      fr.close();
     } catch (IOException e) {
       logger.warn("Cannot read existing references file "
           + "from previous run.", e);
+    } catch (RuntimeException jpe) {
+      logger.warn("Content of {} cannot be parsed. "
+          + "File will be erased and rewritten. In general, {} "
+          + "shouldn't be edited manually.  Error reason: {}",
+          this.referencesFile.toString(),
+          this.referencesFile.toString(), jpe.getMessage());
+      try {
+        Files.deleteIfExists(this.referencesFile.toPath());
+      } catch (IOException ioe) {
+        logger.warn("Cannot delete '{}', reason: {}",
+            this.referencesFile.toString(), ioe.getMessage(), ioe);
+      }
     }
   }
 
