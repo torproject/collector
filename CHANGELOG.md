@@ -1,3 +1,9 @@
+# Changes in version ?.?.? - 201?-??-??
+
+ * Medium changes
+   - Retain hidserv-* lines in sanitized extra-info descriptors.
+
+
 # Changes in version 1.1.0 - 2016-10-28
 
  * Major changes

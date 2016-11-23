@@ -1192,7 +1192,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
             || line.startsWith("dirreq-")
             || line.startsWith("cell-")
             || line.startsWith("entry-")
-            || line.startsWith("exit-")) {
+            || line.startsWith("exit-")
+            || line.startsWith("hidserv-")) {
           scrubbed.append(line + "\n");
 
         /* When we reach the signature, we're done. Write the sanitized
