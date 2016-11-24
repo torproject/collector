@@ -515,6 +515,27 @@ public class SanitizedBridgesWriterTest {
   }
 
   @Test
+  public void testExtraInfoDescriptorHidservRetained() throws Exception {
+    this.defaultExtraInfoDescriptorBuilder.insertBeforeLineStartingWith(
+        "transport ",
+        Arrays.asList("hidserv-stats-end 2016-11-23 14:48:05 (86400 s)",
+        "hidserv-rend-relayed-cells 27653088 delta_f=2048 epsilon=0.30 "
+        + "bin_size=1024",
+        "hidserv-dir-onions-seen 204 delta_f=8 epsilon=0.30 bin_size=8"));
+    this.runTest();
+    int foundHidservLines = 0;
+    if (!this.parsedExtraInfoDescriptors.isEmpty()) {
+      for (String line : this.parsedExtraInfoDescriptors.get(0)) {
+        if (line.startsWith("hidserv-")) {
+          foundHidservLines++;
+        }
+      }
+    }
+    assertEquals("3 hidserv-* lines should have been retained.", 3,
+        foundHidservLines);
+  }
+
+  @Test
   public void testExtraInfoDescriptorRouterSignatureLineSpace()
       throws Exception {
     this.defaultExtraInfoDescriptorBuilder.replaceLineStartingWith(
