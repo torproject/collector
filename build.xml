@@ -8,6 +8,7 @@
   <property name="webappsources" value="src/main/webapp"/>
   <property name="generated" value="generated"/>
   <property name="dist" value="${generated}/dist"/>
+  <property name="signed" value="${dist}/signed"/>
   <property name="testresult" value="${generated}/test-results"/>
   <property name="testsources" value="src/test/java"/>
   <property name="testresources" value="src/test/resources/"/>
@@ -18,9 +19,9 @@
   <property name="docs" value="${generated}/javadoc/"/>
   <property name="libs" value="lib"/>
   <property name="cobertura.ser.file" value="${basedir}/cobertura.ser" />
-  <property name="jarfile" value="${dist}/collector-${release.version}.jar" />
-  <property name="jarsourcesfile" value="${dist}/collector-${release.version}-sources.jar" />
-  <property name="jarjavadocfile" value="${dist}/collector-${release.version}-javadoc.jar" />
+  <property name="jarfile" value="collector-${release.version}.jar" />
+  <property name="jarsourcesfile" value="collector-${release.version}-sources.jar" />
+  <property name="jarjavadocfile" value="collector-${release.version}-javadoc.jar" />
   <property name="release.tarball"
             value="${dist}/collector-${release.version}.tar.gz" />
   <property file="build.properties" />
@@ -85,6 +86,8 @@
     <mkdir dir="${docs}"/>
     <mkdir dir="${testresult}"/>
     <mkdir dir="${instrument}"/>
+    <mkdir dir="${dist}"/>
+    <mkdir dir="${signed}"/>
   </target>
   <target name="clean">
     <delete includeEmptyDirs="true" quiet="true">
@@ -136,7 +139,7 @@
       <arg value="--short" />
       <arg value="HEAD" />
     </exec>
-    <jar destfile="${jarfile}"
+    <jar destfile="${dist}/${jarfile}"
          basedir="${classes}">
       <fileset dir="${resources}" >
         <include name="collector.properties"/>
@@ -163,7 +166,7 @@
                    value="org.torproject.collector.Main" />
       </manifest>
     </jar>
-    <jar destfile="${jarsourcesfile}">
+    <jar destfile="${dist}/${jarsourcesfile}">
       <fileset dir="${sources}" />
       <fileset dir="${testsources}" />
       <manifest>
@@ -173,7 +176,7 @@
                    value="${release.version}-${git.revision}"/>
       </manifest>
     </jar>
-    <jar destfile="${jarjavadocfile}">
+    <jar destfile="${dist}/${jarjavadocfile}">
       <fileset dir="${docs}" />
       <manifest>
         <attribute name="Created-By" value="The Tor Project" />
@@ -187,21 +190,32 @@
     <signjar alias="${jarsigner.alias}"
              storepass="${jarsigner.storepass}"
              sigalg="SHA256withRSA"
+             destdir="${signed}"
              digestalg="SHA-256"
              tsaurl="http://timestamp.digicert.com">
       <path>
-        <pathelement path="${jarfile}"/>
-        <pathelement path="${jarsourcesfile}"/>
-        <pathelement path="${jarjavadocfile}"/>
+        <fileset dir="${dist}"
+                 includes="${jarfile} ${jarsourcesfile} ${jarjavadocfile}"/>
       </path>
     </signjar>
+    <fail message="Signing failed." >
+      <condition>
+        <not>
+          <and>
+            <issigned file="${signed}/${jarfile}"/>
+            <issigned file="${signed}/${jarsourcesfile}"/>
+            <issigned file="${signed}/${jarjavadocfile}"/>
+          </and>
+        </not>
+      </condition>
+    </fail>
   </target>
   <target name="tar" depends="signjar">
     <tar destfile="${release.tarball}" compression="gzip">
       <tarfileset dir="." prefix="collector-${release.version}">
-        <include name="${jarfile}" />
-        <include name="${jarsourcesfile}" />
-        <include name="${jarjavadocfile}" />
+        <include name="${signed}/${jarfile}" />
+        <include name="${signed}/${jarsourcesfile}" />
+        <include name="${signed}/${jarjavadocfile}" />
         <include name="build.xml" />
         <include name="LICENSE" />
         <include name="CERT" />

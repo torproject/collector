@@ -2,6 +2,8 @@
 
  * Medium changes
    - Retain hidserv-* lines in sanitized extra-info descriptors.
+   - Sign .jar files again, and ensure they get signed in the build
+     process.
 
 
 # Changes in version 1.1.0 - 2016-10-28
