@@ -1,9 +1,15 @@
-# Changes in version ?.?.? - 201?-??-??
+# Changes in version 1.1.1 - 2016-11-24
 
  * Medium changes
+   - Handle corrupt internal file used for checking references between
+     descriptors by deleting and regenerating instead of escalating.
    - Retain hidserv-* lines in sanitized extra-info descriptors.
    - Sign .jar files again, and ensure they get signed in the build
      process.
+
+ * Minor changes
+   - Add instructions and sample configuration for using nginx as HTTP
+     server rather than Apache.
 
 
 # Changes in version 1.1.0 - 2016-10-28
