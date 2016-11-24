@@ -1,5 +1,5 @@
 <project default="compile" name="CollecTor" basedir=".">
-  <property name="release.version" value="1.1.1" />
+  <property name="release.version" value="1.1.2-dev" />
   <property name="name" value="CollecTor"/>
   <property name="descriptorversion" value="1.5.0" />
   <property name="source-and-target-java-version" value="1.7" />
