@@ -53,7 +53,8 @@ public class RelayDescriptorDownloader {
    * - "consensus-microdesc,&lt;validafter&gt;,&lt;parsed&gt;",
    * - "vote,&lt;validafter&gt;,&lt;fingerprint&gt;,&lt;parsed&gt;",
    * - "server,&lt;published&gt;,&lt;relayid&gt;,&lt;descid&gt;,&lt;parsed&gt;",
-   * - "extra,&lt;published&gt;,&lt;relayid&gt;,&lt;descid&gt;,&lt;parsed&gt;", or
+   * - "extra,&lt;published&gt;,&lt;relayid&gt;,&lt;descid&gt;,&lt;parsed&gt;",
+   *   or
    * - "micro,&lt;validafter&gt;,&lt;relayid&gt;,&lt;descid&gt;,&lt;parsed&gt;".
    * </p>
    */
@@ -69,9 +70,9 @@ public class RelayDescriptorDownloader {
 
   /**
    * Map from base64 microdescriptor digests to keys in missingDescriptors
-   * ("micro,&lt;validafter&gt;,&lt;relayid&gt;,&lt;descid&gt;"). We need this map, because
-   * we can't learn &lt;validafter&gt; or &lt;relayid&gt; from parsing
-   * microdescriptors, but we need to know &lt;validafter&gt; to store
+   * ("micro,&lt;validafter&gt;,&lt;relayid&gt;,&lt;descid&gt;"). We need this
+   * map, because we can't learn &lt;validafter&gt; or &lt;relayid&gt; from
+   * parsing microdescriptors, but we need to know &lt;validafter&gt; to store
    * microdescriptors to disk and both &lt;validafter&gt; and &lt;relayid&gt; to
    * remove microdescriptors from the missing list. There are potentially
    * many matching keys in missingDescriptors for the same microdescriptor
@@ -508,10 +509,9 @@ public class RelayDescriptorDownloader {
   }
 
   /**
-   * We have parsed a microdesc consensus. Take this microdesc consensus
-   * off the missing list and add the <code>microdescriptors</code> which
-   * are in the format "&lt;validafter&gt;,&lt;relayid&gt;,&lt;descid&gt;" to that
-   * list.
+   * We have parsed a microdesc consensus. Take this microdesc consensus off the
+   * missing list and add the <code>microdescriptors</code> which are in the
+   * format "&lt;validafter&gt;,&lt;relayid&gt;,&lt;descid&gt;" to that list.
    */
   public void haveParsedMicrodescConsensus(String validAfter,
       Set<String> microdescriptors) {

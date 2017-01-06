@@ -38,7 +38,7 @@ public class SyncPersistenceTest {
     return Arrays.asList(new Object[][] {
 
         {"exit-lists/2016-09-20-13-02-00", // expected recent path
-         new String[]{"exit-lists/2016/09/20/2016-09-20-13-02-00"}, // expected out path
+         new String[]{"exit-lists/2016/09/20/2016-09-20-13-02-00"}, // exp. out
          "2016-09-20-13-02-00", // test-filename in src/test/resources
          Integer.valueOf(1), // expected recent count of descs files
          Integer.valueOf(1)}, // expected output count of descs files
@@ -70,7 +70,8 @@ public class SyncPersistenceTest {
          Integer.valueOf(10)},
 
         {"relay-descriptors/consensuses/2016-09-20-13-00-00-consensus",
-         new String[]{"relay-descriptors/consensus/2016/09/20/2016-09-20-13-00-00-consensus"},
+         new String[]{"relay-descriptors/consensus/2016/09/20/"
+             + "2016-09-20-13-00-00-consensus"},
          "2016-09-20-13-00-00-consensus",
          Integer.valueOf(1),
          Integer.valueOf(1)},
@@ -86,7 +87,8 @@ public class SyncPersistenceTest {
         {"relay-descriptors/votes/2016-10-01-16-00-00-vote"
              + "-0232AF901C31A04EE9848595AF9BB7620D4C5B2E"
              + "-FEE63B4AB7CE5A6BDD09E9A5C4F01BD61EB7E4F1",
-         new String[]{"relay-descriptors/vote/2016/10/01/2016-10-01-16-00-00-vote"
+         new String[]{"relay-descriptors/vote/2016/10/01/"
+             + "2016-10-01-16-00-00-vote"
              + "-0232AF901C31A04EE9848595AF9BB7620D4C5B2E"
              + "-FEE63B4AB7CE5A6BDD09E9A5C4F01BD61EB7E4F1"},
          "2016-10-01-16-00-00-vote-0232AF901C31A04EE9848595AF9BB7620D4C5B2E-"
@@ -97,7 +99,8 @@ public class SyncPersistenceTest {
         {"relay-descriptors/votes/2016-09-20-13-00-00-vote-"
              + "49015F787433103580E3B66A1707A00E60F2D15B"
              + "-60ADC6BEC262AE921A1037D54C8A3976367DBE87",
-         new String[]{"relay-descriptors/vote/2016/09/20/2016-09-20-13-00-00-vote-"
+         new String[]{"relay-descriptors/vote/2016/09/20/"
+             + "2016-09-20-13-00-00-vote-"
              + "49015F787433103580E3B66A1707A00E60F2D15B"
              + "-60ADC6BEC262AE921A1037D54C8A3976367DBE87"},
          "2016-09-20-13-00-00-vote-49015F787433103580E3B66A1707A00E60F2D15B"
@@ -234,8 +237,8 @@ public class SyncPersistenceTest {
     makeTemporaryFolders();
     DescriptorParser dp = DescriptorSourceFactory.createDescriptorParser();
     SyncPersistence persist = new SyncPersistence(conf);
-    persist.storeDescs(dp.parseDescriptors(bytesFromResource(), filename), filename,
-        1475694377000L);
+    persist.storeDescs(dp.parseDescriptors(bytesFromResource(), filename),
+        filename, 1475694377000L);
     List<File> recentList = new ArrayList<>();
     List<File> outputList = new ArrayList<>();
     Files.walkFileTree(output.toPath(), new FileCollector(outputList));
@@ -268,7 +271,8 @@ public class SyncPersistenceTest {
     assertEquals(expContent.size(), content.size());
     int contentSize = content.size();
     for (String line : expContent) {
-      assertTrue("Couln't remove " + line + " from " + recentList.get(0), content.remove(line));
+      assertTrue("Couln't remove " + line + " from " + recentList.get(0),
+          content.remove(line));
       assertEquals(--contentSize, content.size());
     }
     assertTrue("Lines left over: " + content, content.isEmpty());

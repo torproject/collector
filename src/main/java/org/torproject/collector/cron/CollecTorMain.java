@@ -78,7 +78,8 @@ public abstract class CollecTorMain extends SyncManager
         logger.info("Finished sync-run of module {} of CollecTor.", module());
       }
     } catch (Throwable th) { // Catching all (cf. above).
-      logger.error("Sync-run of {} module failed: {}", module(), th.getMessage(), th);
+      logger.error("Sync-run of {} module failed: {}", module(),
+          th.getMessage(), th);
     }
   }
 
@@ -90,7 +91,8 @@ public abstract class CollecTorMain extends SyncManager
 
   private boolean isSyncOnly() throws ConfigurationException {
     String key = this.syncMarker() + SOURCES;
-    return this.isSync() && config.getSourceTypeSet(Key.valueOf(key)).size() == 1;
+    return this.isSync()
+        && config.getSourceTypeSet(Key.valueOf(key)).size() == 1;
   }
 
   /** Wrapper for <code>run</code>. */

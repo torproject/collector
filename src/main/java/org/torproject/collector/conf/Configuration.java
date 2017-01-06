@@ -256,7 +256,8 @@ public class Configuration extends Observable implements Cloneable {
    * Returns a {@code SourceType} as List, e.g.
    * {@code sourcetypeproperty = Remote, Sync}.
    */
-  public Set<SourceType> getSourceTypeSet(Key key) throws ConfigurationException {
+  public Set<SourceType> getSourceTypeSet(Key key)
+      throws ConfigurationException {
     Set<SourceType> res = null;
     try {
       checkClass(key, SourceType[].class);

@@ -671,7 +671,8 @@ public class ArchiveWriter extends CollecTorMain {
     dayDirectoryFileFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     File tarballFile = Paths.get(this.outputDirectory, MICRODESC,
         yearMonthDirectoryFormat.format(validAfter), CONSENSUS_MICRODESC,
-        dayDirectoryFileFormat.format(validAfter) + "-consensus-microdesc").toFile();
+        dayDirectoryFileFormat.format(validAfter)
+        + "-consensus-microdesc").toFile();
     boolean tarballFileExistedBefore = tarballFile.exists();
     File rsyncFile = Paths.get(recentPathName, RELAY_DESCRIPTORS, MICRODESCS,
         CONSENSUS_MICRODESC, tarballFile.getName()).toFile();

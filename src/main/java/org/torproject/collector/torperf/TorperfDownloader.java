@@ -65,8 +65,8 @@ public class TorperfDownloader extends CollecTorMain {
     this.torperfFilesLines = config.getStringArray(Key.TorperfFilesLines);
     this.torperfOutputDirectory
         = new File(config.getPath(Key.OutputPath).toString(), TORPERF);
-    this.torperfLastMergedFile = new File(config.getPath(Key.StatsPath).toFile(),
-       "torperf-last-merged");
+    this.torperfLastMergedFile =
+        new File(config.getPath(Key.StatsPath).toFile(), "torperf-last-merged");
     if (!this.torperfOutputDirectory.exists()) {
       this.torperfOutputDirectory.mkdirs();
     }

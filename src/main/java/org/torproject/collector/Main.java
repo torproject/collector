@@ -42,7 +42,8 @@ public class Main {
   /** All possible main classes.
    * If a new CollecTorMain class is available, just add it to this map.
    */
-  static final Map<Key, Class<? extends CollecTorMain>> collecTorMains = new HashMap<>();
+  static final Map<Key, Class<? extends CollecTorMain>> collecTorMains =
+      new HashMap<>();
 
   static { // add a new main class here
     collecTorMains.put(Key.BridgedescsActivated, SanitizedBridgesWriter.class);
@@ -91,8 +92,8 @@ public class Main {
 
   private static void writeDefaultConfig(Path confPath) {
     try {
-      Files.copy(Main.class.getClassLoader().getResource(CONF_FILE).openStream(),
-          confPath, StandardCopyOption.REPLACE_EXISTING);
+      Files.copy(Main.class.getClassLoader().getResource(CONF_FILE)
+          .openStream(), confPath, StandardCopyOption.REPLACE_EXISTING);
       printUsage("Could not find config file. In the default "
           + "configuration, we are not configured to read data from any "
           + "data source or write data to any data sink. You need to "
