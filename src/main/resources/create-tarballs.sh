@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016 The Tor Project
+# Copyright 2016--2017 The Tor Project
 # See LICENSE for licensing information.
 #
 # Script for creating descriptor tarballs on a CollecTor instance,
