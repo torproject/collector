@@ -156,9 +156,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     this.bridgeIpSecretsFile = new File(statsDirectory,
         "bridge-ip-secrets");
     if (this.bridgeIpSecretsFile.exists()) {
-      try {
-        BufferedReader br = new BufferedReader(new FileReader(
-            this.bridgeIpSecretsFile));
+      try (BufferedReader br = new BufferedReader(new FileReader(
+          this.bridgeIpSecretsFile))) {
         String line;
         while ((line = br.readLine()) != null) {
           String[] parts = line.split(",");
@@ -177,7 +176,6 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           byte[] secret = Hex.decodeHex(parts[1].toCharArray());
           this.secretsForHashingIpAddresses.put(month, secret);
         }
-        br.close();
         if (!this.persistenceProblemWithSecrets) {
           logger.debug("Read "
               + this.secretsForHashingIpAddresses.size() + " secrets for "
