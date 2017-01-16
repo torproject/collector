@@ -76,7 +76,7 @@ public class ExitListDownloader extends CollecTorMain {
     try {
       logger.debug("Downloading exit list...");
       StringBuilder sb = new StringBuilder();
-      sb.append(Annotation.Torperf.toString());
+      sb.append(Annotation.ExitList.toString());
       sb.append("Downloaded " + dateTimeFormat.format(downloadedDate)
           + "\n");
       URL url = config.getUrl(Key.ExitlistUrl);
