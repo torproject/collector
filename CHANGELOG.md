@@ -1,9 +1,11 @@
-# Changes in version x.x.x - 2017-xx-xx
+# Changes in version 1.1.2 - 2017-01-17
 
  * Medium changes
    - Unify the build process by adding git-submodule metrics-base in
      src/build and removing all centralized parts of the build
      process.
+   - Use the correct type annotation "@type tordnsel 1.0" for exit
+     lists, rather than "@type torperf 1.0".
 
 
 # Changes in version 1.1.1 - 2016-11-24
