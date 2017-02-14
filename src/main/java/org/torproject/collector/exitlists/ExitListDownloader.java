@@ -199,7 +199,7 @@ public class ExitListDownloader extends CollecTorMain {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
     Stack<File> allFiles = new Stack<File>();
-    allFiles.add(new File(recentPathName, EXITLISTS));
+    allFiles.add(new File(recentPathName));
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();
       if (file.isDirectory()) {

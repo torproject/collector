@@ -1,3 +1,9 @@
+# Changes in version 1.?.? - 2017-??-??
+
+ * Medium changes
+   - Clean up files in recent/exit-lists/ again.
+
+
 # Changes in version 1.1.2 - 2017-01-17
 
  * Medium changes
