@@ -1,56 +1,97 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="min-height:100%;">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>CollecTor</title>
+
+    <meta charset="utf-8">
+    <link href="images/favicon.ico" type="image/x-icon" rel="shortcut icon">
+
+    <!-- yes, we're handheld friendly :) -->
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <!-- icons for mobile devices -->
+    <link rel="apple-touch-icon" href="images/apple-touch-icon-152x152.png">
+    <link rel="shortcut icon" href="images/android-icon.png" sizes="196x196">
+    <meta name="msapplication-square70x70logo" content="images/smalltile.png">
+    <meta name="msapplication-square150x150logo" content="images/mediumtile.png">
+    <meta name="msapplication-wide310x150logo" content="images/widetile.png">
+    <meta name="msapplication-square310x310logo" content="images/largetile.png">
+
+    <!-- jQuery -->
+    <script src="js/jquery-3.1.1.min.js"></script>
+
+    <!-- Bootstrap -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link href="images/favicon.ico" type="image/x-icon" rel="icon">
-    <style type="text/css">
-      .row {
-        margin-bottom: 0;
-      }
-      .page-header {
-        border-bottom: 0 solid #fff;
-        margin-bottom: 10px;
-      }
-      .footer .row {
-        margin-top: 50px;
-        margin-bottom: 10px;
-      }
-      h1 {
-        margin-top: 50px;
-        margin-bottom: 25px;
-        font-size: 36px;
-      }
-      h2 {
-        margin-top: 30px;
-        margin-bottom: 15px;
-        font-size: 24px;
-      }
-      h3 {
-        margin-top: 24px;
-        margin-bottom: 10px;
-        font-size: 18px;
-      }
-      .hover a.hover{
-        visibility: hidden;
-      }
-      .hover:hover a.hover {
-        visibility: visible;
-        text-decoration: none;
-      }
-    </style>
+    <script src="js/bootstrap.min.js"></script>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="fonts/source-sans-pro.css">
+
+    <!-- custom styles and javascript -->
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/script.js"></script>
+
   </head>
-  <body>
+
+<body class="noscript" style="background-image:url(images/ajax-loader.gif);background-repeat:no-repeat;background-position:center center;">
+
+<!-- Using evil inline stylesheets to hide the FOUC for slow connections... -->
+
+<div id="wrapper" style="display:none;">
+
+
+<!-- backToTop-Button and Anchor -->
+<noscript>
+<div class="topButton" style="display:block;"><a href="#top"><i class="fa fa-chevron-up" aria-hidden="true"></i></a></div>
+</noscript>
+<script type="text/javascript">
+document.write('<div class="topButton" style="display:none;"><a href="#top"><i class="fa fa-chevron-up" aria-hidden="true"></i></a></div>');
+</script>
+<a id="top"></a>
+
+
+
+<!-- secondary navigation -->
+<nav class="navbar navbar-default navbar-secondary">
+<div class="container-fluid">
+    <input type="checkbox" id="navbar-toggle-checkbox">
+    <div class="navbar-header">
+      <a class="navbar-brand visible-xs" href="/"><img src="images/collector-wordmark-white.png" width="264" height="50" alt="CollecTor"></a>
+    </div>
+
+  </div>
+</nav>
+<!-- /secondary navigation -->
+
+
+
+<!-- page header for every single page -->
+<div class="page-header hidden-xs">
+  <a href="/"><img src="images/collector-logo.png" width="143" height="117" alt="" id="collector-logo"></a>
+  <a href="/"><img src="images/collector-wordmark-white.png" width="264" height="50" alt="CollecTor" id="collector-wordmark"></a>
+  <div>
+    <p>
+      <i>Your friendly data-collecting<br>
+      service in the Tor network.</i>
+    </p>
+  </div>
+  <div class="clearfix"></div>
+</div>
+<!-- /page header -->
+
     <div class="container">
       <div class="row">
         <div class="col-xs-12">
-          <div class="page-header">
+
+          <br><br>
+
             <div class="jumbotron">
               <div class="text-center">
-                  <a href="index.html"><img src="images/collector-logo.png" width="292" height="254" alt="CollecTor logo"><img src="images/collector-wordmark.png" width="264" height="50" alt="CollecTor wordmark"></a>
+
                 <h2>
                   Welcome to CollecTor, your friendly data-collecting service in the Tor network
                 </h2>
@@ -61,32 +102,21 @@
               network, or if you're developing an application that uses
               Tor network data, this is your place to start.
               </p>
-<a class="btn btn-primary btn-lg" style="margin: 10px" href="recent/">Browse Recent Descriptors</a>
-<a class="btn btn-primary btn-lg" style="margin: 10px" href="archive/">Browse Archived Descriptors</a>
+<a class="btn btn-primary btn-lg" style="margin: 10px" href="recent/"><i class="fa fa-chevron-right" aria-hidden="true"></i> Browse Recent Descriptors</a>
+<a class="btn btn-primary btn-lg" style="margin: 10px" href="archive/"><i class="fa fa-chevron-right" aria-hidden="true"></i> Browse Archived Descriptors</a>
               </div><!-- text-center -->
 
 
             </div><!-- jumbotron -->
-          </div><!-- page-header -->
+
         </div><!-- col -->
       </div><!-- row -->
 
       <div class="row">
         <div class="col-xs-12">
-<a href="#available-descriptors">Available Descriptors</a> &#124;
-<a href="#data-formats">Data Formats</a> &#124;
-<a href="#automated-downloads">Automated Downloads</a> &#124;
-<a href="#libraries">Parsing Libraries</a> &#124;
-<a href="#related-work">Related Work</a> &#124;
-<a href="#support">Support</a>
-        </div><!-- col -->
-      </div><!-- row -->
-
-      <div class="row">
-        <div class="col-xs-12">
+        <br>
           <h1 id="available-descriptors" class="hover">Available Descriptors
-<a href="#available-descriptors" class="hover">#</a></h1>
-
+<a href="#available-descriptors" class="anchor">#</a></h1>
 
 <p>Descriptors are available in two different file formats: recent descriptors that were published in the last 72 hours are available as plain text, and archived descriptors covering over 10 years of Tor network history are available as compressed tarballs.</p>
 
@@ -95,150 +125,149 @@
 <tr>
 <th>Descriptor Type</th>
 <th>Type Annotation</th>
-<th>Recent Descriptors</th>
-<th>Archived Descriptors</th>
-<th>Data Format</th>
+<th class="thDescriptors">Descriptors</th>
 </tr>
 </thead>
 <tbody>
-<tr>
-  <td>Relay Server Descriptors</td>
-  <td><tt>@type server-descriptor 1.0</tt></td>
-  <td><a href="recent/relay-descriptors/server-descriptors/" class="btn btn-primary btn-xs">recent</a></td>
-  <td><a href="archive/relay-descriptors/server-descriptors/" class="btn btn-primary btn-xs">archive</a></td>
-  <td><a href="#type-server-descriptor" class="btn btn-default btn-xs">format</a></td>
+<tr class="tableHeadline">
+  <td colspan="3"><b><a href="#relay-descriptors">Tor Relay Descriptors</a></b></td>
 </tr>
 <tr>
-  <td>Relay Extra-info Descriptors</td>
-  <td><tt>@type extra-info 1.0</tt></td>
-  <td><a href="recent/relay-descriptors/extra-infos/" class="btn btn-primary btn-xs">recent</a></td>
-  <td><a href="archive/relay-descriptors/extra-infos/" class="btn btn-primary btn-xs">archive</a></td>
-  <td><a href="#type-extra-info" class="btn btn-default btn-xs">format</a></td>
+  <td><a href="#type-server-descriptor">Relay Server Descriptors</a></td>
+  <td><code>@type server-descriptor 1.0</code></td>
+  <td><a href="recent/relay-descriptors/server-descriptors/" class="btn btn-primary btn-xs pull-left"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+      <a href="archive/relay-descriptors/server-descriptors/" class="btn btn-primary btn-xs pull-right"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a></td>
 </tr>
 <tr>
-  <td>Network Status Consensuses</td>
-  <td><tt>@type network-status-consensus-3 1.0</tt></td>
-  <td><a href="recent/relay-descriptors/consensuses/" class="btn btn-primary btn-xs">recent</a></td>
-  <td><a href="archive/relay-descriptors/consensuses/" class="btn btn-primary btn-xs">archive</a></td>
-  <td><a href="#type-network-status-consensus-3" class="btn btn-default btn-xs">format</a></td>
+  <td><a href="#type-extra-info">Relay Extra-info Descriptors</a></td>
+  <td><code>@type extra-info 1.0</code></td>
+  <td><a href="recent/relay-descriptors/extra-infos/" class="btn btn-primary btn-xs pull-left"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+      <a href="archive/relay-descriptors/extra-infos/" class="btn btn-primary btn-xs pull-right"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a></td>
 </tr>
 <tr>
-  <td>Network Status Votes</td>
-  <td><tt>@type network-status-vote-3 1.0</tt></td>
-  <td><a href="recent/relay-descriptors/votes/" class="btn btn-primary btn-xs">recent</a></td>
-  <td><a href="archive/relay-descriptors/votes/" class="btn btn-primary btn-xs">archive</a></td>
-  <td><a href="#type-network-status-vote-3" class="btn btn-default btn-xs">format</a></td>
+  <td><a href="#type-network-status-consensus-3">Network Status Consensuses</a></td>
+  <td><code>@type network-status-consensus-3 1.0</code></td>
+  <td><a href="recent/relay-descriptors/consensuses/" class="btn btn-primary btn-xs pull-left"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+      <a href="archive/relay-descriptors/consensuses/" class="btn btn-primary btn-xs pull-right"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a></td>
 </tr>
 <tr>
-  <td>Directory Key Certificates</td>
-  <td><tt>@type dir-key-certificate-3 1.0</tt></td>
+  <td><a href="#type-network-status-vote-3">Network Status Votes</a></td>
+  <td><code>@type network-status-vote-3 1.0</code></td>
+  <td><a href="recent/relay-descriptors/votes/" class="btn btn-primary btn-xs pull-left"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+      <a href="archive/relay-descriptors/votes/" class="btn btn-primary btn-xs pull-right"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a></td>
+</tr>
+<tr>
+  <td><a href="#type-dir-key-certificate-3">Directory Key Certificates</a></td>
+  <td><code>@type dir-key-certificate-3 1.0</code></td>
+  <td><a href="archive/relay-descriptors/" class="btn btn-primary btn-xs pull-right"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a></td>
+</tr>
+<tr>
+  <td><a href="#type-network-status-microdesc-consensus-3">Microdescriptor Consensuses</a></td>
+  <td><code>@type network-status-microdesc-consensus-3 1.0</code></td>
+  <td><a href="recent/relay-descriptors/microdescs/consensus-microdesc/" class="btn btn-primary btn-xs pull-left"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+      <a href="archive/relay-descriptors/microdescs/" class="btn btn-primary btn-xs pull-right"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a></td>
+</tr>
+<tr>
+  <td><a href="#type-microdescriptor">Microdescriptors</a></td>
+  <td><code>@type microdescriptor 1.0</code></td>
+  <td><a href="recent/relay-descriptors/microdescs/micro/" class="btn btn-primary btn-xs pull-left"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+      <a href="archive/relay-descriptors/microdescs/" class="btn btn-primary btn-xs pull-right"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a></td>
+</tr>
+<tr>
+  <td><a href="#type-network-status-2">Version 2 Network Statuses</a></td>
+  <td><code>@type network-status-2 1.0</code></td>
+  <td><a href="archive/relay-descriptors/statuses/" class="btn btn-primary btn-xs pull-right"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a></td>
+</tr>
+<tr>
+  <td><a href="#type-directory">Version 1 Directories</a></td>
+  <td><code>@type directory 1.0</code></td>
+  <td><a href="archive/relay-descriptors/tor/" class="btn btn-primary btn-xs pull-right"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a></td>
+</tr>
+<tr class="tableHeadline">
+  <td colspan="3"><b><a href="#bridge-descriptors">Tor Bridge Descriptors</a></b></td>
+</tr>
+<tr>
+  <td><a href="#type-bridge-network-status">Bridge Network Statuses</a></td>
+  <td><code>@type bridge-network-status 1.1</code></td>
+  <td><a href="recent/bridge-descriptors/statuses/" class="btn btn-primary btn-xs pull-left"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+      <a href="archive/bridge-descriptors/statuses/" class="btn btn-primary btn-xs pull-right"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a></td>
+</tr>
+<tr>
+  <td><a href="#type-bridge-server-descriptor">Bridge Server Descriptors</a></td>
+  <td><code>@type bridge-server-descriptor 1.2</code></td>
+  <td><a href="recent/bridge-descriptors/server-descriptors/" class="btn btn-primary btn-xs pull-left"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+      <a href="archive/bridge-descriptors/server-descriptors/" class="btn btn-primary btn-xs pull-right"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a></td>
+</tr>
+<tr>
+  <td><a href="#type-bridge-extra-info">Bridge Extra-info Descriptors</a></td>
+  <td><code>@type bridge-extra-info 1.3</code></td>
+  <td><a href="recent/bridge-descriptors/extra-infos/" class="btn btn-primary btn-xs pull-left"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+      <a href="archive/bridge-descriptors/extra-infos/" class="btn btn-primary btn-xs pull-right"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a></td>
+</tr>
+<tr class="tableHeadline">
+  <td colspan="3"><b><a href="#tor-hidden-service-descriptors">Tor Hidden Service Descriptors</a></b></td>
+</tr>
+<tr>
+  <td><a href="#type-hidden-service-descriptor">Hidden Service Descriptors</a></td>
+  <td><code>@type hidden-service-descriptor 1.0</code></td>
   <td></td>
-  <td><a href="archive/relay-descriptors/" class="btn btn-primary btn-xs">archive</a></td>
-  <td><a href="#type-dir-key-certificate-3" class="btn btn-default btn-xs">format</a></td>
+</tr>
+<tr class="tableHeadline">
+  <td colspan="3"><b><a href="#bridge-pool-assignments">BridgeDB's Bridge Pool Assignments</a></b></td>
 </tr>
 <tr>
-  <td>Microdescriptor Consensuses</td>
-  <td><tt>@type network-status-microdesc-consensus-3 1.0</tt></td>
-  <td><a href="recent/relay-descriptors/microdescs/consensus-microdesc/" class="btn btn-primary btn-xs">recent</a></td>
-  <td><a href="archive/relay-descriptors/microdescs/" class="btn btn-primary btn-xs">archive</a></td>
-  <td><a href="#type-network-status-microdesc-consensus-3" class="btn btn-default btn-xs">format</a></td>
+  <td><a href="#type-bridge-pool-assignment">Bridge Pool Assignments</a></td>
+  <td><code>@type bridge-pool-assignment 1.0</code></td>
+  <td><a href="archive/bridge-pool-assignments/" class="btn btn-primary btn-xs pull-right"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a></td>
+</tr>
+<tr class="tableHeadline">
+  <td colspan="3"><b><a href="#exit-lists">TorDNSEL's Exit Lists</a></b></td>
 </tr>
 <tr>
-  <td>Microdescriptors</td>
-  <td><tt>@type microdescriptor 1.0</tt></td>
-  <td><a href="recent/relay-descriptors/microdescs/micro/" class="btn btn-primary btn-xs">recent</a></td>
-  <td><a href="archive/relay-descriptors/microdescs/" class="btn btn-primary btn-xs">archive</a></td>
-  <td><a href="#type-microdescriptor" class="btn btn-default btn-xs">format</a></td>
+  <td><a href="#type-tordnsel">Exit Lists</a></td>
+  <td><code>@type tordnsel 1.0</code></td>
+  <td><a href="recent/exit-lists/" class="btn btn-primary btn-xs pull-left"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+      <a href="archive/exit-lists/" class="btn btn-primary btn-xs pull-right"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a></td>
+</tr>
+<tr class="tableHeadline">
+  <td colspan="3"><b><a href="#torperf">Torperf's Performance Data</a></b></td>
 </tr>
 <tr>
-  <td>Version 2 Network Statuses</td>
-  <td><tt>@type network-status-2 1.0</tt></td>
-  <td></td>
-  <td><a href="archive/relay-descriptors/statuses/" class="btn btn-primary btn-xs">archive</a></td>
-  <td><a href="#type-network-status-2" class="btn btn-default btn-xs">format</a></td>
-</tr>
-<tr>
-  <td>Version 1 Directories</td>
-  <td><tt>@type directory 1.0</tt></td>
-  <td></td>
-  <td><a href="archive/relay-descriptors/tor/" class="btn btn-primary btn-xs">archive</a></td>
-  <td><a href="#type-directory" class="btn btn-default btn-xs">format</a></td>
-</tr>
-<tr>
-  <td>Bridge Network Statuses</td>
-  <td><tt>@type bridge-network-status 1.1</tt></td>
-  <td><a href="recent/bridge-descriptors/statuses/" class="btn btn-primary btn-xs">recent</a></td>
-  <td><a href="archive/bridge-descriptors/statuses/" class="btn btn-primary btn-xs">archive</a></td>
-  <td><a href="#type-bridge-network-status" class="btn btn-default btn-xs">format</a></td>
-</tr>
-<tr>
-  <td>Bridge Server Descriptors</td>
-  <td><tt>@type bridge-server-descriptor 1.2</tt></td>
-  <td><a href="recent/bridge-descriptors/server-descriptors/" class="btn btn-primary btn-xs">recent</a></td>
-  <td><a href="archive/bridge-descriptors/server-descriptors/" class="btn btn-primary btn-xs">archive</a></td>
-  <td><a href="#type-bridge-server-descriptor" class="btn btn-default btn-xs">format</a></td>
-</tr>
-<tr>
-  <td>Bridge Extra-info Descriptors</td>
-  <td><tt>@type bridge-extra-info 1.3</tt></td>
-  <td><a href="recent/bridge-descriptors/extra-infos/" class="btn btn-primary btn-xs">recent</a></td>
-  <td><a href="archive/bridge-descriptors/extra-infos/" class="btn btn-primary btn-xs">archive</a></td>
-  <td><a href="#type-bridge-extra-info" class="btn btn-default btn-xs">format</a></td>
-</tr>
-<tr>
-  <td>Hidden Service Descriptors</td>
-  <td><tt>@type hidden-service-descriptor 1.0</tt></td>
-  <td></td>
-  <td></td>
-  <td><a href="#type-hidden-service-descriptor" class="btn btn-default btn-xs">format</a></td>
-</tr>
-<tr>
-  <td>Bridge Pool Assignments</td>
-  <td><tt>@type bridge-pool-assignment 1.0</tt></td>
-  <td></td>
-  <td><a href="archive/bridge-pool-assignments/" class="btn btn-primary btn-xs">archive</a></td>
-  <td><a href="#type-bridge-pool-assignment" class="btn btn-default btn-xs">format</a></td>
-</tr>
-<tr>
-  <td>Exit Lists</td>
-  <td><tt>@type tordnsel 1.0</tt></td>
-  <td><a href="recent/exit-lists/" class="btn btn-primary btn-xs">recent</a></td>
-  <td><a href="archive/exit-lists/" class="btn btn-primary btn-xs">archive</a></td>
-  <td><a href="#type-tordnsel" class="btn btn-default btn-xs">format</a></td>
-</tr>
-<tr>
-  <td>Torperf Measurement Results</td>
-  <td><tt>@type torperf 1.0</tt></td>
-  <td><a href="recent/torperf/" class="btn btn-primary btn-xs">recent</a></td>
-  <td><a href="archive/torperf/" class="btn btn-primary btn-xs">archive</a></td>
-  <td><a href="#type-torperf" class="btn btn-default btn-xs">format</a></td>
+  <td><a href="#type-torperf">Torperf Measurement Results</a></td>
+  <td><code>@type torperf 1.0</code></td>
+  <td><a href="recent/torperf/" class="btn btn-primary btn-xs pull-left"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+      <a href="archive/torperf/" class="btn btn-primary btn-xs pull-right"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a></td>
 </tr>
 </tbody>
 </table>
 
         </div><!-- col -->
       </div><!-- row -->
+<br>
 
 
 
 
-      <div class="row">
-        <div class="col-xs-12">
-          <h1 id="data-formats" class="hover">Data Formats
-<a href="#data-formats" class="hover">#</a></h1>
+        <br>
+          <h1 id="data-formats" class="hover">Data Formats <a href="#data-formats" class="anchor">#</a></h1>
 
 <p>
-Each descriptor provided here contains an <tt>@type</tt> annotation using
-the format <tt>@type $descriptortype $major.$minor</tt>.
+Each descriptor provided here contains an <code>@type</code> annotation using
+the format <code>@type $descriptortype $major.$minor</code>.
 Any tool that processes these descriptors may parse files without meta
 data or with an unknown descriptor type at its own risk, can safely parse
 files with known descriptor type and same major version number, and should
 not parse files with known descriptor type and higher major version
 number.
 </p>
+</div>
 
+
+  <div class="container">
+
+<br>
 <h2 id="relay-descriptors" class="hover">Tor Relay Descriptors
-<a href="#relay-descriptors" class="hover">#</a>
+<a href="#relay-descriptors" class="anchor">#</a>
 </h2>
 
 <p>
@@ -253,10 +282,10 @@ earlier protocol
 </p>
 
 <h3 id="type-server-descriptor" class="hover">Relay Server Descriptors
-<small><tt>@type server-descriptor 1.0</tt></small>
-<a href="recent/relay-descriptors/server-descriptors/" class="btn btn-primary btn-xs">recent</a>
-<a href="archive/relay-descriptors/server-descriptors/" class="btn btn-primary btn-xs">archive</a>
-<a href="#type-server-descriptor" class="hover">#</a>
+<small><code>@type server-descriptor 1.0</code></small>
+<a href="recent/relay-descriptors/server-descriptors/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+<a href="archive/relay-descriptors/server-descriptors/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a>
+<a href="#type-server-descriptor" class="anchor">#</a>
 </h3>
 
 <p>
@@ -271,10 +300,10 @@ file.
 </p>
 
 <h3 id="type-extra-info" class="hover">Relay Extra-info Descriptors
-<small><tt>@type extra-info 1.0</tt></small>
-<a href="recent/relay-descriptors/extra-infos/" class="btn btn-primary btn-xs">recent</a>
-<a href="archive/relay-descriptors/extra-infos/" class="btn btn-primary btn-xs">archive</a>
-<a href="#type-extra-info" class="hover">#</a>
+<small><code>@type extra-info 1.0</code></small>
+<a href="recent/relay-descriptors/extra-infos/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+<a href="archive/relay-descriptors/extra-infos/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a>
+<a href="#type-extra-info" class="anchor">#</a>
 </h3>
 
 <p>
@@ -289,10 +318,10 @@ file.
 </p>
 
 <h3 id="type-network-status-consensus-3" class="hover">Network Status Consensuses
-<small><tt>@type network-status-consensus-3 1.0</tt></small>
-<a href="recent/relay-descriptors/consensuses/" class="btn btn-primary btn-xs">recent</a>
-<a href="archive/relay-descriptors/consensuses/" class="btn btn-primary btn-xs">archive</a>
-<a href="#type-network-status-consensus-3" class="hover">#</a>
+<small><code>@type network-status-consensus-3 1.0</code></small>
+<a href="recent/relay-descriptors/consensuses/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+<a href="archive/relay-descriptors/consensuses/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a>
+<a href="#type-network-status-consensus-3" class="anchor">#</a>
 </h3>
 
 <p>
@@ -305,10 +334,10 @@ flags, heuristics used for relay selection, etc.
 </p>
 
 <h3 id="type-network-status-vote-3" class="hover">Network Status Votes
-<small><tt>@type network-status-vote-3 1.0</tt></small>
-<a href="recent/relay-descriptors/votes/" class="btn btn-primary btn-xs">recent</a>
-<a href="archive/relay-descriptors/votes/" class="btn btn-primary btn-xs">archive</a>
-<a href="#type-network-status-vote-3" class="hover">#</a>
+<small><code>@type network-status-vote-3 1.0</code></small>
+<a href="recent/relay-descriptors/votes/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+<a href="archive/relay-descriptors/votes/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a>
+<a href="#type-network-status-vote-3" class="anchor">#</a>
 </h3>
 
 <p>
@@ -318,9 +347,9 @@ Vote documents are by far the largest documents provided here.
 </p>
 
 <h3 id="type-dir-key-certificate-3" class="hover">Directory Key Certificates
-<small><tt>@type dir-key-certificate-3 1.0</tt></small>
-<a href="archive/relay-descriptors/" class="btn btn-primary btn-xs">archive</a>
-<a href="#type-dir-key-certificate-3" class="hover">#</a>
+<small><code>@type dir-key-certificate-3 1.0</code></small>
+<a href="archive/relay-descriptors/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a>
+<a href="#type-dir-key-certificate-3" class="anchor">#</a>
 </h3>
 
 <p>
@@ -331,10 +360,10 @@ available in a single descriptor archive tarball.
 </p>
 
 <h3 id="type-network-status-microdesc-consensus-3" class="hover">Microdescriptor Consensuses
-<small><tt>@type network-status-microdesc-consensus-3 1.0</tt></small>
-<a href="recent/relay-descriptors/microdescs/" class="btn btn-primary btn-xs">recent</a>
-<a href="archive/relay-descriptors/microdescs/" class="btn btn-primary btn-xs">archive</a>
-<a href="#type-network-status-microdesc-consensus-3" class="hover">#</a>
+<small><code>@type network-status-microdesc-consensus-3 1.0</code></small>
+<a href="recent/relay-descriptors/microdescs/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+<a href="archive/relay-descriptors/microdescs/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a>
+<a href="#type-network-status-microdesc-consensus-3" class="anchor">#</a>
 </h3>
 
 <p>
@@ -349,10 +378,10 @@ together.
 </p>
 
 <h3 id="type-microdescriptor" class="hover">Microdescriptors
-<small><tt>@type microdescriptor 1.0</tt></small>
-<a href="recent/relay-descriptors/microdescs/" class="btn btn-primary btn-xs">recent</a>
-<a href="archive/relay-descriptors/microdescs/" class="btn btn-primary btn-xs">archive</a>
-<a href="#type-microdescriptor" class="hover">#</a>
+<small><code>@type microdescriptor 1.0</code></small>
+<a href="recent/relay-descriptors/microdescs/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+<a href="archive/relay-descriptors/microdescs/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a>
+<a href="#type-microdescriptor" class="anchor">#</a>
 </h3>
 
 <p>
@@ -368,9 +397,9 @@ file.
 </p>
 
 <h3 id="type-network-status-2" class="hover">Version 2 Network Statuses
-<small><tt>@type network-status-2 1.0</tt></small>
-<a href="archive/relay-descriptors/statuses/" class="btn btn-primary btn-xs">archive</a>
-<a href="#type-network-status-2" class="hover">#</a>
+<small><code>@type network-status-2 1.0</code></small>
+<a href="archive/relay-descriptors/statuses/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a>
+<a href="#type-network-status-2" class="anchor">#</a>
 </h3>
 
 <p>
@@ -383,9 +412,9 @@ We stopped archiving version 2 network statuses in 2012.
 </p>
 
 <h3 id="type-directory" class="hover">Version 1 Directories
-<small><tt>@type directory 1.0</tt></small>
-<a href="archive/relay-descriptors/tor/" class="btn btn-primary btn-xs">archive</a>
-<a href="#type-directory" class="hover">#</a>
+<small><code>@type directory 1.0</code></small>
+<a href="archive/relay-descriptors/tor/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a>
+<a href="#type-directory" class="anchor">#</a>
 </h3>
 
 <p>
@@ -394,8 +423,9 @@ with server descriptors in a single directory document.
 We stopped archiving version 1 directories in 2007.
 </p>
 
+<br>
 <h2 id="bridge-descriptors" class="hover">Tor Bridge Descriptors
-<a href="#bridge-descriptors" class="hover">#</a>
+<a href="#bridge-descriptors" class="anchor">#</a>
 </h2>
 
 <p>
@@ -430,39 +460,39 @@ involve keeping a state over months/years), so that most cryptographic
 keys and signatures have simply been removed.</li>
 <li><b>Replace IP address with IP address hash:</b> Of course, IP
 addresses need to be sanitized, too.
-<ul><li>IPv4 addresses are replaced with <tt>10.x.x.x</tt> with
-<tt>x.x.x</tt> being the 3 byte output of
-<tt>H(IP address | bridge identity | secret)[:3]</tt>.
-The input <tt>IP address</tt> is the 4-byte long binary representation of
+<ul><li>IPv4 addresses are replaced with <code>10.x.x.x</code> with
+<code>x.x.x</code> being the 3 byte output of
+<code>H(IP address | bridge identity | secret)[:3]</code>.
+The input <code>IP address</code> is the 4-byte long binary representation of
 the bridge's current IP address.
-The <tt>bridge identity</tt> is the 20-byte long binary representation of
+The <code>bridge identity</code> is the 20-byte long binary representation of
 the bridge's long-term identity fingerprint.
-The <tt>secret</tt> is a 31-byte long secure random string that changes
+The <code>secret</code> is a 31-byte long secure random string that changes
 once per month for all descriptors and statuses published in that month.
-<tt>H()</tt> is SHA-256.
-The <tt>[:3]</tt> operator means that we pick the 3 most significant bytes
+<code>H()</code> is SHA-256.
+The <code>[:3]</code> operator means that we pick the 3 most significant bytes
 of the result.</li>
-<li>IPv6 addresses are replaced with <tt>[fd9f:2e19:3bcf::xx:xxxx]</tt>
-with <tt>xx:xxxx</tt> being the hex-formatted 3 byte output of a similar
+<li>IPv6 addresses are replaced with <code>[fd9f:2e19:3bcf::xx:xxxx]</code>
+with <code>xx:xxxx</code> being the hex-formatted 3 byte output of a similar
 hash function as described for IPv4 addresses.
-The only differences are that the input <tt>IP address</tt> is 16 bytes
-long and the <tt>secret</tt> is only 19 bytes long.</li></ul>
+The only differences are that the input <code>IP address</code> is 16 bytes
+long and the <code>secret</code> is only 19 bytes long.</li></ul></li>
 <li><b>Replace TCP port with TCP port hash:</b> It may be less obvious
 that TCP ports need to be sanitized, but an unusual TCP port used by a
 high-value bridge might still stand out and provide yet another way to
 locate and block the bridge.
 Therefore, each non-zero TCP port is replaced with a number in the range
 from 49152 to 65535 that is the result of
-<tt>H(port | bridge identity | secret)[:2] / 2^2 + 2^15 + 2^14</tt>
+<code>H(port | bridge identity | secret)[:2] / 2^2 + 2^15 + 2^14</code>
 written as decimal number.
-The input <tt>port</tt> is the 2-byte long binary representation of the
+The input <code>port</code> is the 2-byte long binary representation of the
 TCP port.
-The <tt>bridge identity</tt> is the 20-byte long binary representation of
+The <code>bridge identity</code> is the 20-byte long binary representation of
 the bridge's long-term identity fingerprint.
-The <tt>secret</tt> is a 33-byte long secure random string that changes
+The <code>secret</code> is a 33-byte long secure random string that changes
 once per month for all descriptors and statuses published in that month.
-<tt>H()</tt> is SHA-256.
-The <tt>[:2]</tt> operator means that we pick the 2 most significant bytes
+<code>H()</code> is SHA-256.
+The <code>[:2]</code> operator means that we pick the 2 most significant bytes
 of the result.
 The subsequent integer division and additions make sure that sanitized
 ports are in the range from 49152 to 65535 which is reserved for private
@@ -471,7 +501,7 @@ All operations assume inputs to be in network byte order.
 TCP ports that are 0 in the original descriptor are left unchanged.</li>
 <li><b>Replace contact information:</b> If there is contact information in
 a descriptor, the contact line is changed to
-<tt>somebody</tt>.</li>
+<code>somebody</code>.</li>
 <li><b>Remove pluggable transport addresses and arguments:</b> Bridges may
 provide transports in addition to the onion-routing protocol and include
 information about these transports in their extra-info descriptors for
@@ -482,40 +512,39 @@ removed, only leaving in the supported transport names.</li>
 their digest, but that is not possible anymore once their content has
 changed.
 As a workaround, sanitized descriptors contain a new line
-<tt>router-digest</tt> with the hex representation of the SHA-1 of the
+<code>router-digest</code> with the hex representation of the SHA-1 of the
 original descriptor digest excluding RSA signature and&mdash;if the bridge
-uses an Ed25519 identity&mdash;a new line <tt>router-digest-sha256</tt>
+uses an Ed25519 identity&mdash;a new line <code>router-digest-sha256</code>
 with the base64-encoded SHA-256 of the SHA-256 digest of the original
 descriptor including all signatures.</li>
 </ol>
 
 <h3 id="type-bridge-network-status" class="hover">Bridge Network Statuses
-<small><tt>@type bridge-network-status 1.1</tt></small>
-<a href="recent/bridge-descriptors/statuses/" class="btn btn-primary btn-xs">recent</a>
-<a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs">archive</a>
-<a href="#type-bridge-network-status" class="hover">#</a>
+<small><code>@type bridge-network-status 1.1</code></small>
+<a href="recent/bridge-descriptors/statuses/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+<a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a>
+<a href="#type-bridge-network-status" class="anchor">#</a>
 </h3>
 
 <p>
 Sanitized bridge network statuses are similar to version 2 relay network
-statuses, but with only a <tt>published</tt> line in the header and
+statuses, but with only a <code>published</code> line in the header and
 without any lines in the footer.
 The format has changed over time to accomodate changes to the sanitizing
 process, with earlier versions being:
 </p>
 
 <ul>
-<li><font color="#666"><tt>@type bridge-network-status 1.0</tt> was the
-first version.</font></li>
-<li><tt>@type bridge-network-status 1.1</tt> introduced sanitized TCP
+<li><code>@type bridge-network-status 1.0</code> was the first version.</li>
+<li><code>@type bridge-network-status 1.1</code> introduced sanitized TCP
 ports.</li>
 </ul>
 
 <h3 id="type-bridge-server-descriptor" class="hover">Bridge Server descriptors
-<small><tt>@type bridge-server-descriptor 1.2</tt></small>
-<a href="recent/bridge-descriptors/server-descriptors/" class="btn btn-primary btn-xs">recent</a>
-<a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs">archive</a>
-<a href="#type-bridge-server-descriptor" class="hover">#</a>
+<small><code>@type bridge-server-descriptor 1.2</code></small>
+<a href="recent/bridge-descriptors/server-descriptors/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+<a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a>
+<a href="#type-bridge-server-descriptor" class="anchor">#</a>
 </h3>
 
 <p>
@@ -530,27 +559,26 @@ process, with earlier versions being:
 </p>
 
 <ul>
-<li><font color="#666"><tt>@type bridge-server-descriptor 1.0</tt> was the
-first version.</font></li>
-<li><font color="#666">There was supposed to be a newer version indicating
-added <tt>ntor-onion-key</tt> lines, but due to a mistake only the version
-number of sanitized bridge extra-info descriptors was raised.
+<li><code>@type bridge-server-descriptor 1.0</code> was the first version.</li>
+<li>There was supposed to be a newer version indicating added
+<code>ntor-onion-key</code> lines, but due to a mistake only the version number
+of sanitized bridge extra-info descriptors was raised.
 As a result, there may be sanitized bridge server descriptors with version
-<tt>@type bridge-server-descriptor 1.0</tt> with and without those
-lines.</font></li>
-<li><font color="#666"><tt>@type bridge-server-descriptor 1.1</tt> added
-<tt>master-key-ed25519</tt> lines and <tt>router-digest-sha256</tt> to
+<code>@type bridge-server-descriptor 1.0</code> with and without those
+lines.</li>
+<li><code>@type bridge-server-descriptor 1.1</code> added
+<code>master-key-ed25519</code> lines and <code>router-digest-sha256</code> to
 server descriptors published by bridges using an Ed25519 master
-key.</font></li>
-<li><tt>@type bridge-server-descriptor 1.2</tt> introduced sanitized TCP
+key.</li>
+<li><code>@type bridge-server-descriptor 1.2</code> introduced sanitized TCP
 ports.</li>
 </ul>
 
 <h3 id="type-bridge-extra-info" class="hover">Bridge Extra-info Descriptors
-<small><tt>@type bridge-extra-info 1.3</tt></small>
-<a href="recent/bridge-descriptors/extra-infos/" class="btn btn-primary btn-xs">recent</a>
-<a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs">archive</a>
-<a href="#type-bridge-extra-info" class="hover">#</a>
+<small><code>@type bridge-extra-info 1.3</code></small>
+<a href="recent/bridge-descriptors/extra-infos/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+<a href="archive/bridge-descriptors/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a>
+<a href="#type-bridge-extra-info" class="anchor">#</a>
 </h3>
 
 <p>
@@ -561,16 +589,15 @@ process, with earlier versions being:
 </p>
 
 <ul>
-<li><font color="#666"><tt>@type bridge-extra-info 1.0</tt> was the first
-version.</font></li>
-<li><font color="#666"><tt>@type bridge-extra-info 1.1</tt> added
-sanitized <tt>transport</tt> lines.</font></li>
-<li><font color="#666"><tt>@type bridge-extra-info 1.2</tt> was supposed
-to indicate added <tt>ntor-onion-key</tt> lines, but those changes only
-affect bridge server descriptors, not extra-info descriptors.
-So, nothing has changed as compared to version 1.1.</font></li>
-<li><tt>@type bridge-extra-info 1.3</tt> added <tt>master-key-ed25519</tt>
-lines and <tt>router-digest-sha256</tt> to extra-info descriptors
+<li><code>@type bridge-extra-info 1.0</code> was the first version.</li>
+<li><code>@type bridge-extra-info 1.1</code> added sanitized
+<code>transport</code> lines.</li>
+<li><code>@type bridge-extra-info 1.2</code> was supposed to indicate added
+<code>ntor-onion-key</code> lines, but those changes only affect bridge server
+descriptors, not extra-info descriptors.
+So, nothing has changed as compared to version 1.1.</li>
+<li><code>@type bridge-extra-info 1.3</code> added <code>master-key-ed25519</code>
+lines and <code>router-digest-sha256</code> to extra-info descriptors
 published by bridges using an Ed25519 master key.</li>
 </ul>
 
@@ -581,8 +608,9 @@ files contain all descriptors collected in an hour concatenated into a single
 file to reduce the number of files.
 </p>
 
+<br>
 <h2 id="tor-hidden-service-descriptors" class="hover">Tor Hidden Service Descriptors
-<a href="#tor-hidden-service-descriptors" class="hover">#</a>
+<a href="#tor-hidden-service-descriptors" class="anchor">#</a>
 </h2>
 
 <p>
@@ -599,8 +627,8 @@ running Tor instance.
 </p>
 
 <h3 id="type-hidden-service-descriptor" class="hover">Hidden Service Descriptors
-<small><tt>@type hidden-service-descriptor 1.0</tt></small>
-<a href="#type-hidden-service-descriptor" class="hover">#</a>
+<small><code>@type hidden-service-descriptor 1.0</code></small>
+<a href="#type-hidden-service-descriptor" class="anchor">#</a>
 </h3>
 
 <p>
@@ -610,8 +638,9 @@ Despite the version number being 1.0, these descriptors are part of the
 version 2 hidden service protocol.
 </p>
 
+<br>
 <h2 id="bridge-pool-assignments" class="hover">BridgeDB's Bridge Pool Assignments
-<a href="#bridge-pool-assignments" class="hover">#</a>
+<a href="#bridge-pool-assignments" class="anchor">#</a>
 </h2>
 
 <p>
@@ -629,9 +658,9 @@ statistical analysis.
 </p>
 
 <h3 id="type-bridge-pool-assignment" class="hover">Bridge Pool Assignments
-<small><tt>@type bridge-pool-assignment 1.0</tt></small>
-<a href="archive/bridge-pool-assignments/" class="btn btn-primary btn-xs">archive</a>
-<a href="#type-bridge-pool-assignment" class="hover">#</a>
+<small><code>@type bridge-pool-assignment 1.0</code></small>
+<a href="archive/bridge-pool-assignments/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a>
+<a href="#type-bridge-pool-assignment" class="anchor">#</a>
 </h3>
 
 <p>
@@ -648,18 +677,18 @@ There are currently three distributor ring types in BridgeDB:
 <li><b>unallocated:</b> These bridges are not distributed by BridgeDB,
 but are either reserved for manual distribution or are written to file
 buckets for distribution via an external tool.
-If a bridge in the <tt>unallocated</tt> ring is assigned to a file bucket,
-this is noted by <tt>bucket=$bucketname</tt>.</li>
+If a bridge in the <code>unallocated</code> ring is assigned to a file bucket,
+this is noted by <code>bucket=$bucketname</code>.</li>
 <li><b>email:</b> These bridges are distributed via an e-mail
 autoresponder.  Bridges can be assigned to subrings by their OR port or
-relay flag which is defined by <tt>port=$port</tt> and/or <tt>flag=$flag</tt>.
+relay flag which is defined by <code>port=$port</code> and/or <code>flag=$flag</code>.
 </li>
 <li><b>https:</b> These bridges are distributed via https server.
 There are multiple https rings to further distribute bridges by IP address
-ranges, which is denoted by <tt>ring=$ring</tt>.
-Bridges in the <tt>https</tt> ring can also be assigned to subrings by
-OR port or relay flag which is defined by <tt>port=$port</tt> and/or
-<tt>flag=$flag</tt>.</li>
+ranges, which is denoted by <code>ring=$ring</code>.
+Bridges in the <code>https</code> ring can also be assigned to subrings by
+OR port or relay flag which is defined by <code>port=$port</code> and/or
+<code>flag=$flag</code>.</li>
 </ol>
 
 <pre>
@@ -675,8 +704,9 @@ As of December 8, 2014, bridge pool assignment files are no longer
 archived.
 </p>
 
+<br>
 <h2 id="exit-lists" class="hover">TorDNSEL's Exit Lists
-<a href="#exit-lists" class="hover">#</a>
+<a href="#exit-lists" class="anchor">#</a>
 </h2>
 
 <p>
@@ -687,10 +717,10 @@ when exiting through them.
 </p>
 
 <h3 id="type-tordnsel" class="hover">Exit Lists
-<small><tt>@type tordnsel 1.0</tt></small>
-<a href="recent/exit-lists/" class="btn btn-primary btn-xs">recent</a>
-<a href="archive/exit-lists/" class="btn btn-primary btn-xs">archive</a>
-<a href="#type-tordnsel" class="hover">#</a>
+<small><code>@type tordnsel 1.0</code></small>
+<a href="recent/exit-lists/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+<a href="archive/exit-lists/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a>
+<a href="#type-tordnsel" class="anchor">#</a>
 </h3>
 
 <p>
@@ -698,16 +728,16 @@ Tor Check makes the list of known exits and corresponding exit IP
 addresses available in a specific format.
 The document below shows an entry of the exit list written on
 December 28, 2010 at 15:21:44 UTC.
-This entry means that the relay with fingerprint <tt>63BA..</tt> which
+This entry means that the relay with fingerprint <code>63BA..</code> which
 published a descriptor at 07:35:55 and was contained in a version 2
 network status from 08:10:11 uses two different IP addresses for exiting.
-The first address <tt>91.102.152.236</tt> was found in a test performed at
+The first address <code>91.102.152.236</code> was found in a test performed at
 07:10:30.
 When looking at the corresponding server descriptor, one finds that this
 is also the IP address on which the relay accepts connections from inside
 the Tor network.
 A second test performed at 10:35:30 reveals that the relay also uses IP
-address <tt>91.102.152.227</tt> for exiting.
+address <code>91.102.152.227</code> for exiting.
 </p>
 
 <pre>
@@ -718,8 +748,9 @@ ExitAddress 91.102.152.236 2010-12-28 07:10:30
 ExitAddress 91.102.152.227 2010-12-28 10:35:30
 </pre>
 
+<br>
 <h2 id="torperf" class="hover">Torperf's Performance Data
-<a href="#torperf" class="hover">#</a>
+<a href="#torperf" class="anchor">#</a>
 </h2>
 
 <p>
@@ -730,15 +761,15 @@ over the Tor network and notes how long substeps take.
 </p>
 
 <h3 id="type-torperf" class="hover">Torperf Measurement Results
-<small><tt>@type torperf 1.0</tt></small>
-<a href="recent/torperf/" class="btn btn-primary btn-xs">recent</a>
-<a href="archive/torperf/" class="btn btn-primary btn-xs">archive</a>
-<a href="#type-torperf" class="hover">#</a>
+<small><code>@type torperf 1.0</code></small>
+<a href="recent/torperf/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> recent</a>
+<a href="archive/torperf/" class="btn btn-primary btn-xs"><i class="fa fa-chevron-right" aria-hidden="true"></i> archive</a>
+<a href="#type-torperf" class="anchor">#</a>
 </h3>
 
 <p>
 A Torperf results file contains a single line per Torperf run with
-<tt>key=value</tt> pairs.
+<code>key=value</code> pairs.
 Such a result line is sufficient to learn about 1) the Tor and Torperf
 configuration, 2) measurement results, and 3) additional information that
 might help explain the results.
@@ -747,55 +778,55 @@ Known keys are explained below.
 <ul>
 <li>Configuration
 <ul>
-<li><tt>SOURCE:</tt> Configured name of the data source; required.</li>
-<li><tt>FILESIZE:</tt> Configured file size in bytes; required.</li>
+<li><code>SOURCE:</code> Configured name of the data source; required.</li>
+<li><code>FILESIZE:</code> Configured file size in bytes; required.</li>
 <li>Other meta data describing the Tor or Torperf configuration, e.g.,
 GUARD for a custom guard choice; optional.</li>
-</ul>
+</ul></li>
 <li>Measurement results
 <ul>
-<li><tt>START:</tt> Time when the connection process starts;
+<li><code>START:</code> Time when the connection process starts;
 required.</li>
-<li><tt>SOCKET:</tt> Time when the socket was created; required.</li>
-<li><tt>CONNECT:</tt> Time when the socket was connected; required.</li>
-<li><tt>NEGOTIATE:</tt> Time when SOCKS 5 authentication methods have been
+<li><code>SOCKET:</code> Time when the socket was created; required.</li>
+<li><code>CONNECT:</code> Time when the socket was connected; required.</li>
+<li><code>NEGOTIATE:</code> Time when SOCKS 5 authentication methods have been
 negotiated; required.</li>
-<li><tt>REQUEST:</tt> Time when the SOCKS request was sent; required.</li>
-<li><tt>RESPONSE:</tt> Time when the SOCKS response was received;
+<li><code>REQUEST:</code> Time when the SOCKS request was sent; required.</li>
+<li><code>RESPONSE:</code> Time when the SOCKS response was received;
 required.</li>
-<li><tt>DATAREQUEST:</tt> Time when the HTTP request was written;
+<li><code>DATAREQUEST:</code> Time when the HTTP request was written;
 required.</li>
-<li><tt>DATARESPONSE:</tt> Time when the first response was received;
+<li><code>DATARESPONSE:</code> Time when the first response was received;
 required.</li>
-<li><tt>DATACOMPLETE:</tt> Time when the payload was complete;
+<li><code>DATACOMPLETE:</code> Time when the payload was complete;
 required.</li>
-<li><tt>WRITEBYTES:</tt> Total number of bytes written; required.</li>
-<li><tt>READBYTES:</tt> Total number of bytes read; required.</li>
-<li><tt>DIDTIMEOUT:</tt> 1 if the request timed out, 0 otherwise;
+<li><code>WRITEBYTES:</code> Total number of bytes written; required.</li>
+<li><code>READBYTES:</code> Total number of bytes read; required.</li>
+<li><code>DIDTIMEOUT:</code> 1 if the request timed out, 0 otherwise;
 optional.</li>
-<li><tt>DATAPERCx:</tt> Time when x% of expected bytes were read for
+<li><code>DATAPERCx:</code> Time when x% of expected bytes were read for
 x = { 10, 20, 30, 40, 50, 60, 70, 80, 90 }; optional.</li>
 <li>Other measurement results, e.g., START_RENDCIRC, GOT_INTROCIRC, etc.
 for hidden-service measurements; optional.</li>
-</ul>
+</ul></li>
 <li>Additional information
 <ul>
-<li><tt>LAUNCH:</tt> Time when the circuit was launched; optional.</li>
-<li><tt>USED_AT:</tt> Time when this circuit was used; optional.</li>
-<li><tt>PATH:</tt> List of relays in the circuit, separated by commas;
+<li><code>LAUNCH:</code> Time when the circuit was launched; optional.</li>
+<li><code>USED_AT:</code> Time when this circuit was used; optional.</li>
+<li><code>PATH:</code> List of relays in the circuit, separated by commas;
 optional.</li>
-<li><tt>BUILDTIMES:</tt> List of times when circuit hops were built,
+<li><code>BUILDTIMES:</code> List of times when circuit hops were built,
 separated by commas; optional.</li>
-<li><tt>TIMEOUT:</tt> Circuit build timeout in milliseconds that the Tor
+<li><code>TIMEOUT:</code> Circuit build timeout in milliseconds that the Tor
 client used when building this circuit; optional.</li>
-<li><tt>QUANTILE:</tt> Circuit build time quantile that the Tor client
+<li><code>QUANTILE:</code> Circuit build time quantile that the Tor client
 uses to determine its circuit-build timeout; optional.</li>
-<li><tt>CIRC_ID:</tt> Circuit identifier of the circuit used for this
+<li><code>CIRC_ID:</code> Circuit identifier of the circuit used for this
 measurement; optional.</li>
-<li><tt>USED_BY:</tt> Stream identifier of the stream used for this
+<li><code>USED_BY:</code> Stream identifier of the stream used for this
 measurement; optional.</li>
 <li>Other fields containing additional information; optional.</li>
-</ul>
+</ul></li>
 </ul>
 
 <p>
@@ -807,23 +838,27 @@ which do not change once they are
 written.
 </p>
 
-        </div><!-- col -->
-      </div><!-- row -->
+    </div>
 
+    <br>
+
+
+<div class="container">
       <div class="row">
         <div class="col-xs-12">
+        <br>
           <h1 id="automated-downloads" class="hover">Automated Downloads
-<a href="#automated-downloads" class="hover">#</a>
+<a href="#automated-downloads" class="anchor">#</a>
 </h1>
 <p>
 There are multiple ways to download descriptors from this site.
 Of course, the obvious way is to browse the directories and download contained files using your browser.  However, this method cannot be automated very well.</p>
 
-<h2 id="recursive-wget" class="hover">Recursive downloads using <tt>wget</tt>
-<a href="#recursive-wget" class="hover">#</a>
+<h2 id="recursive-wget" class="hover">Recursive downloads using <code>wget</code>
+<a href="#recursive-wget" class="anchor">#</a>
 </h2>
 
-<p>A more elaborate way to automatically download descriptors is to use Unix tools like <tt>wget</tt> which support recursively downloading files from this site.  Example:</p>
+<p>A more elaborate way to automatically download descriptors is to use Unix tools like <code>wget</code> which support recursively downloading files from this site.  Example:</p>
 <pre>
 wget --recursive \                     # turn on recursive retrieving
      --reject "index.html*" \          # don't retrieve directory listings
@@ -833,138 +868,73 @@ wget --recursive \                     # turn on recursive retrieving
      https://collector.torproject.org/recent/relay-descriptors/microdescs/
 </pre>
 
-<h2 id="index-json" class="hover">Custom downloaders using provided <tt>index.json</tt>
-<a href="#index-json" class="hover">#</a></h2>
+<h2 id="index-json" class="hover">Custom downloaders using provided <code>index.json</code>
+<a href="#index-json" class="anchor">#</a></h2>
 
-<p>Another automated way to download descriptors is to develop a tool that uses the provided <a href="index/index.json"><tt>index.json</tt></a> file or one of its compressed versions <a href="index/index.json.gz"><tt>index.json.gz</tt></a>, <a href="index/index.json.bz2"><tt>index.json.bz2</tt></a>, or <a href="index/index.json.xz"><tt>index.json.xz</tt></a>.
+<p>Another automated way to download descriptors is to develop a tool that uses the provided <a href="index/index.json"><code>index.json</code></a> file or one of its compressed versions <a href="index/index.json.gz"><code>index.json.gz</code></a>, <a href="index/index.json.bz2"><code>index.json.bz2</code></a>, or <a href="index/index.json.xz"><code>index.json.xz</code></a>.
 These files contain a machine-readable representation of all descriptor files available on this site.
 Index files use the following custom JSON data format that might still be extended at a later time:</p>
 <ul>
 <li>Index object: At the document root there is always an index object with the following fields:
 <ul>
-<li><tt>"index_created"</tt>: Timestamp when this index was created using pattern <tt>"YYYY-MM-DD HH:MM"</tt> in the UTC timezone.</li>
-<li><tt>"path"</tt>: Base URL of this index file and all included resources.</li>
-<li><tt>"files"</tt>: List of file objects of files available from the document root, which will be omitted if empty.
-<li><tt>"directories"</tt>: List of directory objects of directories available from the document root, which will be omitted if empty.</li>
+<li><code>"index_created"</code>: Timestamp when this index was created using pattern <code>"YYYY-MM-DD HH:MM"</code> in the UTC timezone.</li>
+<li><code>"path"</code>: Base URL of this index file and all included resources.</li>
+<li><code>"files"</code>: List of file objects of files available from the document root, which will be omitted if empty.
+<li><code>"directories"</code>: List of directory objects of directories available from the document root, which will be omitted if empty.</li>
 </ul></li>
 <li>Directory object: There is one directory object for each directory or subdirectory in the document tree containing similar fields as the index object:
 <ul>
-<li><tt>"path"</tt>: Relative path of the directory.</li>
-<li><tt>"files"</tt>: List of file objects of files available from this directory, which will be omitted if empty.
-<li><tt>"directories"</tt>: List of directory objects of directories available from this directory, which will be omitted if empty.</li>
+<li><code>"path"</code>: Relative path of the directory.</li>
+<li><code>"files"</code>: List of file objects of files available from this directory, which will be omitted if empty.
+<li><code>"directories"</code>: List of directory objects of directories available from this directory, which will be omitted if empty.</li>
 </ul></li>
 <li>File object: Each file that is available in the document tree is represented by a file object with the following fields:
 <ul>
-<li><tt>"path"</tt>: Relative path of the file.</li>
-<li><tt>"size"</tt>: Size of the file in bytes.</li>
-<li><tt>"last_modified"</tt>: Timestamp when the file was last modified using pattern <tt>"YYYY-MM-DD HH:MM"</tt> in the UTC timezone.</li>
+<li><code>"path"</code>: Relative path of the file.</li>
+<li><code>"size"</code>: Size of the file in bytes.</li>
+<li><code>"last_modified"</code>: Timestamp when the file was last modified using pattern <code>"YYYY-MM-DD HH:MM"</code> in the UTC timezone.</li>
 </ul></li>
 </ul>
 
         </div><!-- col -->
       </div><!-- row -->
 
-      <div class="row">
-        <div class="col-xs-12">
-
-<h1 id="libraries" class="hover">Parsing Libraries
-<a href="#libraries" class="hover">#</a>
-</h1>
-
-<p>
-There are three parsing libraries available to facilitate processing the descriptors provided on this site:
-</p>
-
-<ul>
-<li><a href="https://gitweb.torproject.org/metrics-lib.git">metrics-lib</a> is the library of choice if you're programming in Java.</li>
-<li><a href="https://stem.torproject.org/">Stem</a> is your library if you're developing in Python.</li>
-<li><a href="https://gitweb.torproject.org/user/phw/zoossh.git/">zoossh</a> is a Go library that is currently under development.</li>
-</ul>
-
-<p>If you're unclear which library to pick and if you're flexible regarding the programming language, be sure to look at the <a href="https://stem.torproject.org/tutorials/mirror_mirror_on_the_wall.html#are-there-any-other-parsing-libraries">library comparison on the Stem website</a>.</p>
-
-<p>
-If you developed a descriptor parsing library for another language and want it to be
-listed here, <a href="#support">please let us know</a>!
-</p>
+    <br>
 
 
-        </div><!-- col -->
-      </div><!-- row -->
 
-      <div class="row">
-        <div class="col-xs-12">
-          <h1 id="related-work" class="hover">Related Work
-<a href="#related-work" class="hover">#</a></h1>
+</div>
 
-<p>
-A couple of applications have been developed and plenty of research papers have been written
-using the Tor network data provided here.
-The following list is not at all exhaustive:
-</p>
 
-<ul>
-<li><a href="https://metrics.torproject.org/">Tor Metrics</a> shows graphs
-of network growth over time and estimates of users derived from directory
-activity.</li>
-<li><a href="https://exonerator.torproject.org/">ExoneraTor</a> allows
-people to look up whether a given IP address was part of the Tor network
-in the past.</li>
-<li><a href="https://atlas.torproject.org/">Atlas</a>,
-<a href="https://globe.torproject.org/">Globe</a>, and
-<a href="https://compass.torproject.org/">Compass</a> let users explore
-how specific relays or bridges contribute to the Tor network.
-They all use <a href="https://onionoo.torproject.org/">Onionoo</a> as
-their data back-end service which in turn uses the Tor network data
-provided here.</li>
-<li><a href="https://shadow.github.io/">Shadow</a> uses
-archived Tor directory data to generate network topologies that match the
-real Tor network as close as possible.</li>
-<li><a href="https://torps.github.io/">TorPS</a> uses Tor
-directory archive data to simulate the effect of changes to Tor's path
-selection algorithm.</li>
-</ul>
 
-<p>
-If you wrote an application or research paper that uses Tor network data
-and that is not yet listed here, <a href="#support">please let us
-know</a>!
-Please include a short description what your application does or what your
-research was about.
-</p>
+  <div class="container-fluid" id="footer">
 
-        </div><!-- col -->
-      </div><!-- row -->
+    <div class="container no-gutter">
+      <div class="col-xs-6">
+        <p>
+           &copy; 2017 The Tor Project
+        </p>
+      </div>
+      <div class="col-xs-6">
+        <p class="pull-right">
 
-      <div class="row">
-        <div class="col-xs-12">
-          <h1 id="support" class="hover">Support
-<a href="#support" class="hover">#</a>
-</h1>
-<p>
-If you have any questions about the Tor network data provided here, we'd
-like to <a href="https://www.torproject.org/about/contact">hear from you</a>!
-Of course, suggestions or other feedback are welcome, too.
-</p>
-        </div><!-- col -->
-      </div><!-- row -->
+           <a href="https://metrics.torproject.org/about.html#contact">Contact</a>
 
-    </div><!-- container -->
+        </p>
+      </div>
+    </div>
 
-    <div class="footer">
-      <div class="container">
-        <div class="row">
-          <div class="col-xs-12">
-          <hr>
-            <p class="text-center small">Data on this site is freely available under a
-<a href="http://creativecommons.org/publicdomain/zero/1.0/">CC0 no
-copyright declaration</a>: To the extent possible under law, the Tor
-Project has waived all copyright and related or neighboring rights in the
-data.
-"Tor" and the "Onion Logo" are <a href="https://www.torproject.org/docs/trademark-faq.html.en">registered trademarks</a> of The Tor Project, Inc.</p>
-          </div><!-- col -->
-        </div><!-- row -->
-      </div><!-- container -->
-    </div><!-- footer -->
-  </body>
+    <div class="container small">
+
+        <p>Data on this site is freely available under a <a href="http://creativecommons.org/publicdomain/zero/1.0/">CC0 no copyright declaration</a>: To the extent possible under law, the Tor Project has waived all copyright and related or neighboring rights in the data. "Tor" and the "Onion Logo" are <a href="https://www.torproject.org/docs/trademark-faq.html.en">registered trademarks</a> of The Tor Project, Inc.</p>
+
+    </div>
+
+  </div><!-- /footer -->
+
+
+
+</div><!-- /wrapper -->
+
+</body>
 </html>
