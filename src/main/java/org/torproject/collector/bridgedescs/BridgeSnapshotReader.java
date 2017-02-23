@@ -45,7 +45,7 @@ public class BridgeSnapshotReader {
       throw new IllegalArgumentException();
     }
 
-    SortedSet<String> parsed = new TreeSet<String>();
+    SortedSet<String> parsed = new TreeSet<>();
     File bdDir = bridgeDirectoriesDir;
     File pbdFile = new File(statsDirectory, "parsed-bridge-directories");
     boolean modified = false;
@@ -69,7 +69,7 @@ public class BridgeSnapshotReader {
       }
       logger.debug("Importing files in directory " + bridgeDirectoriesDir
           + "/...");
-      Set<String> descriptorImportHistory = new HashSet<String>();
+      Set<String> descriptorImportHistory = new HashSet<>();
       int parsedFiles = 0;
       int skippedFiles = 0;
       int parsedStatuses = 0;
@@ -77,7 +77,7 @@ public class BridgeSnapshotReader {
       int skippedServerDescriptors = 0;
       int parsedExtraInfoDescriptors = 0;
       int skippedExtraInfoDescriptors = 0;
-      Stack<File> filesInInputDir = new Stack<File>();
+      Stack<File> filesInInputDir = new Stack<>();
       filesInInputDir.add(bdDir);
       while (!filesInInputDir.isEmpty()) {
         File pop = filesInInputDir.pop();

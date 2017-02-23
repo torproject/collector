@@ -148,8 +148,7 @@ public class CreateIndexJson extends CollecTorMain {
   }
 
   private IndexNode indexDirectories() {
-    SortedSet<DirectoryNode> directoryNodes =
-        new TreeSet<DirectoryNode>();
+    SortedSet<DirectoryNode> directoryNodes = new TreeSet<>();
     logger.trace("indexing: " + indexedDirectories[0] + " "
         + indexedDirectories[1]);
     for (File directory : indexedDirectories) {
@@ -165,9 +164,8 @@ public class CreateIndexJson extends CollecTorMain {
   }
 
   private DirectoryNode indexDirectory(File directory) {
-    SortedSet<FileNode> fileNodes = new TreeSet<FileNode>();
-    SortedSet<DirectoryNode> directoryNodes =
-        new TreeSet<DirectoryNode>();
+    SortedSet<FileNode> fileNodes = new TreeSet<>();
+    SortedSet<DirectoryNode> directoryNodes = new TreeSet<>();
     logger.trace("indexing: " + directory);
     File[] fileList = directory.listFiles();
     if (null == fileList) {

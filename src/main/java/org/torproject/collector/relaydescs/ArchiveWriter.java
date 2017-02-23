@@ -62,20 +62,17 @@ public class ArchiveWriter extends CollecTorMain {
   private int storedMicrodescriptorsCounter = 0;
 
   private SortedMap<Long, SortedSet<String>> storedConsensuses =
-      new TreeMap<Long, SortedSet<String>>();
+      new TreeMap<>();
   private SortedMap<Long, SortedSet<String>> storedMicrodescConsensuses =
-      new TreeMap<Long, SortedSet<String>>();
-  private SortedMap<Long, Integer> expectedVotes =
-      new TreeMap<Long, Integer>();
-  private SortedMap<Long, SortedMap<String, SortedSet<String>>>
-      storedVotes =
-      new TreeMap<Long, SortedMap<String, SortedSet<String>>>();
+      new TreeMap<>();
+  private SortedMap<Long, Integer> expectedVotes = new TreeMap<>();
+  private SortedMap<Long, SortedMap<String, SortedSet<String>>> storedVotes =
+      new TreeMap<>();
   private SortedMap<Long, Map<String, String>> storedServerDescriptors =
-      new TreeMap<Long, Map<String, String>>();
+      new TreeMap<>();
   private SortedMap<Long, Set<String>> storedExtraInfoDescriptors =
-      new TreeMap<Long, Set<String>>();
-  private SortedMap<Long, Set<String>> storedMicrodescriptors =
-      new TreeMap<Long, Set<String>>();
+      new TreeMap<>();
+  private SortedMap<Long, Set<String>> storedMicrodescriptors = new TreeMap<>();
 
   private File storedServerDescriptorsFile;
   private File storedExtraInfoDescriptorsFile;
@@ -334,18 +331,17 @@ public class ArchiveWriter extends CollecTorMain {
     SimpleDateFormat dateTimeFormat =
         new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    Map<String, String> knownServerDescriptors =
-        new HashMap<String, String>();
+    Map<String, String> knownServerDescriptors = new HashMap<>();
     for (Map<String, String> descriptors :
         this.storedServerDescriptors.values()) {
       knownServerDescriptors.putAll(descriptors);
     }
-    Set<String> knownExtraInfoDescriptors = new HashSet<String>();
+    Set<String> knownExtraInfoDescriptors = new HashSet<>();
     for (Set<String> descriptors :
         this.storedExtraInfoDescriptors.values()) {
       knownExtraInfoDescriptors.addAll(descriptors);
     }
-    Set<String> knownMicrodescriptors = new HashSet<String>();
+    Set<String> knownMicrodescriptors = new HashSet<>();
     for (Set<String> descriptors : this.storedMicrodescriptors.values()) {
       knownMicrodescriptors.addAll(descriptors);
     }
@@ -564,7 +560,7 @@ public class ArchiveWriter extends CollecTorMain {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
     long cutOffMicroMillis = cutOffMillis - 27L * 24L * 60L * 60L * 1000L;
-    Stack<File> allFiles = new Stack<File>();
+    Stack<File> allFiles = new Stack<>();
     allFiles.add(new File(recentPathName, RELAY_DESCRIPTORS));
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();

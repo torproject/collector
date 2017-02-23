@@ -52,8 +52,8 @@ public class CachedRelayDescriptorReader {
 
     /* Read import history containing SHA-1 digests of previously parsed
      * statuses and descriptors, so that we can skip them in this run. */
-    Set<String> lastImportHistory = new HashSet<String>();
-    Set<String> currentImportHistory = new HashSet<String>();
+    Set<String> lastImportHistory = new HashSet<>();
+    Set<String> currentImportHistory = new HashSet<>();
     File importHistoryFile = new File(statsDirectory,
         "cacheddesc-import-history");
     if (importHistoryFile.exists()) {
@@ -81,8 +81,8 @@ public class CachedRelayDescriptorReader {
       }
       logger.debug("Reading " + cachedDescDir.getAbsolutePath()
           + " directory.");
-      SortedSet<File> cachedDescFiles = new TreeSet<File>();
-      Stack<File> files = new Stack<File>();
+      SortedSet<File> cachedDescFiles = new TreeSet<>();
+      Stack<File> files = new Stack<>();
       files.add(cachedDescDir);
       while (!files.isEmpty()) {
         File file = files.pop();

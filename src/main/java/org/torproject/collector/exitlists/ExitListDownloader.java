@@ -162,13 +162,13 @@ public class ExitListDownloader extends CollecTorMain {
     /* Write stats. */
     StringBuilder dumpStats = new StringBuilder("Finished downloading "
         + "exit list.\nLast three exit lists are:");
-    Stack<File> filesInInputDir = new Stack<File>();
+    Stack<File> filesInInputDir = new Stack<>();
     filesInInputDir.add(new File(outputPathName));
-    SortedSet<File> lastThreeExitLists = new TreeSet<File>();
+    SortedSet<File> lastThreeExitLists = new TreeSet<>();
     while (!filesInInputDir.isEmpty()) {
       File pop = filesInInputDir.pop();
       if (pop.isDirectory()) {
-        SortedSet<File> lastThreeElements = new TreeSet<File>();
+        SortedSet<File> lastThreeElements = new TreeSet<>();
         for (File f : pop.listFiles()) {
           lastThreeElements.add(f);
         }
@@ -198,7 +198,7 @@ public class ExitListDownloader extends CollecTorMain {
   public void cleanUpRsyncDirectory() throws ConfigurationException {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
-    Stack<File> allFiles = new Stack<File>();
+    Stack<File> allFiles = new Stack<>();
     allFiles.add(new File(recentPathName));
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();

@@ -43,7 +43,7 @@ public class ArchiveReader {
       ArchiveReader.class);
 
   private Map<String, Set<String>> microdescriptorValidAfterTimes =
-      new HashMap<String, Set<String>>();
+      new HashMap<>();
 
   /** Reads all descriptors from the given directory, possibly using a
    * parse history file, and passes them to the given descriptor
@@ -59,7 +59,7 @@ public class ArchiveReader {
     rdp.setArchiveReader(this);
     int parsedFiles = 0;
     int ignoredFiles = 0;
-    SortedSet<String> archivesImportHistory = new TreeSet<String>();
+    SortedSet<String> archivesImportHistory = new TreeSet<>();
     File archivesImportHistoryFile = new File(statsDirectory,
         "archives-import-history");
     if (keepImportHistory && archivesImportHistoryFile.exists()) {
@@ -79,10 +79,10 @@ public class ArchiveReader {
     if (archivesDirectory.exists()) {
       logger.debug("Importing files in directory " + archivesDirectory
           + "/...");
-      Stack<File> filesInInputDir = new Stack<File>();
+      Stack<File> filesInInputDir = new Stack<>();
       filesInInputDir.add(archivesDirectory);
-      List<File> problems = new ArrayList<File>();
-      Set<File> filesToRetry = new HashSet<File>();
+      List<File> problems = new ArrayList<>();
+      Set<File> filesToRetry = new HashSet<>();
       while (!filesInInputDir.isEmpty()) {
         File pop = filesInInputDir.pop();
         if (pop.isDirectory()) {

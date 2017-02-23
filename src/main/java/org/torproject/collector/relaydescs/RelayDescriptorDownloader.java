@@ -337,9 +337,9 @@ public class RelayDescriptorDownloader {
     /* Read list of missing descriptors from disk and memorize those that
      * we are interested in and that are likely to be found on the
      * directory authorities. */
-    this.missingDescriptors = new TreeMap<String, String>();
-    this.microdescriptorKeys = new HashMap<String, Set<String>>();
-    this.missingMicrodescriptors = new HashSet<String>();
+    this.missingDescriptors = new TreeMap<>();
+    this.microdescriptorKeys = new HashMap<>();
+    this.missingMicrodescriptors = new HashSet<>();
     this.missingDescriptorsFile = new File(
         "stats/missing-relay-descriptors");
     if (this.missingDescriptorsFile.exists()) {
@@ -413,7 +413,7 @@ public class RelayDescriptorDownloader {
 
     /* Read list of directory authorities and when we last downloaded all
      * server and extra-info descriptors from them. */
-    this.lastDownloadedAllDescriptors = new HashMap<String, String>();
+    this.lastDownloadedAllDescriptors = new HashMap<>();
     this.lastDownloadedAllDescriptorsFile = new File(
         "stats/last-downloaded-all-descriptors");
     if (this.lastDownloadedAllDescriptorsFile.exists()) {
@@ -451,7 +451,7 @@ public class RelayDescriptorDownloader {
 
     /* Make a list of at most two directory authorities that we want to
      * download all server and extra-info descriptors from. */
-    this.downloadAllDescriptorsFromAuthorities = new HashSet<String>();
+    this.downloadAllDescriptorsFromAuthorities = new HashSet<>();
     for (String authority : this.authorities) {
       if (!this.lastDownloadedAllDescriptors.containsKey(authority)
           || this.lastDownloadedAllDescriptors.get(authority).compareTo(
@@ -464,7 +464,7 @@ public class RelayDescriptorDownloader {
     }
 
     /* Prepare statistics on this execution. */
-    this.requestsByAuthority = new HashMap<String, Integer>();
+    this.requestsByAuthority = new HashMap<>();
     for (String authority : this.authorities) {
       this.requestsByAuthority.put(authority, 0);
     }
@@ -720,7 +720,7 @@ public class RelayDescriptorDownloader {
         /* Next, try to download current votes that we're missing. */
         if (downloadCurrentVotes) {
           String voteKeyPrefix = "vote," + this.currentValidAfter;
-          SortedSet<String> fingerprints = new TreeSet<String>();
+          SortedSet<String> fingerprints = new TreeSet<>();
           for (Map.Entry<String, String> e :
               this.missingDescriptors.entrySet()) {
             if (e.getValue().equals("NA")
@@ -775,8 +775,7 @@ public class RelayDescriptorDownloader {
              * and combine the descriptor identifiers to a URL of up to
              * 96 server or extra-info descriptors or 92 microdescriptors
              * that we can download at once. */
-            SortedSet<String> descriptorIdentifiers =
-                new TreeSet<String>();
+            SortedSet<String> descriptorIdentifiers = new TreeSet<>();
             for (Map.Entry<String, String> e :
                 this.missingDescriptors.entrySet()) {
               if (e.getValue().equals("NA")

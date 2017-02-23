@@ -101,11 +101,11 @@ public class RelayDescriptorParser {
         String dirSource = null;
         long validAfter = -1L;
         long dirKeyPublished = -1L;
-        SortedSet<String> dirSources = new TreeSet<String>();
-        SortedSet<String> serverDescriptors = new TreeSet<String>();
-        SortedSet<String> serverDescriptorDigests = new TreeSet<String>();
-        SortedSet<String> microdescriptorKeys = new TreeSet<String>();
-        SortedSet<String> microdescriptorDigests = new TreeSet<String>();
+        SortedSet<String> dirSources = new TreeSet<>();
+        SortedSet<String> serverDescriptors = new TreeSet<>();
+        SortedSet<String> serverDescriptorDigests = new TreeSet<>();
+        SortedSet<String> microdescriptorKeys = new TreeSet<>();
+        SortedSet<String> microdescriptorDigests = new TreeSet<>();
         StringBuilder certificateStringBuilder = null;
         String certificateString = null;
         String lastRelayIdentity = null;

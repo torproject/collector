@@ -49,7 +49,7 @@ public class ReferenceChecker {
 
   private long currentTimeMillis;
 
-  private SortedSet<Reference> references = new TreeSet<Reference>();
+  private SortedSet<Reference> references = new TreeSet<>();
 
   private static DateFormat dateTimeFormat;
 
@@ -285,7 +285,7 @@ public class ReferenceChecker {
   }
 
   private void dropStaleReferences() {
-    SortedSet<Reference> recentReferences = new TreeSet<Reference>();
+    SortedSet<Reference> recentReferences = new TreeSet<>();
     for (Reference reference : this.references) {
       if (this.currentTimeMillis <= reference.expiresAfterMillis) {
         recentReferences.add(reference);
@@ -295,12 +295,12 @@ public class ReferenceChecker {
   }
 
   private void checkReferences() {
-    Set<String> knownDescriptors = new HashSet<String>();
+    Set<String> knownDescriptors = new HashSet<>();
     for (Reference reference : this.references) {
       knownDescriptors.add(reference.referencing);
     }
     double totalMissingDescriptorsWeight = 0.0;
-    Set<String> missingDescriptors = new TreeSet<String>();
+    Set<String> missingDescriptors = new TreeSet<>();
     StringBuilder sb = new StringBuilder("Missing referenced "
         + "descriptors:");
     for (Reference reference : this.references) {

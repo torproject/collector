@@ -152,7 +152,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
 
     /* Read hex-encoded secrets for replacing IP addresses with hashes
      * from disk. */
-    this.secretsForHashingIpAddresses = new TreeMap<String, byte[]>();
+    this.secretsForHashingIpAddresses = new TreeMap<>();
     this.bridgeIpSecretsFile = new File(statsDirectory,
         "bridge-ip-secrets");
     if (this.bridgeIpSecretsFile.exists()) {
@@ -291,7 +291,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         /* Invalid IPv6 address. */
         return null;
       }
-      List<String> hexParts = new ArrayList<String>();
+      List<String> hexParts = new ArrayList<>();
       for (String doubleColonSeparatedPart : doubleColonSeparatedParts) {
         StringBuilder hexPart = new StringBuilder();
         String[] parts = doubleColonSeparatedPart.split(":", -1);
@@ -461,8 +461,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
 
     /* Parse the given network status line by line. */
     StringBuilder header = new StringBuilder();
-    SortedMap<String, String> scrubbedLines =
-        new TreeMap<String, String>();
+    SortedMap<String, String> scrubbedLines = new TreeMap<>();
     try {
       StringBuilder scrubbed = new StringBuilder();
       BufferedReader br = new BufferedReader(new StringReader(new String(
@@ -692,7 +691,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
          * read the fingerprint. */
         } else if (line.startsWith("or-address ")) {
           if (orAddresses == null) {
-            orAddresses = new ArrayList<String>();
+            orAddresses = new ArrayList<>();
           }
           orAddresses.add(line.substring("or-address ".length()));
 
@@ -732,7 +731,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
             scrubbedAddress = scrubIpv4Address(address, fingerprintBytes,
                 published);
             if (orAddresses != null) {
-              scrubbedOrAddresses = new ArrayList<String>();
+              scrubbedOrAddresses = new ArrayList<>();
               for (String orAddress : orAddresses) {
                 String scrubbedOrAddress = scrubOrAddress(orAddress,
                     fingerprintBytes, published);
@@ -1395,7 +1394,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
   public void cleanUpRsyncDirectory() throws ConfigurationException {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
-    Stack<File> allFiles = new Stack<File>();
+    Stack<File> allFiles = new Stack<>();
     allFiles.add(new File(config.getPath(Key.RecentPath).toFile(),
         BRIDGE_DESCRIPTORS));
     while (!allFiles.isEmpty()) {

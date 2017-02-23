@@ -84,8 +84,7 @@ public class TorperfDownloader extends CollecTorMain {
     this.cleanUpRsyncDirectory();
   }
 
-  SortedMap<String, String> lastMergedTimestamps =
-      new TreeMap<String, String>();
+  SortedMap<String, String> lastMergedTimestamps = new TreeMap<>();
 
   private void readLastMergedTimestamps() {
     if (!this.torperfLastMergedFile.exists()) {
@@ -408,8 +407,7 @@ public class TorperfDownloader extends CollecTorMain {
       }
 
       /* Write output line to .tpf file. */
-      SortedMap<String, String> keysAndValues =
-          new TreeMap<String, String>();
+      SortedMap<String, String> keysAndValues = new TreeMap<>();
       keysAndValues.put("SOURCE", source);
       keysAndValues.put("FILESIZE", String.valueOf(fileSize));
       if (extradata != null) {
@@ -450,7 +448,7 @@ public class TorperfDownloader extends CollecTorMain {
       return null;
     }
     if (this.dataTimestamps == null) {
-      this.dataTimestamps = new TreeMap<Integer, String>();
+      this.dataTimestamps = new TreeMap<>();
       this.dataTimestamps.put(0, "START");
       this.dataTimestamps.put(2, "SOCKET");
       this.dataTimestamps.put(4, "CONNECT");
@@ -470,7 +468,7 @@ public class TorperfDownloader extends CollecTorMain {
       this.dataTimestamps.put(35, "DATAPERC80");
       this.dataTimestamps.put(37, "DATAPERC90");
     }
-    SortedMap<String, String> data = new TreeMap<String, String>();
+    SortedMap<String, String> data = new TreeMap<>();
     try {
       for (Map.Entry<Integer, String> e : this.dataTimestamps.entrySet()) {
         int intKey = e.getKey();
@@ -494,7 +492,7 @@ public class TorperfDownloader extends CollecTorMain {
 
   private SortedMap<String, String> parseExtradataLine(String line) {
     String[] parts = line.split(" ");
-    SortedMap<String, String> extradata = new TreeMap<String, String>();
+    SortedMap<String, String> extradata = new TreeMap<>();
     String previousKey = null;
     for (String part : parts) {
       String[] keyAndValue = part.split("=", -1);
@@ -564,7 +562,7 @@ public class TorperfDownloader extends CollecTorMain {
 
   private void readTpfLinesToCache(String source, int fileSize,
       String startDate) throws IOException {
-    this.cachedTpfLines = new TreeMap<String, String>();
+    this.cachedTpfLines = new TreeMap<>();
     this.cachedSource = source;
     this.cachedFileSize = fileSize;
     this.cachedStartDate = startDate;
@@ -624,7 +622,7 @@ public class TorperfDownloader extends CollecTorMain {
   public void cleanUpRsyncDirectory() throws ConfigurationException {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
-    Stack<File> allFiles = new Stack<File>();
+    Stack<File> allFiles = new Stack<>();
     allFiles.add(new File(config.getPath(Key.RecentPath).toFile(), TORPERF));
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();
