@@ -57,7 +57,8 @@ public enum Key {
   ReplaceIpAddressesWithHashes(Boolean.class),
   BridgeDescriptorMappingsLimit(Integer.class),
   TorperfFilesLines(String[].class),
-  TorperfHosts(String[][].class);
+  TorperfHosts(String[][].class),
+  OnionPerfHosts(URL[].class);
 
   private Class clazz;
   private static Set<String> keys;

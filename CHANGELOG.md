@@ -1,5 +1,8 @@
 # Changes in version 1.?.? - 2017-??-??
 
+ * Major changes
+   - Download .tpf files from OnionPerf hosts.
+
  * Medium changes
    - Clean up files in recent/exit-lists/ again.
 
