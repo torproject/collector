@@ -280,10 +280,10 @@ public class TorperfDownloader extends CollecTorMain {
         bw.newLine();
       }
     } catch (IOException e) {
-      logger.warn("Unable to write download history file '"
-          + this.onionPerfDownloadedFile.getAbsolutePath() + "'.  This may "
+      logger.warn("Unable to write download history file '{}'.  This may "
           + "result in ignoring history and downloading all available .tpf "
-          + "files in the next execution.", e);
+          + "files in the next execution.",
+          this.onionPerfDownloadedFile.getAbsolutePath(), e);
     }
   }
 
