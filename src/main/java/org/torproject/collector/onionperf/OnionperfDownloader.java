@@ -1,7 +1,7 @@
 /* Copyright 2012-2017 The Tor Project
  * See LICENSE for licensing information */
 
-package org.torproject.collector.torperf;
+package org.torproject.collector.onionperf;
 
 import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.ConfigurationException;
@@ -41,18 +41,15 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/* Download possibly truncated Torperf .data and .extradata files from
- * configured sources, append them to the files we already have, and merge
- * the two files into the .tpf format;
- * also download .tpf files from OnionPerf hosts. */
-public class TorperfDownloader extends CollecTorMain {
+/** Download download .tpf files from OnionPerf hosts. */
+public class OnionperfDownloader extends CollecTorMain {
 
   private static final Logger logger = LoggerFactory.getLogger(
-      TorperfDownloader.class);
+      OnionperfDownloader.class);
 
   private static final String TORPERF = "torperf";
 
-  public TorperfDownloader(Configuration config) {
+  public OnionperfDownloader(Configuration config) {
     super(config);
   }
 

@@ -12,8 +12,8 @@ import org.torproject.collector.cron.Scheduler;
 import org.torproject.collector.cron.ShutdownHook;
 import org.torproject.collector.exitlists.ExitListDownloader;
 import org.torproject.collector.index.CreateIndexJson;
+import org.torproject.collector.onionperf.OnionperfDownloader;
 import org.torproject.collector.relaydescs.ArchiveWriter;
-import org.torproject.collector.torperf.TorperfDownloader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +50,7 @@ public class Main {
     collecTorMains.put(Key.ExitlistsActivated, ExitListDownloader.class);
     collecTorMains.put(Key.UpdateindexActivated, CreateIndexJson.class);
     collecTorMains.put(Key.RelaydescsActivated, ArchiveWriter.class);
-    collecTorMains.put(Key.TorperfActivated, TorperfDownloader.class);
+    collecTorMains.put(Key.TorperfActivated, OnionperfDownloader.class);
   }
 
   private static Configuration conf = new Configuration();
