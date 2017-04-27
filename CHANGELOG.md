@@ -2,6 +2,8 @@
 
  * Major changes
    - Download .tpf files from OnionPerf hosts.
+   - Stop downloading and merging .data and .extradata files from
+     Torperf hosts.
 
  * Medium changes
    - Clean up files in recent/exit-lists/ again.

@@ -56,8 +56,6 @@ public enum Key {
   KeepDirectoryArchiveImportHistory(Boolean.class),
   ReplaceIpAddressesWithHashes(Boolean.class),
   BridgeDescriptorMappingsLimit(Integer.class),
-  TorperfFilesLines(String[].class),
-  TorperfHosts(String[][].class),
   OnionPerfHosts(URL[].class);
 
   private Class clazz;

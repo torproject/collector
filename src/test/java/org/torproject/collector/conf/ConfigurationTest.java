@@ -40,7 +40,7 @@ public class ConfigurationTest {
   public void testKeyCount() throws Exception {
     assertEquals("The number of properties keys in enum Key changed."
         + "\n This test class should be adapted.",
-        45, Key.values().length);
+        43, Key.values().length);
   }
 
   @Test()
@@ -130,19 +130,6 @@ public class ConfigurationTest {
   }
 
   @Test()
-  public void testArrayArrayValues() throws Exception {
-    String[][] sourceStrings = new String[][] {
-      new String[]{"localsource", "http://127.0.0.1:12345"},
-      new String[]{"somesource", "https://some.host.org:12345"}};
-    Configuration conf = new Configuration();
-    conf.setProperty(Key.TorperfHosts.name(),
-        Arrays.deepToString(sourceStrings).replace("[[", "").replace("]]", "")
-            .replace("], [", Configuration.ARRAYSEP));
-    assertArrayEquals(sourceStrings,
-        conf.getStringArrayArray(Key.TorperfHosts));
-  }
-
-  @Test()
   public void testUrlArrayValues() throws Exception {
     URL[] array = new URL[randomSource.nextInt(30) + 1];
     for (int i = 0; i < array.length; i++) {
@@ -166,20 +153,6 @@ public class ConfigurationTest {
     Configuration conf = new Configuration();
     conf.setProperty(Key.RelayCacheOrigins.name(), "");
     conf.getStringArrayArray(Key.OutputPath);
-  }
-
-  @Test(expected = ConfigurationException.class)
-  public void testArrayValueException() throws Exception {
-    Configuration conf = new Configuration();
-    conf.setProperty(Key.RelayCacheOrigins.name(), "");
-    conf.getStringArray(Key.TorperfHosts);
-  }
-
-  @Test(expected = ConfigurationException.class)
-  public void testBoolValueException() throws Exception {
-    Configuration conf = new Configuration();
-    conf.setProperty(Key.TorperfHosts.name(), "http://x.y.z");
-    conf.getBool(Key.RelayCacheOrigins);
   }
 
   @Test(expected = ConfigurationException.class)
