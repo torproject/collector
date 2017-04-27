@@ -22,9 +22,10 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 public class SchedulerTest {
 
   private static final String runConfigProperties =
-      "TorperfActivated=true\nTorperfPeriodMinutes=1\nTorperfOffsetMinutes=0\n"
-      + "RelaydescsActivated=true\nRelaydescsPeriodMinutes=1"
-      + "\nRelaydescsOffsetMinutes=0\n"
+      "OnionperfActivated=true\nOnionperfPeriodMinutes=1\n"
+      + "OnionperfOffsetMinutes=0\n"
+      + "RelaydescsActivated=true\nRelaydescsPeriodMinutes=1\n"
+      + "RelaydescsOffsetMinutes=0\n"
       + "ExitlistsActivated=true\nExitlistsPeriodMinutes=1\n"
       + "ExitlistsOffsetMinutes=0\n"
       + "UpdateindexActivated=true\nUpdateindexPeriodMinutes=1\n"
@@ -37,7 +38,7 @@ public class SchedulerTest {
     Map<Key, Class<? extends CollecTorMain>> ctms = new HashMap<>();
     Configuration conf = new Configuration();
     conf.load(new ByteArrayInputStream(runConfigProperties.getBytes()));
-    ctms.put(Key.TorperfActivated, Dummy.class);
+    ctms.put(Key.OnionperfActivated, Dummy.class);
     ctms.put(Key.BridgedescsActivated, Dummy.class);
     ctms.put(Key.RelaydescsActivated, Dummy.class);
     ctms.put(Key.ExitlistsActivated, Dummy.class);
@@ -69,7 +70,7 @@ public class SchedulerTest {
     conf.load(new ByteArrayInputStream(("ShutdownGraceWaitMinutes=1\n"
         + runConfigProperties).getBytes()));
     conf.setProperty(Key.RunOnce.name(), "true");
-    ctms.put(Key.TorperfActivated, Counter.class);
+    ctms.put(Key.OnionperfActivated, Counter.class);
     ctms.put(Key.BridgedescsActivated, Counter.class);
     ctms.put(Key.RelaydescsActivated, Counter.class);
     ctms.put(Key.ExitlistsActivated, Counter.class);
@@ -92,7 +93,7 @@ public class SchedulerTest {
     Map<Key, Class<? extends CollecTorMain>> ctms = new HashMap<>();
     Configuration conf = new Configuration();
     conf.load(new ByteArrayInputStream(runConfigProperties.getBytes()));
-    ctms.put(Key.TorperfActivated, Broken.class);
+    ctms.put(Key.OnionperfActivated, Broken.class);
     ctms.put(Key.BridgedescsActivated, Broken.class);
     ctms.put(Key.RelaydescsActivated, Broken.class);
     ctms.put(Key.ExitlistsActivated, Broken.class);

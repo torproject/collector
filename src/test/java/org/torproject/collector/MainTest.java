@@ -100,7 +100,7 @@ public class MainTest {
     Main.main(new String[]{conf.toString()});
     assertTrue(4_000L <= conf.length());
     changeFilePathsAndSetActivation(conf,
-        Key.TorperfActivated.name());
+        Key.OnionperfActivated.name());
     Main.main(new String[]{conf.toString()});
     waitSec(2);
   }

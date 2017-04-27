@@ -50,7 +50,7 @@ public class Main {
     collecTorMains.put(Key.ExitlistsActivated, ExitListDownloader.class);
     collecTorMains.put(Key.UpdateindexActivated, CreateIndexJson.class);
     collecTorMains.put(Key.RelaydescsActivated, ArchiveWriter.class);
-    collecTorMains.put(Key.TorperfActivated, OnionperfDownloader.class);
+    collecTorMains.put(Key.OnionperfActivated, OnionperfDownloader.class);
   }
 
   private static Configuration conf = new Configuration();
