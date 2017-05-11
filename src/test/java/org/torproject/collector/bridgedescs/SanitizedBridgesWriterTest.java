@@ -536,6 +536,29 @@ public class SanitizedBridgesWriterTest {
   }
 
   @Test
+  public void testExtraInfoDescriptorPaddingCountsRetained() throws Exception {
+    this.defaultExtraInfoDescriptorBuilder.insertBeforeLineStartingWith(
+        "transport ",
+        Arrays.asList("padding-counts 2017-05-10 01:48:43 (86400 s) "
+            + "bin-size=10000 write-drop=10000 write-pad=10000 "
+            + "write-total=10000 read-drop=10000 read-pad=10000 "
+            + "read-total=70000 enabled-read-pad=0 enabled-read-total=0 "
+            + "enabled-write-pad=0 enabled-write-total=0 "
+            + "max-chanpad-timers=0"));
+    this.runTest();
+    int foundPaddingCountsLines = 0;
+    if (!this.parsedExtraInfoDescriptors.isEmpty()) {
+      for (String line : this.parsedExtraInfoDescriptors.get(0)) {
+        if (line.startsWith("padding-counts ")) {
+          foundPaddingCountsLines++;
+        }
+      }
+    }
+    assertEquals("padding-counts line should have been retained.", 1,
+        foundPaddingCountsLines);
+  }
+
+  @Test
   public void testExtraInfoDescriptorRouterSignatureLineSpace()
       throws Exception {
     this.defaultExtraInfoDescriptorBuilder.replaceLineStartingWith(

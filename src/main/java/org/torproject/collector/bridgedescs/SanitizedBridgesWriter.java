@@ -1190,7 +1190,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
             || line.startsWith("cell-")
             || line.startsWith("entry-")
             || line.startsWith("exit-")
-            || line.startsWith("hidserv-")) {
+            || line.startsWith("hidserv-")
+            || line.startsWith("padding-counts ")) {
           scrubbed.append(line + "\n");
 
         /* When we reach the signature, we're done. Write the sanitized
