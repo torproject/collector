@@ -168,7 +168,7 @@ public class ReferenceChecker {
     DescriptorReader descriptorReader =
         DescriptorSourceFactory.createDescriptorReader();
     descriptorReader.addDirectory(this.descriptorsDir);
-    descriptorReader.setExcludeFiles(this.historyFile);
+    descriptorReader.setHistoryFile(this.historyFile);
     Iterator<DescriptorFile> descriptorFiles =
         descriptorReader.readDescriptors();
     while (descriptorFiles.hasNext()) {
@@ -199,6 +199,7 @@ public class ReferenceChecker {
         }
       }
     }
+    descriptorReader.saveHistoryFile(this.historyFile);
   }
 
   private void readRelayNetworkStatusConsensusUnflavored(

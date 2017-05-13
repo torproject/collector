@@ -82,9 +82,10 @@ public class SyncManager {
         String histFileEnding = entry.getValue().getSimpleName()
             + (entry.getKey().contains("consensus-microdesc")
                ? "-micro" : "");
-        descriptorReader.setExcludeFiles(new File(basePath.toFile(),
+        File historyFile = new File(basePath.toFile(),
             "sync-history-" + source.getHost() + "-" + marker + "-"
-            + histFileEnding));
+            + histFileEnding);
+        descriptorReader.setHistoryFile(historyFile);
         log.info("Reading {} of type {} ... ", marker, histFileEnding);
         Iterator<DescriptorFile> descriptorFiles
             = descriptorReader.readDescriptors();
@@ -108,6 +109,7 @@ public class SyncManager {
           persist.storeDescs(descFile.getDescriptors(),
               descFile.getFile().getName(), collectionDate.getTime());
         }
+        descriptorReader.saveHistoryFile(historyFile);
       }
       log.info("Done merging {} from {}.", marker, source.getHost());
     }
