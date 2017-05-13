@@ -521,14 +521,14 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           }
 
           /* Write scrubbed r line to buffer. */
-          byte[] hashedBridgeIdentity = DigestUtils.sha(fingerprintBytes);
+          byte[] hashedBridgeIdentity = DigestUtils.sha1(fingerprintBytes);
           String hashedBridgeIdentityBase64 = Base64.encodeBase64String(
               hashedBridgeIdentity).substring(0, 27);
           hashedBridgeIdentityHex = Hex.encodeHexString(
               hashedBridgeIdentity);
           String descriptorIdentifier = parts[3];
           String hashedDescriptorIdentifier = Base64.encodeBase64String(
-              DigestUtils.sha(Base64.decodeBase64(descriptorIdentifier
+              DigestUtils.sha1(Base64.decodeBase64(descriptorIdentifier
               + "=="))).substring(0, 27);
           String scrubbedAddress = scrubIpv4Address(address,
               fingerprintBytes,
@@ -725,7 +725,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
               .replaceAll(" ", "").toLowerCase();
           byte[] fingerprintBytes = Hex.decodeHex(
               fingerprint.toCharArray());
-          hashedBridgeIdentity = DigestUtils.shaHex(fingerprintBytes)
+          hashedBridgeIdentity = DigestUtils.sha1Hex(fingerprintBytes)
               .toLowerCase();
           try {
             scrubbedAddress = scrubIpv4Address(address, fingerprintBytes,
@@ -799,7 +799,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
                 + "expected: '" + line + "'.  Skipping descriptor.");
             return;
           }
-          scrubbed.append("extra-info-digest " + DigestUtils.shaHex(
+          scrubbed.append("extra-info-digest " + DigestUtils.sha1Hex(
               Hex.decodeHex(parts[1].toCharArray())).toUpperCase());
           if (parts.length > 2) {
             if (!Base64.isBase64(parts[2])) {
@@ -894,7 +894,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           StringBuilder familyLine = new StringBuilder("family");
           for (String s : line.substring(7).split(" ")) {
             if (s.startsWith("$")) {
-              familyLine.append(" $" + DigestUtils.shaHex(Hex.decodeHex(
+              familyLine.append(" $" + DigestUtils.sha1Hex(Hex.decodeHex(
                   s.substring(1).toCharArray())).toUpperCase());
             } else {
               familyLine.append(" " + s);
@@ -952,7 +952,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       if (start >= 0 && sig >= 0 && sig > start) {
         byte[] forDigest = new byte[sig - start];
         System.arraycopy(data, start, forDigest, 0, sig - start);
-        descriptorDigest = DigestUtils.shaHex(DigestUtils.sha(forDigest));
+        descriptorDigest = DigestUtils.sha1Hex(DigestUtils.sha1(forDigest));
       }
     } catch (UnsupportedEncodingException e) {
       /* Handle below. */
@@ -1112,7 +1112,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
                 + "'.  Skipping descriptor.");
             return;
           }
-          hashedBridgeIdentity = DigestUtils.shaHex(Hex.decodeHex(
+          hashedBridgeIdentity = DigestUtils.sha1Hex(Hex.decodeHex(
               parts[2].toCharArray())).toLowerCase();
           scrubbed = new StringBuilder("extra-info " + parts[1] + " "
               + hashedBridgeIdentity.toUpperCase() + "\n");
@@ -1237,7 +1237,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       if (start >= 0 && sig >= 0 && sig > start) {
         byte[] forDigest = new byte[sig - start];
         System.arraycopy(data, start, forDigest, 0, sig - start);
-        descriptorDigest = DigestUtils.shaHex(DigestUtils.sha(forDigest));
+        descriptorDigest = DigestUtils.sha1Hex(DigestUtils.sha1(forDigest));
       }
     } catch (UnsupportedEncodingException e) {
       /* Handle below. */

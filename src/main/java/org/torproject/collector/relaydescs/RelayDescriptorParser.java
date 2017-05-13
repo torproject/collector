@@ -210,7 +210,7 @@ public class RelayDescriptorParser {
               sig += sigToken.length();
               byte[] forDigest = new byte[sig - start];
               System.arraycopy(data, start, forDigest, 0, sig - start);
-              String digest = DigestUtils.shaHex(forDigest).toUpperCase();
+              String digest = DigestUtils.sha1Hex(forDigest).toUpperCase();
               if (this.aw != null) {
                 this.aw.storeVote(data, validAfter, dirSource, digest,
                     serverDescriptorDigests);
@@ -260,7 +260,7 @@ public class RelayDescriptorParser {
         if (start >= 0 || sig >= 0 || sig > start) {
           byte[] forDigest = new byte[sig - start];
           System.arraycopy(data, start, forDigest, 0, sig - start);
-          digest = DigestUtils.shaHex(forDigest);
+          digest = DigestUtils.sha1Hex(forDigest);
         }
         if (this.aw != null && digest != null) {
           this.aw.storeServerDescriptor(data, digest, published,
@@ -299,7 +299,7 @@ public class RelayDescriptorParser {
         if (start >= 0 && sig >= 0 && sig > start) {
           byte[] forDigest = new byte[sig - start];
           System.arraycopy(data, start, forDigest, 0, sig - start);
-          digest = DigestUtils.shaHex(forDigest);
+          digest = DigestUtils.sha1Hex(forDigest);
         }
         if (this.aw != null && digest != null) {
           this.aw.storeExtraInfoDescriptor(data, digest, published);

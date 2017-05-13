@@ -135,7 +135,7 @@ public class CachedRelayDescriptorReader {
             /* Parse the cached consensus if we haven't parsed it before
              * (but regardless of whether it's stale or not). */
             if (rdp != null) {
-              String digest = Hex.encodeHexString(DigestUtils.sha(
+              String digest = Hex.encodeHexString(DigestUtils.sha1(
                   allData));
               if (!lastImportHistory.contains(digest)
                   && !currentImportHistory.contains(digest)) {
@@ -162,7 +162,7 @@ public class CachedRelayDescriptorReader {
                 System.arraycopy(allData, start, rawNetworkStatusBytes, 0,
                     next - start);
                 if (rdp != null) {
-                  String digest = Hex.encodeHexString(DigestUtils.sha(
+                  String digest = Hex.encodeHexString(DigestUtils.sha1(
                       rawNetworkStatusBytes));
                   if (!lastImportHistory.contains(digest)
                       && !currentImportHistory.contains(digest)) {
@@ -209,7 +209,7 @@ public class CachedRelayDescriptorReader {
               byte[] descBytes = new byte[end - start];
               System.arraycopy(allData, start, descBytes, 0, end - start);
               if (rdp != null) {
-                String digest = Hex.encodeHexString(DigestUtils.sha(
+                String digest = Hex.encodeHexString(DigestUtils.sha1(
                     descBytes));
                 if (!lastImportHistory.contains(digest)
                     && !currentImportHistory.contains(digest)) {

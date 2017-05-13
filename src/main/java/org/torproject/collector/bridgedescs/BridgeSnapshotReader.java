@@ -141,7 +141,7 @@ public class BridgeSnapshotReader {
                 if (allData.length == 0) {
                   continue;
                 }
-                String fileDigest = Hex.encodeHexString(DigestUtils.sha(
+                String fileDigest = Hex.encodeHexString(DigestUtils.sha1(
                     allData));
                 String ascii = new String(allData, "US-ASCII");
                 BufferedReader br3 = new BufferedReader(new StringReader(
@@ -194,7 +194,7 @@ public class BridgeSnapshotReader {
                     System.arraycopy(allData, start, descBytes, 0,
                         end - start);
                     String descriptorDigest = Hex.encodeHexString(
-                        DigestUtils.sha(descBytes));
+                        DigestUtils.sha1(descBytes));
                     if (!descriptorImportHistory.contains(
                         descriptorDigest)) {
                       bdp.parse(descBytes, dateTime, authorityFingerprint);

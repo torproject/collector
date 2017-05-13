@@ -55,7 +55,7 @@ public class VotePersistence
         sig += sigToken.length();
         byte[] forDigest = new byte[sig - start];
         System.arraycopy(bytes, start, forDigest, 0, sig - start);
-        digest = DigestUtils.shaHex(forDigest).toUpperCase();
+        digest = DigestUtils.sha1Hex(forDigest).toUpperCase();
       } else {
         log.error("No digest calculation possible.  Returning empty string.");
       }
