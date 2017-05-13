@@ -24,7 +24,7 @@ public class BridgeServerDescriptorPersistence
         BRIDGEDESCS,
         SERVERDESCS,
         file + DASH + SERVERDESCS).toString();
-    String digest = desc.getServerDescriptorDigest().toLowerCase();
+    String digest = desc.getDigestSha1Hex().toLowerCase();
     this.storagePath = Paths.get(
         BRIDGEDESCS,
         parts[0], // year

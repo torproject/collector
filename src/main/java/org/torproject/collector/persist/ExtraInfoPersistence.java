@@ -24,7 +24,7 @@ public class ExtraInfoPersistence
         RELAYDESCS,
         EXTRA_INFOS,
         file + DASH + EXTRA_INFOS).toString();
-    String digest = desc.getExtraInfoDigest();
+    String digest = desc.getDigestSha1Hex();
     this.storagePath = Paths.get(
         RELAYDESCS,
         EXTRA_INFO,

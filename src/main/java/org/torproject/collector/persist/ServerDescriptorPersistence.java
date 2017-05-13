@@ -26,7 +26,7 @@ public class ServerDescriptorPersistence
         RELAY_DESCRIPTORS,
         SERVERDESCS,
         file + DASH + SERVERDESCS).toString();
-    String digest = desc.getServerDescriptorDigest();
+    String digest = desc.getDigestSha1Hex();
     this.storagePath = Paths.get(
         RELAY_DESCRIPTORS,
         SERVERDESC,

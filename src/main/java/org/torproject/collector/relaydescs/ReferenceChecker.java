@@ -238,7 +238,7 @@ public class ReferenceChecker {
         / ((double) consensus.getStatusEntries().size());
     for (NetworkStatusEntry entry :
         consensus.getStatusEntries().values()) {
-      for (String digest : entry.getMicrodescriptorDigests()) {
+      for (String digest : entry.getMicrodescriptorDigestsSha256Base64()) {
         this.addReference(referencing, String.format("D-%s", digest),
             entryWeight, entry.getPublishedMillis() + THREE_HOURS);
       }
@@ -259,23 +259,24 @@ public class ReferenceChecker {
   }
 
   private void readServerDescriptor(ServerDescriptor serverDescriptor) {
-    String referenced = serverDescriptor.getExtraInfoDigest() == null ? ""
-        : String.format("E-%s", serverDescriptor.getExtraInfoDigest());
+    String referenced = serverDescriptor.getExtraInfoDigestSha1Hex() == null
+        ? "" : String.format("E-%s",
+        serverDescriptor.getExtraInfoDigestSha1Hex());
     this.addReference(String.format("S-%s",
-        serverDescriptor.getServerDescriptorDigest()), referenced, 0.01,
+        serverDescriptor.getDigestSha1Hex()), referenced, 0.01,
         serverDescriptor.getPublishedMillis() + SIX_HOURS);
   }
 
   private void readExtraInfoDescriptor(
       ExtraInfoDescriptor extraInfoDescriptor) {
     this.addReference(String.format("E-%s",
-        extraInfoDescriptor.getExtraInfoDigest()), "", 0.005,
+        extraInfoDescriptor.getDigestSha1Hex()), "", 0.005,
         extraInfoDescriptor.getPublishedMillis() + SIX_HOURS);
   }
 
   private void readMicrodescriptor(Microdescriptor microdesc) {
     this.addReference(
-        String.format("D-%s", microdesc.getMicrodescriptorDigest()), "",
+        String.format("D-%s", microdesc.getDigestSha256Base64()), "",
         0.0, this.currentTimeMillis + THIRTY_DAYS);
   }
 

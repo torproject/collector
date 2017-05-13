@@ -24,7 +24,7 @@ public class BridgeExtraInfoPersistence
         BRIDGEDESCS,
         EXTRA_INFOS,
         file + DASH + EXTRA_INFOS).toString();
-    String digest = desc.getExtraInfoDigest().toLowerCase();
+    String digest = desc.getDigestSha1Hex().toLowerCase();
     this.storagePath = Paths.get(
         BRIDGEDESCS,
         parts[0], // year
