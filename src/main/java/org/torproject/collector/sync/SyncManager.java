@@ -9,9 +9,9 @@ import org.torproject.collector.conf.Key;
 
 import org.torproject.descriptor.Descriptor;
 import org.torproject.descriptor.DescriptorCollector;
-import org.torproject.descriptor.DescriptorFile;
 import org.torproject.descriptor.DescriptorReader;
 import org.torproject.descriptor.DescriptorSourceFactory;
+import org.torproject.descriptor.UnparseableDescriptor;
 import org.torproject.descriptor.index.DescriptorIndexCollector;
 
 import org.slf4j.Logger;
@@ -70,15 +70,17 @@ public class SyncManager {
       String marker, Configuration conf) throws ConfigurationException {
     Path basePath = conf.getPath(Key.SyncPath);
     SyncPersistence persist = new SyncPersistence(conf);
+    Criterium<Descriptor> unparseable
+        = new ProcessCriterium(UnparseableDescriptor.class);
     for (URL source : sources) {
       File base = new File(basePath.toFile(), marker + "-" + source.getHost());
       log.info("Merging {} from {} into storage ...", marker,
           source.getHost());
       for (Map.Entry<String, Class<? extends Descriptor>> entry
           : mapPathDesc.entrySet()) {
+        File descFile = new File(base, entry.getKey());
         DescriptorReader descriptorReader
             = DescriptorSourceFactory.createDescriptorReader();
-        descriptorReader.addDirectory(new File(base, entry.getKey()));
         String histFileEnding = entry.getValue().getSimpleName()
             + (entry.getKey().contains("consensus-microdesc")
                ? "-micro" : "");
@@ -87,28 +89,27 @@ public class SyncManager {
             + histFileEnding);
         descriptorReader.setHistoryFile(historyFile);
         log.info("Reading {} of type {} ... ", marker, histFileEnding);
-        Iterator<DescriptorFile> descriptorFiles
-            = descriptorReader.readDescriptors();
+        Iterator<Descriptor> descriptors
+            = descriptorReader.readDescriptors(descFile).iterator();
         log.info("Done reading {} of type {}.", marker, histFileEnding);
-        Criterium crit = new ProcessCriterium(entry.getValue());
-        while (descriptorFiles.hasNext()) {
-          DescriptorFile descFile = descriptorFiles.next();
-          log.debug("Operating on desc-file containing {} descs.",
-              descFile.getDescriptors().size());
-          if (!crit.applies(descFile)) {
-            log.warn("Not processing {} in {}.", descFile.getFileName(),
-                descFile.getDirectory());
+        Criterium<Descriptor> crit = new ProcessCriterium(entry.getValue());
+        while (descriptors.hasNext()) {
+          Descriptor desc = descriptors.next();
+          if (unparseable.applies(desc)) {
+            Exception ex
+                = ((UnparseableDescriptor)desc).getDescriptorParseException();
+            log.warn("Parsing of {} caused Exception(s). Processing anyway.",
+                desc.getDescriptorFile(), ex);
+          }
+          if (!crit.applies(desc)) {
+            log.warn("Not processing {} in {}.", desc.getClass().getName(),
+                desc.getDescriptorFile());
             continue;
           }
 
-          Exception ex = descFile.getException();
-          if (null != ex) {
-            log.warn("Parsing of {} caused Exception(s). Processing anyway.",
-                descFile.getDirectory() + "/" + descFile.getFileName(), ex);
-          }
-          persist.storeDescs(descFile.getDescriptors(),
-              descFile.getFile().getName(), collectionDate.getTime());
+          persist.storeDesc(desc, collectionDate.getTime());
         }
+        persist.cleanDirectory();
         descriptorReader.saveHistoryFile(historyFile);
       }
       log.info("Done merging {} from {}.", marker, source.getHost());

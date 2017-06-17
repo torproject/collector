@@ -4,7 +4,6 @@
 package org.torproject.collector.relaydescs;
 
 import org.torproject.descriptor.Descriptor;
-import org.torproject.descriptor.DescriptorFile;
 import org.torproject.descriptor.DescriptorReader;
 import org.torproject.descriptor.DescriptorSourceFactory;
 import org.torproject.descriptor.DirSourceEntry;
@@ -167,36 +166,33 @@ public class ReferenceChecker {
   private void readNewDescriptors() {
     DescriptorReader descriptorReader =
         DescriptorSourceFactory.createDescriptorReader();
-    descriptorReader.addDirectory(this.descriptorsDir);
     descriptorReader.setHistoryFile(this.historyFile);
-    Iterator<DescriptorFile> descriptorFiles =
-        descriptorReader.readDescriptors();
-    while (descriptorFiles.hasNext()) {
-      DescriptorFile descriptorFile = descriptorFiles.next();
-      for (Descriptor descriptor : descriptorFile.getDescriptors()) {
-        if (descriptor instanceof RelayNetworkStatusConsensus) {
-          RelayNetworkStatusConsensus consensus =
-              (RelayNetworkStatusConsensus) descriptor;
-          String consensusFlavor = consensus.getConsensusFlavor();
-          if (consensusFlavor == null) {
-            this.readRelayNetworkStatusConsensusUnflavored(consensus);
-          } else if (consensusFlavor.equals("microdesc")) {
-            this.readRelayNetworkStatusConsensusMicrodesc(consensus);
-          } else {
-            /* Ignore unknown consensus flavors. */
-          }
-        } else if (descriptor instanceof RelayNetworkStatusVote) {
-          this.readRelayNetworkStatusVote(
-              (RelayNetworkStatusVote) descriptor);
-        } else if (descriptor instanceof ServerDescriptor) {
-          this.readServerDescriptor((ServerDescriptor) descriptor);
-        } else if (descriptor instanceof ExtraInfoDescriptor) {
-          this.readExtraInfoDescriptor((ExtraInfoDescriptor) descriptor);
-        } else if (descriptor instanceof Microdescriptor) {
-          readMicrodescriptor((Microdescriptor) descriptor);
+    Iterator<Descriptor> descriptors
+        = descriptorReader.readDescriptors(this.descriptorsDir).iterator();
+    while (descriptors.hasNext()) {
+      Descriptor descriptor = descriptors.next();
+      if (descriptor instanceof RelayNetworkStatusConsensus) {
+        RelayNetworkStatusConsensus consensus =
+            (RelayNetworkStatusConsensus) descriptor;
+        String consensusFlavor = consensus.getConsensusFlavor();
+        if (consensusFlavor == null) {
+          this.readRelayNetworkStatusConsensusUnflavored(consensus);
+        } else if (consensusFlavor.equals("microdesc")) {
+          this.readRelayNetworkStatusConsensusMicrodesc(consensus);
         } else {
-          /* Ignore unknown descriptors. */
+          /* Ignore unknown consensus flavors. */
         }
+      } else if (descriptor instanceof RelayNetworkStatusVote) {
+        this.readRelayNetworkStatusVote(
+            (RelayNetworkStatusVote) descriptor);
+      } else if (descriptor instanceof ServerDescriptor) {
+        this.readServerDescriptor((ServerDescriptor) descriptor);
+      } else if (descriptor instanceof ExtraInfoDescriptor) {
+        this.readExtraInfoDescriptor((ExtraInfoDescriptor) descriptor);
+      } else if (descriptor instanceof Microdescriptor) {
+        readMicrodescriptor((Microdescriptor) descriptor);
+      } else {
+        /* Ignore unknown descriptors. */
       }
     }
     descriptorReader.saveHistoryFile(this.historyFile);

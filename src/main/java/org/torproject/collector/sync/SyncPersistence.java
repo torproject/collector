@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
 
 /** Provides persistence for descriptors based on the descriptor type. */
 public class SyncPersistence {
@@ -55,69 +54,9 @@ public class SyncPersistence {
   }
 
   /**
-   * Stores the list of descriptors in main storage and recent.
-   * The storage locations are taken from <code>collector.properties</code>'
-   * options <code>OutputPath</code> and <code>RecentPath</code>.
+   * Cleans the directory in <code>RecentPath</code> after storing descriptors.
    */
-  public void storeDescs(List<Descriptor> descs, String filename,
-      long received) {
-    for (Descriptor desc : descs) {
-      boolean recognizedAndWritten = false;
-      for (Class clazz : desc.getClass().getInterfaces()) {
-        DescriptorPersistence descPersist = null;
-        switch (clazz.getSimpleName()) {
-          case "RelayNetworkStatusVote":
-            descPersist
-                = new VotePersistence((RelayNetworkStatusVote) desc, received);
-            break;
-          case "RelayNetworkStatusConsensus":
-            RelayNetworkStatusConsensus cons =
-                (RelayNetworkStatusConsensus) desc;
-            if (null == cons.getConsensusFlavor()) {
-              descPersist = new ConsensusPersistence(cons, received);
-            } else if ("microdesc".equals(cons.getConsensusFlavor())) {
-              descPersist = new MicroConsensusPersistence(cons, received);
-            }
-            break;
-          case "RelayServerDescriptor":
-            descPersist = new ServerDescriptorPersistence(
-                (RelayServerDescriptor) desc, received);
-            break;
-          case "BridgeExtraInfoDescriptor":
-            descPersist = new BridgeExtraInfoPersistence(
-                (BridgeExtraInfoDescriptor) desc, received);
-            break;
-          case "RelayExtraInfoDescriptor":
-            descPersist = new ExtraInfoPersistence(
-                (RelayExtraInfoDescriptor) desc, received);
-            break;
-          case "BridgeNetworkStatus": // need to infer authId from filename
-            descPersist = new StatusPersistence(
-                (BridgeNetworkStatus) desc, filename.split(DASH)[2], received);
-            break;
-          case "BridgeServerDescriptor":
-            descPersist = new BridgeServerDescriptorPersistence(
-                (BridgeServerDescriptor) desc, received);
-            break;
-          case "ExitList": // downloaded is part of desc, which to use?
-            descPersist = new ExitlistPersistence((ExitList) desc, received);
-            break;
-          default:
-            log.trace("Invalid descriptor type {} for sync-merge.",
-                clazz.getName());
-            continue;
-        }
-        if (null != descPersist) {
-          descPersist.storeAll(recentPathName, outputPathName);
-          recognizedAndWritten = true;
-        }
-        break;
-      }
-      if (!recognizedAndWritten) {
-        log.error("Unknown descriptor type {} implementing {}.",
-            desc.getClass().getSimpleName(), desc.getClass().getInterfaces());
-      }
-    }
+  public void cleanDirectory() {
     try {
       PersistenceUtils.cleanDirectory(recentPath);
     } catch (IOException ioe) {
@@ -125,4 +64,83 @@ public class SyncPersistence {
     }
   }
 
+  /**
+   * Stores descriptors in main storage and recent.
+   * The storage locations are taken from <code>collector.properties</code>'
+   * options <code>OutputPath</code> and <code>RecentPath</code>.
+   */
+  public void storeDescs(Iterable<Descriptor> descs, long received) {
+    for (Descriptor desc : descs) {
+      storeDesc(desc, received);
+    }
+  }
+
+  /**
+   * Stores a descriptor in main storage and recent.
+   * The storage locations are taken from <code>collector.properties</code>'
+   * options <code>OutputPath</code> and <code>RecentPath</code>.
+   */
+  public void storeDesc(Descriptor desc, long received) {
+    String filename = desc.getDescriptorFile().getName();
+    boolean recognizedAndWritten = false;
+    for (Class clazz : desc.getClass().getInterfaces()) {
+      DescriptorPersistence descPersist = null;
+      switch (clazz.getSimpleName()) {
+        case "RelayNetworkStatusVote":
+          descPersist
+              = new VotePersistence((RelayNetworkStatusVote) desc, received);
+          break;
+        case "RelayNetworkStatusConsensus":
+          RelayNetworkStatusConsensus cons =
+              (RelayNetworkStatusConsensus) desc;
+          if (null == cons.getConsensusFlavor()) {
+            descPersist = new ConsensusPersistence(cons, received);
+          } else if ("microdesc".equals(cons.getConsensusFlavor())) {
+            descPersist = new MicroConsensusPersistence(cons, received);
+          }
+          break;
+        case "RelayServerDescriptor":
+          descPersist = new ServerDescriptorPersistence(
+              (RelayServerDescriptor) desc, received);
+          break;
+        case "BridgeExtraInfoDescriptor":
+          descPersist = new BridgeExtraInfoPersistence(
+              (BridgeExtraInfoDescriptor) desc, received);
+          break;
+        case "RelayExtraInfoDescriptor":
+          descPersist = new ExtraInfoPersistence(
+              (RelayExtraInfoDescriptor) desc, received);
+          break;
+        case "BridgeNetworkStatus": // need to infer authId from filename
+          String[] filenameParts = filename.split(DASH);
+          if (filenameParts.length < 3) {
+            log.error("Invalid BridgeNetworkStatus; skipping: {}.", filename);
+            break;
+          }
+          descPersist = new StatusPersistence(
+              (BridgeNetworkStatus) desc, filenameParts[2], received);
+          break;
+        case "BridgeServerDescriptor":
+          descPersist = new BridgeServerDescriptorPersistence(
+              (BridgeServerDescriptor) desc, received);
+          break;
+        case "ExitList": // downloaded is part of desc, which to use?
+          descPersist = new ExitlistPersistence((ExitList) desc, received);
+          break;
+        default:
+          log.trace("Invalid descriptor type {} for sync-merge.",
+              clazz.getName());
+          continue;
+      }
+      if (null != descPersist) {
+        descPersist.storeAll(recentPathName, outputPathName);
+        recognizedAndWritten = true;
+      }
+      break;
+    }
+    if (!recognizedAndWritten) {
+      log.error("Unknown descriptor type {} implementing {}.",
+          desc.getClass().getSimpleName(), desc.getClass().getInterfaces());
+    }
+  }
 }

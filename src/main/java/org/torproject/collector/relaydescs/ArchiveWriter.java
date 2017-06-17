@@ -9,13 +9,14 @@ import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
 import org.torproject.collector.conf.SourceType;
 import org.torproject.collector.cron.CollecTorMain;
-import org.torproject.descriptor.DescriptorParseException;
+import org.torproject.descriptor.Descriptor;
 import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
 import org.torproject.descriptor.RelayExtraInfoDescriptor;
 import org.torproject.descriptor.RelayNetworkStatusConsensus;
 import org.torproject.descriptor.RelayNetworkStatusVote;
 import org.torproject.descriptor.RelayServerDescriptor;
+import org.torproject.descriptor.UnparseableDescriptor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -824,16 +825,17 @@ public class ArchiveWriter extends CollecTorMain {
 
   private boolean store(byte[] typeAnnotation, byte[] data,
       File[] outputFiles, boolean[] append) {
-    try {
-      logger.trace("Storing " + outputFiles[0]);
-      if (this.descriptorParser.parseDescriptors(data,
-          outputFiles[0].getName()).size() != 1) {
-        logger.info("Relay descriptor file " + outputFiles[0]
-            + " doesn't contain exactly one descriptor.  Storing anyway.");
+    logger.trace("Storing " + outputFiles[0]);
+    int parseableDescriptors = 0;
+    for (Descriptor descriptor : this.descriptorParser.parseDescriptors(data,
+        null, outputFiles[0].getName())) {
+      if (!(descriptor instanceof UnparseableDescriptor)) {
+        parseableDescriptors++;
       }
-    } catch (DescriptorParseException e) {
-      this.logger.info("Could not parse relay descriptor "
-          + outputFiles[0] + " before storing it to disk.  Storing anyway.", e);
+    }
+    if (parseableDescriptors != 1) {
+      logger.info("Relay descriptor file " + outputFiles[0]
+          + " doesn't contain exactly one descriptor.  Storing anyway.");
     }
     try {
       for (int i = 0; i < outputFiles.length; i++) {

@@ -4,10 +4,9 @@
 package org.torproject.collector.sync;
 
 import org.torproject.descriptor.Descriptor;
-import org.torproject.descriptor.DescriptorFile;
 
 /** Should a descriptor file be processed during sync. */
-public class ProcessCriterium implements Criterium<DescriptorFile> {
+public class ProcessCriterium implements Criterium<Descriptor> {
 
   private final Class<? extends Descriptor> wantedType;
 
@@ -17,13 +16,8 @@ public class ProcessCriterium implements Criterium<DescriptorFile> {
 
   /** Only process descriptors with the appropriate type. */
   @Override
-  public boolean applies(DescriptorFile file) {
-    for (Descriptor desc : file.getDescriptors()) {
-      if (!this.wantedType.isInstance(desc)) {
-        return false;
-      }
-    }
-    return true;
+  public boolean applies(Descriptor desc) {
+    return this.wantedType.isInstance(desc);
   }
 
 }

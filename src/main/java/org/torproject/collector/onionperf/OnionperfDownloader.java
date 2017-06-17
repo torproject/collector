@@ -8,7 +8,6 @@ import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
 import org.torproject.collector.cron.CollecTorMain;
 import org.torproject.descriptor.Descriptor;
-import org.torproject.descriptor.DescriptorParseException;
 import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
 import org.torproject.descriptor.TorperfResult;
@@ -211,16 +210,17 @@ public class OnionperfDownloader extends CollecTorMain {
     /* Validate contained descriptors. */
     DescriptorParser descriptorParser =
         DescriptorSourceFactory.createDescriptorParser();
-    List<Descriptor> descriptors;
+    byte[] rawDescriptorBytes;
     try {
-      descriptors = descriptorParser.parseDescriptors(
-          Files.readAllBytes(tempFile.toPath()), tpfFileName);
-    } catch (IOException | DescriptorParseException e) {
-      logger.warn("OnionPerf file '{}{}' could not be parsed.  "
+      rawDescriptorBytes = Files.readAllBytes(tempFile.toPath());
+    } catch (IOException e) {
+      logger.warn("OnionPerf file '{}{}' could not be read.  "
           + "Skipping.", baseUrl, tpfFileName, e);
       tempFile.delete();
       return;
     }
+    Iterable<Descriptor> descriptors = descriptorParser.parseDescriptors(
+        rawDescriptorBytes, null, tpfFileName);
     String message = null;
     for (Descriptor descriptor : descriptors) {
       if (!(descriptor instanceof TorperfResult)) {

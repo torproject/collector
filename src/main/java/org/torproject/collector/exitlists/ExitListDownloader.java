@@ -9,7 +9,6 @@ import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
 import org.torproject.collector.cron.CollecTorMain;
 import org.torproject.descriptor.Descriptor;
-import org.torproject.descriptor.DescriptorParseException;
 import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
 import org.torproject.descriptor.ExitList;
@@ -28,7 +27,6 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TimeZone;
@@ -114,27 +112,28 @@ public class ExitListDownloader extends CollecTorMain {
     File tarballFile = Paths.get(outputPathName,
         tarballFormat.format(downloadedDate)).toFile();
 
+    DescriptorParser descriptorParser =
+        DescriptorSourceFactory.createDescriptorParser();
+    int parsedExitLists = 0;
+    int otherDescriptors = 0;
     long maxScanMillis = 0L;
-    try {
-      DescriptorParser descriptorParser =
-          DescriptorSourceFactory.createDescriptorParser();
-      List<Descriptor> parsedDescriptors =
-          descriptorParser.parseDescriptors(downloadedExitList.getBytes(),
-          tarballFile.getName());
-      if (parsedDescriptors.size() != 1
-          || !(parsedDescriptors.get(0) instanceof ExitList)) {
-        logger.warn("Could not parse downloaded exit list");
-        return;
-      }
-      ExitList parsedExitList = (ExitList) parsedDescriptors.get(0);
-      for (ExitList.Entry entry : parsedExitList.getEntries()) {
-        for (long scanMillis : entry.getExitAddresses().values()) {
-          maxScanMillis = Math.max(maxScanMillis, scanMillis);
+    for (Descriptor descriptor : descriptorParser.parseDescriptors(
+        downloadedExitList.getBytes(), null, tarballFile.getName())) {
+      if (descriptor instanceof ExitList) {
+        parsedExitLists++;
+        ExitList parsedExitList = (ExitList) descriptor;
+        for (ExitList.Entry entry : parsedExitList.getEntries()) {
+          for (long scanMillis : entry.getExitAddresses().values()) {
+            maxScanMillis = Math.max(maxScanMillis, scanMillis);
+          }
         }
+      } else {
+        otherDescriptors++;
       }
-    } catch (DescriptorParseException e) {
-      logger.warn("Could not parse downloaded exit list",
-          e);
+    }
+    if (parsedExitLists != 1 || otherDescriptors > 0) {
+      logger.warn("Could not parse downloaded exit list");
+      return;
     }
     if (maxScanMillis > 0L
         && maxScanMillis + 330L * 60L * 1000L < System.currentTimeMillis()) {

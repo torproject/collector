@@ -193,6 +193,7 @@ public class SyncPersistenceTest {
   private int outCount;
   private int recentCount;
   private String filename;
+  private File fileForName;
   private File recent;
   private File output;
   private String recentName;
@@ -205,6 +206,7 @@ public class SyncPersistenceTest {
     this.expectedRecentDir = subRecent;
     this.expectedOutputDir = subOutput;
     this.filename = fn;
+    this.fileForName = new File(fn);
     this.outCount = outCount;
     this.recentCount = recentCount;
   }
@@ -220,8 +222,9 @@ public class SyncPersistenceTest {
     makeTemporaryFolders();
     DescriptorParser dp = DescriptorSourceFactory.createDescriptorParser();
     SyncPersistence persist = new SyncPersistence(conf);
-    persist.storeDescs(dp.parseDescriptors(bytesFromResource(), filename),
-        filename, 1475694377000L);
+    persist.storeDescs(dp.parseDescriptors(bytesFromResource(),
+        fileForName, filename), 1475694377000L);
+    persist.cleanDirectory();
     List<File> recentList = new ArrayList<>();
     Files.walkFileTree(recent.toPath(), new FileCollector(recentList));
     String dataUsed = "data used: " + expectedRecentDir + ", " + filename
@@ -237,8 +240,9 @@ public class SyncPersistenceTest {
     makeTemporaryFolders();
     DescriptorParser dp = DescriptorSourceFactory.createDescriptorParser();
     SyncPersistence persist = new SyncPersistence(conf);
-    persist.storeDescs(dp.parseDescriptors(bytesFromResource(), filename),
-        filename, 1475694377000L);
+    persist.storeDescs(dp.parseDescriptors(bytesFromResource(),
+        fileForName, filename), 1475694377000L);
+    persist.cleanDirectory();
     List<File> recentList = new ArrayList<>();
     List<File> outputList = new ArrayList<>();
     Files.walkFileTree(output.toPath(), new FileCollector(outputList));
@@ -260,8 +264,9 @@ public class SyncPersistenceTest {
     makeTemporaryFolders();
     DescriptorParser dp = DescriptorSourceFactory.createDescriptorParser();
     SyncPersistence persist = new SyncPersistence(conf);
-    persist.storeDescs(dp.parseDescriptors(bytesFromResource(), filename),
-        filename, 1475694377000L);
+    persist.storeDescs(dp.parseDescriptors(bytesFromResource(),
+        fileForName, filename), 1475694377000L);
+    persist.cleanDirectory();
     List<File> recentList = new ArrayList<>();
     Files.walkFileTree(recent.toPath(), new FileCollector(recentList));
     assertEquals(recentCount, recentList.size());
@@ -284,8 +289,9 @@ public class SyncPersistenceTest {
     makeTemporaryFolders();
     DescriptorParser dp = DescriptorSourceFactory.createDescriptorParser();
     SyncPersistence persist = new SyncPersistence(conf);
-    persist.storeDescs(dp.parseDescriptors(bytesFromResource(), filename),
-        filename, 1475694377000L);
+    persist.storeDescs(dp.parseDescriptors(bytesFromResource(),
+        fileForName, filename), 1475694377000L);
+    persist.cleanDirectory();
     List<File> outputList = new ArrayList<>();
     Files.walkFileTree(output.toPath(), new FileCollector(outputList));
     assertEquals(outCount, outputList.size());
