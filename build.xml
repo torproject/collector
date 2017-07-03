@@ -11,7 +11,7 @@
   <property name="release.version" value="1.1.2-dev" />
   <property name="project-main-class" value="org.torproject.collector.Main" />
   <property name="name" value="collector"/>
-  <property name="descriptorversion" value="1.9.0" />
+  <property name="metricslibversion" value="2.0.0" />
   <property name="jarincludes" value="collector.properties logback.xml" />
 
   <patternset id="runtime" >
@@ -19,7 +19,7 @@
       <include name="commons-compress-1.9.jar"/>
       <include name="gson-2.2.4.jar"/>
       <include name="xz-1.5.jar"/>
-      <include name="descriptor-${descriptorversion}.jar"/>
+      <include name="metrics-lib-${metricslibversion}.jar"/>
       <include name="logback-core-1.1.2.jar" />
       <include name="logback-classic-1.1.2.jar" />
       <include name="slf4j-api-1.7.7.jar" />
