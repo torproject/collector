@@ -71,30 +71,30 @@ public class ExitListDownloader extends CollecTorMain {
         EXITLISTS).toString();
     Date downloadedDate = new Date();
     String downloadedExitList = null;
-    try {
-      logger.debug("Downloading exit list...");
-      StringBuilder sb = new StringBuilder();
-      sb.append(Annotation.ExitList.toString());
-      sb.append("Downloaded " + dateTimeFormat.format(downloadedDate)
-          + "\n");
-      URL url = config.getUrl(Key.ExitlistUrl);
+    logger.debug("Downloading exit list...");
+    StringBuilder sb = new StringBuilder();
+    sb.append(Annotation.ExitList.toString());
+    sb.append("Downloaded " + dateTimeFormat.format(downloadedDate) + "\n");
+    URL url = config.getUrl(Key.ExitlistUrl);
+    try  {
       HttpURLConnection huc = (HttpURLConnection) url.openConnection();
       huc.setRequestMethod("GET");
+      huc.setReadTimeout(5000);
       huc.connect();
       int response = huc.getResponseCode();
       if (response != 200) {
-        logger.warn("Could not download exit list. Response code "
-            + response);
+        logger.warn("Could not download exit list. Response code {}",
+            response);
         return;
       }
-      BufferedInputStream in = new BufferedInputStream(
-          huc.getInputStream());
-      int len;
-      byte[] data = new byte[1024];
-      while ((len = in.read(data, 0, 1024)) >= 0) {
-        sb.append(new String(data, 0, len));
+      try (BufferedInputStream in = new BufferedInputStream(
+          huc.getInputStream())) {
+        int len;
+        byte[] data = new byte[1024];
+        while ((len = in.read(data, 0, 1024)) >= 0) {
+          sb.append(new String(data, 0, len));
+        }
       }
-      in.close();
       downloadedExitList = sb.toString();
       logger.debug("Finished downloading exit list.");
     } catch (IOException e) {
