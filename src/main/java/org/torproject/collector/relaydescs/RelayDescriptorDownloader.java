@@ -859,28 +859,29 @@ public class RelayDescriptorDownloader {
     /* TODO Disable compressed downloads for extra-info descriptors,
      * because zlib decompression doesn't work correctly. Figure out why
      * this is and fix it. */
-    String fullUrl = "http://" + authority + resource
-        + (this.downloadCompressed && !resource.startsWith("/tor/extra/")
-        ? ".z" : "");
+    boolean isCompressed = this.downloadCompressed
+        && !resource.startsWith("/tor/extra/");
+    String fullUrl
+        = "http://" + authority + resource + (isCompressed ? ".z" : "");
     URL url = new URL(fullUrl);
     HttpURLConnection huc = (HttpURLConnection) url.openConnection();
     huc.setRequestMethod("GET");
+    huc.setReadTimeout(5000);
     huc.connect();
     int response = huc.getResponseCode();
     if (response == 200) {
-      BufferedInputStream in = this.downloadCompressed
-          && !resource.startsWith("/tor/extra/")
-          ? new BufferedInputStream(new InflaterInputStream(
+      try (BufferedInputStream in
+          = isCompressed ? new BufferedInputStream(new InflaterInputStream(
           huc.getInputStream()))
-          : new BufferedInputStream(huc.getInputStream());
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      int len;
-      byte[] data = new byte[1024];
-      while ((len = in.read(data, 0, 1024)) >= 0) {
-        baos.write(data, 0, len);
+          : new BufferedInputStream(huc.getInputStream())) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        int len;
+        byte[] data = new byte[1024];
+        while ((len = in.read(data, 0, 1024)) >= 0) {
+          baos.write(data, 0, len);
+        }
+        allData = baos.toByteArray();
       }
-      in.close();
-      allData = baos.toByteArray();
     }
     logger.debug("Downloaded " + fullUrl + " -> " + response + " ("
         + (allData == null ? 0 : allData.length) + " bytes)");
