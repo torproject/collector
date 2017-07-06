@@ -8,6 +8,8 @@
  * Medium changes
    - Clean up files in recent/exit-lists/ again.
    - Retain padding-counts lines in sanitized extra-info descriptors.
+   - Either include or retain "fingerprint" line in bridge network
+     statuses with @type bridge-network-status 1.2.
 
  * Minor changes
    - Only consider recent relay descriptors in reference checker.

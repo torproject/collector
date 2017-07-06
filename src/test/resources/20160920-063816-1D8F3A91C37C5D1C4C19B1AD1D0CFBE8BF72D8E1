@@ -1,6 +1,7 @@
-@type bridge-network-status 1.1
+@type bridge-network-status 1.2
 published 2016-09-20 06:38:16
 flag-thresholds stable-uptime=1293451 stable-mtbf=1209559 fast-speed=55000 guard-wfu=98.000% guard-tk=691200 guard-bw-inc-exits=336000 guard-bw-exc-exits=337000 enough-mtbf=1 ignoring-advertised-bws=0
+fingerprint 1D8F3A91C37C5D1C4C19B1AD1D0CFBE8BF72D8E1
 r Unnamed AAlGwzESK67MpzYXyyPazNZ5qm4 RJ+KTZ6gYUSvkuOS5YFOIkYXtsY 2016-09-20 05:04:15 10.183.232.113 56654 0
 s Fast HSDir Running Stable V2Dir Valid
 w Bandwidth=790

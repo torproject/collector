@@ -573,12 +573,13 @@ public class SanitizedBridgesWriterTest {
   public void testNetworkStatusDefault() throws Exception {
     this.runTest();
     List<String> expectedLines = Arrays.asList(
-        "@type bridge-network-status 1.1",
+        "@type bridge-network-status 1.2",
         "published 2016-06-30 23:40:28",
         "flag-thresholds stable-uptime=807660 stable-mtbf=1425164 "
             + "fast-speed=47000 guard-wfu=98.000% guard-tk=691200 "
             + "guard-bw-inc-exits=400000 guard-bw-exc-exits=402000 "
             + "enough-mtbf=1 ignoring-advertised-bws=0",
+        "fingerprint 4A0CCD2DDC7995083D73F5D667100C8A5831F16D",
         "r MeekGoogle iPdFhA9HzgxqT+YdgnlQsG+eRTQ "
             + "tpIv9cBFgU30vLcqDWyUF8/72Ao 2016-06-30 21:43:52 127.0.0.1 "
             + "1 0",

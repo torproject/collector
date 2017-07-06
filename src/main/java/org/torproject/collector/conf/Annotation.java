@@ -15,7 +15,7 @@ public enum Annotation {
   MicroConsensus("@type network-status-microdesc-consensus-3 1.0\n"),
   Microdescriptor("@type microdescriptor 1.0\n"),
   Server("@type server-descriptor 1.0\n"),
-  Status("@type bridge-network-status 1.1\n"),
+  Status("@type bridge-network-status 1.2\n"),
   Onionperf("@type torperf 1.0\n"),
   Vote("@type network-status-vote-3 1.0\n");
 

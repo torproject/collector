@@ -461,6 +461,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
 
     /* Parse the given network status line by line. */
     StringBuilder header = new StringBuilder();
+    boolean includesFingerprintLine = false;
     SortedMap<String, String> scrubbedLines = new TreeMap<>();
     try {
       StringBuilder scrubbed = new StringBuilder();
@@ -482,6 +483,18 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         /* Additional header lines don't have to be cleaned up. */
         } else if (line.startsWith("flag-thresholds ")) {
           header.append(line + "\n");
+
+        /* The authority fingerprint in the "fingerprint" line can go in
+         * unscrubbed. */
+        } else if (line.startsWith("fingerprint ")) {
+          if (!("fingerprint " + authorityFingerprint).equals(line)) {
+            logger.warn("Mismatch between authority fingerprint expected from "
+                + "file name (" + authorityFingerprint + ") and parsed from "
+                + "\"fingerprint\" line (\"" + line + "\").");
+            return;
+          }
+          header.append(line + "\n");
+          includesFingerprintLine = true;
 
         /* r lines contain sensitive information that needs to be removed
          * or replaced. */
@@ -577,6 +590,9 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         String scrubbedLine = scrubbed.toString();
         scrubbedLines.put(hashedBridgeIdentityHex, scrubbedLine);
         scrubbed = new StringBuilder();
+      }
+      if (!includesFingerprintLine) {
+        header.append("fingerprint ").append(authorityFingerprint).append("\n");
       }
 
       /* Check if we can tell from the descriptor publication times
