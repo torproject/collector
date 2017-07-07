@@ -9,6 +9,9 @@
    - Clean up files in recent/exit-lists/ again.
    - Retain padding-counts lines in sanitized extra-info descriptors.
 
+ * Minor changes
+   - Only consider recent relay descriptors in reference checker.
+
 
 # Changes in version 1.1.2 - 2017-01-17
 

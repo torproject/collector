@@ -189,7 +189,7 @@ public class ArchiveWriter extends CollecTorMain {
 
     this.saveDescriptorDigests();
 
-    new ReferenceChecker(recentPath.toFile(),
+    new ReferenceChecker(Paths.get(recentPathName, RELAY_DESCRIPTORS).toFile(),
         new File(statsDir, "references"),
         new File(statsDir, "references-history")).check();
     CollecTorMain.checkAvailableSpace(recentPath);
