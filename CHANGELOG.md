@@ -10,6 +10,8 @@
    - Retain padding-counts lines in sanitized extra-info descriptors.
    - Either include or retain "fingerprint" line in bridge network
      statuses with @type bridge-network-status 1.2.
+   - Set read timeouts for downloads from directory authorities and
+     the exit list server.
 
  * Minor changes
    - Only consider recent relay descriptors in reference checker.
