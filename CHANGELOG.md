@@ -1,9 +1,11 @@
-# Changes in version 1.?.? - 2017-??-??
+# Changes in version 1.2.0 - 2017-07-12
 
  * Major changes
    - Download .tpf files from OnionPerf hosts.
    - Stop downloading and merging .data and .extradata files from
      Torperf hosts.
+   - Update to metrics-lib 2.0.0.
+   - Update to Debian stretch libraries.
 
  * Medium changes
    - Clean up files in recent/exit-lists/ again.
