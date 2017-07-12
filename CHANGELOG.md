@@ -1,5 +1,11 @@
 # Changes in version 1.?.? - 2017-??-??
 
+ * Major changes
+   - Rename "Onionperf*" configuration options in collector.properties
+     to "OnionPerf*" (with capital P).
+   - Add "Sync" as OnionPerfSource to synchronize .tpf files from
+     other CollecTor instances.
+
  * Minor changes
    - Remove all styling resources (fonts, CSS, etc.) from directory
      listings.
