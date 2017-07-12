@@ -41,14 +41,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** Download download .tpf files from OnionPerf hosts. */
-public class OnionperfDownloader extends CollecTorMain {
+public class OnionPerfDownloader extends CollecTorMain {
 
   private static final Logger logger = LoggerFactory.getLogger(
-      OnionperfDownloader.class);
+      OnionPerfDownloader.class);
 
   private static final String TORPERF = "torperf";
 
-  public OnionperfDownloader(Configuration config) {
+  /** Instantiate the OnionPerf module using the given configuration. */
+  public OnionPerfDownloader(Configuration config) {
     super(config);
   }
 
@@ -72,12 +73,12 @@ public class OnionperfDownloader extends CollecTorMain {
 
   @Override
   public String module() {
-    return TORPERF;
+    return "onionperf";
   }
 
   @Override
   protected String syncMarker() {
-    return "TorperfFiles";
+    return "OnionPerf";
   }
 
   @Override

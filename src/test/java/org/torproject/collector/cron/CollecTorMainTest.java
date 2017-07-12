@@ -70,6 +70,7 @@ public class CollecTorMainTest {
         case "Relay":
         case "Bridge":
         case "Exitlist":
+        case "OnionPerf":
           assertNotNull("Property '" + key
               + "' not specified in " + Main.CONF_FILE + ".",
               props.getProperty(key));

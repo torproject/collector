@@ -92,7 +92,7 @@ public class Configuration extends Observable implements Cloneable {
         || this.getBool(Key.BridgedescsActivated)
         || this.getBool(Key.ExitlistsActivated)
         || this.getBool(Key.UpdateindexActivated)
-        || this.getBool(Key.OnionperfActivated))) {
+        || this.getBool(Key.OnionPerfActivated))) {
       throw new ConfigurationException("Nothing is activated!\n"
           + "Please edit collector.properties. Exiting.");
     }

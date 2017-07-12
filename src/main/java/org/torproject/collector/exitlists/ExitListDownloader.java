@@ -43,7 +43,7 @@ public class ExitListDownloader extends CollecTorMain {
 
   private String recentPathName;
 
-  /** Instanciate the exit-lists module using the given configuration. */
+  /** Instantiate the exit-lists module using the given configuration. */
   public ExitListDownloader(Configuration config) {
     super(config);
     this.mapPathDescriptors.put("recent/exit-lists", ExitList.class);
