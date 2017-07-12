@@ -34,6 +34,7 @@ public enum Key {
   BridgeSyncOrigins(URL[].class),
   BridgeLocalOrigins(Path.class),
   ExitlistSyncOrigins(URL[].class),
+  OnionPerfSyncOrigins(URL[].class),
   BridgedescsActivated(Boolean.class),
   BridgedescsOffsetMinutes(Integer.class),
   BridgedescsPeriodMinutes(Integer.class),

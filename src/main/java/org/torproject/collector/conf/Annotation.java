@@ -16,7 +16,7 @@ public enum Annotation {
   Microdescriptor("@type microdescriptor 1.0\n"),
   Server("@type server-descriptor 1.0\n"),
   Status("@type bridge-network-status 1.2\n"),
-  OnionPerf("@type torperf 1.0\n"),
+  OnionPerf("@type torperf 1.1\n"),
   Vote("@type network-status-vote-3 1.0\n");
 
   private final String annotation;

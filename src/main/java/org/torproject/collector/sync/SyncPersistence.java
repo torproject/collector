@@ -13,6 +13,7 @@ import org.torproject.collector.persist.DescriptorPersistence;
 import org.torproject.collector.persist.ExitlistPersistence;
 import org.torproject.collector.persist.ExtraInfoPersistence;
 import org.torproject.collector.persist.MicroConsensusPersistence;
+import org.torproject.collector.persist.OnionPerfPersistence;
 import org.torproject.collector.persist.PersistenceUtils;
 import org.torproject.collector.persist.ServerDescriptorPersistence;
 import org.torproject.collector.persist.StatusPersistence;
@@ -26,6 +27,7 @@ import org.torproject.descriptor.RelayExtraInfoDescriptor;
 import org.torproject.descriptor.RelayNetworkStatusConsensus;
 import org.torproject.descriptor.RelayNetworkStatusVote;
 import org.torproject.descriptor.RelayServerDescriptor;
+import org.torproject.descriptor.TorperfResult;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,6 +128,9 @@ public class SyncPersistence {
           break;
         case "ExitList": // downloaded is part of desc, which to use?
           descPersist = new ExitlistPersistence((ExitList) desc, received);
+          break;
+        case "TorperfResult":
+          descPersist = new OnionPerfPersistence((TorperfResult) desc);
           break;
         default:
           log.trace("Invalid descriptor type {} for sync-merge.",
