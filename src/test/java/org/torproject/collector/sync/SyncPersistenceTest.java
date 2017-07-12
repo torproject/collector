@@ -43,6 +43,12 @@ public class SyncPersistenceTest {
          Integer.valueOf(1), // expected recent count of descs files
          Integer.valueOf(1)}, // expected output count of descs files
 
+        {"torperf/op-nl-1048576-2017-04-11.tpf",
+         new String[]{"torperf/2017/04/11/op-nl-1048576-2017-04-11.tpf"},
+         "op-nl-1048576-2017-04-11.tpf",
+         Integer.valueOf(1),
+         Integer.valueOf(1)},
+
         {"relay-descriptors/server-descriptors/"
              + "2016-10-05-19-06-17-server-descriptors",
          new String[]{"relay-descriptors/server-descriptor/2016/10/e/3/"
@@ -273,8 +279,9 @@ public class SyncPersistenceTest {
     List<String> content = Files.readAllLines(recentList.get(0).toPath(),
         StandardCharsets.UTF_8);
     List<String> expContent = linesFromResource(filename);
-    assertEquals(expContent.size(), content.size());
     int contentSize = content.size();
+    assertEquals("Number of lines incorrect for file '" + filename + "': "
+        + content, expContent.size(), contentSize);
     for (String line : expContent) {
       assertTrue("Couln't remove " + line + " from " + recentList.get(0),
           content.remove(line));
