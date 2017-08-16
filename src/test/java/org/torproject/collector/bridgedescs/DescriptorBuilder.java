@@ -60,6 +60,21 @@ abstract class DescriptorBuilder extends ArrayList<String> {
     fail("Line start not found: " + lineStart);
   }
 
+  /** Finds the first line that starts with the given line start and truncates
+   * that line and possibly subsequent lines, or fails if no line can be found
+   * with that line start. */
+  void truncateAtLineStartingWith(String lineStart) {
+    for (int i = 0; i < this.size(); i++) {
+      if (this.get(i).startsWith(lineStart)) {
+        while (this.size() > i) {
+          this.remove(i);
+        }
+        return;
+      }
+    }
+    fail("Line start not found: " + lineStart);
+  }
+
   /** Writes all descriptor lines with newlines to the given output stream. */
   void build(OutputStream outputStream) throws IOException {
     for (String line : this) {

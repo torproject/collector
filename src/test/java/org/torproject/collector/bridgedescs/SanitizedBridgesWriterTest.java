@@ -659,6 +659,19 @@ public class SanitizedBridgesWriterTest {
   }
 
   @Test
+  public void testNetworkStatusNoEntry() throws Exception {
+    this.defaultNetworkStatusBuilder.truncateAtLineStartingWith("r ");
+    this.runTest();
+    assertFalse("Skipped network status without entries.",
+        this.parsedNetworkStatuses.isEmpty());
+    for (String line : this.parsedNetworkStatuses.get(0)) {
+      if (line.startsWith("r ")) {
+        fail("Sanitized non-existent r line: " + line);
+      }
+    }
+  }
+
+  @Test
   public void testNetworkStatusFromBifroest() throws Exception {
     this.defaultTarballBuilder.setTarballFileName(
         this.defaultTarballBuilder.getTarballFileName()
