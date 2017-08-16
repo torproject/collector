@@ -600,7 +600,11 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       SimpleDateFormat formatter = new SimpleDateFormat(
           "yyyy-MM-dd HH:mm:ss");
       formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-      if (formatter.parse(publicationTime).getTime()
+      if (null == mostRecentDescPublished) {
+        logger.warn("The bridge network status published at " + publicationTime
+            + " does not contain a single entry. Please ask the bridge "
+            + "authority operator to check!");
+      } else if (formatter.parse(publicationTime).getTime()
           - formatter.parse(mostRecentDescPublished).getTime()
           > 60L * 60L * 1000L) {
         logger.warn("The most recent descriptor in the bridge "

@@ -1,3 +1,9 @@
+# Changes in version 1.2.1 - 2017-08-??
+
+ * Medium changes
+   - Fix a bug while sanitizing bridge network statuses without entries.
+
+
 # Changes in version 1.2.0 - 2017-07-12
 
  * Major changes
