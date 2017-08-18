@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
 
 public abstract class DescriptorPersistence<T extends Descriptor> {
 
@@ -32,9 +33,18 @@ public abstract class DescriptorPersistence<T extends Descriptor> {
   protected String recentPath;
 
   /** Initializes the paths for storing descriptors of type <code>T</code>. */
-  protected DescriptorPersistence(T desc, byte[] annotation) {
+  protected DescriptorPersistence(T desc, byte[] defaultAnnotation) {
     this.desc = desc;
-    this.annotation = annotation;
+    List<String> annotations = desc.getAnnotations();
+    if (annotations.isEmpty()) {
+      this.annotation = defaultAnnotation;
+    } else {
+      StringBuilder sb = new StringBuilder("");
+      for (String annotation : annotations) {
+        sb.append(annotation).append("\n");
+      }
+      this.annotation = sb.toString().getBytes();
+    }
   }
 
   /** Stores the descriptor to all locations.

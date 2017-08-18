@@ -1,4 +1,5 @@
 @type bridge-extra-info 1.3
+@some-future annotation
 extra-info DragonBridge A8D07F92DF78FA2C208FA6675B56E0A7BB750794
 master-key-ed25519 jBoYHwHIP9vplYgonlMUFJxND0QMEBqCnL2cEe2NbYc
 published 2016-10-02 06:09:10
@@ -144,6 +145,13 @@ bridge-ip-transports <OR>=8,obfs3=8,obfs4=48
 router-digest-sha256 b/PO7nPdxo+we9Tr/dQt2hAyu1TbtAWdjzac3CWYzpg
 router-digest BCFCBB38B15E9B500B1A6E9B0BCBBCE858660F17
 @type bridge-extra-info 1.3
+@many more annotations
+@one
+@two
+@three
+@four
+@five and
+@last and final
 extra-info Unnamed 1283EDA3E80CA2D485CCFEDB9715392396DFAD29
 master-key-ed25519 5GUbxrSHFtj6QjHHx5ovS2gAh8/ZjtbjU4yjULS0l0s
 published 2016-10-02 06:09:43

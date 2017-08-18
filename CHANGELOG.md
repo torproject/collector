@@ -1,3 +1,11 @@
+# Changes in version 1.?.? - 2017-??-??
+
+ * Medium changes
+   - When synchronizing descriptors from another CollecTor instance,
+     keep annotations provided by the descriptor and only add the
+     default annotation, when there was none.
+
+
 # Changes in version 1.2.1 - 2017-08-17
 
  * Medium changes
