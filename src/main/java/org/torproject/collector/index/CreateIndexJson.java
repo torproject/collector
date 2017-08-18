@@ -7,29 +7,27 @@ import org.torproject.collector.conf.Configuration;
 import org.torproject.collector.conf.ConfigurationException;
 import org.torproject.collector.conf.Key;
 import org.torproject.collector.cron.CollecTorMain;
+import org.torproject.descriptor.index.DirectoryNode;
+import org.torproject.descriptor.index.FileNode;
+import org.torproject.descriptor.index.FileType;
+import org.torproject.descriptor.index.IndexNode;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
-import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
-import java.util.zip.GZIPOutputStream;
 
 /* Create a fresh index.json containing all directories and files in the
  * archive/ and recent/ directories.
@@ -84,57 +82,6 @@ public class CreateIndexJson extends CollecTorMain {
     } catch (Exception e) {
       logger.error("Cannot run index creation: " + e.getMessage(), e);
       throw new RuntimeException(e);
-    }
-  }
-
-  private class DirectoryNode implements Comparable<DirectoryNode> {
-    String path;
-    SortedSet<FileNode> files;
-    SortedSet<DirectoryNode> directories;
-
-    DirectoryNode(String path, SortedSet<FileNode> files,
-        SortedSet<DirectoryNode> directories) {
-      this.path = path;
-      this.files = files;
-      this.directories = directories;
-    }
-
-    public int compareTo(DirectoryNode other) {
-      return this.path.compareTo(other.path);
-    }
-  }
-
-  @SuppressWarnings({"checkstyle:membername", "checkstyle:parametername"})
-  private class IndexNode {
-    String index_created;
-    String path;
-    SortedSet<FileNode> files;
-    SortedSet<DirectoryNode> directories;
-
-    IndexNode(String index_created, String path,
-        SortedSet<FileNode> files,
-        SortedSet<DirectoryNode> directories) {
-      this.index_created = index_created;
-      this.path = path;
-      this.files = files;
-      this.directories = directories;
-    }
-  }
-
-  @SuppressWarnings({"checkstyle:membername", "checkstyle:parametername"})
-  private class FileNode implements Comparable<FileNode> {
-    String path;
-    long size;
-    String last_modified;
-
-    FileNode(String path, long size, String last_modified) {
-      this.path = path;
-      this.size = size;
-      this.last_modified = last_modified;
-    }
-
-    public int compareTo(FileNode other) {
-      return this.path.compareTo(other.path);
     }
   }
 
@@ -198,24 +145,21 @@ public class CreateIndexJson extends CollecTorMain {
     return fileNode;
   }
 
-  private void writeIndex(IndexNode indexNode) throws IOException {
+  private void writeIndex(IndexNode indexNode) throws Exception {
     indexJsonFile.getParentFile().mkdirs();
     Gson gson = new GsonBuilder().create();
     String indexNodeString = gson.toJson(indexNode);
-    Writer[] writers = new Writer[] {
-        new FileWriter(indexJsonFile),
-        new OutputStreamWriter(new GZIPOutputStream(
-            new FileOutputStream(indexJsonFile + ".gz"))),
-        new OutputStreamWriter(new XZCompressorOutputStream(
-            new FileOutputStream(indexJsonFile + ".xz"))),
-        new OutputStreamWriter(new BZip2CompressorOutputStream(
-            new FileOutputStream(indexJsonFile + ".bz2")))
-    };
-    for (Writer writer : writers) {
-      BufferedWriter bufferedWriter = new BufferedWriter(writer);
-      bufferedWriter.write(indexNodeString);
-      bufferedWriter.close();
+    for (String filename : new String[] {indexJsonFile.toString(),
+        indexJsonFile + ".gz", indexJsonFile + ".xz", indexJsonFile + ".bz2"}) {
+      FileType type = FileType.valueOf(
+          filename.substring(filename.lastIndexOf(".") + 1).toUpperCase());
+      try (BufferedWriter bufferedWriter
+          = new BufferedWriter(new OutputStreamWriter(type.outputStream(
+          new FileOutputStream(filename))))) {
+        bufferedWriter.write(indexNodeString);
+      }
     }
   }
+
 }
 
