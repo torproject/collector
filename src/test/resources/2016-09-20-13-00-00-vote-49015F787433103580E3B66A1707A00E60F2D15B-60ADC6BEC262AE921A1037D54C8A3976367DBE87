@@ -1,4 +1,4 @@
-@type network-status-vote-3 1.0
+@type network-status-vote-3 1.17
 network-status-version 3
 vote-status vote
 consensus-methods 13 14 15 16 17 18 19 20 22
