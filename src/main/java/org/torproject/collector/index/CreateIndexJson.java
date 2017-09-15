@@ -9,8 +9,8 @@ import org.torproject.collector.conf.Key;
 import org.torproject.collector.cron.CollecTorMain;
 import org.torproject.descriptor.index.DirectoryNode;
 import org.torproject.descriptor.index.FileNode;
-import org.torproject.descriptor.index.FileType;
 import org.torproject.descriptor.index.IndexNode;
+import org.torproject.descriptor.internal.FileType;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

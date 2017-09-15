@@ -1,5 +1,8 @@
 # Changes in version 1.?.? - 2017-??-??
 
+ * Major changes
+   - Update to metrics-lib 2.1.0 and to Java 8.
+
  * Medium changes
    - When synchronizing descriptors from another CollecTor instance,
      keep annotations provided by the descriptor and only add the
