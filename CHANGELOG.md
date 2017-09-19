@@ -1,7 +1,8 @@
 # Changes in version 1.?.? - 2017-??-??
 
  * Minor changes
-   - Un-prettify directory listings.
+   - Remove all styling resources (fonts, CSS, etc.) from directory
+     listings.
 
 
 # Changes in version 1.3.0 - 2017-09-15
@@ -18,7 +19,8 @@
 # Changes in version 1.2.1 - 2017-08-17
 
  * Medium changes
-   - Fix a bug while sanitizing bridge network statuses without entries.
+   - Fix a bug while sanitizing bridge network statuses without
+     entries.
 
 
 # Changes in version 1.2.0 - 2017-07-12
