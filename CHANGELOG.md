@@ -1,3 +1,9 @@
+# Changes in version 1.?.? - 2017-??-??
+
+ * Minor changes
+   - Un-prettify directory listings.
+
+
 # Changes in version 1.3.0 - 2017-09-15
 
  * Major changes

@@ -1,5 +1,0 @@
-IndexOptions IgnoreCase FancyIndexing FoldersFirst HTMLTable NameWidth=* DescriptionWidth=* SuppressIcon SuppressDescription SuppressHTMLPreamble
-IndexOrderDefault Descending Name
-IndexIgnore *.tmp
-HeaderName /header.html
-ReadmeName /footer.html
