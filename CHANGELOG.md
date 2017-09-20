@@ -6,6 +6,11 @@
    - Add "Sync" as OnionPerfSource to synchronize .tpf files from
      other CollecTor instances.
 
+ * Medium changes
+   - Add new optional "build_revision" field to index.json with the
+     Git revision of the CollecTor instance's software used to create
+     this file, which will be omitted if unknown.
+
  * Minor changes
    - Remove all styling resources (fonts, CSS, etc.) from directory
      listings.

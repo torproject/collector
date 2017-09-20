@@ -21,10 +21,12 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
@@ -53,10 +55,23 @@ public class CreateIndexJson extends CollecTorMain {
 
   private static final TimeZone dateTimezone = TimeZone.getTimeZone("UTC");
 
+  private static String buildRevision = null;
+
   /** Creates indexes of directories containing archived and recent
    * descriptors and write index files to disk. */
   public CreateIndexJson(Configuration conf) {
     super(conf);
+    Properties buildProperties = new Properties();
+    try (InputStream is = getClass().getClassLoader()
+        .getResourceAsStream("collector.buildrevision.properties")) {
+      buildProperties.load(is);
+      buildRevision = buildProperties.getProperty("collector.build.revision",
+          null);
+    } catch (Exception ex) {
+      // This doesn't hamper the index creation: only log a warning.
+      logger.warn("No build revision available.", ex);
+      buildRevision = null;
+    }
   }
 
   @Override
@@ -107,7 +122,8 @@ public class CreateIndexJson extends CollecTorMain {
       }
     }
     return new IndexNode(dateTimeFormat.format(
-        System.currentTimeMillis()), basePath, null, directoryNodes);
+        System.currentTimeMillis()), buildRevision, basePath, null,
+        directoryNodes);
   }
 
   private DirectoryNode indexDirectory(File directory) {
