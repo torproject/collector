@@ -28,6 +28,7 @@ public enum Key {
   BridgeSources(SourceType[].class),
   ExitlistSources(SourceType[].class),
   OnionPerfSources(SourceType[].class),
+  WebstatsSources(SourceType[].class),
   RelayCacheOrigins(String[].class),
   RelayLocalOrigins(Path.class),
   RelaySyncOrigins(URL[].class),
@@ -35,6 +36,8 @@ public enum Key {
   BridgeLocalOrigins(Path.class),
   ExitlistSyncOrigins(URL[].class),
   OnionPerfSyncOrigins(URL[].class),
+  WebstatsSyncOrigins(URL[].class),
+  WebstatsLocalOrigins(Path.class),
   BridgedescsActivated(Boolean.class),
   BridgedescsOffsetMinutes(Integer.class),
   BridgedescsPeriodMinutes(Integer.class),
@@ -58,7 +61,11 @@ public enum Key {
   KeepDirectoryArchiveImportHistory(Boolean.class),
   ReplaceIpAddressesWithHashes(Boolean.class),
   BridgeDescriptorMappingsLimit(Integer.class),
-  OnionPerfHosts(URL[].class);
+  OnionPerfHosts(URL[].class),
+  WebstatsActivated(Boolean.class),
+  WebstatsLimits(Boolean.class),
+  WebstatsOffsetMinutes(Integer.class),
+  WebstatsPeriodMinutes(Integer.class);
 
   private Class clazz;
   private static Set<String> keys;

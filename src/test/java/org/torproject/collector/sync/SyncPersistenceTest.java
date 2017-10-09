@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RunWith(Parameterized.class)
 public class SyncPersistenceTest {
@@ -46,6 +47,26 @@ public class SyncPersistenceTest {
         {"torperf/op-nl-1048576-2017-04-11.tpf",
          new String[]{"torperf/2017/04/11/op-nl-1048576-2017-04-11.tpf"},
          "op-nl-1048576-2017-04-11.tpf",
+         Integer.valueOf(1),
+         Integer.valueOf(1)},
+
+        {"webstats/archive.torproject.org_"
+             + "archeotrichon.torproject.org_access.log_20151007.xz",
+         new String[]{"webstats/archive.torproject.org/2015/10/07/"
+             + "archive.torproject.org_archeotrichon.torproject.org"
+             + "_access.log_20151007.xz"},
+         "archeotrichon.torproject.org/archive.torproject.org_"
+             + "archeotrichon.torproject.org_access.log_20151007.xz",
+         Integer.valueOf(1),
+         Integer.valueOf(1)},
+
+        {"webstats/metrics.torproject.org_"
+             + "meronense.torproject.org_access.log_20170531.xz",
+         new String[]{"webstats/metrics.torproject.org/2017/05/31/"
+             + "metrics.torproject.org_meronense.torproject.org"
+             + "_access.log_20170531.xz"},
+         "meronense.torproject.org/metrics.torproject.org_"
+             + "meronense.torproject.org_access.log_20170531.gz",
          Integer.valueOf(1),
          Integer.valueOf(1)},
 
@@ -266,6 +287,9 @@ public class SyncPersistenceTest {
 
   @Test()
   public void testRecentFileContent() throws Exception {
+    if (this.filename.contains(".log")) {
+      return; // Skip this test, because logs are compressed and sanitized.
+    }
     conf = new Configuration();
     makeTemporaryFolders();
     DescriptorParser dp = DescriptorSourceFactory.createDescriptorParser();
@@ -292,6 +316,9 @@ public class SyncPersistenceTest {
 
   @Test()
   public void testOutFileContent() throws Exception {
+    if (this.filename.contains(".log")) {
+      return; // Skip this test, because logs are compressed and sanitized.
+    }
     conf = new Configuration();
     makeTemporaryFolders();
     DescriptorParser dp = DescriptorSourceFactory.createDescriptorParser();
@@ -305,9 +332,8 @@ public class SyncPersistenceTest {
     List<String> expContent = linesFromResource(filename);
     int expContentSize = expContent.size();
     for (File file : outputList) {
-      List<String> content = Files.readAllLines(file.toPath(),
-          StandardCharsets.UTF_8);
-      for (String line : content) {
+      for (String line : Files.readAllLines(file.toPath(),
+          StandardCharsets.UTF_8)) {
         assertTrue("Couldn't remove " + line + ".", expContent.remove(line));
         assertEquals(--expContentSize, expContent.size());
       }
@@ -325,49 +351,25 @@ public class SyncPersistenceTest {
   }
 
   private byte[] bytesFromResource() throws Exception {
-    StringBuilder sb = new StringBuilder();
-    BufferedReader br = new BufferedReader(new InputStreamReader(getClass()
-        .getClassLoader().getResourceAsStream(filename)));
-    String line = br.readLine();
-    while (null != line) {
-      sb.append(line).append('\n');
-      line = br.readLine();
-    }
-    return sb.toString().getBytes();
+    return Files.readAllBytes((new File(getClass()
+        .getClassLoader().getResource(filename).toURI())).toPath());
   }
 
   private String stringFromResource() throws Exception {
-    StringBuilder sb = new StringBuilder();
     BufferedReader br = new BufferedReader(new InputStreamReader(getClass()
         .getClassLoader().getResourceAsStream(filename)));
-    String line = br.readLine();
-    while (null != line) {
-      sb.append(line).append('\n');
-      line = br.readLine();
-    }
-    return sb.toString();
+    return br.lines().collect(Collectors.joining("\n", "", "\n"));
   }
 
   private String stringFromFile(File file) throws Exception {
-    StringBuilder sb = new StringBuilder();
-    List<String> lines = Files.readAllLines(file.toPath(),
-        StandardCharsets.UTF_8);
-    for (String line : lines) {
-      sb.append(line).append('\n');
-    }
-    return sb.toString();
+    return Files.lines(file.toPath(), StandardCharsets.UTF_8)
+        .collect(Collectors.joining("\n", "", "\n"));
   }
 
   private List<String> linesFromResource(String filename) throws Exception {
-    List<String> res = new ArrayList<>();
     BufferedReader br = new BufferedReader(new InputStreamReader(getClass()
         .getClassLoader().getResourceAsStream(filename)));
-    String line = br.readLine();
-    while (null != line) {
-      res.add(line);
-      line = br.readLine();
-    }
-    return res;
+    return br.lines().collect(Collectors.toList());
   }
 
 }

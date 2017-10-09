@@ -1,4 +1,8 @@
-# Changes in version 1.?.? - 201?-??-??
+# Changes in version 1.5.0 - 2018-01-31
+
+ * Major changes
+   - Update to metrics-lib 2.2.0.
+   - Add new module for processing and sanitizing Tor web server logs.
 
  * Minor changes
    - Exclude lastModifiedMillis in index.json.

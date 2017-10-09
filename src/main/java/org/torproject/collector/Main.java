@@ -14,6 +14,7 @@ import org.torproject.collector.exitlists.ExitListDownloader;
 import org.torproject.collector.index.CreateIndexJson;
 import org.torproject.collector.onionperf.OnionPerfDownloader;
 import org.torproject.collector.relaydescs.ArchiveWriter;
+import org.torproject.collector.webstats.SanitizeWeblogs;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +52,7 @@ public class Main {
     collecTorMains.put(Key.UpdateindexActivated, CreateIndexJson.class);
     collecTorMains.put(Key.RelaydescsActivated, ArchiveWriter.class);
     collecTorMains.put(Key.OnionPerfActivated, OnionPerfDownloader.class);
+    collecTorMains.put(Key.WebstatsActivated, SanitizeWeblogs.class);
   }
 
   private static Configuration conf = new Configuration();

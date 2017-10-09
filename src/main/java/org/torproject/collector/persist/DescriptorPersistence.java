@@ -19,6 +19,7 @@ public abstract class DescriptorPersistence<T extends Descriptor> {
 
   protected static final String BRIDGEDESCS = "bridge-descriptors";
   protected static final String DASH = "-";
+  protected static final String DOT = ".";
   protected static final String MICRODESC = "microdesc";
   protected static final String MICRODESCS = "microdescs";
   protected static final String RELAYDESCS = "relay-descriptors";
@@ -26,6 +27,7 @@ public abstract class DescriptorPersistence<T extends Descriptor> {
   protected static final String EXTRA_INFOS = "extra-infos";
   protected static final String SERVERDESC = "server-descriptor";
   protected static final String SERVERDESCS = "server-descriptors";
+  protected static final String WEBSTATS = "webstats";
 
   protected final T desc;
   protected final byte[] annotation;

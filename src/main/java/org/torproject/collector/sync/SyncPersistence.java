@@ -18,6 +18,7 @@ import org.torproject.collector.persist.PersistenceUtils;
 import org.torproject.collector.persist.ServerDescriptorPersistence;
 import org.torproject.collector.persist.StatusPersistence;
 import org.torproject.collector.persist.VotePersistence;
+import org.torproject.collector.persist.WebServerAccessLogPersistence;
 import org.torproject.descriptor.BridgeExtraInfoDescriptor;
 import org.torproject.descriptor.BridgeNetworkStatus;
 import org.torproject.descriptor.BridgeServerDescriptor;
@@ -28,6 +29,7 @@ import org.torproject.descriptor.RelayNetworkStatusConsensus;
 import org.torproject.descriptor.RelayNetworkStatusVote;
 import org.torproject.descriptor.RelayServerDescriptor;
 import org.torproject.descriptor.TorperfResult;
+import org.torproject.descriptor.WebServerAccessLog;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,6 +134,10 @@ public class SyncPersistence {
         case "TorperfResult":
           descPersist = new OnionPerfPersistence((TorperfResult) desc);
           break;
+        case "WebServerAccessLog":
+          descPersist = new WebServerAccessLogPersistence(
+              (WebServerAccessLog) desc);
+          break;
         default:
           log.trace("Invalid descriptor type {} for sync-merge.",
               clazz.getName());
@@ -149,3 +155,4 @@ public class SyncPersistence {
     }
   }
 }
+
