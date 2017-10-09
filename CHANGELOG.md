@@ -1,4 +1,4 @@
-# Changes in version 1.?.? - 2017-??-??
+# Changes in version 1.4.0 - 2017-10-09
 
  * Major changes
    - Rename "Onionperf*" configuration options in collector.properties
