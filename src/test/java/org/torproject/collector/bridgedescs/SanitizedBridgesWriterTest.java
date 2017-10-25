@@ -440,6 +440,20 @@ public class SanitizedBridgesWriterTest {
   }
 
   @Test
+  public void testServerDescriptorPublishedLineAfterFingerprintLine()
+      throws Exception {
+    this.configuration.setProperty(Key.ReplaceIpAddressesWithHashes.name(),
+        "true");
+    String fingerprintLine =
+        "fingerprint 46D4 A711 97B8 FA51 5A82 6C6B 017C 522F E264 655B";
+    this.defaultServerDescriptorBuilder.removeLine(fingerprintLine);
+    this.defaultServerDescriptorBuilder.insertBeforeLineStartingWith(
+        "published ", Arrays.asList(fingerprintLine));
+    this.runTest();
+    assertFalse(this.parsedServerDescriptors.isEmpty());
+  }
+
+  @Test
   public void testExtraInfoDescriptorDefault() throws Exception {
     this.runTest();
     List<String> expectedLines = Arrays.asList(
