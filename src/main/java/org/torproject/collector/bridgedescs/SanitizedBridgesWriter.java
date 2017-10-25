@@ -679,6 +679,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           new String(data, "US-ASCII")));
       StringBuilder scrubbed = new StringBuilder();
       String line = null;
+      byte[] fingerprintBytes = null;
       String hashedBridgeIdentity = null;
       String address = null;
       String routerLine = null;
@@ -734,6 +735,20 @@ public class SanitizedBridgesWriter extends CollecTorMain {
               this.haveWarnedAboutInterval = true;
             }
           }
+          if (null != fingerprintBytes) {
+            /* We have read both published and fingerprint lines that we need to
+             * scrub the bridge's address which we might need to scrub reject
+             * lines. */
+            try {
+              scrubbedAddress = scrubIpv4Address(address, fingerprintBytes,
+                  published);
+            } catch (IOException e) {
+              /* There's a persistence problem, so we shouldn't scrub more
+               * IP addresses in this execution. */
+              this.persistenceProblemWithSecrets = true;
+              return;
+            }
+          }
           scrubbed.append(line + "\n");
 
         /* Parse the fingerprint to determine the hashed bridge
@@ -743,13 +758,51 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           String fingerprint = line.substring(line.startsWith("opt ")
               ? "opt fingerprint".length() : "fingerprint".length())
               .replaceAll(" ", "").toLowerCase();
-          byte[] fingerprintBytes = Hex.decodeHex(
-              fingerprint.toCharArray());
+          fingerprintBytes = Hex.decodeHex(fingerprint.toCharArray());
           hashedBridgeIdentity = DigestUtils.sha1Hex(fingerprintBytes)
               .toLowerCase();
+          if (null != published) {
+            /* We have read both published and fingerprint lines that we need to
+             * scrub the bridge's address which we might need to scrub reject
+             * lines. */
+            try {
+              scrubbedAddress = scrubIpv4Address(address, fingerprintBytes,
+                  published);
+            } catch (IOException e) {
+              /* There's a persistence problem, so we shouldn't scrub more
+               * IP addresses in this execution. */
+              this.persistenceProblemWithSecrets = true;
+              return;
+            }
+          }
+          scrubbed.append((line.startsWith("opt ") ? "opt " : "")
+              + "fingerprint");
+          for (int i = 0; i < hashedBridgeIdentity.length() / 4; i++) {
+            scrubbed.append(" " + hashedBridgeIdentity.substring(4 * i,
+                4 * (i + 1)).toUpperCase());
+          }
+          scrubbed.append("\n");
+
+        /* Replace the contact line (if present) with a generic one. */
+        } else if (line.startsWith("contact ")) {
+          scrubbed.append("contact somebody\n");
+
+        /* When we reach the signature, we're done. Write the sanitized
+         * descriptor to disk below. */
+        } else if (line.startsWith("router-signature")) {
+
+          /* Write the scrubbed "router" line now based on the "router",
+           * "fingerprint", and "published" lines that we read before. Also
+           * scrub any "or-address" lines. */
+          if (null == routerLine || null == fingerprintBytes
+              || null == published) {
+            logger.warn("Missing either of the following lines that are "
+                + "required to sanitize this server bridge descriptor: "
+                + "\"router\", \"fingerprint\", \"published\". Skipping "
+                + "descriptor.");
+            return;
+          }
           try {
-            scrubbedAddress = scrubIpv4Address(address, fingerprintBytes,
-                published);
             if (orAddresses != null) {
               scrubbedOrAddresses = new ArrayList<>();
               for (String orAddress : orAddresses) {
@@ -781,21 +834,9 @@ public class SanitizedBridgesWriter extends CollecTorMain {
             this.persistenceProblemWithSecrets = true;
             return;
           }
-          scrubbed.append((line.startsWith("opt ") ? "opt " : "")
-              + "fingerprint");
-          for (int i = 0; i < hashedBridgeIdentity.length() / 4; i++) {
-            scrubbed.append(" " + hashedBridgeIdentity.substring(4 * i,
-                4 * (i + 1)).toUpperCase());
-          }
-          scrubbed.append("\n");
 
-        /* Replace the contact line (if present) with a generic one. */
-        } else if (line.startsWith("contact ")) {
-          scrubbed.append("contact somebody\n");
-
-        /* When we reach the signature, we're done. Write the sanitized
-         * descriptor to disk below. */
-        } else if (line.startsWith("router-signature")) {
+          /* Put together the scrubbed descriptor from "router" to the newline
+           * before the original "router-signature" line. */
           scrubbedDesc = scrubbedRouterLine;
           if (scrubbedOrAddresses != null) {
             for (String scrubbedOrAddress : scrubbedOrAddresses) {
