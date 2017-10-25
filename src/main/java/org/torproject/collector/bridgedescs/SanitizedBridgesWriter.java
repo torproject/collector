@@ -946,7 +946,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
             || line.equals("opt allow-single-hop-exits")
             || line.equals("allow-single-hop-exits")
             || line.startsWith("ipv6-policy ")
-            || line.equals("tunnelled-dir-server")) {
+            || line.equals("tunnelled-dir-server")
+            || line.startsWith("bridge-distribution-request ")) {
           scrubbed.append(line + "\n");
 
         /* Replace node fingerprints in the family line with their hashes
