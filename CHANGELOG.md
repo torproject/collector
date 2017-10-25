@@ -1,3 +1,12 @@
+# Changes in version 1.4.1 - 2017-10-26
+
+ * Medium changes
+   - Handle bridge descriptors with an unusual order of "published"
+     and "fingerprint" lines.
+   - Retain "bridge-distribution-request" lines when sanitizing
+     descriptors.
+
+
 # Changes in version 1.4.0 - 2017-10-09
 
  * Major changes
