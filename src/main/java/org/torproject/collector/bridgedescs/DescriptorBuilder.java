@@ -5,6 +5,7 @@ package org.torproject.collector.bridgedescs;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /** Builder for descriptors.
  *
@@ -55,10 +56,7 @@ class DescriptorBuilder {
 
   @Override
   public String toString() {
-    StringBuilder full = new StringBuilder();
-    for (Object part : this.parts) {
-      full.append(part.toString());
-    }
-    return full.toString();
+    return this.parts.stream().map(part -> part.toString())
+        .collect(Collectors.joining(""));
   }
 }
