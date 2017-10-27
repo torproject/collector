@@ -8,10 +8,10 @@ import java.util.Arrays;
 /** Builds a non-sanitized bridge extra-info descriptor that comes with an
  * original bridge descriptor (of a bundled and therefore publicly known bridge)
  * by default. */
-class ExtraInfoDescriptorBuilder extends DescriptorBuilder {
+class ExtraInfoTestDescriptorBuilder extends TestDescriptorBuilder {
 
   /** Initializes the descriptor builder. */
-  ExtraInfoDescriptorBuilder() {
+  ExtraInfoTestDescriptorBuilder() {
     this.addAll(Arrays.asList(
         "extra-info MeekGoogle "
             + "46D4A71197B8FA515A826C6B017C522FE264655B",

@@ -14,7 +14,7 @@ import java.util.List;
 
 /** Builds a descriptor by concatenating the given lines with newlines and
  * writing the output to the given output stream. */
-abstract class DescriptorBuilder extends ArrayList<String> {
+abstract class TestDescriptorBuilder extends ArrayList<String> {
 
   /** Removes the given line, or fails if that line cannot be found. */
   void removeLine(String line) {

@@ -679,8 +679,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     Map<StringBuilder, String> scrubbedTcpPorts = new HashMap<>();
     Map<StringBuilder, String> scrubbedIpAddressesAndTcpPorts = new HashMap<>();
     String masterKeyEd25519FromIdentityEd25519 = null;
-    SanitizedBridgeDescriptorBuilder scrubbed =
-        new SanitizedBridgeDescriptorBuilder();
+    DescriptorBuilder scrubbed = new DescriptorBuilder();
     try (BufferedReader br = new BufferedReader(new StringReader(
         new String(data, "US-ASCII")))) {
       scrubbed.append(Annotation.BridgeServer.toString());
@@ -923,7 +922,6 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           return;
         }
       }
-      br.close();
     } catch (Exception e) {
       logger.warn("Could not parse server "
           + "descriptor.", e);

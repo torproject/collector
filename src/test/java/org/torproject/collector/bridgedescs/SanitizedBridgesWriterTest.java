@@ -62,23 +62,23 @@ public class SanitizedBridgesWriterTest {
 
   /** Server descriptor builder used to build the first and only server
    * descriptor for this test, unless removed from the tarball builder.*/
-  private DescriptorBuilder defaultServerDescriptorBuilder;
+  private TestDescriptorBuilder defaultServerTestDescriptorBuilder;
 
   /** Extra-info descriptor builder used to build the first and only
    * extra-info descriptor for this test, unless removed from the tarball
    * builder.*/
-  private DescriptorBuilder defaultExtraInfoDescriptorBuilder;
+  private TestDescriptorBuilder defaultExtraInfoTestDescriptorBuilder;
 
   /** Network status builder used to build the first and only network
    * status for this test, unless removed from the tarball builder.*/
-  private DescriptorBuilder defaultNetworkStatusBuilder;
+  private TestDescriptorBuilder defaultNetworkStatusTestDescriptorBuilder;
 
   /** Tarball builder to build the first and only tarball, unless removed
    * from the test. */
-  private TarballBuilder defaultTarballBuilder;
+  private TarballTestBuilder defaultTarballTestBuilder;
 
   /** Tarball builder(s) for this test. */
-  private List<TarballBuilder> tarballBuilders;
+  private List<TarballTestBuilder> tarballBuilders;
 
   /** Parsed sanitized bridge descriptors with keys being file names and
    * values being sanitized descriptor lines. */
@@ -104,24 +104,26 @@ public class SanitizedBridgesWriterTest {
     this.sanitizedBridgesDirectory =
         this.temporaryFolder.newFolder("out", "bridge-descriptors").toPath();
     this.initializeTestConfiguration();
-    this.defaultServerDescriptorBuilder = new ServerDescriptorBuilder();
-    this.defaultExtraInfoDescriptorBuilder = new ExtraInfoDescriptorBuilder();
-    this.defaultNetworkStatusBuilder = new NetworkStatusBuilder();
-    this.defaultTarballBuilder = new TarballBuilder(
+    this.defaultServerTestDescriptorBuilder = new ServerTestDescriptorBuilder();
+    this.defaultExtraInfoTestDescriptorBuilder
+        = new ExtraInfoTestDescriptorBuilder();
+    this.defaultNetworkStatusTestDescriptorBuilder
+        = new NetworkStatusTestDescriptorBuilder();
+    this.defaultTarballTestBuilder = new TarballTestBuilder(
         "from-tonga-2016-07-01T000702Z.tar.gz", 1467331624000L);
-    this.defaultTarballBuilder.add("bridge-descriptors", 1467331622000L,
-        Arrays.asList(new DescriptorBuilder[] {
-            this.defaultServerDescriptorBuilder }));
-    this.defaultTarballBuilder.add("cached-extrainfo", 1467327972000L,
-        Arrays.asList(new DescriptorBuilder[] {
-            this.defaultExtraInfoDescriptorBuilder }));
-    this.defaultTarballBuilder.add("cached-extrainfo.new", 1467331623000L,
-        Arrays.asList(new DescriptorBuilder[] { }));
-    this.defaultTarballBuilder.add("networkstatus-bridges",
-        1467330028000L, Arrays.asList(new DescriptorBuilder[] {
-            this.defaultNetworkStatusBuilder }));
+    this.defaultTarballTestBuilder.add("bridge-descriptors", 1467331622000L,
+        Arrays.asList(new TestDescriptorBuilder[] {
+            this.defaultServerTestDescriptorBuilder }));
+    this.defaultTarballTestBuilder.add("cached-extrainfo", 1467327972000L,
+        Arrays.asList(new TestDescriptorBuilder[] {
+            this.defaultExtraInfoTestDescriptorBuilder }));
+    this.defaultTarballTestBuilder.add("cached-extrainfo.new", 1467331623000L,
+        Arrays.asList(new TestDescriptorBuilder[] { }));
+    this.defaultTarballTestBuilder.add("networkstatus-bridges",
+        1467330028000L, Arrays.asList(new TestDescriptorBuilder[] {
+            this.defaultNetworkStatusTestDescriptorBuilder }));
     this.tarballBuilders = new ArrayList<>(
-        Arrays.asList(this.defaultTarballBuilder));
+        Arrays.asList(this.defaultTarballTestBuilder));
   }
 
   /** Initializes a configuration for the bridge descriptor sanitizer. */
@@ -142,7 +144,7 @@ public class SanitizedBridgesWriterTest {
   /** Runs this test by executing all builders, performing the sanitizing
    * process, and parsing sanitized bridge descriptors for inspection. */
   private void runTest() throws IOException, ConfigurationException {
-    for (TarballBuilder tarballBuilder : this.tarballBuilders) {
+    for (TarballTestBuilder tarballBuilder : this.tarballBuilders) {
       tarballBuilder.build(new File(this.bridgeDirectoriesDir));
     }
     SanitizedBridgesWriter sbw = new SanitizedBridgesWriter(configuration);
@@ -206,7 +208,7 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testServerDescriptorEmpty() throws Exception {
-    this.defaultServerDescriptorBuilder.clear();
+    this.defaultServerTestDescriptorBuilder.clear();
     this.runTest();
     assertTrue("No server descriptor provided as input.",
         this.parsedServerDescriptors.isEmpty());
@@ -214,14 +216,14 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testServerDescriptorOnlyAnnotation() throws Exception {
-    this.defaultServerDescriptorBuilder.removeAllExcept("@purpose bridge");
+    this.defaultServerTestDescriptorBuilder.removeAllExcept("@purpose bridge");
     this.runTest();
   }
 
   @Test
   public void testServerDescriptorAdditionalAnnotation()
       throws Exception {
-    this.defaultServerDescriptorBuilder.insertBeforeLineStartingWith(
+    this.defaultServerTestDescriptorBuilder.insertBeforeLineStartingWith(
         "@purpose bridge", Arrays.asList("@source 198.50.200.131"));
     this.runTest();
     assertEquals("Expected 3 sanitized descriptors.", 3,
@@ -234,7 +236,7 @@ public class SanitizedBridgesWriterTest {
         "true");
     this.configuration.setProperty(Key.BridgeDescriptorMappingsLimit.name(),
         "30000");
-    this.defaultServerDescriptorBuilder.insertBeforeLineStartingWith(
+    this.defaultServerTestDescriptorBuilder.insertBeforeLineStartingWith(
         "platform ", Arrays.asList("or-address [2:5:2:5:2:5:2:5]:25"));
     Path bridgeIpSecretsFile = Paths.get(statsDirectory, "bridge-ip-secrets");
     BufferedWriter writer = Files.newBufferedWriter(bridgeIpSecretsFile,
@@ -256,7 +258,7 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testServerDescriptorRouterLineTruncated() throws Exception {
-    this.defaultServerDescriptorBuilder.replaceLineStartingWith("router ",
+    this.defaultServerTestDescriptorBuilder.replaceLineStartingWith("router ",
         Arrays.asList("router MeekGoogle"));
     this.runTest();
     assertTrue("Sanitized server descriptor with invalid router line.",
@@ -265,7 +267,8 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testServerDescriptorProtoLine() throws Exception {
-    this.defaultServerDescriptorBuilder.replaceLineStartingWith("protocols ",
+    this.defaultServerTestDescriptorBuilder
+        .replaceLineStartingWith("protocols ",
         Arrays.asList("proto Cons=1-2 Desc=1-2 DirCache=1 HSDir=1 HSIntro=3 "
         + "HSRend=1-2 Link=1-4 LinkAuth=1 Microdesc=1-2 Relay=1-2"));
     this.runTest();
@@ -275,7 +278,7 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testServerDescriptorFingerprintTruncated() throws Exception {
-    this.defaultServerDescriptorBuilder.replaceLineStartingWith(
+    this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
         "fingerprint ", Arrays.asList("fingerprint 4"));
     this.runTest();
     assertTrue("Sanitized server descriptor with invalid fingerprint "
@@ -285,7 +288,7 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testServerDescriptorFingerprintInvalidHex()
       throws Exception {
-    this.defaultServerDescriptorBuilder.replaceLineStartingWith(
+    this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
         "fingerprint ", Arrays.asList("fingerprint FUN!"));
     this.runTest();
     assertTrue("Sanitized server descriptor with invalid fingerprint "
@@ -294,7 +297,8 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testServerDescriptorFingerprintOpt() throws Exception {
-    this.defaultServerDescriptorBuilder.replaceLineStartingWith("fingerprint ",
+    this.defaultServerTestDescriptorBuilder
+        .replaceLineStartingWith("fingerprint ",
         Arrays.asList("opt fingerprint 46D4 A711 97B8 FA51 5A82 6C6B 017C 522F "
         + "E264 655B"));
     this.runTest();
@@ -305,7 +309,7 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testServerDescriptorExtraInfoDigestInvalidHex()
       throws Exception {
-    this.defaultServerDescriptorBuilder.replaceLineStartingWith(
+    this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
         "extra-info-digest ", Arrays.asList("extra-info-digest 6"));
     this.runTest();
     assertTrue("Sanitized server descriptor with invalid extra-info "
@@ -315,7 +319,7 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testServerDescriptorExtraInfoDigestInvalidBase64()
       throws Exception {
-    this.defaultServerDescriptorBuilder.replaceLineStartingWith(
+    this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
         "extra-info-digest ", Arrays.asList("extra-info-digest "
         + "6D03E80568DEFA102968D144CB35FFA6E3355B8A "
         + "#*?$%x@nxukmmcT1+UnDg4qh0yKbjVUYKhGL8VksoJA"));
@@ -327,7 +331,7 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testServerDescriptorExtraInfoDigestSha1Only()
       throws Exception {
-    this.defaultServerDescriptorBuilder.replaceLineStartingWith(
+    this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
         "extra-info-digest ", Arrays.asList("extra-info-digest "
         + "6D03E80568DEFA102968D144CB35FFA6E3355B8A"));
     this.runTest();
@@ -339,7 +343,7 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testServerDescriptorExtraInfoDigestThirdArgument()
       throws Exception {
-    this.defaultServerDescriptorBuilder.replaceLineStartingWith(
+    this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
         "extra-info-digest ", Arrays.asList("extra-info-digest "
         + "6D03E80568DEFA102968D144CB35FFA6E3355B8A "
         + "cy/LwP7nxukmmcT1+UnDg4qh0yKbjVUYKhGL8VksoJA 00"));
@@ -350,7 +354,7 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testServerDescriptorExtraInfoDigestOpt() throws Exception {
-    this.defaultServerDescriptorBuilder.replaceLineStartingWith(
+    this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
         "extra-info-digest ", Arrays.asList("opt extra-info-digest "
         + "6D03E80568DEFA102968D144CB35FFA6E3355B8A "
         + "cy/LwP7nxukmmcT1+UnDg4qh0yKbjVUYKhGL8VksoJA"));
@@ -362,7 +366,7 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testServerDescriptorRejectOwnAddress() throws Exception {
-    this.defaultServerDescriptorBuilder.insertBeforeLineStartingWith(
+    this.defaultServerTestDescriptorBuilder.insertBeforeLineStartingWith(
         "reject *:*", Arrays.asList("reject 198.50.200.131:*", "accept *:80"));
     this.runTest();
     List<String> parsedLines = this.parsedServerDescriptors.get(0);
@@ -382,7 +386,7 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testServerDescriptorEd25519IdentityMasterKeyMismatch()
       throws Exception {
-    this.defaultServerDescriptorBuilder.replaceLineStartingWith(
+    this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
         "master-key-ed25519 ", Arrays.asList("master-key-ed25519 "
         + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
     this.runTest();
@@ -392,7 +396,7 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testServerDescriptorEd25519IdentityA() throws Exception {
-    this.defaultServerDescriptorBuilder.replaceLineStartingWith(
+    this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
         "identity-ed25519", Arrays.asList("identity-ed25519",
         "-----BEGIN ED25519 CERT-----",
         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -408,7 +412,8 @@ public class SanitizedBridgesWriterTest {
   public void testServerDescriptorEd25519IdentityEToF() throws Exception {
     String change9sTo6s =
         "ZEXE7RkiEJ1l5Ij9hc9TJOpM7/9XSPZnF/PbMfE0u3n3JbOO3s82GN6BPuA0v2Cs";
-    this.defaultServerDescriptorBuilder.replaceLineStartingWith(change9sTo6s,
+    this.defaultServerTestDescriptorBuilder
+        .replaceLineStartingWith(change9sTo6s,
         Arrays.asList(change9sTo6s.replaceAll("9", "6")));
     this.runTest();
     assertTrue("Mismatch between identity and master key.",
@@ -417,7 +422,7 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testServerDescriptorEd25519IdentitySlash() throws Exception {
-    this.defaultServerDescriptorBuilder.replaceLineStartingWith(
+    this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
         "identity-ed25519", Arrays.asList("identity-ed25519",
         "-----BEGIN ED25519 CERT-----",
         "////////////////////////////////////////////////////////////////",
@@ -432,7 +437,7 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testServerDescriptorFamilyInvalidFingerprint()
       throws Exception {
-    this.defaultServerDescriptorBuilder.insertBeforeLineStartingWith(
+    this.defaultServerTestDescriptorBuilder.insertBeforeLineStartingWith(
         "hidden-service-dir", Arrays.asList("family $0"));
     this.runTest();
     assertTrue("Sanitized server descriptor with invalid fingerprint in "
@@ -446,8 +451,8 @@ public class SanitizedBridgesWriterTest {
         "true");
     String fingerprintLine =
         "fingerprint 46D4 A711 97B8 FA51 5A82 6C6B 017C 522F E264 655B";
-    this.defaultServerDescriptorBuilder.removeLine(fingerprintLine);
-    this.defaultServerDescriptorBuilder.insertBeforeLineStartingWith(
+    this.defaultServerTestDescriptorBuilder.removeLine(fingerprintLine);
+    this.defaultServerTestDescriptorBuilder.insertBeforeLineStartingWith(
         "published ", Arrays.asList(fingerprintLine));
     this.runTest();
     assertFalse(this.parsedServerDescriptors.isEmpty());
@@ -493,7 +498,7 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testExtraInfoDescriptorExtraInfoLineTruncated()
       throws Exception {
-    this.defaultExtraInfoDescriptorBuilder.replaceLineStartingWith(
+    this.defaultExtraInfoTestDescriptorBuilder.replaceLineStartingWith(
         "extra-info ", Arrays.asList("extra-info "));
     this.runTest();
   }
@@ -501,7 +506,7 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testExtraInfoDescriptorExtraInfoInvalidHex()
       throws Exception {
-    this.defaultExtraInfoDescriptorBuilder.replaceLineStartingWith(
+    this.defaultExtraInfoTestDescriptorBuilder.replaceLineStartingWith(
         "extra-info ", Arrays.asList("extra-info MeekGoogle 4"));
     this.runTest();
     assertTrue("Sanitized extra-info descriptor with invalid extra-info "
@@ -510,7 +515,7 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testExtraInfoDescriptorTransportSpace() throws Exception {
-    this.defaultExtraInfoDescriptorBuilder.replaceLineStartingWith(
+    this.defaultExtraInfoTestDescriptorBuilder.replaceLineStartingWith(
         "transport ", Arrays.asList("transport "));
     this.runTest();
     assertTrue("Sanitized extra-info descriptor with invalid transport "
@@ -519,7 +524,7 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testExtraInfoDescriptorTransportInfoRemoved() throws Exception {
-    this.defaultExtraInfoDescriptorBuilder.insertBeforeLineStartingWith(
+    this.defaultExtraInfoTestDescriptorBuilder.insertBeforeLineStartingWith(
         "bridge-stats-end ", Arrays.asList("transport-info secretkey"));
     this.runTest();
     for (String line : this.parsedExtraInfoDescriptors.get(0)) {
@@ -530,7 +535,7 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testExtraInfoDescriptorHidservRetained() throws Exception {
-    this.defaultExtraInfoDescriptorBuilder.insertBeforeLineStartingWith(
+    this.defaultExtraInfoTestDescriptorBuilder.insertBeforeLineStartingWith(
         "transport ",
         Arrays.asList("hidserv-stats-end 2016-11-23 14:48:05 (86400 s)",
         "hidserv-rend-relayed-cells 27653088 delta_f=2048 epsilon=0.30 "
@@ -551,7 +556,7 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testExtraInfoDescriptorPaddingCountsRetained() throws Exception {
-    this.defaultExtraInfoDescriptorBuilder.insertBeforeLineStartingWith(
+    this.defaultExtraInfoTestDescriptorBuilder.insertBeforeLineStartingWith(
         "transport ",
         Arrays.asList("padding-counts 2017-05-10 01:48:43 (86400 s) "
             + "bin-size=10000 write-drop=10000 write-pad=10000 "
@@ -575,7 +580,7 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testExtraInfoDescriptorRouterSignatureLineSpace()
       throws Exception {
-    this.defaultExtraInfoDescriptorBuilder.replaceLineStartingWith(
+    this.defaultExtraInfoTestDescriptorBuilder.replaceLineStartingWith(
         "router-signature", Arrays.asList("router-signature "));
     this.runTest();
     assertTrue("Sanitized extra-info descriptor with invalid "
@@ -609,7 +614,7 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testNetworkStatusPublishedLineMissing() throws Exception {
-    this.defaultNetworkStatusBuilder.removeLine(
+    this.defaultNetworkStatusTestDescriptorBuilder.removeLine(
         "published 2016-06-30 23:40:28");
     this.runTest();
     String sanitizedNetworkStatusFileName = "2016/07/statuses/01/"
@@ -622,9 +627,9 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testNetworkStatusPublishedLineMissingTarballFileNameChange()
       throws Exception {
-    this.defaultNetworkStatusBuilder.removeLine(
+    this.defaultNetworkStatusTestDescriptorBuilder.removeLine(
         "published 2016-06-30 23:40:28");
-    this.defaultTarballBuilder.setTarballFileName(
+    this.defaultTarballTestBuilder.setTarballFileName(
         "from-tonga-with-love-2016-07-01T000702Z.tar.gz");
     this.runTest();
     assertTrue("Sanitized network status without published line and with "
@@ -633,14 +638,14 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testNetworkStatusRlineTruncated() throws Exception {
-    this.defaultNetworkStatusBuilder.replaceLineStartingWith("r ",
+    this.defaultNetworkStatusTestDescriptorBuilder.replaceLineStartingWith("r ",
         Arrays.asList("r MeekGoogle"));
     this.runTest();
   }
 
   @Test
   public void testNetworkStatusRlineInvalidBase64() throws Exception {
-    this.defaultNetworkStatusBuilder.replaceLineStartingWith("r ",
+    this.defaultNetworkStatusTestDescriptorBuilder.replaceLineStartingWith("r ",
         Arrays.asList("r MeekGoogle R#SnE*e4+lFag:xr_XxSL+J;ZVs "
         + "g+M7'w+lG$mv6NW9&RmvzLO(R0Y 2016-06-30 21:43:52 "
         + "198.50.200.131 8008 0"));
@@ -653,8 +658,8 @@ public class SanitizedBridgesWriterTest {
   public void testNetworkStatusAlinePortMissing() throws Exception {
     this.configuration.setProperty(Key.ReplaceIpAddressesWithHashes.name(),
         "true");
-    this.defaultNetworkStatusBuilder.insertBeforeLineStartingWith("s ",
-        Arrays.asList("a 198.50.200.132"));
+    this.defaultNetworkStatusTestDescriptorBuilder
+        .insertBeforeLineStartingWith("s ", Arrays.asList("a 198.50.200.132"));
     this.runTest();
     for (String line : this.parsedNetworkStatuses.get(0)) {
       if (line.startsWith("a ")) {
@@ -665,8 +670,8 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testNetworkStatusVLineUnknown() throws Exception {
-    this.defaultNetworkStatusBuilder.insertBeforeLineStartingWith("w ",
-        Arrays.asList("v Tor 0.2.7.6"));
+    this.defaultNetworkStatusTestDescriptorBuilder
+        .insertBeforeLineStartingWith("w ", Arrays.asList("v Tor 0.2.7.6"));
     this.runTest();
     assertTrue("Should not have sanitized status with v line which is unknown "
         + "in this descriptor type.", this.parsedNetworkStatuses.isEmpty());
@@ -674,7 +679,8 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testNetworkStatusNoEntry() throws Exception {
-    this.defaultNetworkStatusBuilder.truncateAtLineStartingWith("r ");
+    this.defaultNetworkStatusTestDescriptorBuilder
+        .truncateAtLineStartingWith("r ");
     this.runTest();
     assertFalse("Skipped network status without entries.",
         this.parsedNetworkStatuses.isEmpty());
@@ -687,8 +693,8 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testNetworkStatusFromBifroest() throws Exception {
-    this.defaultTarballBuilder.setTarballFileName(
-        this.defaultTarballBuilder.getTarballFileName()
+    this.defaultTarballTestBuilder.setTarballFileName(
+        this.defaultTarballTestBuilder.getTarballFileName()
         .replaceAll("tonga", "bifroest"));
     this.runTest();
     assertTrue("Sanitized status should contain Bifroest's fingerprint.",
@@ -698,8 +704,8 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testNetworkStatusFromTrifroest() throws Exception {
-    this.defaultTarballBuilder.setTarballFileName(
-        this.defaultTarballBuilder.getTarballFileName()
+    this.defaultTarballTestBuilder.setTarballFileName(
+        this.defaultTarballTestBuilder.getTarballFileName()
         .replaceAll("tonga", "trifroest"));
     this.runTest();
     assertTrue("Should not have recognized unknown bridge authority Trifroest.",
@@ -708,9 +714,9 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testTarballContainsSameFileTwice() throws Exception {
-    this.defaultTarballBuilder.add("cached-extrainfo.new", 1467331623000L,
-        Arrays.asList(new DescriptorBuilder[] {
-            this.defaultExtraInfoDescriptorBuilder }));
+    this.defaultTarballTestBuilder.add("cached-extrainfo.new", 1467331623000L,
+        Arrays.asList(new TestDescriptorBuilder[] {
+            this.defaultExtraInfoTestDescriptorBuilder }));
     this.runTest();
     assertEquals("There should only be one.",
         1, this.parsedExtraInfoDescriptors.size());

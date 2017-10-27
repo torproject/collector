@@ -8,10 +8,10 @@ import java.util.Arrays;
 /** Builds a non-sanitized bridge server descriptor that comes with an original
  * bridge descriptor (of a bundled and therefore publicly known bridge) by
  * default. */
-class ServerDescriptorBuilder extends DescriptorBuilder {
+class ServerTestDescriptorBuilder extends TestDescriptorBuilder {
 
   /** Initializes the descriptor builder. */
-  ServerDescriptorBuilder() {
+  ServerTestDescriptorBuilder() {
     this.addAll(Arrays.asList(
         "@purpose bridge",
         "router MeekGoogle 198.50.200.131 8008 0 0",

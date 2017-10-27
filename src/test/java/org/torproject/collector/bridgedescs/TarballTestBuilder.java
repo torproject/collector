@@ -22,7 +22,7 @@ import java.util.Map;
 /** Builds a tarball containing non-sanitized bridge descriptors built using
  * descriptor builders and writes the tarball to a new file with the given file
  * name. */
-class TarballBuilder {
+class TarballTestBuilder {
 
   /** Internal helper class to store details about a file contained in the
    * tarball. */
@@ -32,7 +32,7 @@ class TarballBuilder {
     private long modifiedMillis;
 
     /** Descriptor builders used to generate the file content. */
-    private List<DescriptorBuilder> descriptorBuilders;
+    private List<TestDescriptorBuilder> descriptorBuilders;
   }
 
   /** File name of the tarball. */
@@ -54,7 +54,7 @@ class TarballBuilder {
 
   /** Initializes a new tarball builder that is going to write a tarball to the
    * file with given file name and last-modified time. */
-  TarballBuilder(String tarballFileName, long modifiedMillis) {
+  TarballTestBuilder(String tarballFileName, long modifiedMillis) {
     this.tarballFileName = tarballFileName;
     this.modifiedMillis = modifiedMillis;
     this.tarballFiles = new LinkedHashMap<>();
@@ -62,8 +62,8 @@ class TarballBuilder {
 
   /** Adds a new file to the tarball with given name, last-modified time, and
    * descriptor builders to generate the file content. */
-  TarballBuilder add(String fileName, long modifiedMillis,
-      List<DescriptorBuilder> descriptorBuilders) throws IOException {
+  TarballTestBuilder add(String fileName, long modifiedMillis,
+      List<TestDescriptorBuilder> descriptorBuilders) throws IOException {
     TarballFile file = new TarballFile();
     file.modifiedMillis = modifiedMillis;
     file.descriptorBuilders = descriptorBuilders;
@@ -91,7 +91,7 @@ class TarballBuilder {
     for (Map.Entry<String, TarballFile> file : this.tarballFiles.entrySet()) {
       TarArchiveEntry tae = new TarArchiveEntry(file.getKey());
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      for (DescriptorBuilder descriptorBuilder
+      for (TestDescriptorBuilder descriptorBuilder
           : file.getValue().descriptorBuilders) {
         descriptorBuilder.build(baos);
       }

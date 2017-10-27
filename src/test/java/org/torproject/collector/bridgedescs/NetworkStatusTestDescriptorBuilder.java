@@ -8,10 +8,10 @@ import java.util.Arrays;
 /** Builds a non-sanitized bridge network status that comes with an original
  * bridge network status entry (of a bundled and therefore publicly known
  * bridge) by default. */
-class NetworkStatusBuilder extends DescriptorBuilder {
+class NetworkStatusTestDescriptorBuilder extends TestDescriptorBuilder {
 
   /** Initializes the descriptor builder. */
-  NetworkStatusBuilder() {
+  NetworkStatusTestDescriptorBuilder() {
     this.addAll(Arrays.asList(
         "published 2016-06-30 23:40:28",
         "flag-thresholds stable-uptime=807660 stable-mtbf=1425164 "
