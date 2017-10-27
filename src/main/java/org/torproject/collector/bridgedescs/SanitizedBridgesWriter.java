@@ -461,7 +461,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     }
 
     /* Parse the given network status line by line. */
-    StringBuilder header = new StringBuilder();
+    DescriptorBuilder header = new DescriptorBuilder();
     boolean includesFingerprintLine = false;
     SortedMap<String, String> scrubbedLines = new TreeMap<>();
     try {
@@ -483,7 +483,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
 
         /* Additional header lines don't have to be cleaned up. */
         } else if (line.startsWith("flag-thresholds ")) {
-          header.append(line + "\n");
+          header.append(line).newLine();
 
         /* The authority fingerprint in the "fingerprint" line can go in
          * unscrubbed. */
@@ -494,7 +494,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
                 + "\"fingerprint\" line (\"" + line + "\").");
             return;
           }
-          header.append(line + "\n");
+          header.append(line).newLine();
           includesFingerprintLine = true;
 
         /* r lines contain sensitive information that needs to be removed
@@ -593,7 +593,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         scrubbed = new StringBuilder();
       }
       if (!includesFingerprintLine) {
-        header.append("fingerprint ").append(authorityFingerprint).append("\n");
+        header.append("fingerprint ").append(authorityFingerprint).newLine();
       }
 
       /* Check if we can tell from the descriptor publication times
@@ -879,13 +879,13 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         /* Replace node fingerprints in the family line with their hashes
          * and leave nicknames unchanged. */
         } else if (line.startsWith("family ")) {
-          StringBuilder familyLine = new StringBuilder("family");
+          DescriptorBuilder familyLine = new DescriptorBuilder("family");
           for (String s : line.substring(7).split(" ")) {
             if (s.startsWith("$")) {
               familyLine.append(" $").append(DigestUtils.sha1Hex(Hex.decodeHex(
                   s.substring(1).toCharArray())).toUpperCase());
             } else {
-              familyLine.append(" ").append(s);
+              familyLine.space().append(s);
             }
           }
           scrubbed.append(familyLine.toString()).newLine();

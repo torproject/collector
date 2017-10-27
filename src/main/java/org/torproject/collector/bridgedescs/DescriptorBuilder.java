@@ -34,6 +34,11 @@ class DescriptorBuilder {
     this.parts.add(this.lastPart);
   }
 
+  public DescriptorBuilder(String firstString) {
+    this();
+    this.append(firstString);
+  }
+
   private void throwExceptionIfFinalized() {
     if (this.finalized) {
       throw new IllegalStateException("This DescriptorBuilder is finalized and"
