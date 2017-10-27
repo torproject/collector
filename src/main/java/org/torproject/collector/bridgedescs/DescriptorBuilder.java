@@ -14,7 +14,7 @@ import java.util.List;
  * only be processed after finishing the parsing step.</p> */
 class DescriptorBuilder {
 
-  private List<StringBuilder> parts;
+  private List<Object> parts;
 
   private StringBuilder lastPart;
 
@@ -36,6 +36,13 @@ class DescriptorBuilder {
     return this;
   }
 
+  public DescriptorBuilder append(DescriptorBuilder placeholder) {
+    this.parts.add(placeholder);
+    this.lastPart = new StringBuilder();
+    this.parts.add(this.lastPart);
+    return this;
+  }
+
   public DescriptorBuilder space() {
     this.lastPart.append(' ');
     return this;
@@ -49,8 +56,8 @@ class DescriptorBuilder {
   @Override
   public String toString() {
     StringBuilder full = new StringBuilder();
-    for (StringBuilder part : this.parts) {
-      full.append(part);
+    for (Object part : this.parts) {
+      full.append(part.toString());
     }
     return full.toString();
   }
