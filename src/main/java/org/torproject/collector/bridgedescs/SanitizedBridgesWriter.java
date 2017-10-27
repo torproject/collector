@@ -462,7 +462,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     boolean includesFingerprintLine = false;
     SortedMap<String, String> scrubbedLines = new TreeMap<>();
     try {
-      StringBuilder scrubbed = new StringBuilder();
+      DescriptorBuilder scrubbed = new DescriptorBuilder();
       BufferedReader br = new BufferedReader(new StringReader(new String(
           data, "US-ASCII")));
       String line = null;
@@ -499,10 +499,10 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         } else if (line.startsWith("r ")) {
 
           /* Clear buffer from previously scrubbed lines. */
-          if (scrubbed.length() > 0) {
+          if (scrubbed.hasContent()) {
             String scrubbedLine = scrubbed.toString();
             scrubbedLines.put(hashedBridgeIdentityHex, scrubbedLine);
-            scrubbed = new StringBuilder();
+            scrubbed = new DescriptorBuilder();
           }
 
           /* Parse the relevant parts of this r line. */
@@ -549,11 +549,13 @@ public class SanitizedBridgesWriter extends CollecTorMain {
               fingerprintBytes, descPublicationTime);
           String scrubbedDirPort = this.scrubTcpPort(dirPort,
               fingerprintBytes, descPublicationTime);
-          scrubbed.append("r " + nickname + " "
-              + hashedBridgeIdentityBase64 + " "
-              + hashedDescriptorIdentifier + " " + descPublicationTime
-              + " " + scrubbedAddress + " " + scrubbedOrPort + " "
-              + scrubbedDirPort + "\n");
+          scrubbed.append("r ").append(nickname).space()
+              .append(hashedBridgeIdentityBase64).space()
+              .append(hashedDescriptorIdentifier).space()
+              .append(descPublicationTime).space()
+              .append(scrubbedAddress).space()
+              .append(scrubbedOrPort).space()
+              .append(scrubbedDirPort).newLine();
 
         /* Sanitize any addresses in a lines using the fingerprint and
          * descriptor publication time from the previous r line. */
@@ -562,7 +564,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
               line.substring("a ".length()), fingerprintBytes,
               descPublicationTime);
           if (scrubbedOrAddress != null) {
-            scrubbed.append("a " + scrubbedOrAddress + "\n");
+            scrubbed.append("a ").append(scrubbedOrAddress).newLine();
           } else {
             logger.warn("Invalid address in line '{}' "
                 + "in bridge network status.  Skipping line!", line);
@@ -572,7 +574,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         } else if (line.startsWith("s ") || line.equals("s")
             || line.startsWith("w ") || line.equals("w")
             || line.startsWith("p ") || line.equals("p")) {
-          scrubbed.append(line + "\n");
+          scrubbed.append(line).newLine();
 
         /* There should be nothing else but r, a, w, p, and s lines in the
          * network status.  If there is, we should probably learn before
@@ -584,10 +586,10 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         }
       }
       br.close();
-      if (scrubbed.length() > 0) {
+      if (scrubbed.hasContent()) {
         String scrubbedLine = scrubbed.toString();
         scrubbedLines.put(hashedBridgeIdentityHex, scrubbedLine);
-        scrubbed = new StringBuilder();
+        scrubbed = new DescriptorBuilder();
       }
       if (!includesFingerprintLine) {
         header.append("fingerprint ").append(authorityFingerprint).newLine();
@@ -1119,7 +1121,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       BufferedReader br = new BufferedReader(new StringReader(new String(
           data, "US-ASCII")));
       String line = null;
-      StringBuilder scrubbed = null;
+      DescriptorBuilder scrubbed = null;
       String hashedBridgeIdentity = null;
       String masterKeyEd25519 = null;
       while ((line = br.readLine()) != null) {
@@ -1135,12 +1137,12 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           }
           hashedBridgeIdentity = DigestUtils.sha1Hex(Hex.decodeHex(
               parts[2].toCharArray())).toLowerCase();
-          scrubbed = new StringBuilder("extra-info " + parts[1] + " "
-              + hashedBridgeIdentity.toUpperCase() + "\n");
+          scrubbed = new DescriptorBuilder("extra-info ").append(parts[1])
+            .space().append(hashedBridgeIdentity.toUpperCase()).newLine();
 
         /* Parse the publication time to determine the file name. */
         } else if (line.startsWith("published ")) {
-          scrubbed.append(line + "\n");
+          scrubbed.append(line).newLine();
           published = line.substring("published ".length());
           if (published.compareTo(maxExtraInfoDescriptorPublishedTime)
               > 0) {
@@ -1155,7 +1157,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
                 + "Skipping descriptor.", line);
             return;
           }
-          scrubbed.append("transport " + parts[1] + "\n");
+          scrubbed.append("transport ").append(parts[1]).newLine();
 
         /* Skip transport-info lines entirely. */
         } else if (line.startsWith("transport-info ")) {
@@ -1177,8 +1179,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
               DigestUtils.sha256(Base64.decodeBase64(
               masterKeyEd25519FromIdentityEd25519 + "=")))
               .replaceAll("=", "");
-          scrubbed.append("master-key-ed25519 " + sha256MasterKeyEd25519
-              + "\n");
+          scrubbed.append("master-key-ed25519 ").append(sha256MasterKeyEd25519)
+              .newLine();
           if (masterKeyEd25519 != null && !masterKeyEd25519.equals(
               masterKeyEd25519FromIdentityEd25519)) {
             logger.warn("Mismatch between identity-ed25519 and "
@@ -1213,7 +1215,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
             || line.startsWith("exit-")
             || line.startsWith("hidserv-")
             || line.startsWith("padding-counts ")) {
-          scrubbed.append(line + "\n");
+          scrubbed.append(line).newLine();
 
         /* When we reach the signature, we're done. Write the sanitized
          * descriptor to disk below. */

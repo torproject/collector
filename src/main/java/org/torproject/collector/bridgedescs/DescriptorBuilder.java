@@ -80,6 +80,10 @@ class DescriptorBuilder {
     return this;
   }
 
+  public boolean hasContent() {
+    return this.parts.size() > 1 || lastPart.length() > 0;
+  }
+
   @Override
   public String toString() {
     if (!this.finalized) {
