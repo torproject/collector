@@ -34,6 +34,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -671,23 +672,20 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     }
 
     /* Parse descriptor to generate a sanitized version. */
-    String scrubbedDesc = null;
+    String address = null;
     String published = null;
+    byte[] fingerprintBytes = null;
+    StringBuilder scrubbedAddress = null;
+    Map<StringBuilder, String> scrubbedTcpPorts = new HashMap<>();
+    Map<StringBuilder, String> scrubbedIpAddressesAndTcpPorts = new HashMap<>();
     String masterKeyEd25519FromIdentityEd25519 = null;
-    try {
-      BufferedReader br = new BufferedReader(new StringReader(
-          new String(data, "US-ASCII")));
-      StringBuilder scrubbed = new StringBuilder();
-      String line = null;
-      byte[] fingerprintBytes = null;
-      String hashedBridgeIdentity = null;
-      String address = null;
-      String routerLine = null;
-      String scrubbedRouterLine = null;
-      String scrubbedAddress = null;
+    SanitizedBridgeDescriptorBuilder scrubbed =
+        new SanitizedBridgeDescriptorBuilder();
+    try (BufferedReader br = new BufferedReader(new StringReader(
+        new String(data, "US-ASCII")))) {
+      scrubbed.append(Annotation.BridgeServer.toString());
+      String line;
       String masterKeyEd25519 = null;
-      List<String> orAddresses = null;
-      List<String> scrubbedOrAddresses = null;
       boolean skipCrypto = false;
       while ((line = br.readLine()) != null) {
 
@@ -706,15 +704,26 @@ public class SanitizedBridgesWriter extends CollecTorMain {
             return;
           }
           address = parts[2];
-          routerLine = line;
+          scrubbedAddress = new StringBuilder();
+          StringBuilder scrubbedOrPort = new StringBuilder();
+          scrubbedTcpPorts.put(scrubbedOrPort, parts[3]);
+          StringBuilder scrubbedDirPort = new StringBuilder();
+          scrubbedTcpPorts.put(scrubbedDirPort, parts[4]);
+          StringBuilder scrubbedSocksPort = new StringBuilder();
+          scrubbedTcpPorts.put(scrubbedSocksPort, parts[5]);
+          scrubbed.append("router ").append(parts[1]).space()
+              .append(scrubbedAddress).space()
+              .append(scrubbedOrPort).space()
+              .append(scrubbedDirPort).space()
+              .append(scrubbedSocksPort).newLine();
 
-        /* Store or-address parts in a list and sanitize them when we have
-         * read the fingerprint. */
+        /* Store or-address and sanitize it when we have read the fingerprint
+         * and descriptor publication time. */
         } else if (line.startsWith("or-address ")) {
-          if (orAddresses == null) {
-            orAddresses = new ArrayList<>();
-          }
-          orAddresses.add(line.substring("or-address ".length()));
+          String orAddress = line.substring("or-address ".length());
+          StringBuilder scrubbedOrAddress = new StringBuilder();
+          scrubbedIpAddressesAndTcpPorts.put(scrubbedOrAddress, orAddress);
+          scrubbed.append("or-address ").append(scrubbedOrAddress).newLine();
 
         /* Parse the publication time to see if we're still inside the
          * sanitizing interval. */
@@ -735,21 +744,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
               this.haveWarnedAboutInterval = true;
             }
           }
-          if (null != fingerprintBytes) {
-            /* We have read both published and fingerprint lines that we need to
-             * scrub the bridge's address which we might need to scrub reject
-             * lines. */
-            try {
-              scrubbedAddress = scrubIpv4Address(address, fingerprintBytes,
-                  published);
-            } catch (IOException e) {
-              /* There's a persistence problem, so we shouldn't scrub more
-               * IP addresses in this execution. */
-              this.persistenceProblemWithSecrets = true;
-              return;
-            }
-          }
-          scrubbed.append(line + "\n");
+          scrubbed.append(line).newLine();
 
         /* Parse the fingerprint to determine the hashed bridge
          * identity. */
@@ -759,91 +754,23 @@ public class SanitizedBridgesWriter extends CollecTorMain {
               ? "opt fingerprint".length() : "fingerprint".length())
               .replaceAll(" ", "").toLowerCase();
           fingerprintBytes = Hex.decodeHex(fingerprint.toCharArray());
-          hashedBridgeIdentity = DigestUtils.sha1Hex(fingerprintBytes)
+          String hashedBridgeIdentity = DigestUtils.sha1Hex(fingerprintBytes)
               .toLowerCase();
-          if (null != published) {
-            /* We have read both published and fingerprint lines that we need to
-             * scrub the bridge's address which we might need to scrub reject
-             * lines. */
-            try {
-              scrubbedAddress = scrubIpv4Address(address, fingerprintBytes,
-                  published);
-            } catch (IOException e) {
-              /* There's a persistence problem, so we shouldn't scrub more
-               * IP addresses in this execution. */
-              this.persistenceProblemWithSecrets = true;
-              return;
-            }
-          }
-          scrubbed.append((line.startsWith("opt ") ? "opt " : "")
-              + "fingerprint");
+          scrubbed.append(line.startsWith("opt ") ? "opt " : "")
+              .append("fingerprint");
           for (int i = 0; i < hashedBridgeIdentity.length() / 4; i++) {
-            scrubbed.append(" " + hashedBridgeIdentity.substring(4 * i,
+            scrubbed.space().append(hashedBridgeIdentity.substring(4 * i,
                 4 * (i + 1)).toUpperCase());
           }
-          scrubbed.append("\n");
+          scrubbed.newLine();
 
         /* Replace the contact line (if present) with a generic one. */
         } else if (line.startsWith("contact ")) {
-          scrubbed.append("contact somebody\n");
+          scrubbed.append("contact somebody").newLine();
 
         /* When we reach the signature, we're done. Write the sanitized
          * descriptor to disk below. */
         } else if (line.startsWith("router-signature")) {
-
-          /* Write the scrubbed "router" line now based on the "router",
-           * "fingerprint", and "published" lines that we read before. Also
-           * scrub any "or-address" lines. */
-          if (null == routerLine || null == fingerprintBytes
-              || null == published) {
-            logger.warn("Missing either of the following lines that are "
-                + "required to sanitize this server bridge descriptor: "
-                + "\"router\", \"fingerprint\", \"published\". Skipping "
-                + "descriptor.");
-            return;
-          }
-          try {
-            if (orAddresses != null) {
-              scrubbedOrAddresses = new ArrayList<>();
-              for (String orAddress : orAddresses) {
-                String scrubbedOrAddress = scrubOrAddress(orAddress,
-                    fingerprintBytes, published);
-                if (scrubbedOrAddress != null) {
-                  scrubbedOrAddresses.add(scrubbedOrAddress);
-                } else {
-                  logger.warn("Invalid address in line "
-                      + "'or-address " + orAddress + "' in bridge server "
-                      + "descriptor.  Skipping line!");
-                }
-              }
-            }
-            String[] routerLineParts = routerLine.split(" ");
-            String nickname = routerLineParts[1];
-            String scrubbedOrPort = this.scrubTcpPort(routerLineParts[3],
-                fingerprintBytes, published);
-            String scrubbedDirPort = this.scrubTcpPort(routerLineParts[4],
-                fingerprintBytes, published);
-            String scrubbedSocksPort = this.scrubTcpPort(
-                routerLineParts[5], fingerprintBytes, published);
-            scrubbedRouterLine = String.format("router %s %s %s %s %s%n",
-                nickname, scrubbedAddress, scrubbedOrPort,
-                scrubbedDirPort, scrubbedSocksPort);
-          } catch (IOException e) {
-            /* There's a persistence problem, so we shouldn't scrub more
-             * IP addresses in this execution. */
-            this.persistenceProblemWithSecrets = true;
-            return;
-          }
-
-          /* Put together the scrubbed descriptor from "router" to the newline
-           * before the original "router-signature" line. */
-          scrubbedDesc = scrubbedRouterLine;
-          if (scrubbedOrAddresses != null) {
-            for (String scrubbedOrAddress : scrubbedOrAddresses) {
-              scrubbedDesc += "or-address " + scrubbedOrAddress + "\n";
-            }
-          }
-          scrubbedDesc += scrubbed.toString();
           break;
 
         /* Replace extra-info digest with the hashed digest of the
@@ -860,7 +787,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
                 + "expected: '" + line + "'.  Skipping descriptor.");
             return;
           }
-          scrubbed.append("extra-info-digest " + DigestUtils.sha1Hex(
+          scrubbed.append("extra-info-digest ").append(DigestUtils.sha1Hex(
               Hex.decodeHex(parts[1].toCharArray())).toUpperCase());
           if (parts.length > 2) {
             if (!Base64.isBase64(parts[2])) {
@@ -868,21 +795,21 @@ public class SanitizedBridgesWriter extends CollecTorMain {
                   + line + "'.  Skipping descriptor.");
               return;
             }
-            scrubbed.append(" " + Base64.encodeBase64String(
+            scrubbed.space().append(Base64.encodeBase64String(
                 DigestUtils.sha256(Base64.decodeBase64(parts[2])))
                 .replaceAll("=", ""));
           }
-          scrubbed.append("\n");
+          scrubbed.newLine();
 
         /* Possibly sanitize reject lines if they contain the bridge's own
          * IP address. */
         } else if (line.startsWith("reject ")) {
           if (address != null && line.startsWith("reject " + address)) {
-            scrubbed.append("reject " + scrubbedAddress
-                + line.substring("reject ".length() + address.length())
-                + "\n");
+            scrubbed.append("reject ").append(scrubbedAddress)
+                .append(line.substring("reject ".length() + address.length()))
+                .newLine();
           } else {
-            scrubbed.append(line + "\n");
+            scrubbed.append(line).newLine();
           }
 
         /* Extract master-key-ed25519 from identity-ed25519. */
@@ -907,8 +834,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
               DigestUtils.sha256(Base64.decodeBase64(
               masterKeyEd25519FromIdentityEd25519 + "=")))
               .replaceAll("=", "");
-          scrubbed.append("master-key-ed25519 " + sha256MasterKeyEd25519
-              + "\n");
+          scrubbed.append("master-key-ed25519 ").append(sha256MasterKeyEd25519)
+              .newLine();
           if (masterKeyEd25519 != null && !masterKeyEd25519.equals(
               masterKeyEd25519FromIdentityEd25519)) {
             logger.warn("Mismatch between identity-ed25519 and "
@@ -948,7 +875,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
             || line.startsWith("ipv6-policy ")
             || line.equals("tunnelled-dir-server")
             || line.startsWith("bridge-distribution-request ")) {
-          scrubbed.append(line + "\n");
+          scrubbed.append(line).newLine();
 
         /* Replace node fingerprints in the family line with their hashes
          * and leave nicknames unchanged. */
@@ -956,13 +883,13 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           StringBuilder familyLine = new StringBuilder("family");
           for (String s : line.substring(7).split(" ")) {
             if (s.startsWith("$")) {
-              familyLine.append(" $" + DigestUtils.sha1Hex(Hex.decodeHex(
+              familyLine.append(" $").append(DigestUtils.sha1Hex(Hex.decodeHex(
                   s.substring(1).toCharArray())).toUpperCase());
             } else {
-              familyLine.append(" " + s);
+              familyLine.append(" ").append(s);
             }
           }
-          scrubbed.append(familyLine.toString() + "\n");
+          scrubbed.append(familyLine.toString()).newLine();
 
         /* Skip the purpose line that the bridge authority adds to its
          * cached-descriptors file. */
@@ -1003,7 +930,53 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       return;
     }
 
-    /* Determine filename of sanitized server descriptor. */
+    /* Sanitize the parts that we couldn't sanitize earlier. */
+    if (null == address || null == fingerprintBytes
+        || null == published) {
+      logger.warn("Missing either of the following lines that are "
+          + "required to sanitize this server bridge descriptor: "
+          + "\"router\", \"fingerprint\", \"published\". Skipping "
+          + "descriptor.");
+      return;
+    }
+    try {
+      String scrubbedAddressString = scrubIpv4Address(address, fingerprintBytes,
+          published);
+      if (null == scrubbedAddressString) {
+        logger.warn("Invalid IP address in \"router\" line in bridge server "
+            + "descriptor. Skipping descriptor.");
+        return;
+      }
+      scrubbedAddress.append(scrubbedAddressString);
+      for (Map.Entry<StringBuilder, String> e
+          : scrubbedIpAddressesAndTcpPorts.entrySet()) {
+        String scrubbedOrAddress = scrubOrAddress(e.getValue(),
+            fingerprintBytes, published);
+        if (null == scrubbedOrAddress) {
+          logger.warn("Invalid IP address or TCP port in \"or-address\" line "
+              + "in bridge server descriptor. Skipping descriptor.");
+          return;
+        }
+        e.getKey().append(scrubbedOrAddress);
+      }
+      for (Map.Entry<StringBuilder, String> e : scrubbedTcpPorts.entrySet()) {
+        String scrubbedTcpPort = scrubTcpPort(e.getValue(), fingerprintBytes,
+            published);
+        if (null == scrubbedTcpPort) {
+          logger.warn("Invalid TCP port in \"router\" line in bridge server "
+              + "descriptor. Skipping descriptor.");
+          return;
+        }
+        e.getKey().append(scrubbedTcpPort);
+      }
+    } catch (IOException exception) {
+      /* There's a persistence problem, so we shouldn't scrub more IP addresses
+       * or TCP ports in this execution. */
+      this.persistenceProblemWithSecrets = true;
+      return;
+    }
+
+    /* Determine digest(s) of sanitized server descriptor. */
     String descriptorDigest = null;
     try {
       String ascii = new String(data, "US-ASCII");
@@ -1048,6 +1021,14 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         return;
       }
     }
+    if (null != descriptorDigestSha256Base64) {
+      scrubbed.append("router-digest-sha256 ")
+          .append(descriptorDigestSha256Base64).newLine();
+    }
+    scrubbed.append("router-digest ").append(descriptorDigest.toUpperCase())
+        .newLine();
+
+    /* Determine filename of sanitized server descriptor. */
     String dyear = published.substring(0, 4);
     String dmonth = published.substring(5, 7);
     File tarballFile = new File(
@@ -1073,14 +1054,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         outputFile.getParentFile().mkdirs();
         BufferedWriter bw = new BufferedWriter(new FileWriter(
             outputFile, appendToFile));
-        bw.write(Annotation.BridgeServer.toString());
-        bw.write(scrubbedDesc);
-        if (descriptorDigestSha256Base64 != null) {
-          bw.write("router-digest-sha256 " + descriptorDigestSha256Base64
-              + "\n");
-        }
-        bw.write("router-digest " + descriptorDigest.toUpperCase()
-            + "\n");
+        bw.write(scrubbed.toString());
         bw.close();
       }
     } catch (ConfigurationException | IOException e) {
