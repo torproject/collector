@@ -1,3 +1,9 @@
+# Changes in version 1.?.? - 201?-??-??
+
+ * Minor changes
+   - Exclude lastModifiedMillis in index.json.
+
+
 # Changes in version 1.4.1 - 2017-10-26
 
  * Medium changes

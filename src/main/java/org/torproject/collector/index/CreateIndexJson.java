@@ -163,7 +163,8 @@ public class CreateIndexJson extends CollecTorMain {
 
   private void writeIndex(IndexNode indexNode) throws Exception {
     indexJsonFile.getParentFile().mkdirs();
-    Gson gson = new GsonBuilder().create();
+    Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation()
+        .create();
     String indexNodeString = gson.toJson(indexNode);
     for (String filename : new String[] {indexJsonFile.toString(),
         indexJsonFile + ".gz", indexJsonFile + ".xz", indexJsonFile + ".bz2"}) {
