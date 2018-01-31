@@ -136,7 +136,7 @@ public class SanitizeWeblogs extends CollecTorMain {
     try {
       WebServerAccessLogPersistence walp
           = new WebServerAccessLogPersistence(
-          new WebServerAccessLogImpl(retainedLines, name));
+          new WebServerAccessLogImpl(retainedLines, name, false));
       log.debug("Storing {}.", name);
       walp.storeOut(this.outputPathName);
       walp.storeRecent(this.recentPathName);
