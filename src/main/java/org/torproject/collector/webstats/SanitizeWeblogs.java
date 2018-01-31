@@ -113,7 +113,7 @@ public class SanitizeWeblogs extends CollecTorMain {
         LocalDate[] interval = determineInterval(linesByDate.keySet());
         linesByDate.entrySet().stream()
             .filter((entry) -> entry.getKey().isAfter(interval[0])
-              && entry.getKey().isBefore(interval[1]))
+              && entry.getKey().isBefore(interval[1])).parallel()
             .forEach((entry) -> storeSanitized(virtualHost, physicalHost,
               entry.getKey(), entry.getValue()));
       }
@@ -128,7 +128,7 @@ public class SanitizeWeblogs extends CollecTorMain {
         .add(date.format(DateTimeFormatter.BASIC_ISO_DATE)).toString();
     log.debug("Sanitizing {}.", name);
     List<String> retainedLines = lines
-        .stream().map((line) -> sanitize(line, date))
+        .stream().parallel().map((line) -> sanitize(line, date))
         .filter((line) -> line.isPresent()).map((line) -> line.get())
         .collect(Collectors.toList());
     retainedLines.sort(null);
