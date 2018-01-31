@@ -15,6 +15,7 @@ import org.torproject.descriptor.DescriptorParseException;
 import org.torproject.descriptor.WebServerAccessLog;
 import org.torproject.descriptor.log.InternalLogDescriptor;
 import org.torproject.descriptor.log.InternalWebServerAccessLog;
+import org.torproject.descriptor.log.Method;
 import org.torproject.descriptor.log.WebServerAccessLogImpl;
 import org.torproject.descriptor.log.WebServerAccessLogLine;
 
@@ -146,8 +147,8 @@ public class SanitizeWeblogs extends CollecTorMain {
   static Optional<String> sanitize(WebServerAccessLogLine logLine,
       LocalDate date) {
     if (!logLine.isValid()
-        || !("GET".equals(logLine.getMethod())
-             || "HEAD".equals(logLine.getMethod()))
+        || !(Method.GET == logLine.getMethod()
+             || Method.HEAD == logLine.getMethod())
         || !logLine.getProtocol().startsWith("HTTP")
         || 400 == logLine.getResponse() || 404 == logLine.getResponse()) {
       return Optional.empty();
