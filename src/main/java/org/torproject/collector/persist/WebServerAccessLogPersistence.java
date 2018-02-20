@@ -5,7 +5,6 @@ package org.torproject.collector.persist;
 
 import org.torproject.descriptor.WebServerAccessLog;
 import org.torproject.descriptor.internal.FileType;
-import org.torproject.descriptor.log.InternalLogDescriptor;
 import org.torproject.descriptor.log.InternalWebServerAccessLog;
 
 import org.slf4j.Logger;
@@ -30,13 +29,6 @@ public class WebServerAccessLogPersistence
   /** Prepare storing the given descriptor. */
   public WebServerAccessLogPersistence(WebServerAccessLog desc) {
     super(desc, new byte[0]);
-    byte[] compressedBytes = null;
-    try { // The descriptor bytes have to be stored compressed.
-      compressedBytes = COMPRESSION.compress(desc.getRawDescriptorBytes());
-      ((InternalLogDescriptor)desc).setRawDescriptorBytes(compressedBytes);
-    } catch (Exception ex) {
-      log.warn("Cannot compress ’{}’.  Storing uncompressed.", ex);
-    }
     calculatePaths();
   }
 
