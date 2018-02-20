@@ -15,10 +15,10 @@ import org.torproject.collector.cron.CollecTorMain;
 import org.torproject.collector.persist.PersistenceUtils;
 import org.torproject.collector.persist.WebServerAccessLogPersistence;
 import org.torproject.descriptor.DescriptorParseException;
+import org.torproject.descriptor.Method;
 import org.torproject.descriptor.WebServerAccessLog;
 import org.torproject.descriptor.log.InternalLogDescriptor;
 import org.torproject.descriptor.log.InternalWebServerAccessLog;
-import org.torproject.descriptor.log.Method;
 import org.torproject.descriptor.log.WebServerAccessLogImpl;
 import org.torproject.descriptor.log.WebServerAccessLogLine;
 
