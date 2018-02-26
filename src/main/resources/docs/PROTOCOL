@@ -235,6 +235,11 @@
    are derived from the valid-after dates of the referencing microdesc
    consensus.
 
+4.4 'webstats' below 'recent'
+
+   'webstats' contains compressed log files named according to
+   the 'Tor web server logs' specification, section 4.3 [0].
+
 5.0 The Tar-ball's Directory Structure and the Internal Structure
 
    The 'out' directory is the internal storage that is used for
@@ -381,4 +386,12 @@
 
    and below the subdirectories of 'micro' and 'consensus-microdescs'.
 
+5.4 'webstats' below 'out'
 
+   'webstats' contains compressed log files structured and named according
+   to the 'Tor web server logs' specification, section 4.3 [0].
+
+A.0 Appendix
+
+A.1 References
+[0] https://metrics.torproject.org/web-server-logs.html#n-re-assembling-log-files
