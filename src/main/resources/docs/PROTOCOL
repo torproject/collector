@@ -209,7 +209,8 @@
    Where VOTE is the string "vote" and all time related
    values are derived from the valid-after dates. 'fingerprint'
    is the fingerprint of the authority and 'digest' is the SHA1
-   digest of the authority's medium term signing key.
+   digest for the vote document, i.e., the digest of the descriptor
+   bytes from the start of the vote to the 'directory-signature'.
 
 4.3.4
    'microdescs' contains the subfolders
