@@ -1,4 +1,4 @@
-# Changes in version 1.5.0 - 2018-01-31
+# Changes in version 1.5.0 - 2018-02-26
 
  * Major changes
    - Update to metrics-lib 2.2.0.
