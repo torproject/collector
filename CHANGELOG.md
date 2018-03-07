@@ -1,3 +1,10 @@
+# Changes in version 1.?.? - 2018-??-??
+
+ * Minor changes
+   - Add bastet to default list of directory authority fingerprints to
+     download votes for.
+
+
 # Changes in version 1.5.0 - 2018-02-26
 
  * Major changes
