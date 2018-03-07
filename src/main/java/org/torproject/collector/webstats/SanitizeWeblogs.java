@@ -47,6 +47,7 @@ import java.util.SortedSet;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -188,7 +189,7 @@ public class SanitizeWeblogs extends CollecTorMain {
   }
 
   public static byte[] bytesFor(String line, long times) {
-    return Stream.of(line).limit(times)
+    return Stream.iterate(line, UnaryOperator.identity()).limit(times)
         .collect(Collectors.joining("\n", "", "\n")).getBytes();
   }
 
