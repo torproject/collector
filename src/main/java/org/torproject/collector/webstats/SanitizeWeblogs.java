@@ -187,7 +187,7 @@ public class SanitizeWeblogs extends CollecTorMain {
     }
   }
 
-  private static byte[] bytesFor(String line, long times) {
+  public static byte[] bytesFor(String line, long times) {
     return Stream.of(line).limit(times)
         .collect(Collectors.joining("\n", "", "\n")).getBytes();
   }
