@@ -169,9 +169,12 @@ public class SanitizeWeblogs extends CollecTorMain {
          OutputStream os = FileType.XZ.outputStream(baos)) {
       for (Map.Entry<String, Long> entry : lines.entrySet()) {
         long count = entry.getValue();
-        byte[] batch = bytesFor(entry.getKey(), BATCH);
+        byte[] batch = null;
         while (count > 0) {
           if (count > BATCH) {
+            if (null == batch) {
+              batch = bytesFor(entry.getKey(), BATCH);
+            }
             os.write(batch);
             count -= BATCH;
           } else {
