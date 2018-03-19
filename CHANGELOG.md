@@ -1,4 +1,7 @@
-# Changes in version 1.?.? - 2018-??-??
+# Changes in version 1.5.1 - 2018-03-19
+
+ * Medium changes
+   - Add the correct number of lines to sanitized webstats files.
 
  * Minor changes
    - Add bastet to default list of directory authority fingerprints to
