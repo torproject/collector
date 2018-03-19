@@ -105,8 +105,15 @@ for (( i = 0 ; i < ${#TARBALLS[@]} ; i++ )); do
   fi
 done
 
+cd $OUTDIR/webstats/
+echo `date` "Creating webstats-"$YEARONE"-"$MONTHONE".tar"
+find . -type f | grep "/"$YEARONE"/"$MONTHONE"/" | cut -c3- | tar cf $WORKDIR/webstats-$YEARONE-$MONTHONE.tar --transform 's,^,webstats-'$YEARONE'-'$MONTHONE'/,' -T -
+echo `date` "Creating webstats-"$YEARTWO"-"$MONTHTWO".tar"
+find . -type f | grep "/"$YEARTWO"/"$MONTHTWO"/" | cut -c3- | tar cf $WORKDIR/webstats-$YEARTWO-$MONTHTWO.tar --transform 's,^,webstats-'$YEARTWO'-'$MONTHTWO'/,' -T -
+cd $WORKDIR
+
 echo `date` "Moving tarballs into place"
-mv *.tar.xz $TARBALLTARGETDIR
+mv *.tar* $TARBALLTARGETDIR
 
 cd $CURRENTPATH
 
@@ -153,5 +160,8 @@ ln -f -s -t $ARCHIVEDIR/relay-descriptors/votes/ $TARBALLTARGETDIR/votes-20??-??
 
 mkdir -p $ARCHIVEDIR/torperf/
 ln -f -s -t $ARCHIVEDIR/torperf/ $TARBALLTARGETDIR/torperf-20??-??.tar.xz
+
+mkdir -p $ARCHIVEDIR/webstats/
+ln -f -s -t $ARCHIVEDIR/webstats/ $TARBALLTARGETDIR/webstats-20??-??.tar
 
 echo `date` "Finished."
