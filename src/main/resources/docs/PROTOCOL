@@ -392,7 +392,19 @@
    'webstats' contains compressed log files structured and named according
    to the 'Tor web server logs' specification, section 4.3 [0].
 
+6.0 The 'contrib' Folder
+
+   The 'contrib' folder contains third-party contributions.
+   The contributed data and documentation is provided in a subfolder per
+   contribution.  There is no particular substructure for contributed data.
+
+6.1 'bgp' below 'contrib'
+
+   'bgp' contains the BGP data collected between June 2016 and August 2017.
+   For detailed documentation see [1].
+
 A.0 Appendix
 
 A.1 References
 [0] https://metrics.torproject.org/web-server-logs.html#n-re-assembling-log-files
+[1] https://metrics.torproject.org/contrib/bgp.html
