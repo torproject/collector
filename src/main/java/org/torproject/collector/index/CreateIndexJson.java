@@ -92,6 +92,7 @@ public class CreateIndexJson extends CollecTorMain {
       basePath = config.getProperty(Key.InstanceBaseUrl.name());
       indexedDirectories = new File[] {
           config.getPath(Key.ArchivePath).toFile(),
+          config.getPath(Key.ContribPath).toFile(),
           config.getPath(Key.RecentPath).toFile() };
       writeIndex(indexDirectories());
     } catch (Exception e) {

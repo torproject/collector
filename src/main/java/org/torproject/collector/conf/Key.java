@@ -19,6 +19,7 @@ public enum Key {
   ExitlistUrl(URL.class),
   InstanceBaseUrl(String.class),
   ArchivePath(Path.class),
+  ContribPath(Path.class),
   RecentPath(Path.class),
   OutputPath(Path.class),
   IndexPath(Path.class),
