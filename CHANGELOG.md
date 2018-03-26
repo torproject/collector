@@ -5,6 +5,9 @@
      org.torproject.metrics.collector and ..index to ..indexer.
    - Fix a bug in the tarball-creation script where tarballs might not
      have been compressed in a run following an aborted run.
+   - Prevent weird values when calculating the cut-off date for
+     storing bridge sanitizer secrets using inf as the default value
+     of BridgeDescriptorMappingsLimit.
 
 
 # Changes in version 1.6.0 - 2018-05-23

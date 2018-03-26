@@ -3,6 +3,8 @@
 
 package org.torproject.metrics.collector.bridgedescs;
 
+import static java.time.ZoneOffset.UTC;
+
 import org.torproject.descriptor.BridgeExtraInfoDescriptor;
 import org.torproject.descriptor.BridgeNetworkStatus;
 import org.torproject.descriptor.BridgeServerDescriptor;
@@ -32,6 +34,8 @@ import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -192,21 +196,27 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       }
     }
 
-    long limitBridgeSanitizingInterval =
-        config.getInt(Key.BridgeDescriptorMappingsLimit);
+    long limitBridgeSanitizingIntervalDays
+        = config.getInt(Key.BridgeDescriptorMappingsLimit);
 
     /* If we're configured to keep secrets only for a limited time, define
      * the cut-off day and time. */
-    if (limitBridgeSanitizingInterval >= 0L) {
-      SimpleDateFormat formatter = new SimpleDateFormat(
-          "yyyy-MM-dd HH:mm:ss");
-      formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-      this.bridgeSanitizingCutOffTimestamp = formatter.format(
-          System.currentTimeMillis() - 24L * 60L * 60L * 1000L
-          * limitBridgeSanitizingInterval);
-    } else {
-      this.bridgeSanitizingCutOffTimestamp = "1999-12-31 23:59:59";
+    LocalDateTime bridgeSanitizingCutOffDateTime
+        = LocalDateTime.of(1999, 12, 31, 23, 59, 59);
+    if (limitBridgeSanitizingIntervalDays >= 0L) {
+      LocalDateTime configuredBridgeSanitizingCutOffDateTime
+          = LocalDateTime.now(UTC).minusDays(limitBridgeSanitizingIntervalDays);
+      if (configuredBridgeSanitizingCutOffDateTime.isAfter(
+          bridgeSanitizingCutOffDateTime)) {
+        bridgeSanitizingCutOffDateTime
+            = configuredBridgeSanitizingCutOffDateTime;
+      }
     }
+    this.bridgeSanitizingCutOffTimestamp = bridgeSanitizingCutOffDateTime
+        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+    logger.info("Using cut-off datetime '{}' for secrets.",
+        this.bridgeSanitizingCutOffTimestamp);
 
     // Prepare bridge descriptor parser
     BridgeDescriptorParser bdp = new BridgeDescriptorParser(this);
