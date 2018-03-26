@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -150,7 +151,7 @@ public class SanitizeWeblogs extends CollecTorMain {
       WebServerAccessLogPersistence walp
           = new WebServerAccessLogPersistence(
           new WebServerAccessLogImpl(toCompressedBytes(retainedLines),
-          name, false));
+          new File(name), name, false));
       log.debug("Storing {}.", name);
       walp.storeOut(this.outputPathName);
       walp.storeRecent(this.recentPathName);
