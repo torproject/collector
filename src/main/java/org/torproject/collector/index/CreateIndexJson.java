@@ -12,9 +12,6 @@ import org.torproject.descriptor.index.FileNode;
 import org.torproject.descriptor.index.IndexNode;
 import org.torproject.descriptor.internal.FileType;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -164,9 +161,7 @@ public class CreateIndexJson extends CollecTorMain {
 
   private void writeIndex(IndexNode indexNode) throws Exception {
     indexJsonFile.getParentFile().mkdirs();
-    Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation()
-        .create();
-    String indexNodeString = gson.toJson(indexNode);
+    String indexNodeString = IndexNode.makeJsonString(indexNode);
     for (String filename : new String[] {indexJsonFile.toString(),
         indexJsonFile + ".gz", indexJsonFile + ".xz", indexJsonFile + ".bz2"}) {
       FileType type = FileType.valueOf(

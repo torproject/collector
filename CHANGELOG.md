@@ -1,7 +1,8 @@
 # Changes in version 1.6.0 - 2018-0?-??
 
  * Medium changes
-   - Update and adapt to metrics-lib 2.3.0.
+   - Update and adapt to metrics-lib 2.4.0.
+   - Replace Gson with Jackson.
 
 
 # Changes in version 1.5.1 - 2018-03-19

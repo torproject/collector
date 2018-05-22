@@ -14,14 +14,14 @@ import org.torproject.descriptor.RelayNetworkStatusConsensus;
 import org.torproject.descriptor.RelayNetworkStatusVote;
 import org.torproject.descriptor.ServerDescriptor;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.text.DateFormat;
@@ -49,6 +49,10 @@ public class ReferenceChecker {
   private long currentTimeMillis;
 
   private SortedSet<Reference> references = new TreeSet<>();
+
+  private static ObjectMapper objectMapper = new ObjectMapper()
+      .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
+      .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
 
   private static DateFormat dateTimeFormat;
 
@@ -141,10 +145,9 @@ public class ReferenceChecker {
     if (!this.referencesFile.exists()) {
       return;
     }
-    Gson gson = new Gson();
-    try (FileReader fr = new FileReader(this.referencesFile)) {
-      this.references.addAll(Arrays.asList(gson.fromJson(fr,
-          Reference[].class)));
+    try {
+      this.references.addAll(Arrays.asList(objectMapper.readValue(
+          this.referencesFile, Reference[].class)));
     } catch (IOException e) {
       logger.warn("Cannot read existing references file "
           + "from previous run.", e);
@@ -321,11 +324,8 @@ public class ReferenceChecker {
   }
 
   private void writeReferencesFile() {
-    Gson gson = new Gson();
     try {
-      FileWriter fw = new FileWriter(this.referencesFile);
-      gson.toJson(this.references, fw);
-      fw.close();
+      objectMapper.writeValue(this.referencesFile, this.references);
     } catch (IOException e) {
       logger.warn("Cannot write references file for next "
           + "run.", e);

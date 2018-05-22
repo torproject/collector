@@ -11,13 +11,15 @@
   <property name="release.version" value="1.5.1-dev" />
   <property name="project-main-class" value="org.torproject.collector.Main" />
   <property name="name" value="collector"/>
-  <property name="metricslibversion" value="2.3.0" />
+  <property name="metricslibversion" value="2.4.0" />
   <property name="jarincludes" value="collector.properties logback.xml" />
 
   <patternset id="runtime" >
       <include name="commons-codec-1.10.jar"/>
       <include name="commons-compress-1.13.jar"/>
-      <include name="gson-2.4.jar"/>
+      <include name="jackson-annotations-2.8.6.jar"/>
+      <include name="jackson-core-2.8.6.jar"/>
+      <include name="jackson-databind-2.8.6.jar"/>
       <include name="xz-1.6.jar"/>
       <include name="metrics-lib-${metricslibversion}.jar"/>
       <include name="logback-core-1.1.9.jar" />

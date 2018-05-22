@@ -74,5 +74,26 @@ public class ReferenceCheckerTest {
             .get(0));
   }
 
+  @Test()
+  public void testEmptyReferencedString() throws Exception {
+    String validEmptyReferencedString
+        = validReferenceJson.substring(0,
+        validReferenceJson.indexOf("S-D8736"))
+        + validReferenceJson.substring(
+        validReferenceJson.indexOf("\",\"weight"));
+    File descDir = tmpf.newFolder();
+    File refsFile = tmpf.newFile();
+    File histFile = tmpf.newFile();
+    Files.write(refsFile.toPath(), validEmptyReferencedString.getBytes());
+    assertEquals(validEmptyReferencedString,
+        Files.readAllLines(refsFile.toPath(),
+        Charset.forName("US-ASCII")).get(0));
+    ReferenceChecker rc = new ReferenceChecker(descDir, refsFile, histFile);
+    rc.check();
+    assertTrue(refsFile.exists());
+    assertEquals(validEmptyReferencedString,
+        Files.readAllLines(refsFile.toPath(),
+        Charset.forName("US-ASCII")).get(0));
+  }
 }
 
