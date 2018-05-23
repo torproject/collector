@@ -1,4 +1,4 @@
-# Changes in version 1.6.0 - 2018-0?-??
+# Changes in version 1.6.0 - 2018-05-23
 
  * Medium changes
    - Update and adapt to metrics-lib 2.4.0.
