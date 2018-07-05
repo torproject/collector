@@ -1,3 +1,10 @@
+# Changes in version 1.?.? - 2018-??-??
+
+ * Minor changes
+   - Rename root package org.torproject.collector to
+     org.torproject.metrics.collector and ..index to ..indexer.
+
+
 # Changes in version 1.6.0 - 2018-05-23
 
  * Medium changes
