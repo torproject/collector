@@ -3,6 +3,8 @@
  * Minor changes
    - Rename root package org.torproject.collector to
      org.torproject.metrics.collector and ..index to ..indexer.
+   - Fix a bug in the tarball-creation script where tarballs might not
+     have been compressed in a run following an aborted run.
 
 
 # Changes in version 1.6.0 - 2018-05-23

@@ -99,10 +99,8 @@ done
 for (( i = 0 ; i < ${#TARBALLS[@]} ; i++ )); do
   echo `date` "Creating" ${TARBALLS[$i]}'.tar'
   tar chf ${TARBALLS[$i]}.tar ${TARBALLS[$i]}
-  if [ ! -f ${TARBALLS[$i]}.tar.xz ]; then
-    echo `date` "Compressing" ${TARBALLS[$i]}'.tar'
-    xz -9e ${TARBALLS[$i]}.tar
-  fi
+  echo `date` "Compressing" ${TARBALLS[$i]}'.tar'
+  xz -9e ${TARBALLS[$i]}.tar
 done
 
 cd $OUTDIR/webstats/
