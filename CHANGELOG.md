@@ -1,4 +1,7 @@
-# Changes in version 1.?.? - 2018-??-??
+# Changes in version 1.7.0 - 2018-07-14
+
+ * Medium changes
+   - Recognize new bridge authority Serge.
 
  * Minor changes
    - Rename root package org.torproject.collector to

@@ -121,6 +121,10 @@ public class BridgeSnapshotReader {
                   authorityFingerprint =
                       "1D8F3A91C37C5D1C4C19B1AD1D0CFBE8BF72D8E1";
                   break;
+                case "from-serge-":
+                  authorityFingerprint =
+                      "BA44A889E64B93FAA2B114E02C2A279A8555C533";
+                  break;
                 default:
                   logger.warn("Did not recognize the bridge authority that "
                       + "generated " + fn + ".  Skipping.");
