@@ -218,8 +218,7 @@ public class SanitizeWeblogs extends CollecTorMain {
     if (dates.isEmpty()) { // return the empty interval
       return new LocalDate[]{LocalDate.MAX, LocalDate.MIN};
     }
-    SortedSet<LocalDate> sorted = new TreeSet<>();
-    sorted.addAll(dates);
+    SortedSet<LocalDate> sorted = new TreeSet<>(dates);
     if (this.limits) {
       for (int i = 0; i < LIMIT - 1; i++) {
         sorted.remove(sorted.last());
