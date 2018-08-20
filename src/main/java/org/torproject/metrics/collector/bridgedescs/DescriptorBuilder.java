@@ -88,7 +88,7 @@ class DescriptorBuilder {
   public String toString() {
     if (!this.finalized) {
       this.finalized = true;
-      this.value = this.parts.stream().map(part -> part.toString())
+      this.value = this.parts.stream().map(Object::toString)
           .collect(Collectors.joining(""));
       this.parts.clear(); // not needed anymore
       this.lastPart = null;

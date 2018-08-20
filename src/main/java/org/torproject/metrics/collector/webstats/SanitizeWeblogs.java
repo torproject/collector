@@ -264,9 +264,9 @@ public class SanitizeWeblogs extends CollecTorMain {
       br.close();
       return lists.parallelStream()
           .map(list -> list.stream()
-              .map(line -> sanitize(line))
-              .filter(line -> line.isPresent())
-              .map(line -> line.get())
+              .map(SanitizeWeblogs::sanitize)
+              .filter(Optional::isPresent)
+              .map(Optional::get)
               .collect(groupingBy(WebServerAccessLogLine::getDate,
                   groupingBy(WebServerAccessLogLine::toLogString, counting()))))
           .flatMap(map -> map.entrySet().stream()).parallel()
