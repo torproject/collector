@@ -224,7 +224,7 @@ public class SanitizedBridgesWriterTest {
   public void testServerDescriptorAdditionalAnnotation()
       throws Exception {
     this.defaultServerTestDescriptorBuilder.insertBeforeLineStartingWith(
-        "@purpose bridge", Arrays.asList("@source 198.50.200.131"));
+        "@purpose bridge", "@source 198.50.200.131");
     this.runTest();
     assertEquals("Expected 3 sanitized descriptors.", 3,
         this.parsedFiles.size());
@@ -237,7 +237,7 @@ public class SanitizedBridgesWriterTest {
     this.configuration.setProperty(Key.BridgeDescriptorMappingsLimit.name(),
         "30000");
     this.defaultServerTestDescriptorBuilder.insertBeforeLineStartingWith(
-        "platform ", Arrays.asList("or-address [2:5:2:5:2:5:2:5]:25"));
+        "platform ", "or-address [2:5:2:5:2:5:2:5]:25");
     Path bridgeIpSecretsFile = Paths.get(statsDirectory, "bridge-ip-secrets");
     BufferedWriter writer = Files.newBufferedWriter(bridgeIpSecretsFile,
         StandardCharsets.UTF_8);
@@ -259,7 +259,7 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testServerDescriptorRouterLineTruncated() throws Exception {
     this.defaultServerTestDescriptorBuilder.replaceLineStartingWith("router ",
-        Arrays.asList("router MeekGoogle"));
+        "router MeekGoogle");
     this.runTest();
     assertTrue("Sanitized server descriptor with invalid router line.",
         this.parsedServerDescriptors.isEmpty());
@@ -269,8 +269,8 @@ public class SanitizedBridgesWriterTest {
   public void testServerDescriptorProtoLine() throws Exception {
     this.defaultServerTestDescriptorBuilder
         .replaceLineStartingWith("protocols ",
-        Arrays.asList("proto Cons=1-2 Desc=1-2 DirCache=1 HSDir=1 HSIntro=3 "
-        + "HSRend=1-2 Link=1-4 LinkAuth=1 Microdesc=1-2 Relay=1-2"));
+        "proto Cons=1-2 Desc=1-2 DirCache=1 HSDir=1 HSIntro=3 "
+        + "HSRend=1-2 Link=1-4 LinkAuth=1 Microdesc=1-2 Relay=1-2");
     this.runTest();
     assertFalse("Sanitized server descriptor with valid proto line.",
         this.parsedServerDescriptors.isEmpty());
@@ -279,7 +279,7 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testServerDescriptorFingerprintTruncated() throws Exception {
     this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
-        "fingerprint ", Arrays.asList("fingerprint 4"));
+        "fingerprint ", "fingerprint 4");
     this.runTest();
     assertTrue("Sanitized server descriptor with invalid fingerprint "
         + "line.", this.parsedServerDescriptors.isEmpty());
@@ -289,7 +289,7 @@ public class SanitizedBridgesWriterTest {
   public void testServerDescriptorFingerprintInvalidHex()
       throws Exception {
     this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
-        "fingerprint ", Arrays.asList("fingerprint FUN!"));
+        "fingerprint ", "fingerprint FUN!");
     this.runTest();
     assertTrue("Sanitized server descriptor with invalid fingerprint "
         + "line.", this.parsedServerDescriptors.isEmpty());
@@ -299,8 +299,7 @@ public class SanitizedBridgesWriterTest {
   public void testServerDescriptorFingerprintOpt() throws Exception {
     this.defaultServerTestDescriptorBuilder
         .replaceLineStartingWith("fingerprint ",
-        Arrays.asList("opt fingerprint 46D4 A711 97B8 FA51 5A82 6C6B 017C 522F "
-        + "E264 655B"));
+        "opt fingerprint 46D4 A711 97B8 FA51 5A82 6C6B 017C 522F E264 655B");
     this.runTest();
     this.parsedServerDescriptors.get(0).contains("opt fingerprint 88F7 "
         + "4584 0F47 CE0C 6A4F E61D 8279 50B0 6F9E 4534");
@@ -310,7 +309,7 @@ public class SanitizedBridgesWriterTest {
   public void testServerDescriptorExtraInfoDigestInvalidHex()
       throws Exception {
     this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
-        "extra-info-digest ", Arrays.asList("extra-info-digest 6"));
+        "extra-info-digest ", "extra-info-digest 6");
     this.runTest();
     assertTrue("Sanitized server descriptor with invalid extra-info "
         + "line.", this.parsedServerDescriptors.isEmpty());
@@ -320,9 +319,9 @@ public class SanitizedBridgesWriterTest {
   public void testServerDescriptorExtraInfoDigestInvalidBase64()
       throws Exception {
     this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
-        "extra-info-digest ", Arrays.asList("extra-info-digest "
+        "extra-info-digest ", "extra-info-digest "
         + "6D03E80568DEFA102968D144CB35FFA6E3355B8A "
-        + "#*?$%x@nxukmmcT1+UnDg4qh0yKbjVUYKhGL8VksoJA"));
+        + "#*?$%x@nxukmmcT1+UnDg4qh0yKbjVUYKhGL8VksoJA");
     this.runTest();
     assertTrue("Invalid base64 in server descriptor accepted.",
         this.parsedServerDescriptors.isEmpty());
@@ -332,8 +331,8 @@ public class SanitizedBridgesWriterTest {
   public void testServerDescriptorExtraInfoDigestSha1Only()
       throws Exception {
     this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
-        "extra-info-digest ", Arrays.asList("extra-info-digest "
-        + "6D03E80568DEFA102968D144CB35FFA6E3355B8A"));
+        "extra-info-digest ", "extra-info-digest "
+        + "6D03E80568DEFA102968D144CB35FFA6E3355B8A");
     this.runTest();
     assertTrue("Expected different extra-info-digest line.",
         this.parsedServerDescriptors.get(0).contains(
@@ -344,9 +343,9 @@ public class SanitizedBridgesWriterTest {
   public void testServerDescriptorExtraInfoDigestThirdArgument()
       throws Exception {
     this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
-        "extra-info-digest ", Arrays.asList("extra-info-digest "
+        "extra-info-digest ", "extra-info-digest "
         + "6D03E80568DEFA102968D144CB35FFA6E3355B8A "
-        + "cy/LwP7nxukmmcT1+UnDg4qh0yKbjVUYKhGL8VksoJA 00"));
+        + "cy/LwP7nxukmmcT1+UnDg4qh0yKbjVUYKhGL8VksoJA 00");
     this.runTest();
     assertTrue("Third argument to extra-info-digest line should not be "
         + "dropped silently.", this.parsedServerDescriptors.isEmpty());
@@ -355,9 +354,9 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testServerDescriptorExtraInfoDigestOpt() throws Exception {
     this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
-        "extra-info-digest ", Arrays.asList("opt extra-info-digest "
+        "extra-info-digest ", "opt extra-info-digest "
         + "6D03E80568DEFA102968D144CB35FFA6E3355B8A "
-        + "cy/LwP7nxukmmcT1+UnDg4qh0yKbjVUYKhGL8VksoJA"));
+        + "cy/LwP7nxukmmcT1+UnDg4qh0yKbjVUYKhGL8VksoJA");
     this.runTest();
     this.parsedServerDescriptors.get(0).contains("opt extra-info-digest "
         + "B026CF0F81712D94BBF1362294882688DF247887 "
@@ -367,7 +366,7 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testServerDescriptorRejectOwnAddress() throws Exception {
     this.defaultServerTestDescriptorBuilder.insertBeforeLineStartingWith(
-        "reject *:*", Arrays.asList("reject 198.50.200.131:*", "accept *:80"));
+        "reject *:*", "reject 198.50.200.131:*", "accept *:80");
     this.runTest();
     List<String> parsedLines = this.parsedServerDescriptors.get(0);
     for (int i = 0; i < parsedLines.size(); i++) {
@@ -387,8 +386,8 @@ public class SanitizedBridgesWriterTest {
   public void testServerDescriptorEd25519IdentityMasterKeyMismatch()
       throws Exception {
     this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
-        "master-key-ed25519 ", Arrays.asList("master-key-ed25519 "
-        + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
+        "master-key-ed25519 ", "master-key-ed25519 "
+        + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     this.runTest();
     assertTrue("Mismatch between Ed25519 identity and master key.",
         this.parsedServerDescriptors.isEmpty());
@@ -397,12 +396,12 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testServerDescriptorEd25519IdentityA() throws Exception {
     this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
-        "identity-ed25519", Arrays.asList("identity-ed25519",
+        "identity-ed25519", "identity-ed25519",
         "-----BEGIN ED25519 CERT-----",
         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-        "-----END ED25519 CERT-----"));
+        "-----END ED25519 CERT-----");
     this.runTest();
     assertTrue("Ed25519 identity all A's conflicts with master key?",
         this.parsedServerDescriptors.isEmpty());
@@ -414,7 +413,7 @@ public class SanitizedBridgesWriterTest {
         "ZEXE7RkiEJ1l5Ij9hc9TJOpM7/9XSPZnF/PbMfE0u3n3JbOO3s82GN6BPuA0v2Cs";
     this.defaultServerTestDescriptorBuilder
         .replaceLineStartingWith(change9sTo6s,
-        Arrays.asList(change9sTo6s.replaceAll("9", "6")));
+        change9sTo6s.replaceAll("9", "6"));
     this.runTest();
     assertTrue("Mismatch between identity and master key.",
         this.parsedServerDescriptors.isEmpty());
@@ -423,12 +422,12 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testServerDescriptorEd25519IdentitySlash() throws Exception {
     this.defaultServerTestDescriptorBuilder.replaceLineStartingWith(
-        "identity-ed25519", Arrays.asList("identity-ed25519",
+        "identity-ed25519", "identity-ed25519",
         "-----BEGIN ED25519 CERT-----",
         "////////////////////////////////////////////////////////////////",
         "////////////////////////////////////////////////////////////////",
         "///////////////////////////////////////////////////////////=",
-        "-----END ED25519 CERT-----"));
+        "-----END ED25519 CERT-----");
     this.runTest();
     assertTrue("Ed25519 identity all slashes conflicts with master key.",
         this.parsedServerDescriptors.isEmpty());
@@ -438,7 +437,7 @@ public class SanitizedBridgesWriterTest {
   public void testServerDescriptorFamilyInvalidFingerprint()
       throws Exception {
     this.defaultServerTestDescriptorBuilder.insertBeforeLineStartingWith(
-        "hidden-service-dir", Arrays.asList("family $0"));
+        "hidden-service-dir", "family $0");
     this.runTest();
     assertTrue("Sanitized server descriptor with invalid fingerprint in "
         + "family line.", this.parsedServerDescriptors.isEmpty());
@@ -453,7 +452,7 @@ public class SanitizedBridgesWriterTest {
         "fingerprint 46D4 A711 97B8 FA51 5A82 6C6B 017C 522F E264 655B";
     this.defaultServerTestDescriptorBuilder.removeLine(fingerprintLine);
     this.defaultServerTestDescriptorBuilder.insertBeforeLineStartingWith(
-        "published ", Arrays.asList(fingerprintLine));
+        "published ", fingerprintLine);
     this.runTest();
     assertFalse(this.parsedServerDescriptors.isEmpty());
   }
@@ -499,7 +498,7 @@ public class SanitizedBridgesWriterTest {
   public void testExtraInfoDescriptorExtraInfoLineTruncated()
       throws Exception {
     this.defaultExtraInfoTestDescriptorBuilder.replaceLineStartingWith(
-        "extra-info ", Arrays.asList("extra-info "));
+        "extra-info ", "extra-info ");
     this.runTest();
   }
 
@@ -507,7 +506,7 @@ public class SanitizedBridgesWriterTest {
   public void testExtraInfoDescriptorExtraInfoInvalidHex()
       throws Exception {
     this.defaultExtraInfoTestDescriptorBuilder.replaceLineStartingWith(
-        "extra-info ", Arrays.asList("extra-info MeekGoogle 4"));
+        "extra-info ", "extra-info MeekGoogle 4");
     this.runTest();
     assertTrue("Sanitized extra-info descriptor with invalid extra-info "
         + "line.", this.parsedExtraInfoDescriptors.isEmpty());
@@ -516,7 +515,7 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testExtraInfoDescriptorTransportSpace() throws Exception {
     this.defaultExtraInfoTestDescriptorBuilder.replaceLineStartingWith(
-        "transport ", Arrays.asList("transport "));
+        "transport ", "transport ");
     this.runTest();
     assertTrue("Sanitized extra-info descriptor with invalid transport "
         + "line.", this.parsedExtraInfoDescriptors.isEmpty());
@@ -525,7 +524,7 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testExtraInfoDescriptorTransportInfoRemoved() throws Exception {
     this.defaultExtraInfoTestDescriptorBuilder.insertBeforeLineStartingWith(
-        "bridge-stats-end ", Arrays.asList("transport-info secretkey"));
+        "bridge-stats-end ", "transport-info secretkey");
     this.runTest();
     for (String line : this.parsedExtraInfoDescriptors.get(0)) {
       assertFalse("transport-info line should not have been retained.",
@@ -536,11 +535,10 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testExtraInfoDescriptorHidservRetained() throws Exception {
     this.defaultExtraInfoTestDescriptorBuilder.insertBeforeLineStartingWith(
-        "transport ",
-        Arrays.asList("hidserv-stats-end 2016-11-23 14:48:05 (86400 s)",
+        "transport ", "hidserv-stats-end 2016-11-23 14:48:05 (86400 s)",
         "hidserv-rend-relayed-cells 27653088 delta_f=2048 epsilon=0.30 "
         + "bin_size=1024",
-        "hidserv-dir-onions-seen 204 delta_f=8 epsilon=0.30 bin_size=8"));
+        "hidserv-dir-onions-seen 204 delta_f=8 epsilon=0.30 bin_size=8");
     this.runTest();
     int foundHidservLines = 0;
     if (!this.parsedExtraInfoDescriptors.isEmpty()) {
@@ -558,12 +556,12 @@ public class SanitizedBridgesWriterTest {
   public void testExtraInfoDescriptorPaddingCountsRetained() throws Exception {
     this.defaultExtraInfoTestDescriptorBuilder.insertBeforeLineStartingWith(
         "transport ",
-        Arrays.asList("padding-counts 2017-05-10 01:48:43 (86400 s) "
+        "padding-counts 2017-05-10 01:48:43 (86400 s) "
             + "bin-size=10000 write-drop=10000 write-pad=10000 "
             + "write-total=10000 read-drop=10000 read-pad=10000 "
             + "read-total=70000 enabled-read-pad=0 enabled-read-total=0 "
             + "enabled-write-pad=0 enabled-write-total=0 "
-            + "max-chanpad-timers=0"));
+            + "max-chanpad-timers=0");
     this.runTest();
     int foundPaddingCountsLines = 0;
     if (!this.parsedExtraInfoDescriptors.isEmpty()) {
@@ -581,7 +579,7 @@ public class SanitizedBridgesWriterTest {
   public void testExtraInfoDescriptorRouterSignatureLineSpace()
       throws Exception {
     this.defaultExtraInfoTestDescriptorBuilder.replaceLineStartingWith(
-        "router-signature", Arrays.asList("router-signature "));
+        "router-signature", "router-signature ");
     this.runTest();
     assertTrue("Sanitized extra-info descriptor with invalid "
         + "router-signature line.",
@@ -639,16 +637,16 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testNetworkStatusRlineTruncated() throws Exception {
     this.defaultNetworkStatusTestDescriptorBuilder.replaceLineStartingWith("r ",
-        Arrays.asList("r MeekGoogle"));
+        "r MeekGoogle");
     this.runTest();
   }
 
   @Test
   public void testNetworkStatusRlineInvalidBase64() throws Exception {
     this.defaultNetworkStatusTestDescriptorBuilder.replaceLineStartingWith("r ",
-        Arrays.asList("r MeekGoogle R#SnE*e4+lFag:xr_XxSL+J;ZVs "
+        "r MeekGoogle R#SnE*e4+lFag:xr_XxSL+J;ZVs "
         + "g+M7'w+lG$mv6NW9&RmvzLO(R0Y 2016-06-30 21:43:52 "
-        + "198.50.200.131 8008 0"));
+        + "198.50.200.131 8008 0");
     this.runTest();
     assertTrue("Should not have accepted invalid base64.",
         this.parsedNetworkStatuses.isEmpty());
@@ -659,7 +657,7 @@ public class SanitizedBridgesWriterTest {
     this.configuration.setProperty(Key.ReplaceIpAddressesWithHashes.name(),
         "true");
     this.defaultNetworkStatusTestDescriptorBuilder
-        .insertBeforeLineStartingWith("s ", Arrays.asList("a 198.50.200.132"));
+        .insertBeforeLineStartingWith("s ", "a 198.50.200.132");
     this.runTest();
     for (String line : this.parsedNetworkStatuses.get(0)) {
       if (line.startsWith("a ")) {
@@ -671,7 +669,7 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testNetworkStatusVLineUnknown() throws Exception {
     this.defaultNetworkStatusTestDescriptorBuilder
-        .insertBeforeLineStartingWith("w ", Arrays.asList("v Tor 0.2.7.6"));
+        .insertBeforeLineStartingWith("w ", "v Tor 0.2.7.6");
     this.runTest();
     assertTrue("Should not have sanitized status with v line which is unknown "
         + "in this descriptor type.", this.parsedNetworkStatuses.isEmpty());

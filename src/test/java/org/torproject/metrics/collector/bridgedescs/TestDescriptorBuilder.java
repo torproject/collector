@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /** Builds a descriptor by concatenating the given lines with newlines and
  * writing the output to the given output stream. */
@@ -33,10 +32,10 @@ abstract class TestDescriptorBuilder extends ArrayList<String> {
    * given lines before it, or fails if no line can be found with that line
    * start. */
   void insertBeforeLineStartingWith(String lineStart,
-      List<String> linesToInsert) {
+      String ... linesToInsert) {
     for (int i = 0; i < this.size(); i++) {
       if (this.get(i).startsWith(lineStart)) {
-        this.addAll(i, linesToInsert);
+        this.addAll(i, Arrays.asList(linesToInsert));
         return;
       }
     }
@@ -46,13 +45,13 @@ abstract class TestDescriptorBuilder extends ArrayList<String> {
   /** Finds the first line that starts with the given line start and replaces
    * that line and possibly subsequent lines, or fails if no line can be found
    * with that line start or there are not enough lines left to replace. */
-  void replaceLineStartingWith(String lineStart, List<String> linesToReplace) {
+  void replaceLineStartingWith(String lineStart, String ... linesToReplace) {
     for (int i = 0; i < this.size(); i++) {
       if (this.get(i).startsWith(lineStart)) {
-        for (int j = 0; j < linesToReplace.size(); j++) {
+        for (int j = 0; j < linesToReplace.length; j++) {
           assertTrue("Not enough lines left to replace.",
               this.size() > i + j);
-          this.set(i + j, linesToReplace.get(j));
+          this.set(i + j, linesToReplace[j]);
         }
         return;
       }
