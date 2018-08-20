@@ -134,17 +134,15 @@ public class CachedRelayDescriptorReader {
 
             /* Parse the cached consensus if we haven't parsed it before
              * (but regardless of whether it's stale or not). */
-            if (rdp != null) {
-              String digest = Hex.encodeHexString(DigestUtils.sha1(
-                  allData));
-              if (!lastImportHistory.contains(digest)
-                  && !currentImportHistory.contains(digest)) {
-                rdp.parse(allData);
-              } else {
-                dumpStats.append(" (skipped)");
-              }
-              currentImportHistory.add(digest);
+            String digest = Hex.encodeHexString(DigestUtils.sha1(
+                allData));
+            if (!lastImportHistory.contains(digest)
+                && !currentImportHistory.contains(digest)) {
+              rdp.parse(allData);
+            } else {
+              dumpStats.append(" (skipped)");
             }
+            currentImportHistory.add(digest);
           } else if (f.getName().equals("v3-status-votes")) {
             int parsedNum = 0;
             int skippedNum = 0;
@@ -161,18 +159,16 @@ public class CachedRelayDescriptorReader {
                 byte[] rawNetworkStatusBytes = new byte[next - start];
                 System.arraycopy(allData, start, rawNetworkStatusBytes, 0,
                     next - start);
-                if (rdp != null) {
-                  String digest = Hex.encodeHexString(DigestUtils.sha1(
-                      rawNetworkStatusBytes));
-                  if (!lastImportHistory.contains(digest)
-                      && !currentImportHistory.contains(digest)) {
-                    rdp.parse(rawNetworkStatusBytes);
-                    parsedNum++;
-                  } else {
-                    skippedNum++;
-                  }
-                  currentImportHistory.add(digest);
+                String digest = Hex.encodeHexString(DigestUtils.sha1(
+                    rawNetworkStatusBytes));
+                if (!lastImportHistory.contains(digest)
+                    && !currentImportHistory.contains(digest)) {
+                  rdp.parse(rawNetworkStatusBytes);
+                  parsedNum++;
+                } else {
+                  skippedNum++;
                 }
+                currentImportHistory.add(digest);
               }
               start = next;
             }
@@ -208,18 +204,16 @@ public class CachedRelayDescriptorReader {
               end += endToken.length();
               byte[] descBytes = new byte[end - start];
               System.arraycopy(allData, start, descBytes, 0, end - start);
-              if (rdp != null) {
-                String digest = Hex.encodeHexString(DigestUtils.sha1(
-                    descBytes));
-                if (!lastImportHistory.contains(digest)
-                    && !currentImportHistory.contains(digest)) {
-                  rdp.parse(descBytes);
-                  parsedNum++;
-                } else {
-                  skippedNum++;
-                }
-                currentImportHistory.add(digest);
+              String digest = Hex.encodeHexString(DigestUtils.sha1(
+                  descBytes));
+              if (!lastImportHistory.contains(digest)
+                  && !currentImportHistory.contains(digest)) {
+                rdp.parse(descBytes);
+                parsedNum++;
+              } else {
+                skippedNum++;
               }
+              currentImportHistory.add(digest);
             }
             dumpStats.append("\n" + f.getName() + ": parsed " + parsedNum
                 + ", skipped " + skippedNum + " "

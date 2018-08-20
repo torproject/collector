@@ -90,62 +90,17 @@ public class ArchiveReader {
             filesInInputDir.add(f);
           }
         } else {
-          if (rdp != null) {
-            try {
-              BufferedInputStream bis = null;
-              if (keepImportHistory
-                  && archivesImportHistory.contains(pop.getName())) {
-                ignoredFiles++;
-                continue;
-              } else if (pop.getName().endsWith(".tar.bz2")) {
-                logger.warn("Cannot parse compressed tarball "
-                    + pop.getAbsolutePath() + ". Skipping.");
-                continue;
-              } else if (pop.getName().endsWith(".bz2")) {
-                FileInputStream fis = new FileInputStream(pop);
-                BZip2CompressorInputStream bcis =
-                    new BZip2CompressorInputStream(fis);
-                bis = new BufferedInputStream(bcis);
-              } else {
-                FileInputStream fis = new FileInputStream(pop);
-                bis = new BufferedInputStream(fis);
-              }
-              ByteArrayOutputStream baos = new ByteArrayOutputStream();
-              int len;
-              byte[] data = new byte[1024];
-              while ((len = bis.read(data, 0, 1024)) >= 0) {
-                baos.write(data, 0, len);
-              }
-              bis.close();
-              byte[] allData = baos.toByteArray();
-              boolean stored = rdp.parse(allData);
-              if (!stored) {
-                filesToRetry.add(pop);
-                continue;
-              }
-              if (keepImportHistory) {
-                archivesImportHistory.add(pop.getName());
-              }
-              parsedFiles++;
-            } catch (IOException e) {
-              problems.add(pop);
-              if (problems.size() > 3) {
-                break;
-              }
-            }
-          }
-        }
-      }
-      for (File pop : filesToRetry) {
-        /* TODO We need to parse microdescriptors ourselves, rather than
-         * RelayDescriptorParser, because only we know the valid-after
-         * time(s) of microdesc consensus(es) containing this
-         * microdescriptor.  However, this breaks functional abstraction
-         * pretty badly. */
-        if (rdp != null) {
           try {
             BufferedInputStream bis = null;
-            if (pop.getName().endsWith(".bz2")) {
+            if (keepImportHistory
+                && archivesImportHistory.contains(pop.getName())) {
+              ignoredFiles++;
+              continue;
+            } else if (pop.getName().endsWith(".tar.bz2")) {
+              logger.warn("Cannot parse compressed tarball "
+                  + pop.getAbsolutePath() + ". Skipping.");
+              continue;
+            } else if (pop.getName().endsWith(".bz2")) {
               FileInputStream fis = new FileInputStream(pop);
               BZip2CompressorInputStream bcis =
                   new BZip2CompressorInputStream(fis);
@@ -162,71 +117,10 @@ public class ArchiveReader {
             }
             bis.close();
             byte[] allData = baos.toByteArray();
-            BufferedReader br = new BufferedReader(new StringReader(
-                new String(allData, "US-ASCII")));
-            String line;
-            do {
-              line = br.readLine();
-            } while (line != null && line.startsWith("@"));
-            br.close();
-            if (line == null) {
-              logger.debug("We were given an empty descriptor for "
-                  + "parsing. Ignoring.");
+            boolean stored = rdp.parse(allData);
+            if (!stored) {
+              filesToRetry.add(pop);
               continue;
-            }
-            if (!line.equals("onion-key")) {
-              logger.debug("Skipping non-recognized descriptor.");
-              continue;
-            }
-            SimpleDateFormat parseFormat =
-                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            parseFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-            String ascii = null;
-            try {
-              ascii = new String(allData, "US-ASCII");
-            } catch (UnsupportedEncodingException e) {
-              /* No way that US-ASCII is not supported. */
-            }
-            int start = -1;
-            int end = -1;
-            String startToken = "onion-key\n";
-            while (end < ascii.length()) {
-              start = ascii.indexOf(startToken, end);
-              if (start < 0) {
-                break;
-              }
-              end = ascii.indexOf(startToken, start + 1);
-              if (end < 0) {
-                end = ascii.length();
-                if (end <= start) {
-                  break;
-                }
-              }
-              byte[] descBytes = new byte[end - start];
-              System.arraycopy(allData, start, descBytes, 0, end - start);
-              String digest256Base64 = Base64.encodeBase64String(
-                  DigestUtils.sha256(descBytes)).replaceAll("=", "");
-              String digest256Hex = DigestUtils.sha256Hex(descBytes);
-              if (!this.microdescriptorValidAfterTimes.containsKey(
-                  digest256Hex)) {
-                logger.debug("Could not store microdescriptor '"
-                    + digest256Hex + "', which was not contained in a "
-                    + "microdesc consensus.");
-                continue;
-              }
-              for (String validAfterTime :
-                  this.microdescriptorValidAfterTimes.get(digest256Hex)) {
-                try {
-                  long validAfter =
-                      parseFormat.parse(validAfterTime).getTime();
-                  rdp.storeMicrodescriptor(descBytes, digest256Hex,
-                      digest256Base64, validAfter);
-                } catch (ParseException e) {
-                  logger.warn("Could not parse "
-                      + "valid-after time '" + validAfterTime + "'. Not "
-                      + "storing microdescriptor.", e);
-                }
-              }
             }
             if (keepImportHistory) {
               archivesImportHistory.add(pop.getName());
@@ -237,6 +131,108 @@ public class ArchiveReader {
             if (problems.size() > 3) {
               break;
             }
+          }
+        }
+      }
+      for (File pop : filesToRetry) {
+        /* TODO We need to parse microdescriptors ourselves, rather than
+         * RelayDescriptorParser, because only we know the valid-after
+         * time(s) of microdesc consensus(es) containing this
+         * microdescriptor.  However, this breaks functional abstraction
+         * pretty badly. */
+        try {
+          BufferedInputStream bis = null;
+          if (pop.getName().endsWith(".bz2")) {
+            FileInputStream fis = new FileInputStream(pop);
+            BZip2CompressorInputStream bcis =
+                new BZip2CompressorInputStream(fis);
+            bis = new BufferedInputStream(bcis);
+          } else {
+            FileInputStream fis = new FileInputStream(pop);
+            bis = new BufferedInputStream(fis);
+          }
+          ByteArrayOutputStream baos = new ByteArrayOutputStream();
+          int len;
+          byte[] data = new byte[1024];
+          while ((len = bis.read(data, 0, 1024)) >= 0) {
+            baos.write(data, 0, len);
+          }
+          bis.close();
+          byte[] allData = baos.toByteArray();
+          BufferedReader br = new BufferedReader(new StringReader(
+              new String(allData, "US-ASCII")));
+          String line;
+          do {
+            line = br.readLine();
+          } while (line != null && line.startsWith("@"));
+          br.close();
+          if (line == null) {
+            logger.debug("We were given an empty descriptor for "
+                + "parsing. Ignoring.");
+            continue;
+          }
+          if (!line.equals("onion-key")) {
+            logger.debug("Skipping non-recognized descriptor.");
+            continue;
+          }
+          SimpleDateFormat parseFormat =
+              new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+          parseFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+          String ascii = null;
+          try {
+            ascii = new String(allData, "US-ASCII");
+          } catch (UnsupportedEncodingException e) {
+            /* No way that US-ASCII is not supported. */
+          }
+          int start = -1;
+          int end = -1;
+          String startToken = "onion-key\n";
+          while (end < ascii.length()) {
+            start = ascii.indexOf(startToken, end);
+            if (start < 0) {
+              break;
+            }
+            end = ascii.indexOf(startToken, start + 1);
+            if (end < 0) {
+              end = ascii.length();
+              if (end <= start) {
+                break;
+              }
+            }
+            byte[] descBytes = new byte[end - start];
+            System.arraycopy(allData, start, descBytes, 0, end - start);
+            String digest256Base64 = Base64.encodeBase64String(
+                DigestUtils.sha256(descBytes)).replaceAll("=", "");
+            String digest256Hex = DigestUtils.sha256Hex(descBytes);
+            if (!this.microdescriptorValidAfterTimes.containsKey(
+                digest256Hex)) {
+              logger.debug("Could not store microdescriptor '"
+                  + digest256Hex + "', which was not contained in a "
+                  + "microdesc consensus.");
+              continue;
+            }
+            for (String validAfterTime :
+                this.microdescriptorValidAfterTimes.get(digest256Hex)) {
+              try {
+                long validAfter =
+                    parseFormat.parse(validAfterTime).getTime();
+                rdp.storeMicrodescriptor(descBytes, digest256Hex,
+                    digest256Base64, validAfter);
+              } catch (ParseException e) {
+                logger.warn("Could not parse "
+                    + "valid-after time '" + validAfterTime + "'. Not "
+                    + "storing microdescriptor.", e);
+              }
+            }
+          }
+          if (keepImportHistory) {
+            archivesImportHistory.add(pop.getName());
+          }
+          parsedFiles++;
+        } catch (IOException e) {
+          problems.add(pop);
+          if (problems.size() > 3) {
+            break;
           }
         }
       }
