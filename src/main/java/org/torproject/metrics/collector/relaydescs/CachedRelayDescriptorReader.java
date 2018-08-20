@@ -220,10 +220,7 @@ public class CachedRelayDescriptorReader {
                 + (f.getName().startsWith("cached-descriptors")
                 ? "server" : "extra-info") + " descriptors");
           }
-        } catch (IOException e) {
-          logger.warn("Failed reading "
-              + cachedDescDir.getAbsolutePath() + " directory.", e);
-        } catch (ParseException e) {
+        } catch (IOException | ParseException e) {
           logger.warn("Failed reading "
               + cachedDescDir.getAbsolutePath() + " directory.", e);
         }
