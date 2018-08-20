@@ -37,32 +37,52 @@ public class CachedRelayDescriptorReader {
   private static final Logger logger = LoggerFactory.getLogger(
       CachedRelayDescriptorReader.class);
 
-  /** Reads cached-descriptor files from one or more directories and
-   * passes them to the given descriptor parser. */
-  public CachedRelayDescriptorReader(RelayDescriptorParser rdp,
-      String[] inputDirectories, File statsDirectory) {
+  private RelayDescriptorParser rdp;
 
+  private String[] inputDirectories;
+
+  private File importHistoryFile;
+
+  private StringBuilder dumpStats;
+
+  private Set<String> lastImportHistory = new HashSet<>();
+
+  private Set<String> currentImportHistory = new HashSet<>();
+
+  /** Initializes this reader but without starting to read yet. */
+  CachedRelayDescriptorReader(RelayDescriptorParser rdp,
+      String[] inputDirectories, File statsDirectory) {
     if (rdp == null || inputDirectories == null
         || inputDirectories.length == 0 || statsDirectory == null) {
       throw new IllegalArgumentException();
     }
-
-    StringBuilder dumpStats = new StringBuilder("Finished importing "
-        + "relay descriptors from local Tor data directories:");
-
-    /* Read import history containing SHA-1 digests of previously parsed
-     * statuses and descriptors, so that we can skip them in this run. */
-    Set<String> lastImportHistory = new HashSet<>();
-    Set<String> currentImportHistory = new HashSet<>();
-    File importHistoryFile = new File(statsDirectory,
+    this.rdp = rdp;
+    this.inputDirectories = inputDirectories;
+    this.importHistoryFile = new File(statsDirectory,
         "cacheddesc-import-history");
+
+    this.dumpStats = new StringBuilder("Finished importing "
+        + "relay descriptors from local Tor data directories:");
+  }
+
+  /** Reads cached-descriptor files from one or more directories and
+   * passes them to the given descriptor parser. */
+  public void readDescriptors() {
+    this.readHistoryFile();
+    this.readDescriptorFiles();
+    this.writeHistoryFile();
+  }
+
+  /** Read import history containing SHA-1 digests of previously parsed
+   * statuses and descriptors, so that we can skip them in this run. */
+  private void readHistoryFile() {
     if (importHistoryFile.exists()) {
       try {
         BufferedReader br = new BufferedReader(new FileReader(
             importHistoryFile));
         String line;
         while ((line = br.readLine()) != null) {
-          lastImportHistory.add(line);
+          this.lastImportHistory.add(line);
         }
         br.close();
       } catch (IOException e) {
@@ -70,9 +90,11 @@ public class CachedRelayDescriptorReader {
             + importHistoryFile.getAbsolutePath() + ".", e);
       }
     }
+  }
 
-    /* Read cached descriptors directories. */
-    for (String inputDirectory : inputDirectories) {
+  /** Read cached descriptors directories. */
+  private void readDescriptorFiles() {
+    for (String inputDirectory : this.inputDirectories) {
       File cachedDescDir = new File(inputDirectory);
       if (!cachedDescDir.exists()) {
         logger.warn("Directory " + cachedDescDir.getAbsolutePath()
@@ -113,7 +135,7 @@ public class CachedRelayDescriptorReader {
             String line;
             while ((line = br.readLine()) != null) {
               if (line.startsWith("valid-after ")) {
-                dumpStats.append("\n").append(f.getName()).append(": ")
+                this.dumpStats.append("\n").append(f.getName()).append(": ")
                     .append(line.substring("valid-after ".length()));
                 SimpleDateFormat dateTimeFormat =
                     new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -125,7 +147,7 @@ public class CachedRelayDescriptorReader {
                       + cachedDescDir.getAbsolutePath() + " are stale. "
                       + "The valid-after line in cached-consensus is '"
                       + line + "'.");
-                  dumpStats.append(" (stale!)");
+                  this.dumpStats.append(" (stale!)");
                 }
                 break;
               }
@@ -136,13 +158,13 @@ public class CachedRelayDescriptorReader {
              * (but regardless of whether it's stale or not). */
             String digest = Hex.encodeHexString(DigestUtils.sha1(
                 allData));
-            if (!lastImportHistory.contains(digest)
-                && !currentImportHistory.contains(digest)) {
-              rdp.parse(allData);
+            if (!this.lastImportHistory.contains(digest)
+                && !this.currentImportHistory.contains(digest)) {
+              this.rdp.parse(allData);
             } else {
-              dumpStats.append(" (skipped)");
+              this.dumpStats.append(" (skipped)");
             }
-            currentImportHistory.add(digest);
+            this.currentImportHistory.add(digest);
           } else if (f.getName().equals("v3-status-votes")) {
             int parsedNum = 0;
             int skippedNum = 0;
@@ -161,18 +183,18 @@ public class CachedRelayDescriptorReader {
                     next - start);
                 String digest = Hex.encodeHexString(DigestUtils.sha1(
                     rawNetworkStatusBytes));
-                if (!lastImportHistory.contains(digest)
-                    && !currentImportHistory.contains(digest)) {
-                  rdp.parse(rawNetworkStatusBytes);
+                if (!this.lastImportHistory.contains(digest)
+                    && !this.currentImportHistory.contains(digest)) {
+                  this.rdp.parse(rawNetworkStatusBytes);
                   parsedNum++;
                 } else {
                   skippedNum++;
                 }
-                currentImportHistory.add(digest);
+                this.currentImportHistory.add(digest);
               }
               start = next;
             }
-            dumpStats.append("\n").append(f.getName()).append(": parsed ")
+            this.dumpStats.append("\n").append(f.getName()).append(": parsed ")
                 .append(parsedNum).append(", skipped ").append(skippedNum)
                 .append(" votes");
           } else if (f.getName().startsWith("cached-descriptors")
@@ -183,7 +205,7 @@ public class CachedRelayDescriptorReader {
             int end = -1;
             String startToken =
                 f.getName().startsWith("cached-descriptors")
-                ? "router " : "extra-info ";
+                    ? "router " : "extra-info ";
             String sigToken = "\nrouter-signature\n";
             String endToken = "\n-----END SIGNATURE-----\n";
             int parsedNum = 0;
@@ -207,16 +229,16 @@ public class CachedRelayDescriptorReader {
               System.arraycopy(allData, start, descBytes, 0, end - start);
               String digest = Hex.encodeHexString(DigestUtils.sha1(
                   descBytes));
-              if (!lastImportHistory.contains(digest)
-                  && !currentImportHistory.contains(digest)) {
-                rdp.parse(descBytes);
+              if (!this.lastImportHistory.contains(digest)
+                  && !this.currentImportHistory.contains(digest)) {
+                this.rdp.parse(descBytes);
                 parsedNum++;
               } else {
                 skippedNum++;
               }
-              currentImportHistory.add(digest);
+              this.currentImportHistory.add(digest);
             }
-            dumpStats.append("\n").append(f.getName()).append(": parsed ")
+            this.dumpStats.append("\n").append(f.getName()).append(": parsed ")
                 .append(parsedNum).append(", skipped ").append(skippedNum)
                 .append(" ").append(f.getName().startsWith("cached-descriptors")
                 ? "server" : "extra-info").append(" descriptors");
@@ -229,19 +251,21 @@ public class CachedRelayDescriptorReader {
       logger.debug("Finished reading "
           + cachedDescDir.getAbsolutePath() + " directory.");
     }
+  }
 
-    /* Write import history containing SHA-1 digests to disk. */
+  /** Write import history containing SHA-1 digests to disk. */
+  private void writeHistoryFile() {
     try {
-      importHistoryFile.getParentFile().mkdirs();
+      this.importHistoryFile.getParentFile().mkdirs();
       BufferedWriter bw = new BufferedWriter(new FileWriter(
-          importHistoryFile));
+          this.importHistoryFile));
       for (String digest : currentImportHistory) {
         bw.write(digest + "\n");
       }
       bw.close();
     } catch (IOException e) {
       logger.warn("Could not write import history to "
-           + importHistoryFile.getAbsolutePath() + ".", e);
+           + this.importHistoryFile.getAbsolutePath() + ".", e);
     }
 
     logger.info(dumpStats.toString());

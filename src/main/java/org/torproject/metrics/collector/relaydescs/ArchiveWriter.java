@@ -161,7 +161,8 @@ public class ArchiveWriter extends CollecTorMain {
     }
     if (sources.contains(SourceType.Cache)) {
       new CachedRelayDescriptorReader(rdp,
-          config.getStringArray(Key.RelayCacheOrigins), statsDirectory);
+          config.getStringArray(Key.RelayCacheOrigins), statsDirectory)
+          .readDescriptors();
       this.intermediateStats("importing relay descriptors from local "
           + "Tor data directories");
     }
