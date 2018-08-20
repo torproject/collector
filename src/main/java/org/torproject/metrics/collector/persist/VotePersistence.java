@@ -8,7 +8,7 @@ import org.torproject.metrics.collector.conf.Annotation;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 
 public class VotePersistence
@@ -47,20 +47,16 @@ public class VotePersistence
     String digest = "";
     String startToken = "network-status-version ";
     String sigToken = "directory-signature ";
-    try {
-      String ascii = new String(bytes, "US-ASCII");
-      int start = ascii.indexOf(startToken);
-      int sig = ascii.indexOf(sigToken);
-      if (start >= 0 && sig >= 0 && sig > start) {
-        sig += sigToken.length();
-        byte[] forDigest = new byte[sig - start];
-        System.arraycopy(bytes, start, forDigest, 0, sig - start);
-        digest = DigestUtils.sha1Hex(forDigest).toUpperCase();
-      } else {
-        log.error("No digest calculation possible.  Returning empty string.");
-      }
-    } catch (UnsupportedEncodingException uee) {
-      log.error("Unsupported encoding.  Returning empty string.", uee);
+    String ascii = new String(bytes, StandardCharsets.US_ASCII);
+    int start = ascii.indexOf(startToken);
+    int sig = ascii.indexOf(sigToken);
+    if (start >= 0 && sig >= 0 && sig > start) {
+      sig += sigToken.length();
+      byte[] forDigest = new byte[sig - start];
+      System.arraycopy(bytes, start, forDigest, 0, sig - start);
+      digest = DigestUtils.sha1Hex(forDigest).toUpperCase();
+    } else {
+      log.error("No digest calculation possible.  Returning empty string.");
     }
     return digest;
   }

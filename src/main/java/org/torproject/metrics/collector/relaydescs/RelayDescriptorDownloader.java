@@ -16,9 +16,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -897,12 +897,7 @@ public class RelayDescriptorDownloader {
           this.lastDownloadedAllDescriptors.put(authority,
               this.currentTimestamp);
         }
-        String ascii = null;
-        try {
-          ascii = new String(allData, "US-ASCII");
-        } catch (UnsupportedEncodingException e) {
-          /* No way that US-ASCII is not supported. */
-        }
+        String ascii = new String(allData, StandardCharsets.US_ASCII);
         int start = -1;
         int sig = -1;
         int end = -1;
@@ -939,12 +934,7 @@ public class RelayDescriptorDownloader {
         SimpleDateFormat parseFormat =
             new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         parseFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String ascii = null;
-        try {
-          ascii = new String(allData, "US-ASCII");
-        } catch (UnsupportedEncodingException e) {
-          /* No way that US-ASCII is not supported. */
-        }
+        String ascii = new String(allData, StandardCharsets.US_ASCII);
         int start = -1;
         int end = -1;
         String startToken = "onion-key\n";

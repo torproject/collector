@@ -28,7 +28,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
@@ -981,19 +981,15 @@ public class SanitizedBridgesWriter extends CollecTorMain {
 
     /* Determine digest(s) of sanitized server descriptor. */
     String descriptorDigest = null;
-    try {
-      String ascii = new String(data, "US-ASCII");
-      String startToken = "router ";
-      String sigToken = "\nrouter-signature\n";
-      int start = ascii.indexOf(startToken);
-      int sig = ascii.indexOf(sigToken) + sigToken.length();
-      if (start >= 0 && sig >= 0 && sig > start) {
-        byte[] forDigest = new byte[sig - start];
-        System.arraycopy(data, start, forDigest, 0, sig - start);
-        descriptorDigest = DigestUtils.sha1Hex(DigestUtils.sha1(forDigest));
-      }
-    } catch (UnsupportedEncodingException e) {
-      /* Handle below. */
+    String ascii = new String(data, StandardCharsets.US_ASCII);
+    String startToken = "router ";
+    String sigToken = "\nrouter-signature\n";
+    int start = ascii.indexOf(startToken);
+    int sig = ascii.indexOf(sigToken) + sigToken.length();
+    if (start >= 0 && sig >= 0 && sig > start) {
+      byte[] forDigest = new byte[sig - start];
+      System.arraycopy(data, start, forDigest, 0, sig - start);
+      descriptorDigest = DigestUtils.sha1Hex(DigestUtils.sha1(forDigest));
     }
     if (descriptorDigest == null) {
       logger.warn("Could not calculate server descriptor digest.");
@@ -1001,21 +997,17 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     }
     String descriptorDigestSha256Base64 = null;
     if (masterKeyEd25519FromIdentityEd25519 != null) {
-      try {
-        String ascii = new String(data, "US-ASCII");
-        String startToken = "router ";
-        String sigToken = "\n-----END SIGNATURE-----\n";
-        int start = ascii.indexOf(startToken);
-        int sig = ascii.indexOf(sigToken) + sigToken.length();
-        if (start >= 0 && sig >= 0 && sig > start) {
-          byte[] forDigest = new byte[sig - start];
-          System.arraycopy(data, start, forDigest, 0, sig - start);
-          descriptorDigestSha256Base64 = Base64.encodeBase64String(
-              DigestUtils.sha256(DigestUtils.sha256(forDigest)))
-              .replaceAll("=", "");
-        }
-      } catch (UnsupportedEncodingException e) {
-        /* Handle below. */
+      ascii = new String(data, StandardCharsets.US_ASCII);
+      startToken = "router ";
+      sigToken = "\n-----END SIGNATURE-----\n";
+      start = ascii.indexOf(startToken);
+      sig = ascii.indexOf(sigToken) + sigToken.length();
+      if (start >= 0 && sig >= 0 && sig > start) {
+        byte[] forDigest = new byte[sig - start];
+        System.arraycopy(data, start, forDigest, 0, sig - start);
+        descriptorDigestSha256Base64 = Base64.encodeBase64String(
+            DigestUtils.sha256(DigestUtils.sha256(forDigest)))
+            .replaceAll("=", "");
       }
       if (descriptorDigestSha256Base64 == null) {
         logger.warn("Could not calculate server descriptor SHA256 digest.");
@@ -1255,19 +1247,15 @@ public class SanitizedBridgesWriter extends CollecTorMain {
 
     /* Determine filename of sanitized extra-info descriptor. */
     String descriptorDigest = null;
-    try {
-      String ascii = new String(data, "US-ASCII");
-      String startToken = "extra-info ";
-      String sigToken = "\nrouter-signature\n";
-      int start = ascii.indexOf(startToken);
-      int sig = ascii.indexOf(sigToken) + sigToken.length();
-      if (start >= 0 && sig >= 0 && sig > start) {
-        byte[] forDigest = new byte[sig - start];
-        System.arraycopy(data, start, forDigest, 0, sig - start);
-        descriptorDigest = DigestUtils.sha1Hex(DigestUtils.sha1(forDigest));
-      }
-    } catch (UnsupportedEncodingException e) {
-      /* Handle below. */
+    String ascii = new String(data, StandardCharsets.US_ASCII);
+    String startToken = "extra-info ";
+    String sigToken = "\nrouter-signature\n";
+    int start = ascii.indexOf(startToken);
+    int sig = ascii.indexOf(sigToken) + sigToken.length();
+    if (start >= 0 && sig >= 0 && sig > start) {
+      byte[] forDigest = new byte[sig - start];
+      System.arraycopy(data, start, forDigest, 0, sig - start);
+      descriptorDigest = DigestUtils.sha1Hex(DigestUtils.sha1(forDigest));
     }
     if (descriptorDigest == null) {
       logger.warn("Could not calculate extra-info descriptor digest.");
@@ -1275,21 +1263,17 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     }
     String descriptorDigestSha256Base64 = null;
     if (masterKeyEd25519FromIdentityEd25519 != null) {
-      try {
-        String ascii = new String(data, "US-ASCII");
-        String startToken = "extra-info ";
-        String sigToken = "\n-----END SIGNATURE-----\n";
-        int start = ascii.indexOf(startToken);
-        int sig = ascii.indexOf(sigToken) + sigToken.length();
-        if (start >= 0 && sig >= 0 && sig > start) {
-          byte[] forDigest = new byte[sig - start];
-          System.arraycopy(data, start, forDigest, 0, sig - start);
-          descriptorDigestSha256Base64 = Base64.encodeBase64String(
-              DigestUtils.sha256(DigestUtils.sha256(forDigest)))
-              .replaceAll("=", "");
-        }
-      } catch (UnsupportedEncodingException e) {
-        /* Handle below. */
+      ascii = new String(data, StandardCharsets.US_ASCII);
+      startToken = "extra-info ";
+      sigToken = "\n-----END SIGNATURE-----\n";
+      start = ascii.indexOf(startToken);
+      sig = ascii.indexOf(sigToken) + sigToken.length();
+      if (start >= 0 && sig >= 0 && sig > start) {
+        byte[] forDigest = new byte[sig - start];
+        System.arraycopy(data, start, forDigest, 0, sig - start);
+        descriptorDigestSha256Base64 = Base64.encodeBase64String(
+            DigestUtils.sha256(DigestUtils.sha256(forDigest)))
+            .replaceAll("=", "");
       }
       if (descriptorDigestSha256Base64 == null) {
         logger.warn("Could not calculate extra-info "

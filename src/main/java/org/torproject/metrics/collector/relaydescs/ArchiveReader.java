@@ -19,7 +19,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -178,12 +178,7 @@ public class ArchiveReader {
           SimpleDateFormat parseFormat =
               new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
           parseFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-          String ascii = null;
-          try {
-            ascii = new String(allData, "US-ASCII");
-          } catch (UnsupportedEncodingException e) {
-            /* No way that US-ASCII is not supported. */
-          }
+          String ascii = new String(allData, StandardCharsets.US_ASCII);
           int start = -1;
           int end = -1;
           String startToken = "onion-key\n";
