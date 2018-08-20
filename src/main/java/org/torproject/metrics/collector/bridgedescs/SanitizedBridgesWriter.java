@@ -242,7 +242,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     String addressPart = orAddress.substring(0,
         orAddress.lastIndexOf(":"));
     String portPart = orAddress.substring(orAddress.lastIndexOf(":") + 1);
-    String scrubbedAddressPart = null;
+    String scrubbedAddressPart;
     if (addressPart.startsWith("[")) {
       scrubbedAddressPart = this.scrubIpv6Address(addressPart,
           fingerprintBytes, published);
@@ -340,7 +340,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         }
         hex.append(hexParts.get(1));
       }
-      byte[] ipBytes = null;
+      byte[] ipBytes;
       try {
         ipBytes = Hex.decodeHex(hex.toString().toCharArray());
       } catch (DecoderException e) {
@@ -473,7 +473,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       DescriptorBuilder scrubbed = new DescriptorBuilder();
       BufferedReader br = new BufferedReader(new StringReader(new String(
           data, "US-ASCII")));
-      String line = null;
+      String line;
       String mostRecentDescPublished = null;
       byte[] fingerprintBytes = null;
       String descPublicationTime = null;
@@ -1120,9 +1120,9 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     try {
       BufferedReader br = new BufferedReader(new StringReader(new String(
           data, "US-ASCII")));
-      String line = null;
+      String line;
       DescriptorBuilder scrubbed = null;
-      String hashedBridgeIdentity = null;
+      String hashedBridgeIdentity;
       String masterKeyEd25519 = null;
       while ((line = br.readLine()) != null) {
 

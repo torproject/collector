@@ -70,7 +70,7 @@ public class ExitListDownloader extends CollecTorMain {
     recentPathName = Paths.get(config.getPath(Key.RecentPath).toString(),
         EXITLISTS).toString();
     Date downloadedDate = new Date();
-    String downloadedExitList = null;
+    String downloadedExitList;
     logger.debug("Downloading exit list...");
     StringBuilder sb = new StringBuilder();
     sb.append(Annotation.ExitList.toString());

@@ -67,7 +67,7 @@ public class ArchiveReader {
       try {
         BufferedReader br = new BufferedReader(new FileReader(
             archivesImportHistoryFile));
-        String line = null;
+        String line;
         while ((line = br.readLine()) != null) {
           archivesImportHistory.add(line);
         }
@@ -90,7 +90,7 @@ public class ArchiveReader {
           Collections.addAll(filesInInputDir, pop.listFiles());
         } else {
           try {
-            BufferedInputStream bis = null;
+            BufferedInputStream bis;
             if (keepImportHistory
                 && archivesImportHistory.contains(pop.getName())) {
               ignoredFiles++;
@@ -140,7 +140,7 @@ public class ArchiveReader {
          * microdescriptor.  However, this breaks functional abstraction
          * pretty badly. */
         try {
-          BufferedInputStream bis = null;
+          BufferedInputStream bis;
           if (pop.getName().endsWith(".bz2")) {
             FileInputStream fis = new FileInputStream(pop);
             BZip2CompressorInputStream bcis =
@@ -178,7 +178,7 @@ public class ArchiveReader {
               new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
           parseFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
           String ascii = new String(allData, StandardCharsets.US_ASCII);
-          int start = -1;
+          int start;
           int end = -1;
           String startToken = "onion-key\n";
           while (end < ascii.length()) {

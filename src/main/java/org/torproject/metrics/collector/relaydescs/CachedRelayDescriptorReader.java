@@ -110,7 +110,7 @@ public class CachedRelayDescriptorReader {
             /* Check if directory information is stale. */
             BufferedReader br = new BufferedReader(new StringReader(
                 new String(allData, "US-ASCII")));
-            String line = null;
+            String line;
             while ((line = br.readLine()) != null) {
               if (line.startsWith("valid-after ")) {
                 dumpStats.append("\n").append(f.getName()).append(": ")
@@ -178,8 +178,8 @@ public class CachedRelayDescriptorReader {
           } else if (f.getName().startsWith("cached-descriptors")
               || f.getName().startsWith("cached-extrainfo")) {
             String ascii = new String(allData, "US-ASCII");
-            int start = -1;
-            int sig = -1;
+            int start;
+            int sig;
             int end = -1;
             String startToken =
                 f.getName().startsWith("cached-descriptors")

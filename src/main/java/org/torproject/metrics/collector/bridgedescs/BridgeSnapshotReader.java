@@ -55,7 +55,7 @@ public class BridgeSnapshotReader {
         logger.debug("Reading file " + pbdFile.getAbsolutePath() + "...");
         try {
           BufferedReader br = new BufferedReader(new FileReader(pbdFile));
-          String line = null;
+          String line;
           while ((line = br.readLine()) != null) {
             parsed.add(line);
           }
@@ -88,7 +88,7 @@ public class BridgeSnapshotReader {
           try {
             FileInputStream in = new FileInputStream(pop);
             if (in.available() > 0) {
-              TarArchiveInputStream tais = null;
+              TarArchiveInputStream tais;
               if (pop.getName().endsWith(".tar.gz")) {
                 GzipCompressorInputStream gcis =
                     new GzipCompressorInputStream(in);
@@ -149,7 +149,7 @@ public class BridgeSnapshotReader {
                 String ascii = new String(allData, "US-ASCII");
                 BufferedReader br3 = new BufferedReader(new StringReader(
                     ascii));
-                String firstLine = null;
+                String firstLine;
                 while ((firstLine = br3.readLine()) != null) {
                   if (firstLine.startsWith("@")) {
                     continue;
@@ -171,8 +171,8 @@ public class BridgeSnapshotReader {
                   skippedFiles++;
                   continue;
                 } else {
-                  int start = -1;
-                  int sig = -1;
+                  int start;
+                  int sig;
                   int end = -1;
                   String startToken = firstLine.startsWith("router ")
                       ? "router " : "extra-info ";

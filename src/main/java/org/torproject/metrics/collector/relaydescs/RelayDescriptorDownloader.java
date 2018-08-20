@@ -898,8 +898,8 @@ public class RelayDescriptorDownloader {
               this.currentTimestamp);
         }
         String ascii = new String(allData, StandardCharsets.US_ASCII);
-        int start = -1;
-        int sig = -1;
+        int start;
+        int sig;
         int end = -1;
         String startToken = resource.startsWith("/tor/server/")
             ? "router " : "extra-info ";
@@ -935,7 +935,7 @@ public class RelayDescriptorDownloader {
             new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         parseFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         String ascii = new String(allData, StandardCharsets.US_ASCII);
-        int start = -1;
+        int start;
         int end = -1;
         String startToken = "onion-key\n";
         while (end < ascii.length()) {

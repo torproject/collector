@@ -63,7 +63,7 @@ public class Main {
    */
   public static void main(String[] args) {
     try {
-      Path confPath = null;
+      Path confPath;
       if (args == null || args.length == 0) {
         confPath = Paths.get(CONF_FILE);
       } else if (args.length == 1) {

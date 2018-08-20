@@ -184,8 +184,8 @@ public class OnionPerfDownloader extends CollecTorMain {
           tpfFileName);
       return;
     }
-    int fileSize = 0;
-    String date = null;
+    int fileSize;
+    String date;
     try {
       fileSize = Integer.parseInt(
           tpfFileNameParts[tpfFileNameParts.length - 4]);
