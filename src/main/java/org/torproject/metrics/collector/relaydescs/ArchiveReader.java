@@ -276,7 +276,7 @@ public class ArchiveReader {
       if (!this.microdescriptorValidAfterTimes.containsKey(
           microdescriptor)) {
         this.microdescriptorValidAfterTimes.put(microdescriptor,
-            new HashSet<String>());
+            new HashSet<>());
       }
       this.microdescriptorValidAfterTimes.get(microdescriptor).add(
           validAfterTime);

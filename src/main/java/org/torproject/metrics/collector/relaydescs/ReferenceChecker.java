@@ -28,7 +28,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Set;
 import java.util.SortedSet;
@@ -170,10 +169,8 @@ public class ReferenceChecker {
     DescriptorReader descriptorReader =
         DescriptorSourceFactory.createDescriptorReader();
     descriptorReader.setHistoryFile(this.historyFile);
-    Iterator<Descriptor> descriptors
-        = descriptorReader.readDescriptors(this.descriptorsDir).iterator();
-    while (descriptors.hasNext()) {
-      Descriptor descriptor = descriptors.next();
+    for (Descriptor descriptor
+        : descriptorReader.readDescriptors(this.descriptorsDir)) {
       if (descriptor instanceof RelayNetworkStatusConsensus) {
         RelayNetworkStatusConsensus consensus =
             (RelayNetworkStatusConsensus) descriptor;

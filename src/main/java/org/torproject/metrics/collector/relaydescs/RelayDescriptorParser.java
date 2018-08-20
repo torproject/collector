@@ -316,10 +316,7 @@ public class RelayDescriptorParser {
          * storeMicrodescriptor below. */
       }
       br.close();
-    } catch (IOException e) {
-      logger.warn("Could not parse descriptor. "
-          + "Skipping.", e);
-    } catch (ParseException e) {
+    } catch (IOException | ParseException e) {
       logger.warn("Could not parse descriptor. "
           + "Skipping.", e);
     }

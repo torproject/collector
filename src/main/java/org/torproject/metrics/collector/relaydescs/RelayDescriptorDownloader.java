@@ -383,7 +383,7 @@ public class RelayDescriptorDownloader {
                 if (!this.microdescriptorKeys.containsKey(
                     microdescriptorDigest)) {
                   this.microdescriptorKeys.put(
-                      microdescriptorDigest, new HashSet<String>());
+                      microdescriptorDigest, new HashSet<>());
                 }
                 this.microdescriptorKeys.get(microdescriptorDigest).add(
                     microdescriptorKey);
@@ -552,7 +552,7 @@ public class RelayDescriptorDownloader {
           }
         } else {
           this.microdescriptorKeys.put(
-              microdescriptorDigest, new HashSet<String>());
+              microdescriptorDigest, new HashSet<>());
         }
         this.microdescriptorKeys.get(microdescriptorDigest).add(
             microdescriptorKey);

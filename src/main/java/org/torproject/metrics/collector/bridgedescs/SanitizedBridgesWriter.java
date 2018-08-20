@@ -307,8 +307,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           /* Invalid IPv6 address. */
           return null;
         }
-        for (int i = 0; i < parts.length; i++) {
-          String part = parts[i];
+        for (String part : parts) {
           if (part.contains(".")) {
             String[] ipParts = part.split("\\.");
             byte[] ipv4Bytes = new byte[4];

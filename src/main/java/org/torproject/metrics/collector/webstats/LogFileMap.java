@@ -75,13 +75,13 @@ public class LogFileMap
     TreeMap<String, TreeMap<LocalDate, LogMetadata>> virtualHosts
         = this.get(metadata.virtualHost);
     if (null == virtualHosts) {
-      virtualHosts = new TreeMap<String, TreeMap<LocalDate, LogMetadata>>();
+      virtualHosts = new TreeMap<>();
       this.put(metadata.virtualHost, virtualHosts);
     }
     TreeMap<LocalDate, LogMetadata> physicalHosts
         = virtualHosts.get(metadata.physicalHost);
     if (null == physicalHosts) {
-      physicalHosts = new TreeMap<LocalDate, LogMetadata>();
+      physicalHosts = new TreeMap<>();
       virtualHosts.put(metadata.physicalHost, physicalHosts);
     }
     physicalHosts.put(metadata.date, metadata);

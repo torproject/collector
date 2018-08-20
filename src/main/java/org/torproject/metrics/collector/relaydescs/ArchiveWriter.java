@@ -230,8 +230,7 @@ public class ArchiveWriter extends CollecTorMain {
             continue;
           }
           if (!this.storedServerDescriptors.containsKey(published)) {
-            this.storedServerDescriptors.put(published,
-                new HashMap<String, String>());
+            this.storedServerDescriptors.put(published, new HashMap<>());
           }
           String serverDescriptorDigest = parts[1];
           String extraInfoDescriptorDigest = parts[2].equals("NA") ? null
@@ -259,8 +258,7 @@ public class ArchiveWriter extends CollecTorMain {
             continue;
           }
           if (!this.storedExtraInfoDescriptors.containsKey(published)) {
-            this.storedExtraInfoDescriptors.put(published,
-                new HashSet<String>());
+            this.storedExtraInfoDescriptors.put(published, new HashSet<>());
           }
           String extraInfoDescriptorDigest = parts[1];
           this.storedExtraInfoDescriptors.get(published).add(
@@ -286,8 +284,7 @@ public class ArchiveWriter extends CollecTorMain {
             continue;
           }
           if (!this.storedMicrodescriptors.containsKey(validAfter)) {
-            this.storedMicrodescriptors.put(validAfter,
-                new HashSet<String>());
+            this.storedMicrodescriptors.put(validAfter, new HashSet<>());
           }
           String microdescriptorDigest = parts[1];
           this.storedMicrodescriptors.get(validAfter).add(
@@ -706,8 +703,7 @@ public class ArchiveWriter extends CollecTorMain {
     if (!tarballFileExistedBefore
         && this.now - validAfter < 3L * 60L * 60L * 1000L) {
       if (!this.storedVotes.containsKey(validAfter)) {
-        this.storedVotes.put(validAfter,
-            new TreeMap<String, SortedSet<String>>());
+        this.storedVotes.put(validAfter, new TreeMap<>());
       }
       this.storedVotes.get(validAfter).put(fingerprint,
           serverDescriptorDigests);
@@ -750,8 +746,7 @@ public class ArchiveWriter extends CollecTorMain {
     if (!tarballFileExistedBefore
         && this.now - published < 48L * 60L * 60L * 1000L) {
       if (!this.storedServerDescriptors.containsKey(published)) {
-        this.storedServerDescriptors.put(published,
-            new HashMap<String, String>());
+        this.storedServerDescriptors.put(published, new HashMap<>());
       }
       this.storedServerDescriptors.get(published).put(digest,
           extraInfoDigest);
@@ -779,8 +774,7 @@ public class ArchiveWriter extends CollecTorMain {
     if (!tarballFileExistedBefore
         && this.now - published < 48L * 60L * 60L * 1000L) {
       if (!this.storedExtraInfoDescriptors.containsKey(published)) {
-        this.storedExtraInfoDescriptors.put(published,
-            new HashSet<String>());
+        this.storedExtraInfoDescriptors.put(published, new HashSet<>());
       }
       this.storedExtraInfoDescriptors.get(published).add(extraInfoDigest);
     }
@@ -815,8 +809,7 @@ public class ArchiveWriter extends CollecTorMain {
     if (!tarballFileExistedBefore
         && this.now - validAfter < 40L * 24L * 60L * 60L * 1000L) {
       if (!this.storedMicrodescriptors.containsKey(validAfter)) {
-        this.storedMicrodescriptors.put(validAfter,
-            new HashSet<String>());
+        this.storedMicrodescriptors.put(validAfter, new HashSet<>());
       }
       this.storedMicrodescriptors.get(validAfter).add(
           microdescriptorDigest);

@@ -263,8 +263,8 @@ public class Configuration extends Observable implements Cloneable {
     try {
       checkClass(key, SourceType[].class);
       String[] interim = props.getProperty(key.name()).split(FIELDSEP);
-      for (int i = 0; i < interim.length; i++) {
-        SourceType st = SourceType.valueOf(interim[i].trim());
+      for (String anInterim : interim) {
+        SourceType st = SourceType.valueOf(anInterim.trim());
         if (null == res) {
           res = EnumSet.of(st);
         } else {
