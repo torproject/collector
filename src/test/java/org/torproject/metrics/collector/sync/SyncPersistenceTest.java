@@ -41,14 +41,14 @@ public class SyncPersistenceTest {
         {"exit-lists/2016-09-20-13-02-00", // expected recent path
          new String[]{"exit-lists/2016/09/20/2016-09-20-13-02-00"}, // exp. out
          "2016-09-20-13-02-00", // test-filename in src/test/resources
-         Integer.valueOf(1), // expected recent count of descs files
-         Integer.valueOf(1)}, // expected output count of descs files
+            1, // expected recent count of descs files
+            1}, // expected output count of descs files
 
         {"torperf/op-nl-1048576-2017-04-11.tpf",
          new String[]{"torperf/2017/04/11/op-nl-1048576-2017-04-11.tpf"},
          "op-nl-1048576-2017-04-11.tpf",
-         Integer.valueOf(1),
-         Integer.valueOf(1)},
+            1,
+            1},
 
         {"webstats/archive.torproject.org_"
              + "archeotrichon.torproject.org_access.log_20151007.xz",
@@ -57,8 +57,8 @@ public class SyncPersistenceTest {
              + "_access.log_20151007.xz"},
          "archeotrichon.torproject.org/archive.torproject.org_"
              + "archeotrichon.torproject.org_access.log_20151007.xz",
-         Integer.valueOf(1),
-         Integer.valueOf(1)},
+            1,
+            1},
 
         {"webstats/metrics.torproject.org_"
              + "meronense.torproject.org_access.log_20170531.xz",
@@ -67,8 +67,8 @@ public class SyncPersistenceTest {
              + "_access.log_20170531.xz"},
          "meronense.torproject.org/metrics.torproject.org_"
              + "meronense.torproject.org_access.log_20170531.gz",
-         Integer.valueOf(1),
-         Integer.valueOf(1)},
+            1,
+            1},
 
         {"relay-descriptors/server-descriptors/"
              + "2016-10-05-19-06-17-server-descriptors",
@@ -93,23 +93,23 @@ public class SyncPersistenceTest {
              "relay-descriptors/server-descriptor/2016/10/a/0/"
              + "a0ed9227a9413f140445002ce412f8828591e7ec"},
          "relay-2016-10-02-16-05-00-server-descriptors",
-         Integer.valueOf(1),
-         Integer.valueOf(10)},
+            1,
+            10},
 
         {"relay-descriptors/consensuses/2016-09-20-13-00-00-consensus",
          new String[]{"relay-descriptors/consensus/2016/09/20/"
              + "2016-09-20-13-00-00-consensus"},
          "2016-09-20-13-00-00-consensus",
-         Integer.valueOf(1),
-         Integer.valueOf(1)},
+            1,
+            1},
 
         {"relay-descriptors/microdescs/consensus-microdesc/"
              + "2016-10-02-17-00-00-consensus-microdesc",
          new String[]{"relay-descriptors/microdesc/2016/10/consensus-microdesc/"
              + "02/2016-10-02-17-00-00-consensus-microdesc"},
          "2016-10-02-17-00-00-consensus-microdesc",
-         Integer.valueOf(1),
-         Integer.valueOf(1)},
+            1,
+            1},
 
         {"relay-descriptors/votes/2016-10-01-16-00-00-vote"
              + "-0232AF901C31A04EE9848595AF9BB7620D4C5B2E"
@@ -120,8 +120,8 @@ public class SyncPersistenceTest {
              + "-FEE63B4AB7CE5A6BDD09E9A5C4F01BD61EB7E4F1"},
          "2016-10-01-16-00-00-vote-0232AF901C31A04EE9848595AF9BB7620D4C5B2E-"
              + "FEE63B4AB7CE5A6BDD09E9A5C4F01BD61EB7E4F1",
-         Integer.valueOf(1),
-         Integer.valueOf(1)},
+            1,
+            1},
 
         {"relay-descriptors/votes/2016-09-20-13-00-00-vote-"
              + "49015F787433103580E3B66A1707A00E60F2D15B"
@@ -132,8 +132,8 @@ public class SyncPersistenceTest {
              + "-60ADC6BEC262AE921A1037D54C8A3976367DBE87"},
          "2016-09-20-13-00-00-vote-49015F787433103580E3B66A1707A00E60F2D15B"
              + "-60ADC6BEC262AE921A1037D54C8A3976367DBE87",
-         Integer.valueOf(1),
-         Integer.valueOf(1)},
+            1,
+            1},
 
         {"relay-descriptors/extra-infos/2016-10-05-19-06-17-extra-infos",
          new String[]{"relay-descriptors/extra-info/2016/10/9/a/"
@@ -155,8 +155,8 @@ public class SyncPersistenceTest {
              "relay-descriptors/extra-info/2016/10/0/4/"
              + "04219ada0be922fa7518d36b0d8e66afc55e8603"},
         "relay-2016-10-02-08-05-00-extra-infos",
-         Integer.valueOf(1),
-         Integer.valueOf(9)},
+            1,
+            9},
 
         {"bridge-descriptors/extra-infos/2016-10-05-19-06-17-extra-infos",
          new String[]{"bridge-descriptors/2016/10/extra-infos/9/f/"
@@ -180,8 +180,8 @@ public class SyncPersistenceTest {
              "bridge-descriptors/2016/10/extra-infos/f/a/"
              + "fabd8f614633ec2d2d405f2554e14381bc33d9cb"},
          "bridge-2016-10-02-08-09-00-extra-infos",
-         Integer.valueOf(1),
-         Integer.valueOf(10) },
+            1,
+            10},
 
         {"bridge-descriptors/server-descriptors/"
              + "2016-10-05-19-06-17-server-descriptors",
@@ -202,16 +202,16 @@ public class SyncPersistenceTest {
              "bridge-descriptors/2016/10/server-descriptors/0/a/"
              + "0a65c636a20631bd5deb2f10dc664d2032303c46"},
          "bridge-2016-10-02-16-09-00-server-descriptors",
-         Integer.valueOf(1),
-         Integer.valueOf(8)},
+            1,
+            8},
 
         {"bridge-descriptors/statuses/"
              + "20160920-063816-1D8F3A91C37C5D1C4C19B1AD1D0CFBE8BF72D8E1",
          new String[]{"bridge-descriptors/2016/09/statuses/20/"
              + "20160920-063816-1D8F3A91C37C5D1C4C19B1AD1D0CFBE8BF72D8E1"},
          "20160920-063816-1D8F3A91C37C5D1C4C19B1AD1D0CFBE8BF72D8E1",
-         Integer.valueOf(1),
-         Integer.valueOf(1)}
+            1,
+            1}
     });
   }
 
