@@ -440,8 +440,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
    * Sanitizes a network status and writes it to disk.
    */
   public void sanitizeAndStoreNetworkStatus(byte[] data,
-      String publicationTime, String authorityFingerprint)
-      throws ConfigurationException {
+      String publicationTime, String authorityFingerprint) {
 
     if (this.persistenceProblemWithSecrets) {
       /* There's a persistence problem, so we shouldn't scrub more IP

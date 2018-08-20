@@ -37,14 +37,14 @@ public class ConfigurationTest {
   public TemporaryFolder tmpf = new TemporaryFolder();
 
   @Test()
-  public void testKeyCount() throws Exception {
+  public void testKeyCount() {
     assertEquals("The number of properties keys in enum Key changed."
         + "\n This test class should be adapted.",
         53, Key.values().length);
   }
 
   @Test()
-  public void testConfiguration() throws Exception {
+  public void testConfiguration() {
     Configuration conf = new Configuration();
     String val = "xyz";
     conf.setProperty(Key.OutputPath.name(), val);

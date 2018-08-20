@@ -18,7 +18,6 @@ import org.torproject.descriptor.log.InternalWebServerAccessLog;
 import org.torproject.descriptor.log.WebServerAccessLogImpl;
 import org.torproject.descriptor.log.WebServerAccessLogLine;
 import org.torproject.metrics.collector.conf.Configuration;
-import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
 import org.torproject.metrics.collector.conf.SourceType;
 import org.torproject.metrics.collector.cron.CollecTorMain;
@@ -86,7 +85,7 @@ public class SanitizeWeblogs extends CollecTorMain {
   }
 
   @Override
-  protected void startProcessing() throws ConfigurationException {
+  protected void startProcessing() {
     try {
       Files.createDirectories(this.config.getPath(Key.OutputPath));
       Files.createDirectories(this.config.getPath(Key.RecentPath));

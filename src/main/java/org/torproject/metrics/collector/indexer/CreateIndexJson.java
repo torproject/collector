@@ -8,7 +8,6 @@ import org.torproject.descriptor.index.FileNode;
 import org.torproject.descriptor.index.IndexNode;
 import org.torproject.descriptor.internal.FileType;
 import org.torproject.metrics.collector.conf.Configuration;
-import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
 import org.torproject.metrics.collector.cron.CollecTorMain;
 
@@ -82,7 +81,7 @@ public class CreateIndexJson extends CollecTorMain {
   }
 
   @Override
-  protected void startProcessing() throws ConfigurationException {
+  protected void startProcessing() {
     try {
       indexJsonFile = new File(config.getPath(Key.IndexPath).toFile(),
           "index.json");

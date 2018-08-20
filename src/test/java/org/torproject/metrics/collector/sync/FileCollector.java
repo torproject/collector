@@ -4,7 +4,6 @@
 package org.torproject.metrics.collector.sync;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
@@ -20,8 +19,7 @@ public class FileCollector extends SimpleFileVisitor<Path> {
   }
 
   @Override
-  public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
-      throws IOException {
+  public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
     this.list.add(file.toFile());
     return FileVisitResult.CONTINUE;
   }

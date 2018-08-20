@@ -90,7 +90,7 @@ public class ArchiveWriter extends CollecTorMain {
   private static final String MICRODESCS = "microdescs";
 
   /** Initialize an archive writer with a given configuration. */
-  public ArchiveWriter(Configuration config) throws ConfigurationException {
+  public ArchiveWriter(Configuration config) {
     super(config);
     this.mapPathDescriptors.put("recent/relay-descriptors/votes",
         RelayNetworkStatusVote.class);

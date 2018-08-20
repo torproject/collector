@@ -55,7 +55,7 @@ public class MainTest {
   }
 
   @Test()
-  public void testInitializationNullArgs() throws Exception {
+  public void testInitializationNullArgs() {
     File conf = new File(Main.CONF_FILE);
     checkCleanEnv(conf);
     Main.main(null);
@@ -77,7 +77,7 @@ public class MainTest {
   }
 
   @Test()
-  public void testInitializationEmptyArgs() throws Exception {
+  public void testInitializationEmptyArgs() {
     File conf = new File(Main.CONF_FILE);
     checkCleanEnv(conf);
     Main.main(new String[] { });
@@ -86,7 +86,7 @@ public class MainTest {
   }
 
   @Test()
-  public void testInitializationTooManyArgs() throws Exception {
+  public void testInitializationTooManyArgs() {
     File conf = new File(Main.CONF_FILE);
     checkCleanEnv(conf);
     Main.main(new String[] { "x", "y" });

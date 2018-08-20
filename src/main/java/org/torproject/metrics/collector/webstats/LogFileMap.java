@@ -37,8 +37,7 @@ public class LogFileMap
     try {
       Files.walkFileTree(startDir, new SimpleFileVisitor<Path>() {
         @Override
-        public FileVisitResult visitFile(Path path, BasicFileAttributes att)
-            throws IOException {
+        public FileVisitResult visitFile(Path path, BasicFileAttributes att) {
             Optional<LogMetadata> optionalMetadata = LogMetadata.create(path);
           if (optionalMetadata.isPresent()) {
             logFileMap.add(optionalMetadata.get());
@@ -47,14 +46,12 @@ public class LogFileMap
         }
 
         @Override
-        public FileVisitResult visitFileFailed(Path path, IOException ex)
-            throws IOException {
+        public FileVisitResult visitFileFailed(Path path, IOException ex) {
           return logIfError(path, ex);
         }
 
         @Override
-        public FileVisitResult postVisitDirectory(Path path, IOException ex)
-            throws IOException {
+        public FileVisitResult postVisitDirectory(Path path, IOException ex) {
           return logIfError(path, ex);
         }
 

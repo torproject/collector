@@ -1,7 +1,6 @@
 package org.torproject.metrics.collector.cron;
 
 import org.torproject.metrics.collector.conf.Configuration;
-import org.torproject.metrics.collector.conf.ConfigurationException;
 
 public class Dummy extends CollecTorMain {
 
@@ -10,7 +9,7 @@ public class Dummy extends CollecTorMain {
   }
 
   @Override
-  public void startProcessing() throws ConfigurationException {
+  public void startProcessing() {
     // dummy doesn't do anything.
   }
 

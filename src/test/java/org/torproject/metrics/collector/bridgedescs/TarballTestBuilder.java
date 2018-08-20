@@ -63,7 +63,7 @@ class TarballTestBuilder {
   /** Adds a new file to the tarball with given name, last-modified time, and
    * descriptor builders to generate the file content. */
   TarballTestBuilder add(String fileName, long modifiedMillis,
-      List<TestDescriptorBuilder> descriptorBuilders) throws IOException {
+      List<TestDescriptorBuilder> descriptorBuilders) {
     TarballFile file = new TarballFile();
     file.modifiedMillis = modifiedMillis;
     file.descriptorBuilders = descriptorBuilders;

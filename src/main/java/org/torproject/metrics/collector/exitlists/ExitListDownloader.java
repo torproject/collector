@@ -194,7 +194,7 @@ public class ExitListDownloader extends CollecTorMain {
 
   /** Delete all files from the rsync directory that have not been modified
    * in the last three days. */
-  public void cleanUpRsyncDirectory() throws ConfigurationException {
+  public void cleanUpRsyncDirectory() {
     long cutOffMillis = System.currentTimeMillis()
         - 3L * 24L * 60L * 60L * 1000L;
     Stack<File> allFiles = new Stack<>();

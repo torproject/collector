@@ -4,7 +4,6 @@
 package org.torproject.metrics.collector.cron;
 
 import org.torproject.metrics.collector.conf.Configuration;
-import org.torproject.metrics.collector.conf.ConfigurationException;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -17,7 +16,7 @@ public class Broken extends CollecTorMain {
   }
 
   @Override
-  public void startProcessing() throws ConfigurationException {
+  public void startProcessing() {
     count.getAndIncrement();
     try {
       Thread.sleep(10);

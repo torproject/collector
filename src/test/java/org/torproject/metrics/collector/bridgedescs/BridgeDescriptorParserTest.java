@@ -10,7 +10,7 @@ import org.junit.Test;
 public class BridgeDescriptorParserTest {
 
   @Test(expected = IllegalArgumentException.class)
-  public void testNullArgForConstructor() throws Exception {
+  public void testNullArgForConstructor() {
     new BridgeDescriptorParser(null);
   }
 

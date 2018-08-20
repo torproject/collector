@@ -355,7 +355,7 @@ public class SyncPersistenceTest {
         .getClassLoader().getResource(filename).toURI())).toPath());
   }
 
-  private String stringFromResource() throws Exception {
+  private String stringFromResource() {
     BufferedReader br = new BufferedReader(new InputStreamReader(getClass()
         .getClassLoader().getResourceAsStream(filename)));
     return br.lines().collect(Collectors.joining("\n", "", "\n"));
@@ -366,7 +366,7 @@ public class SyncPersistenceTest {
         .collect(Collectors.joining("\n", "", "\n"));
   }
 
-  private List<String> linesFromResource(String filename) throws Exception {
+  private List<String> linesFromResource(String filename) {
     BufferedReader br = new BufferedReader(new InputStreamReader(getClass()
         .getClassLoader().getResourceAsStream(filename)));
     return br.lines().collect(Collectors.toList());

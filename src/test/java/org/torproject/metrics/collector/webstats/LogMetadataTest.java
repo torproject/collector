@@ -67,7 +67,7 @@ public class LogMetadataTest {
   }
 
   @Test
-  public void testCreate() throws Exception {
+  public void testCreate() {
     Optional<LogMetadata> element = LogMetadata.create(this.path);
     assertEquals(this.failureMessage, this.valid, element.isPresent());
     if (!this.valid) {

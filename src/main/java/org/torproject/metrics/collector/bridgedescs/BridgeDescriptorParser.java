@@ -3,8 +3,6 @@
 
 package org.torproject.metrics.collector.bridgedescs;
 
-import org.torproject.metrics.collector.conf.ConfigurationException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +30,7 @@ public class BridgeDescriptorParser {
   /** Parses the first line of the given descriptor data to determine the
    * descriptor type and passes it to the sanitized bridges writer. */
   public void parse(byte[] allData, String dateTime,
-      String authorityFingerprint) throws ConfigurationException {
+      String authorityFingerprint) {
     try {
       BufferedReader br = new BufferedReader(new StringReader(
           new String(allData, "US-ASCII")));

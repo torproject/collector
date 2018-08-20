@@ -61,7 +61,7 @@ public class Main {
    * At most one argument.
    * See class description {@link Main}.
    */
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) {
     try {
       Path confPath = null;
       if (args == null || args.length == 0) {
