@@ -39,9 +39,7 @@ public class LogFileMap
         @Override
         public FileVisitResult visitFile(Path path, BasicFileAttributes att) {
             Optional<LogMetadata> optionalMetadata = LogMetadata.create(path);
-          if (optionalMetadata.isPresent()) {
-            logFileMap.add(optionalMetadata.get());
-          }
+          optionalMetadata.ifPresent(logFileMap::add);
           return FileVisitResult.CONTINUE;
         }
 
