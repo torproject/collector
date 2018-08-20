@@ -15,7 +15,7 @@ public class BridgeDescriptorParserTest {
   }
 
   @Test(expected = NullPointerException.class)
-  public void testNullData() throws Exception {
+  public void testNullData() {
     BridgeDescriptorParser bdp = new BridgeDescriptorParser(
         new SanitizedBridgesWriter(new Configuration()));
     bdp.parse(null, "", "");
@@ -24,7 +24,7 @@ public class BridgeDescriptorParserTest {
   @Test
   /* Empty data is not passed down to the sanitized writer.
    * This test passes when there is no exception. */
-  public void testDataEmpty() throws Exception {
+  public void testDataEmpty() {
     BridgeDescriptorParser bdp = new BridgeDescriptorParser(
         new SanitizedBridgesWriter(new Configuration()));
     bdp.parse(new byte[]{}, null, null);
@@ -34,7 +34,7 @@ public class BridgeDescriptorParserTest {
   /* The SanitizedBridgesWriter wasn't initialized sufficiently.
    * Actually that should be corrected in SanitizedBridgesWriter
    * at some point, but that's a bigger rewrite. */
-  public void testMinimalData() throws Exception {
+  public void testMinimalData() {
     BridgeDescriptorParser bdp = new BridgeDescriptorParser(
         new SanitizedBridgesWriter(new Configuration()));
     bdp.parse(new byte[]{0}, "2010-10-10 10:10:10", null);

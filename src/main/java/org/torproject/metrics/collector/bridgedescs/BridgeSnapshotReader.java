@@ -3,8 +3,6 @@
 
 package org.torproject.metrics.collector.bridgedescs;
 
-import org.torproject.metrics.collector.conf.ConfigurationException;
-
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -38,8 +36,7 @@ public class BridgeSnapshotReader {
    * Reads the half-hourly snapshots of bridge descriptors from Bifroest.
    */
   public BridgeSnapshotReader(BridgeDescriptorParser bdp,
-      File bridgeDirectoriesDir, File statsDirectory)
-      throws ConfigurationException {
+      File bridgeDirectoriesDir, File statsDirectory) {
 
     if (bdp == null || bridgeDirectoriesDir == null
         || statsDirectory == null) {
