@@ -60,23 +60,21 @@ public class Configuration extends Observable implements Cloneable {
     if (this.getBool(Key.RunOnce)) { // no need to watch
       return;
     }
-    this.scheduler.scheduleAtFixedRate(new Runnable() {
-        public void run() {
-          logger.trace("Check configuration file.");
-            try {
-              FileTime ftNow = Files.getLastModifiedTime(confPath);
-              if (ft.compareTo(ftNow) < 0) {
-                logger.info("Configuration file was changed.");
-                reload();
-                setChanged();
-                notifyObservers(null);
-              }
-              ft = ftNow;
-            } catch (Throwable th) { // Catch all and keep running.
-              logger.error("Cannot reload configuration file.", th);
-            }
+    this.scheduler.scheduleAtFixedRate(() -> {
+      logger.trace("Check configuration file.");
+      try {
+        FileTime ftNow = Files.getLastModifiedTime(confPath);
+        if (ft.compareTo(ftNow) < 0) {
+          logger.info("Configuration file was changed.");
+          reload();
+          setChanged();
+          notifyObservers(null);
         }
-      }, 5, 5, TimeUnit.SECONDS);
+        ft = ftNow;
+      } catch (Throwable th) { // Catch all and keep running.
+        logger.error("Cannot reload configuration file.", th);
+      }
+    }, 5, 5, TimeUnit.SECONDS);
   }
 
   private final void reload() throws IOException {

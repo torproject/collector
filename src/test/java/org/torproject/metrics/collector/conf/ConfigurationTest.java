@@ -23,8 +23,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -186,11 +184,7 @@ public class ConfigurationTest {
   public void testConfigChange() throws Exception {
     Configuration conf = new Configuration();
     final AtomicBoolean called = new AtomicBoolean(false);
-    conf.addObserver(new Observer() {
-        public void update(Observable obs, Object obj) {
-          called.set(true);
-        }
-      });
+    conf.addObserver((obs, obj) -> called.set(true));
     File confFile = tmpf.newFile("empty");
     Files.write(confFile.toPath(), (Key.RelaydescsActivated.name() + "=true")
         .getBytes());
@@ -208,11 +202,7 @@ public class ConfigurationTest {
   public void testConfigUnreadable() throws Exception {
     Configuration conf = new Configuration();
     final AtomicBoolean called = new AtomicBoolean(false);
-    conf.addObserver(new Observer() {
-        public void update(Observable obs, Object obj) {
-          called.set(true);
-        }
-      });
+    conf.addObserver((obs, obj) -> called.set(true));
     File confFile = tmpf.newFile("empty");
     Files.write(confFile.toPath(), (Key.RelaydescsActivated.name() + "=true")
         .getBytes());
