@@ -174,9 +174,7 @@ public class ExitListDownloader extends CollecTorMain {
         while (lastThreeElements.size() > 3) {
           lastThreeElements.remove(lastThreeElements.first());
         }
-        for (File f : lastThreeElements) {
-          filesInInputDir.add(f);
-        }
+        filesInInputDir.addAll(lastThreeElements);
       } else {
         lastThreeExitLists.add(pop);
         while (lastThreeExitLists.size() > 3) {

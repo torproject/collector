@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -86,9 +87,7 @@ public class ArchiveReader {
       while (!filesInInputDir.isEmpty()) {
         File pop = filesInInputDir.pop();
         if (pop.isDirectory()) {
-          for (File f : pop.listFiles()) {
-            filesInInputDir.add(f);
-          }
+          Collections.addAll(filesInInputDir, pop.listFiles());
         } else {
           try {
             BufferedInputStream bis = null;

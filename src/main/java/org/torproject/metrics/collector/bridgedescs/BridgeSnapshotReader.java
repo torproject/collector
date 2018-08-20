@@ -22,6 +22,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
@@ -82,9 +83,7 @@ public class BridgeSnapshotReader {
       while (!filesInInputDir.isEmpty()) {
         File pop = filesInInputDir.pop();
         if (pop.isDirectory()) {
-          for (File f : pop.listFiles()) {
-            filesInInputDir.add(f);
-          }
+          Collections.addAll(filesInInputDir, pop.listFiles());
         } else if (!parsed.contains(pop.getName())) {
           try {
             FileInputStream in = new FileInputStream(pop);
