@@ -834,7 +834,7 @@ public class ArchiveWriter extends CollecTorMain {
     try {
       for (int i = 0; i < outputFiles.length; i++) {
         File outputFile = outputFiles[i];
-        boolean appendToFile = append == null ? false : append[i];
+        boolean appendToFile = append != null && append[i];
         outputFile.getParentFile().mkdirs();
         BufferedOutputStream bos = new BufferedOutputStream(
             new FileOutputStream(outputFile, appendToFile));
