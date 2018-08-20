@@ -138,9 +138,9 @@ public abstract class CollecTorMain extends SyncManager
    */
   public static void checkAvailableSpace(Path location) {
     try {
-      long megaBytes = (long) (Files.getFileStore(location.toFile()
+      long megaBytes = Files.getFileStore(location.toFile()
           .getAbsoluteFile().toPath().getRoot()).getUsableSpace()
-              / 1024 / 1024);
+              / 1024 / 1024;
       if (megaBytes < LIMIT_MB) {
         logger.warn("Available storage critical for {}; only {} MiB left.",
             location, megaBytes);
