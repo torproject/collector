@@ -807,7 +807,7 @@ public class RelayDescriptorDownloader {
                 combinedResource = new StringBuilder("/tor/" + type
                     + "/d/" + descriptorIdentifier);
               } else {
-                combinedResource.append(separator + descriptorIdentifier);
+                combinedResource.append(separator).append(descriptorIdentifier);
               }
               descriptorsInCombinedResource++;
             }
@@ -1087,8 +1087,8 @@ public class RelayDescriptorDownloader {
         + " missing microdescriptor(s) from the directory authorities.");
     StringBuilder sb = new StringBuilder();
     for (String authority : this.authorities) {
-      sb.append(" " + authority + "="
-          + this.requestsByAuthority.get(authority));
+      sb.append(" ").append(authority).append("=").append(
+          this.requestsByAuthority.get(authority));
     }
     logger.info("We sent these numbers of requests to the directory "
         + "authorities:" + sb.toString());

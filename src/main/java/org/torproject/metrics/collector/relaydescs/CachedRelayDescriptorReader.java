@@ -113,8 +113,8 @@ public class CachedRelayDescriptorReader {
             String line = null;
             while ((line = br.readLine()) != null) {
               if (line.startsWith("valid-after ")) {
-                dumpStats.append("\n" + f.getName() + ": " + line.substring(
-                    "valid-after ".length()));
+                dumpStats.append("\n").append(f.getName()).append(": ")
+                    .append(line.substring("valid-after ".length()));
                 SimpleDateFormat dateTimeFormat =
                     new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -172,8 +172,9 @@ public class CachedRelayDescriptorReader {
               }
               start = next;
             }
-            dumpStats.append("\n" + f.getName() + ": parsed " + parsedNum
-                + ", skipped " + skippedNum + " votes");
+            dumpStats.append("\n").append(f.getName()).append(": parsed ")
+                .append(parsedNum).append(", skipped ").append(skippedNum)
+                .append(" votes");
           } else if (f.getName().startsWith("cached-descriptors")
               || f.getName().startsWith("cached-extrainfo")) {
             String ascii = new String(allData, "US-ASCII");
@@ -215,10 +216,10 @@ public class CachedRelayDescriptorReader {
               }
               currentImportHistory.add(digest);
             }
-            dumpStats.append("\n" + f.getName() + ": parsed " + parsedNum
-                + ", skipped " + skippedNum + " "
-                + (f.getName().startsWith("cached-descriptors")
-                ? "server" : "extra-info") + " descriptors");
+            dumpStats.append("\n").append(f.getName()).append(": parsed ")
+                .append(parsedNum).append(", skipped ").append(skippedNum)
+                .append(" ").append(f.getName().startsWith("cached-descriptors")
+                ? "server" : "extra-info").append(" descriptors");
           }
         } catch (IOException | ParseException e) {
           logger.warn("Failed reading "

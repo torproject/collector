@@ -115,7 +115,7 @@ public class RelayDescriptorParser {
               certificateString = certificateStringBuilder.toString();
               certificateStringBuilder = null;
             } else {
-              certificateStringBuilder.append(line + "\n");
+              certificateStringBuilder.append(line).append("\n");
             }
           }
           if (line.equals("vote-status vote")) {
@@ -129,7 +129,7 @@ public class RelayDescriptorParser {
             dirSources.add(dirSource);
           } else if (line.startsWith("dir-key-certificate-version ")) {
             certificateStringBuilder = new StringBuilder();
-            certificateStringBuilder.append(line + "\n");
+            certificateStringBuilder.append(line).append("\n");
           } else if (line.startsWith("fingerprint ")) {
             fingerprint = line.split(" ")[1];
           } else if (line.startsWith("dir-key-published ")) {

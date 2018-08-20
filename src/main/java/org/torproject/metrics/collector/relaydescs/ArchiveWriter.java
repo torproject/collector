@@ -302,15 +302,17 @@ public class ArchiveWriter extends CollecTorMain {
   /** Compiles a message with statistics on stored descriptors by type for
    * later inclusion in the log and resets counters. */
   public void intermediateStats(String event) {
-    intermediateStats.append("While " + event + ", we stored "
-        + this.storedConsensusesCounter + " consensus(es), "
-        + this.storedMicrodescConsensusesCounter + " microdesc "
-        + "consensus(es), " + this.storedVotesCounter + " vote(s), "
-        + this.storedCertsCounter + " certificate(s), "
-        + this.storedServerDescriptorsCounter + " server descriptor(s), "
-        + this.storedExtraInfoDescriptorsCounter + " extra-info "
-        + "descriptor(s), and " + this.storedMicrodescriptorsCounter
-        + " microdescriptor(s) to disk.\n");
+    intermediateStats.append("While ").append(event).append(", we stored ")
+        .append(this.storedConsensusesCounter).append(" consensus(es), ")
+        .append(this.storedMicrodescConsensusesCounter).append(" microdesc ")
+        .append("consensus(es), ").append(this.storedVotesCounter)
+        .append(" vote(s), ").append(this.storedCertsCounter)
+        .append(" certificate(s), ").append(this.storedServerDescriptorsCounter)
+        .append(" server descriptor(s), ")
+        .append(this.storedExtraInfoDescriptorsCounter).append(" extra-info ")
+        .append("descriptor(s), and ")
+        .append(this.storedMicrodescriptorsCounter)
+        .append(" microdescriptor(s) to disk.\n");
     this.storedConsensusesCounter = 0;
     this.storedMicrodescConsensusesCounter = 0;
     this.storedVotesCounter = 0;
@@ -376,7 +378,7 @@ public class ArchiveWriter extends CollecTorMain {
               }
             }
           }
-          sb.append("\nV, " + validAfterTime);
+          sb.append("\nV, ").append(validAfterTime);
           if (voteAllServerDescs > 0) {
             sb.append(String.format(", %d/%d S (%.1f%%)",
                 voteFoundServerDescs, voteAllServerDescs,
@@ -426,7 +428,7 @@ public class ArchiveWriter extends CollecTorMain {
           }
         }
       }
-      sb.append("\nC, " + validAfterTime);
+      sb.append("\nC, ").append(validAfterTime);
       int allVotes = this.expectedVotes.getOrDefault(validAfterMillis, 0);
       if (allVotes > 0) {
         sb.append(String.format(", %d/%d V (%.1f%%)", foundVotes, allVotes,
@@ -456,7 +458,7 @@ public class ArchiveWriter extends CollecTorMain {
             foundMicrodescriptors++;
           }
         }
-        sb.append("\nM, " + validAfterTime);
+        sb.append("\nM, ").append(validAfterTime);
         if (allMicrodescriptors > 0) {
           sb.append(String.format(", %d/%d M (%.1f%%)",
               foundMicrodescriptors, allMicrodescriptors,

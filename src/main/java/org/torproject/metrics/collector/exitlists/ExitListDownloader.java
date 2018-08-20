@@ -74,7 +74,8 @@ public class ExitListDownloader extends CollecTorMain {
     logger.debug("Downloading exit list...");
     StringBuilder sb = new StringBuilder();
     sb.append(Annotation.ExitList.toString());
-    sb.append("Downloaded " + dateTimeFormat.format(downloadedDate) + "\n");
+    sb.append("Downloaded ").append(dateTimeFormat.format(downloadedDate))
+        .append("\n");
     URL url = config.getUrl(Key.ExitlistUrl);
     try  {
       HttpURLConnection huc = (HttpURLConnection) url.openConnection();
@@ -183,7 +184,7 @@ public class ExitListDownloader extends CollecTorMain {
       }
     }
     for (File f : lastThreeExitLists) {
-      dumpStats.append("\n" + f.getName());
+      dumpStats.append("\n").append(f.getName());
     }
     logger.info(dumpStats.toString());
 

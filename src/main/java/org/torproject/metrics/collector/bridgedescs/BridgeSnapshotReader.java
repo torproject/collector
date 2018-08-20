@@ -248,7 +248,7 @@ public class BridgeSnapshotReader {
         pbdFile.getParentFile().mkdirs();
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(pbdFile))) {
           for (String f : parsed) {
-            bw.append(f + "\n");
+            bw.append(f).append("\n");
           }
           logger.debug("Finished writing file " + pbdFile.getAbsolutePath()
               + ".");

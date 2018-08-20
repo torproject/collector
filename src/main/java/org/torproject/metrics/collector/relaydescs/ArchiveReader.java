@@ -238,7 +238,7 @@ public class ArchiveReader {
             + "directory " + archivesDirectory + "/:");
         int printed = 0;
         for (File f : problems) {
-          sb.append("\n  " + f.getAbsolutePath());
+          sb.append("\n  ").append(f.getAbsolutePath());
           if (++printed >= 3) {
             sb.append("\n  ... more");
             break;
