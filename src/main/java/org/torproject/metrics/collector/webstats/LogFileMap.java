@@ -70,17 +70,10 @@ public class LogFileMap
   /** Add log metadata to the map structure. */
   public void add(LogMetadata metadata) {
     TreeMap<String, TreeMap<LocalDate, LogMetadata>> virtualHosts
-        = this.get(metadata.virtualHost);
-    if (null == virtualHosts) {
-      virtualHosts = new TreeMap<>();
-      this.put(metadata.virtualHost, virtualHosts);
-    }
+        = this.computeIfAbsent(metadata.virtualHost, k -> new TreeMap<>());
     TreeMap<LocalDate, LogMetadata> physicalHosts
-        = virtualHosts.get(metadata.physicalHost);
-    if (null == physicalHosts) {
-      physicalHosts = new TreeMap<>();
-      virtualHosts.put(metadata.physicalHost, physicalHosts);
-    }
+        = virtualHosts.computeIfAbsent(metadata.physicalHost,
+          k -> new TreeMap<>());
     physicalHosts.put(metadata.date, metadata);
   }
 

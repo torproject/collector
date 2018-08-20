@@ -427,8 +427,7 @@ public class ArchiveWriter extends CollecTorMain {
         }
       }
       sb.append("\nC, " + validAfterTime);
-      int allVotes = this.expectedVotes.containsKey(validAfterMillis)
-          ? this.expectedVotes.get(validAfterMillis) : 0;
+      int allVotes = this.expectedVotes.getOrDefault(validAfterMillis, 0);
       if (allVotes > 0) {
         sb.append(String.format(", %d/%d V (%.1f%%)", foundVotes, allVotes,
             100.0D * (double) foundVotes / (double) allVotes));
