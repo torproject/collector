@@ -169,7 +169,8 @@ public class ArchiveWriter extends CollecTorMain {
       new ArchiveReader(rdp,
           config.getPath(Key.RelayLocalOrigins).toFile(),
           statsDirectory,
-          config.getBool(Key.KeepDirectoryArchiveImportHistory));
+          config.getBool(Key.KeepDirectoryArchiveImportHistory))
+          .readDescriptors();
       this.intermediateStats("importing relay descriptors from local "
           + "directory");
     }
