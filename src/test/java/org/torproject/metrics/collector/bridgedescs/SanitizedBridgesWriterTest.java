@@ -112,16 +112,14 @@ public class SanitizedBridgesWriterTest {
     this.defaultTarballTestBuilder = new TarballTestBuilder(
         "from-tonga-2016-07-01T000702Z.tar.gz", 1467331624000L);
     this.defaultTarballTestBuilder.add("bridge-descriptors", 1467331622000L,
-        Arrays.asList(new TestDescriptorBuilder[] {
-            this.defaultServerTestDescriptorBuilder }));
+        Arrays.asList(this.defaultServerTestDescriptorBuilder));
     this.defaultTarballTestBuilder.add("cached-extrainfo", 1467327972000L,
-        Arrays.asList(new TestDescriptorBuilder[] {
-            this.defaultExtraInfoTestDescriptorBuilder }));
+        Arrays.asList(this.defaultExtraInfoTestDescriptorBuilder));
     this.defaultTarballTestBuilder.add("cached-extrainfo.new", 1467331623000L,
         Arrays.asList(new TestDescriptorBuilder[] { }));
     this.defaultTarballTestBuilder.add("networkstatus-bridges",
-        1467330028000L, Arrays.asList(new TestDescriptorBuilder[] {
-            this.defaultNetworkStatusTestDescriptorBuilder }));
+        1467330028000L,
+        Arrays.asList(this.defaultNetworkStatusTestDescriptorBuilder));
     this.tarballBuilders = new ArrayList<>(
         Arrays.asList(this.defaultTarballTestBuilder));
   }
@@ -713,8 +711,7 @@ public class SanitizedBridgesWriterTest {
   @Test
   public void testTarballContainsSameFileTwice() throws Exception {
     this.defaultTarballTestBuilder.add("cached-extrainfo.new", 1467331623000L,
-        Arrays.asList(new TestDescriptorBuilder[] {
-            this.defaultExtraInfoTestDescriptorBuilder }));
+        Arrays.asList(this.defaultExtraInfoTestDescriptorBuilder));
     this.runTest();
     assertEquals("There should only be one.",
         1, this.parsedExtraInfoDescriptors.size());
