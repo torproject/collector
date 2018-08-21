@@ -175,60 +175,64 @@ public class RelayDescriptorParser {
             }
           }
         }
-        if (statusType.equals("consensus")) {
-          if (this.rdd != null) {
-            this.rdd.haveParsedConsensus(validAfterTime, dirSources,
-                serverDescriptors);
-          }
-          if (this.aw != null) {
-            this.aw.storeConsensus(data, validAfter, dirSources,
-                serverDescriptorDigests);
-            stored = true;
-          }
-        } else if (statusType.equals("consensus-microdesc")) {
-          if (this.rdd != null) {
-            this.rdd.haveParsedMicrodescConsensus(validAfterTime,
-                microdescriptorKeys);
-          }
-          if (this.ar != null) {
-            this.ar.haveParsedMicrodescConsensus(validAfterTime,
-                microdescriptorDigests);
-          }
-          if (this.aw != null) {
-            this.aw.storeMicrodescConsensus(data, validAfter,
-                microdescriptorDigests);
-            stored = true;
-          }
-        } else {
-          if (this.aw != null || this.rdd != null) {
-            String ascii = new String(data, "US-ASCII");
-            String startToken = "network-status-version ";
-            String sigToken = "directory-signature ";
-            int start = ascii.indexOf(startToken);
-            int sig = ascii.indexOf(sigToken);
-            if (start >= 0 && sig >= 0 && sig > start) {
-              sig += sigToken.length();
-              byte[] forDigest = new byte[sig - start];
-              System.arraycopy(data, start, forDigest, 0, sig - start);
-              String digest = DigestUtils.sha1Hex(forDigest).toUpperCase();
-              if (this.aw != null) {
-                this.aw.storeVote(data, validAfter, dirSource, digest,
-                    serverDescriptorDigests);
-                stored = true;
+        switch (statusType) {
+          case "consensus":
+            if (this.rdd != null) {
+              this.rdd.haveParsedConsensus(validAfterTime, dirSources,
+                  serverDescriptors);
+            }
+            if (this.aw != null) {
+              this.aw.storeConsensus(data, validAfter, dirSources,
+                  serverDescriptorDigests);
+              stored = true;
+            }
+            break;
+          case "consensus-microdesc":
+            if (this.rdd != null) {
+              this.rdd.haveParsedMicrodescConsensus(validAfterTime,
+                  microdescriptorKeys);
+            }
+            if (this.ar != null) {
+              this.ar.haveParsedMicrodescConsensus(validAfterTime,
+                  microdescriptorDigests);
+            }
+            if (this.aw != null) {
+              this.aw.storeMicrodescConsensus(data, validAfter,
+                  microdescriptorDigests);
+              stored = true;
+            }
+            break;
+          default:
+            if (this.aw != null || this.rdd != null) {
+              String ascii = new String(data, "US-ASCII");
+              String startToken = "network-status-version ";
+              String sigToken = "directory-signature ";
+              int start = ascii.indexOf(startToken);
+              int sig = ascii.indexOf(sigToken);
+              if (start >= 0 && sig >= 0 && sig > start) {
+                sig += sigToken.length();
+                byte[] forDigest = new byte[sig - start];
+                System.arraycopy(data, start, forDigest, 0, sig - start);
+                String digest = DigestUtils.sha1Hex(forDigest).toUpperCase();
+                if (this.aw != null) {
+                  this.aw.storeVote(data, validAfter, dirSource, digest,
+                      serverDescriptorDigests);
+                  stored = true;
+                }
+                if (this.rdd != null) {
+                  this.rdd.haveParsedVote(validAfterTime, fingerprint,
+                      serverDescriptors);
+                }
               }
-              if (this.rdd != null) {
-                this.rdd.haveParsedVote(validAfterTime, fingerprint,
-                    serverDescriptors);
+              if (certificateString != null) {
+                if (this.aw != null) {
+                  this.aw.storeCertificate(certificateString.getBytes(),
+                      dirSource, dirKeyPublished);
+                  stored = true;
+                }
               }
             }
-            if (certificateString != null) {
-              if (this.aw != null) {
-                this.aw.storeCertificate(certificateString.getBytes(),
-                    dirSource, dirKeyPublished);
-                stored = true;
-              }
-            }
-          }
+            break;
         }
       } else if (line.startsWith("router ")) {
         String publishedTime = null;

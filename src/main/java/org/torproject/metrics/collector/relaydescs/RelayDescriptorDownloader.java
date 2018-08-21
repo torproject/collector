@@ -812,21 +812,28 @@ public class RelayDescriptorDownloader {
                   this.downloadResourceFromAuthority(authority,
                   combinedResource.toString());
             }
-            if (type.equals("server")) {
-              this.requestedMissingServerDescriptors +=
-                  requestedDescriptors;
-              this.downloadedMissingServerDescriptors +=
-                  downloadedDescriptors;
-            } else if (type.equals("extra")) {
-              this.requestedMissingExtraInfoDescriptors +=
-                  requestedDescriptors;
-              this.downloadedMissingExtraInfoDescriptors +=
-                  downloadedDescriptors;
-            } else if (type.equals("micro")) {
-              this.requestedMissingMicrodescriptors +=
-                  requestedDescriptors;
-              this.downloadedMissingMicrodescriptors +=
-                  downloadedDescriptors;
+            switch (type) {
+              case "server":
+                this.requestedMissingServerDescriptors +=
+                    requestedDescriptors;
+                this.downloadedMissingServerDescriptors +=
+                    downloadedDescriptors;
+                break;
+              case "extra":
+                this.requestedMissingExtraInfoDescriptors +=
+                    requestedDescriptors;
+                this.downloadedMissingExtraInfoDescriptors +=
+                    downloadedDescriptors;
+                break;
+              case "micro":
+                this.requestedMissingMicrodescriptors +=
+                    requestedDescriptors;
+                this.downloadedMissingMicrodescriptors +=
+                    downloadedDescriptors;
+                break;
+              default:
+                /* Unknown type, nothing to do. */
+                break;
             }
           }
         }
