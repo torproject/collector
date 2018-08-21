@@ -168,10 +168,8 @@ public class ExitListDownloader extends CollecTorMain {
     while (!filesInInputDir.isEmpty()) {
       File pop = filesInInputDir.pop();
       if (pop.isDirectory()) {
-        SortedSet<File> lastThreeElements = new TreeSet<>();
-        for (File f : pop.listFiles()) {
-          lastThreeElements.add(f);
-        }
+        SortedSet<File> lastThreeElements
+            = new TreeSet<>(Arrays.asList(pop.listFiles()));
         while (lastThreeElements.size() > 3) {
           lastThreeElements.remove(lastThreeElements.first());
         }
