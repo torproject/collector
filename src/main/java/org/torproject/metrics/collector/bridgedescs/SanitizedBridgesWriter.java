@@ -1067,8 +1067,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       logger.warn("Unknown cert type in identity-ed25519: {}",
           identityEd25519[1]);
     } else if (identityEd25519[6] != 0x01) {
-      logger.warn("Unknown certified key type in "
-          + "identity-ed25519: " + identityEd25519[1]);
+      logger.warn("Unknown certified key type in identity-ed25519: {}",
+          identityEd25519[1]);
     } else if (identityEd25519[39] == 0x00) {
       logger.warn("No extensions in identity-ed25519 (which "
           + "would contain the encoded master-key-ed25519): {}",

@@ -103,7 +103,7 @@ public class Main {
           + ") and provide at least one data source and one data sink. "
           + "Refer to the manual for more information.");
     } catch (IOException e) {
-      log.error("Cannot write default configuration. Reason: " + e, e);
+      log.error("Cannot write default configuration.", e);
       throw new RuntimeException(e);
     }
   }

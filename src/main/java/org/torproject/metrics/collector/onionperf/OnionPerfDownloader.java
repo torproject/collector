@@ -111,9 +111,9 @@ public class OnionPerfDownloader extends CollecTorMain {
         this.downloadedTpfFiles.add(line);
       }
     } catch (IOException e) {
-      logger.info("Unable to read download history file '"
-          + this.onionPerfDownloadedFile.getAbsolutePath() + "'.  Ignoring "
-          + "download history and downloading all available .tpf files.");
+      logger.info("Unable to read download history file '{}'. Ignoring "
+          + "download history and downloading all available .tpf files.",
+          this.onionPerfDownloadedFile.getAbsolutePath());
       this.downloadedTpfFiles.clear();
     }
   }

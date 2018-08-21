@@ -70,8 +70,7 @@ public final class Scheduler implements ThreadFactory {
           CollecTorMain ctm = ctmEntry.getValue()
               .getConstructor(Configuration.class).newInstance(conf);
           if (conf.getBool(Key.RunOnce)) {
-            logger.info("Prepare single run for " + ctm.getClass().getName()
-                + ".");
+            logger.info("Prepare single run for {}.", ctm.getClass().getName());
             runOnceMains.add(Executors.callable(ctm));
           } else {
             scheduleExecutions(ctm,
@@ -83,8 +82,8 @@ public final class Scheduler implements ThreadFactory {
           | InstantiationException | InvocationTargetException
           | NoSuchMethodException | RejectedExecutionException
           | NullPointerException ex) {
-        logger.error("Cannot schedule " + ctmEntry.getValue().getName()
-            + ". Reason: " + ex.getMessage(), ex);
+        logger.error("Cannot schedule {}. Reason: {}",
+            ctmEntry.getValue().getName(), ex.getMessage(), ex);
       }
     }
     try {
@@ -93,13 +92,13 @@ public final class Scheduler implements ThreadFactory {
       }
     } catch (ConfigurationException | InterruptedException
         | RejectedExecutionException | NullPointerException ex) {
-      logger.error("Cannot schedule run-once: " + ex.getMessage(), ex);
+      logger.error("Cannot schedule run-once: {}", ex.getMessage(), ex);
     }
   }
 
   private void scheduleExecutions(CollecTorMain ctm, int offset, int period) {
-    logger.info("Periodic updater started for " + ctm.getClass().getName()
-        + "; offset=" + offset + ", period=" + period + ".");
+    logger.info("Periodic updater started for {}; offset={}, period={}.",
+        ctm.getClass().getName(), offset, period);
     long periodMillis = period * MILLIS_IN_A_MINUTE;
     long initialDelayMillis = computeInitialDelayMillis(
         System.currentTimeMillis(), offset * MILLIS_IN_A_MINUTE, periodMillis);
@@ -132,9 +131,9 @@ public final class Scheduler implements ThreadFactory {
       logger.info("Shutdown of all scheduled tasks completed successfully.");
     } catch (InterruptedException ie) {
       List<Runnable> notTerminated = scheduler.shutdownNow();
-      logger.error("Regular shutdown failed for: " + notTerminated);
+      logger.error("Regular shutdown failed for: {}", notTerminated);
       if (!notTerminated.isEmpty()) {
-        logger.error("Forced shutdown failed for: " + notTerminated);
+        logger.error("Forced shutdown failed for: {}", notTerminated);
       }
     }
   }
@@ -147,7 +146,7 @@ public final class Scheduler implements ThreadFactory {
     Thread newThread = threads.newThread(runner);
     newThread.setDaemon(true);
     newThread.setName("CollecTor-Scheduled-Thread-" + ++currentThreadNo);
-    logger.info("New Thread created: " + newThread.getName());
+    logger.info("New Thread created: {}", newThread.getName());
     return newThread;
   }
 }

@@ -344,8 +344,8 @@ public class RelayDescriptorDownloader {
         "stats/missing-relay-descriptors");
     if (this.missingDescriptorsFile.exists()) {
       try {
-        logger.debug("Reading file "
-            + this.missingDescriptorsFile.getAbsolutePath() + "...");
+        logger.debug("Reading file {}...",
+            this.missingDescriptorsFile.getAbsolutePath());
         BufferedReader br = new BufferedReader(new FileReader(
             this.missingDescriptorsFile));
         String line;
@@ -395,19 +395,17 @@ public class RelayDescriptorDownloader {
               }
             }
           } else {
-            logger.debug("Invalid line '" + line + "' in "
-                + this.missingDescriptorsFile.getAbsolutePath()
-                + ". Ignoring.");
+            logger.debug("Invalid line '{}' in {}. Ignoring.", line,
+                this.missingDescriptorsFile.getAbsolutePath());
           }
         }
         br.close();
-        logger.debug("Finished reading file "
-            + this.missingDescriptorsFile.getAbsolutePath() + ".");
+        logger.debug("Finished reading file {}.",
+            this.missingDescriptorsFile.getAbsolutePath());
       } catch (IOException e) {
-        logger.warn("Failed to read file "
-            + this.missingDescriptorsFile.getAbsolutePath()
-            + "! This means that we might forget to dowload relay "
-            + "descriptors we are missing.", e);
+        logger.warn("Failed to read file {}! This means that we might forget "
+            + "to dowload relay descriptors we are missing.",
+            this.missingDescriptorsFile.getAbsolutePath(), e);
       }
     }
 
@@ -418,17 +416,15 @@ public class RelayDescriptorDownloader {
         "stats/last-downloaded-all-descriptors");
     if (this.lastDownloadedAllDescriptorsFile.exists()) {
       try {
-        logger.debug("Reading file "
-            + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
-            + "...");
+        logger.debug("Reading file {}...",
+            this.lastDownloadedAllDescriptorsFile.getAbsolutePath());
         BufferedReader br = new BufferedReader(new FileReader(
             this.lastDownloadedAllDescriptorsFile));
         String line;
         while ((line = br.readLine()) != null) {
           if (line.split(",").length != 2) {
-            logger.debug("Invalid line '" + line + "' in "
-                + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
-                + ". Ignoring.");
+            logger.debug("Invalid line '{}' in {}. Ignoring.", line,
+                this.lastDownloadedAllDescriptorsFile.getAbsolutePath());
           } else {
             String[] parts = line.split(",");
             String authority = parts[0];
@@ -438,14 +434,13 @@ public class RelayDescriptorDownloader {
           }
         }
         br.close();
-        logger.debug("Finished reading file "
-            + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
-            + ".");
+        logger.debug("Finished reading file {}.",
+            this.lastDownloadedAllDescriptorsFile.getAbsolutePath());
       } catch (IOException e) {
-        logger.warn("Failed to read file "
-            + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
-            + "! This means that we might download all server and "
-            + "extra-info descriptors more often than we should.", e);
+        logger.warn("Failed to read file {}! This means that we might "
+            + "download all server and extra-info descriptors more often than "
+            + "we should.",
+            this.lastDownloadedAllDescriptorsFile.getAbsolutePath(), e);
       }
     }
 
@@ -839,7 +834,7 @@ public class RelayDescriptorDownloader {
       /* If a download failed, stop requesting descriptors from this
        * authority and move on to the next. */
       } catch (IOException e) {
-        logger.debug("Failed downloading from " + authority + "!", e);
+        logger.debug("Failed downloading from {}!", authority, e);
       }
     }
   }
@@ -883,8 +878,8 @@ public class RelayDescriptorDownloader {
         allData = baos.toByteArray();
       }
     }
-    logger.debug("Downloaded " + fullUrl + " -> " + response + " ("
-        + (allData == null ? 0 : allData.length) + " bytes)");
+    logger.debug("Downloaded {} -> {} ({} bytes)", fullUrl, response,
+        allData == null ? 0 : allData.length);
     int receivedDescriptors = 0;
     if (allData != null) {
       if (resource.startsWith("/tor/status-vote/current/")) {
@@ -967,10 +962,9 @@ public class RelayDescriptorDownloader {
               this.rdp.storeMicrodescriptor(descBytes, digest256Hex,
                   digest256Base64, validAfter);
             } catch (ParseException e) {
-              logger.warn("Could not parse "
-                  + "valid-after time '" + validAfterTime + "' in "
+              logger.warn("Could not parse valid-after time '{}' in "
                   + "microdescriptor key. Not storing microdescriptor.",
-                  e);
+                  validAfterTime, e);
             }
           }
           receivedDescriptors++;
@@ -993,8 +987,8 @@ public class RelayDescriptorDownloader {
     int missingServerDescriptors = 0;
     int missingExtraInfoDescriptors = 0;
     try {
-      logger.debug("Writing file "
-          + this.missingDescriptorsFile.getAbsolutePath() + "...");
+      logger.debug("Writing file {}...",
+          this.missingDescriptorsFile.getAbsolutePath());
       this.missingDescriptorsFile.getParentFile().mkdirs();
       BufferedWriter bw = new BufferedWriter(new FileWriter(
           this.missingDescriptorsFile));
@@ -1020,20 +1014,19 @@ public class RelayDescriptorDownloader {
         bw.write(key + "," + value + "\n");
       }
       bw.close();
-      logger.debug("Finished writing file "
-          + this.missingDescriptorsFile.getAbsolutePath() + ".");
+      logger.debug("Finished writing file {}.",
+          this.missingDescriptorsFile.getAbsolutePath());
     } catch (IOException e) {
-      logger.warn("Failed writing "
-          + this.missingDescriptorsFile.getAbsolutePath() + "!", e);
+      logger.warn("Failed writing {}!",
+          this.missingDescriptorsFile.getAbsolutePath(), e);
     }
 
     /* Write text file containing the directory authorities and when we
      * last downloaded all server and extra-info descriptors from them to
      * disk. */
     try {
-      logger.debug("Writing file "
-          + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
-          + "...");
+      logger.debug("Writing file {}...",
+          this.lastDownloadedAllDescriptorsFile.getAbsolutePath());
       this.lastDownloadedAllDescriptorsFile.getParentFile().mkdirs();
       BufferedWriter bw = new BufferedWriter(new FileWriter(
           this.lastDownloadedAllDescriptorsFile));
@@ -1044,77 +1037,67 @@ public class RelayDescriptorDownloader {
         bw.write(authority + "," + lastDownloaded + "\n");
       }
       bw.close();
-      logger.debug("Finished writing file "
-          + this.lastDownloadedAllDescriptorsFile.getAbsolutePath()
-          + ".");
+      logger.debug("Finished writing file {}.",
+          this.lastDownloadedAllDescriptorsFile.getAbsolutePath());
     } catch (IOException e) {
-      logger.warn("Failed writing "
-          + this.lastDownloadedAllDescriptorsFile.getAbsolutePath() + "!",
-          e);
+      logger.warn("Failed writing {}!",
+          this.lastDownloadedAllDescriptorsFile.getAbsolutePath(), e);
     }
 
     /* Log statistics about this execution. */
     logger.info("Finished downloading relay descriptors from the "
         + "directory authorities.");
-    logger.info("At the beginning of this execution, we were "
-        + "missing " + oldMissingConsensuses + " consensus(es), "
-        + oldMissingMicrodescConsensuses + " microdesc consensus(es), "
-        + oldMissingVotes + " vote(s), " + oldMissingServerDescriptors
-        + " server descriptor(s), " + oldMissingExtraInfoDescriptors
-        + " extra-info descriptor(s), and " + oldMissingMicrodescriptors
-        + " microdescriptor(s).");
-    logger.info("During this execution, we added "
-        + this.newMissingConsensuses + " consensus(es), "
-        + this.newMissingMicrodescConsensuses
-        + " microdesc consensus(es), " + this.newMissingVotes
-        + " vote(s), " + this.newMissingServerDescriptors
-        + " server descriptor(s), " + this.newMissingExtraInfoDescriptors
-        + " extra-info descriptor(s), and "
-        + this.newMissingMicrodescriptors + " microdescriptor(s) to the "
-        + "missing list, some of which we also "
-        + "requested and removed from the list again.");
-    logger.info("We requested " + this.requestedConsensuses
-        + " consensus(es), " + this.requestedMicrodescConsensuses
-        + " microdesc consensus(es), " + this.requestedVotes
-        + " vote(s), " + this.requestedMissingServerDescriptors
-        + " missing server descriptor(s), "
-        + this.requestedAllServerDescriptors
-        + " times all server descriptors, "
-        + this.requestedMissingExtraInfoDescriptors + " missing "
-        + "extra-info descriptor(s), "
-        + this.requestedAllExtraInfoDescriptors + " times all extra-info "
-        + "descriptors, and " + this.requestedMissingMicrodescriptors
-        + " missing microdescriptor(s) from the directory authorities.");
+    logger.info("At the beginning of this execution, we were missing {} "
+        + "consensus(es), {} microdesc consensus(es), {} vote(s), {} server "
+        + "descriptor(s), {} extra-info descriptor(s), and {} "
+        + "microdescriptor(s).", oldMissingConsensuses,
+        oldMissingMicrodescConsensuses, oldMissingVotes,
+        oldMissingServerDescriptors, oldMissingExtraInfoDescriptors,
+        oldMissingMicrodescriptors);
+    logger.info("During this execution, we added {} consensus(es), {} "
+        + "microdesc consensus(es), {} vote(s), {} server descriptor(s), {} "
+        + "extra-info descriptor(s), and {} microdescriptor(s) to the missing "
+        + "list, some of which we also requested and removed from the list "
+        + "again.", this.newMissingConsensuses,
+        this.newMissingMicrodescConsensuses, this.newMissingVotes,
+        this.newMissingServerDescriptors, this.newMissingExtraInfoDescriptors,
+        this.newMissingMicrodescriptors);
+    logger.info("We requested {} consensus(es), {} microdesc consensus(es), "
+        + "{} vote(s), {} missing server descriptor(s), {} times all server "
+        + "descriptors, {} missing extra-info descriptor(s), {} times all "
+        + "extra-info descriptors, and {} missing microdescriptor(s) from the "
+        + "directory authorities.", this.requestedConsensuses,
+        this.requestedMicrodescConsensuses, this.requestedVotes,
+        this.requestedMissingServerDescriptors,
+        this.requestedAllServerDescriptors,
+        this.requestedMissingExtraInfoDescriptors,
+        this.requestedAllExtraInfoDescriptors,
+        this.requestedMissingMicrodescriptors);
     StringBuilder sb = new StringBuilder();
     for (String authority : this.authorities) {
       sb.append(" ").append(authority).append("=").append(
           this.requestsByAuthority.get(authority));
     }
     logger.info("We sent these numbers of requests to the directory "
-        + "authorities:" + sb.toString());
-    logger.info("We successfully downloaded "
-        + this.downloadedConsensuses + " consensus(es), "
-        + this.downloadedMicrodescConsensuses
-        + " microdesc consensus(es), " + this.downloadedVotes
-        + " vote(s), " + this.downloadedMissingServerDescriptors
-        + " missing server descriptor(s), "
-        + this.downloadedAllServerDescriptors
-        + " server descriptor(s) when downloading all descriptors, "
-        + this.downloadedMissingExtraInfoDescriptors + " missing "
-        + "extra-info descriptor(s), "
-        + this.downloadedAllExtraInfoDescriptors + " extra-info "
-        + "descriptor(s) when downloading all descriptors, and "
-        + this.downloadedMissingMicrodescriptors
-        + " missing microdescriptor(s).");
-    logger.info("At the end of this execution, we are missing "
-        + missingConsensuses + " consensus(es), "
-        + missingMicrodescConsensuses + " microdesc consensus(es), "
-        + missingVotes + " vote(s), " + missingServerDescriptors
-        + " server descriptor(s), " + missingExtraInfoDescriptors
-        + " extra-info descriptor(s), and "
-        + this.missingMicrodescriptors.size()
-        + " microdescriptor(s), some of which we may try in the next "
-        + "execution.");
+        + "authorities:{}", sb.toString());
+    logger.info("We successfully downloaded {} consensus(es), {} microdesc "
+        + "consensus(es), {} vote(s), {} missing server descriptor(s), {} "
+        + "server descriptor(s) when downloading all descriptors, {} missing "
+        + "extra-info descriptor(s), {} extra-info descriptor(s) when "
+        + "downloading all descriptors, and {} missing microdescriptor(s).",
+        this.downloadedConsensuses, this.downloadedMicrodescConsensuses,
+        this.downloadedVotes, this.downloadedMissingServerDescriptors,
+        this.downloadedAllServerDescriptors,
+        this.downloadedMissingExtraInfoDescriptors,
+        this.downloadedAllExtraInfoDescriptors,
+        this.downloadedMissingMicrodescriptors);
+    logger.info("At the end of this execution, we are missing {} "
+        + "consensus(es), {} microdesc consensus(es), {} vote(s), {} server "
+        + "descriptor(s), {} extra-info descriptor(s), and {} "
+        + "microdescriptor(s), some of which we may try in the next execution.",
+        missingConsensuses, missingMicrodescConsensuses, missingVotes,
+        missingServerDescriptors, missingExtraInfoDescriptors,
+        this.missingMicrodescriptors.size());
   }
 }
 

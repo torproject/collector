@@ -92,7 +92,7 @@ public class CreateIndexJson extends CollecTorMain {
           config.getPath(Key.RecentPath).toFile() };
       writeIndex(indexDirectories());
     } catch (Exception e) {
-      logger.error("Cannot run index creation: " + e.getMessage(), e);
+      logger.error("Cannot run index creation: {}", e.getMessage(), e);
       throw new RuntimeException(e);
     }
   }
@@ -108,8 +108,8 @@ public class CreateIndexJson extends CollecTorMain {
 
   private IndexNode indexDirectories() {
     SortedSet<DirectoryNode> directoryNodes = new TreeSet<>();
-    logger.trace("indexing: " + indexedDirectories[0] + " "
-        + indexedDirectories[1]);
+    logger.trace("indexing: {} {}", indexedDirectories[0],
+        indexedDirectories[1]);
     for (File directory : indexedDirectories) {
       if (directory.exists() && directory.isDirectory()) {
         DirectoryNode dn = indexDirectory(directory);
@@ -126,10 +126,10 @@ public class CreateIndexJson extends CollecTorMain {
   private DirectoryNode indexDirectory(File directory) {
     SortedSet<FileNode> fileNodes = new TreeSet<>();
     SortedSet<DirectoryNode> directoryNodes = new TreeSet<>();
-    logger.trace("indexing: " + directory);
+    logger.trace("indexing: {}", directory);
     File[] fileList = directory.listFiles();
     if (null == fileList) {
-      logger.warn("Indexing dubious directory: " + directory);
+      logger.warn("Indexing dubious directory: {}", directory);
       return null;
     }
     for (File fileOrDirectory : fileList) {

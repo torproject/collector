@@ -138,9 +138,9 @@ public class ExitListDownloader extends CollecTorMain {
     }
     if (maxScanMillis > 0L
         && maxScanMillis + 330L * 60L * 1000L < System.currentTimeMillis()) {
-      logger.warn("The last reported scan in the downloaded exit list "
-          + "took place at " + dateTimeFormat.format(maxScanMillis)
-          + ", which is more than 5:30 hours in the past.");
+      logger.warn("The last reported scan in the downloaded exit list took "
+          + "place at {}, which is more than 5:30 hours in the past.",
+          dateTimeFormat.format(maxScanMillis));
     }
 
     /* Write to disk. */
@@ -154,8 +154,8 @@ public class ExitListDownloader extends CollecTorMain {
         bw.write(downloadedExitList);
         bw.close();
       } catch (IOException e) {
-        logger.warn("Could not write downloaded exit list "
-            + "to " + outputFile.getAbsolutePath(), e);
+        logger.warn("Could not write downloaded exit list to {}",
+            outputFile.getAbsolutePath(), e);
       }
     }
 

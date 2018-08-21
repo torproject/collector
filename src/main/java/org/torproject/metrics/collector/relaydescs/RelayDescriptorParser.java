@@ -152,8 +152,8 @@ public class RelayDescriptorParser {
                   + lastRelayIdentity + "," + serverDesc);
               serverDescriptorDigests.add(serverDesc);
             } else {
-              logger.warn("Could not parse r line '"
-                  + line + "' in descriptor. Skipping.");
+              logger.warn("Could not parse r line '{}' in descriptor. "
+                  + "Skipping.", line);
               break;
             }
           } else if (line.startsWith("m ")) {
@@ -169,8 +169,8 @@ public class RelayDescriptorParser {
             } else if (parts.length != 3
                 || !parts[2].startsWith("sha256=")
                 || parts[2].length() != 50) {
-              logger.warn("Could not parse m line '"
-                  + line + "' in descriptor. Skipping.");
+              logger.warn("Could not parse m line '{}' in descriptor. "
+                  + "Skipping.", line);
               break;
             }
           }

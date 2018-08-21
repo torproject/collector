@@ -103,8 +103,8 @@ public class ArchiveReader {
 
   private void readDescriptorFiles() {
     if (this.archivesDirectory.exists()) {
-      logger.debug("Importing files in directory " + this.archivesDirectory
-          + "/...");
+      logger.debug("Importing files in directory {}/...",
+          this.archivesDirectory);
       Stack<File> filesInInputDir = new Stack<>();
       filesInInputDir.add(this.archivesDirectory);
       List<File> problems = new ArrayList<>();
@@ -121,8 +121,8 @@ public class ArchiveReader {
               this.ignoredFiles++;
               continue;
             } else if (pop.getName().endsWith(".tar.bz2")) {
-              logger.warn("Cannot parse compressed tarball "
-                  + pop.getAbsolutePath() + ". Skipping.");
+              logger.warn("Cannot parse compressed tarball {}. Skipping.",
+                  pop.getAbsolutePath());
               continue;
             } else if (pop.getName().endsWith(".bz2")) {
               FileInputStream fis = new FileInputStream(pop);
@@ -225,9 +225,8 @@ public class ArchiveReader {
             String digest256Hex = DigestUtils.sha256Hex(descBytes);
             if (!this.microdescriptorValidAfterTimes.containsKey(
                 digest256Hex)) {
-              logger.debug("Could not store microdescriptor '"
-                  + digest256Hex + "', which was not contained in a "
-                  + "microdesc consensus.");
+              logger.debug("Could not store microdescriptor '{}', which was "
+                  + "not contained in a microdesc consensus.", digest256Hex);
               continue;
             }
             for (String validAfterTime :
@@ -238,9 +237,8 @@ public class ArchiveReader {
                 rdp.storeMicrodescriptor(descBytes, digest256Hex,
                     digest256Base64, validAfter);
               } catch (ParseException e) {
-                logger.warn("Could not parse "
-                    + "valid-after time '" + validAfterTime + "'. Not "
-                    + "storing microdescriptor.", e);
+                logger.warn("Could not parse valid-after time '{}'. Not "
+                    + "storing microdescriptor.", validAfterTime, e);
               }
             }
           }
@@ -256,8 +254,8 @@ public class ArchiveReader {
         }
       }
       if (problems.isEmpty()) {
-        logger.debug("Finished importing files in directory "
-            + this.archivesDirectory + "/.");
+        logger.debug("Finished importing files in directory {}/.",
+            this.archivesDirectory);
       } else {
         StringBuilder sb = new StringBuilder("Failed importing files in "
             + "directory " + this.archivesDirectory + "/:");
@@ -288,9 +286,8 @@ public class ArchiveReader {
             + "history file.");
       }
     }
-    logger.info("Finished importing relay descriptors from local "
-        + "directory:\nParsed " + this.parsedFiles + ", ignored "
-        + this.ignoredFiles + " files.");
+    logger.info("Finished importing relay descriptors from local directory:\n"
+        + "Parsed {}, ignored {} files.", this.parsedFiles, this.ignoredFiles);
   }
 
   /** Stores the valid-after time and microdescriptor digests of a given

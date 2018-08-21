@@ -100,7 +100,7 @@ public class SanitizeWeblogs extends CollecTorMain {
         PersistenceUtils.cleanDirectory(this.config.getPath(Key.RecentPath));
       }
     } catch (Exception e) {
-      log.error("Cannot sanitize web-logs: " + e.getMessage(), e);
+      log.error("Cannot sanitize web-logs: {}", e.getMessage(), e);
       throw new RuntimeException(e);
     }
   }

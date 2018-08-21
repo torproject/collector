@@ -86,8 +86,8 @@ public class CachedRelayDescriptorReader {
         }
         br.close();
       } catch (IOException e) {
-        logger.warn("Could not read import history from "
-            + importHistoryFile.getAbsolutePath() + ".", e);
+        logger.warn("Could not read import history from {}.",
+            importHistoryFile.getAbsolutePath(), e);
       }
     }
   }
@@ -97,12 +97,11 @@ public class CachedRelayDescriptorReader {
     for (String inputDirectory : this.inputDirectories) {
       File cachedDescDir = new File(inputDirectory);
       if (!cachedDescDir.exists()) {
-        logger.warn("Directory " + cachedDescDir.getAbsolutePath()
-            + " does not exist. Skipping.");
+        logger.warn("Directory {} does not exist. Skipping.",
+            cachedDescDir.getAbsolutePath());
         continue;
       }
-      logger.debug("Reading " + cachedDescDir.getAbsolutePath()
-          + " directory.");
+      logger.debug("Reading {} directory.", cachedDescDir.getAbsolutePath());
       SortedSet<File> cachedDescFiles = new TreeSet<>();
       Stack<File> files = new Stack<>();
       files.add(cachedDescDir);
@@ -143,10 +142,9 @@ public class CachedRelayDescriptorReader {
                 if (dateTimeFormat.parse(line.substring("valid-after "
                     .length())).getTime() < System.currentTimeMillis()
                     - 6L * 60L * 60L * 1000L) {
-                  logger.warn("Cached descriptor files in "
-                      + cachedDescDir.getAbsolutePath() + " are stale. "
-                      + "The valid-after line in cached-consensus is '"
-                      + line + "'.");
+                  logger.warn("Cached descriptor files in {} are stale. The "
+                      + "valid-after line in cached-consensus is '{}'.",
+                      cachedDescDir.getAbsolutePath(), line);
                   this.dumpStats.append(" (stale!)");
                 }
                 break;
@@ -244,12 +242,12 @@ public class CachedRelayDescriptorReader {
                 ? "server" : "extra-info").append(" descriptors");
           }
         } catch (IOException | ParseException e) {
-          logger.warn("Failed reading "
-              + cachedDescDir.getAbsolutePath() + " directory.", e);
+          logger.warn("Failed reading {} directory.",
+              cachedDescDir.getAbsolutePath(), e);
         }
       }
-      logger.debug("Finished reading "
-          + cachedDescDir.getAbsolutePath() + " directory.");
+      logger.debug("Finished reading {} directory.",
+          cachedDescDir.getAbsolutePath());
     }
   }
 
@@ -264,8 +262,8 @@ public class CachedRelayDescriptorReader {
       }
       bw.close();
     } catch (IOException e) {
-      logger.warn("Could not write import history to "
-           + this.importHistoryFile.getAbsolutePath() + ".", e);
+      logger.warn("Could not write import history to {}.",
+          this.importHistoryFile.getAbsolutePath(), e);
     }
 
     logger.info(dumpStats.toString());

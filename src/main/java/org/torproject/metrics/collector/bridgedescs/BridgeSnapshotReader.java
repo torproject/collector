@@ -49,7 +49,7 @@ public class BridgeSnapshotReader {
     boolean modified = false;
     if (bdDir.exists()) {
       if (pbdFile.exists()) {
-        logger.debug("Reading file " + pbdFile.getAbsolutePath() + "...");
+        logger.debug("Reading file {}...", pbdFile.getAbsolutePath());
         try {
           BufferedReader br = new BufferedReader(new FileReader(pbdFile));
           String line;
@@ -57,16 +57,13 @@ public class BridgeSnapshotReader {
             parsed.add(line);
           }
           br.close();
-          logger.debug("Finished reading file "
-              + pbdFile.getAbsolutePath() + ".");
+          logger.debug("Finished reading file {}.", pbdFile.getAbsolutePath());
         } catch (IOException e) {
-          logger.warn("Failed reading file "
-              + pbdFile.getAbsolutePath() + "!", e);
+          logger.warn("Failed reading file {}!", pbdFile.getAbsolutePath(), e);
           return;
         }
       }
-      logger.debug("Importing files in directory " + bridgeDirectoriesDir
-          + "/...");
+      logger.debug("Importing files in directory {}/...", bridgeDirectoriesDir);
       Set<String> descriptorImportHistory = new HashSet<>();
       int parsedFiles = 0;
       int skippedFiles = 0;
@@ -99,8 +96,8 @@ public class BridgeSnapshotReader {
               String fn = pop.getName();
               String[] fnParts = fn.split("-");
               if (fnParts.length != 5) {
-                logger.warn("Invalid bridge descriptor tarball file name: "
-                    + fn + ".  Skipping.");
+                logger.warn("Invalid bridge descriptor tarball file name: {}. "
+                    + "Skipping.", fn);
                 continue;
               }
               String authorityPart = String.format("%s-%s-", fnParts[0],
@@ -123,7 +120,7 @@ public class BridgeSnapshotReader {
                   break;
                 default:
                   logger.warn("Did not recognize the bridge authority that "
-                      + "generated " + fn + ".  Skipping.");
+                      + "generated {}. Skipping.", fn);
                   continue;
               }
               String dateTime = datePart.substring(0, 10) + " "
@@ -226,32 +223,28 @@ public class BridgeSnapshotReader {
             parsed.add(pop.getName());
             modified = true;
           } catch (IOException e) {
-            logger.warn("Could not parse bridge snapshot "
-                + pop.getName() + "!", e);
+            logger.warn("Could not parse bridge snapshot {}!", pop.getName(),
+                e);
             continue;
           }
         }
       }
-      logger.debug("Finished importing files in directory "
-          + bridgeDirectoriesDir + "/.  In total, we parsed "
-          + parsedFiles + " files (skipped " + skippedFiles
-          + ") containing " + parsedStatuses + " statuses, "
-          + parsedServerDescriptors + " server descriptors (skipped "
-          + skippedServerDescriptors + "), and "
-          + parsedExtraInfoDescriptors + " extra-info descriptors "
-          + "(skipped " + skippedExtraInfoDescriptors + ").");
+      logger.debug("Finished importing files in directory {}/. In total, we "
+          + "parsed {} files (skipped {}) containing {} statuses, {} server "
+          + "descriptors (skipped {}), and {} extra-info descriptors (skipped "
+          + "{}).", bridgeDirectoriesDir, parsedFiles, skippedFiles,
+          parsedStatuses, parsedServerDescriptors, skippedServerDescriptors,
+          parsedExtraInfoDescriptors, skippedExtraInfoDescriptors);
       if (!parsed.isEmpty() && modified) {
-        logger.debug("Writing file " + pbdFile.getAbsolutePath() + "...");
+        logger.debug("Writing file {}...", pbdFile.getAbsolutePath());
         pbdFile.getParentFile().mkdirs();
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(pbdFile))) {
           for (String f : parsed) {
             bw.append(f).append("\n");
           }
-          logger.debug("Finished writing file " + pbdFile.getAbsolutePath()
-              + ".");
+          logger.debug("Finished writing file {}.", pbdFile.getAbsolutePath());
         } catch (IOException e) {
-          logger.warn("Failed writing file "
-              + pbdFile.getAbsolutePath() + "!", e);
+          logger.warn("Failed writing file {}!", pbdFile.getAbsolutePath(), e);
         }
       }
     }

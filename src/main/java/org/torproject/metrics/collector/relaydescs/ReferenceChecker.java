@@ -315,8 +315,8 @@ public class ReferenceChecker {
     }
     logger.info(sb.toString());
     if (totalMissingDescriptorsWeight > 0.999) {
-      logger.warn("Missing too many referenced "
-          + "descriptors (" + totalMissingDescriptorsWeight + ").");
+      logger.warn("Missing too many referenced descriptors ({}).",
+          totalMissingDescriptorsWeight);
     }
   }
 
