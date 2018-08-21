@@ -267,6 +267,7 @@ public class ArchiveReader {
             break;
           }
         }
+        logger.warn(sb.toString());
       }
     }
   }
