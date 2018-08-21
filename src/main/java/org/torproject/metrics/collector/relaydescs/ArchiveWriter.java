@@ -178,7 +178,6 @@ public class ArchiveWriter extends CollecTorMain {
     if (rdd != null) {
       rdd.downloadDescriptors();
       rdd.writeFile();
-      rdd = null;
       this.intermediateStats("downloading relay descriptors from the "
           + "directory authorities");
     }
