@@ -380,11 +380,8 @@ public class RelayDescriptorDownloader {
                 String microdescriptorDigest = line.split(",")[3];
                 String microdescriptorKey = line.substring(0,
                     line.lastIndexOf(","));
-                if (!this.microdescriptorKeys.containsKey(
-                    microdescriptorDigest)) {
-                  this.microdescriptorKeys.put(
-                      microdescriptorDigest, new HashSet<>());
-                }
+                this.microdescriptorKeys.putIfAbsent(microdescriptorDigest,
+                    new HashSet<>());
                 this.microdescriptorKeys.get(microdescriptorDigest).add(
                     microdescriptorKey);
                 if (line.endsWith("NA") && !this.missingMicrodescriptors

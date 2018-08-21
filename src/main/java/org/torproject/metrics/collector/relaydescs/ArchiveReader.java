@@ -298,11 +298,8 @@ public class ArchiveReader {
   void haveParsedMicrodescConsensus(String validAfterTime,
       SortedSet<String> microdescriptorDigests) {
     for (String microdescriptor : microdescriptorDigests) {
-      if (!this.microdescriptorValidAfterTimes.containsKey(
-          microdescriptor)) {
-        this.microdescriptorValidAfterTimes.put(microdescriptor,
-            new HashSet<>());
-      }
+      this.microdescriptorValidAfterTimes.putIfAbsent(microdescriptor,
+          new HashSet<>());
       this.microdescriptorValidAfterTimes.get(microdescriptor).add(
           validAfterTime);
     }
