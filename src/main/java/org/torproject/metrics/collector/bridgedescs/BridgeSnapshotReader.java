@@ -143,13 +143,9 @@ public class BridgeSnapshotReader {
                 BufferedReader br3 = new BufferedReader(new StringReader(
                     ascii));
                 String firstLine;
-                while ((firstLine = br3.readLine()) != null) {
-                  if (firstLine.startsWith("@")) {
-                    continue;
-                  } else {
-                    break;
-                  }
-                }
+                do {
+                  firstLine = br3.readLine();
+                } while (firstLine != null && firstLine.startsWith("@"));
                 if (firstLine == null) {
                   continue;
                 }
@@ -224,7 +220,6 @@ public class BridgeSnapshotReader {
           } catch (IOException e) {
             logger.warn("Could not parse bridge snapshot {}!", pop.getName(),
                 e);
-            continue;
           }
         }
       }
