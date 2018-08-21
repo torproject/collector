@@ -659,7 +659,6 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     } catch (IOException e) {
       logger.warn("Could not write sanitized bridge "
           + "network status to disk.", e);
-      return;
     }
   }
 
@@ -1050,7 +1049,6 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       }
     } catch (ConfigurationException | IOException e) {
       logger.warn("Could not write sanitized server descriptor to disk.", e);
-      return;
     }
   }
 

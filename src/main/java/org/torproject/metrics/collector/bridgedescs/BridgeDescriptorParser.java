@@ -48,7 +48,6 @@ public class BridgeDescriptorParser {
       }
     } catch (IOException e) {
       logger.warn("Could not parse or write bridge descriptor.", e);
-      return;
     }
   }
 }
