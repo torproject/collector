@@ -7,7 +7,7 @@ package org.torproject.metrics.collector.sync;
 public interface Criterium<T> {
 
   /** Determine, if the given object of type T fulfills the Criterium. */
-  public boolean applies(T object);
+  boolean applies(T object);
 
 }
 

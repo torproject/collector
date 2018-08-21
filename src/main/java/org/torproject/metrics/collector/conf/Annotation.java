@@ -22,7 +22,7 @@ public enum Annotation {
   private final String annotation;
   private final byte[] bytes;
 
-  private Annotation(String annotation) {
+  Annotation(String annotation) {
     this.annotation = annotation;
     this.bytes = annotation.getBytes();
   }

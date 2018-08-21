@@ -7,5 +7,5 @@ public enum SourceType {
   Cache,
   Local,
   Remote,
-  Sync;
+  Sync
 }
