@@ -597,7 +597,6 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       if (scrubbed.hasContent()) {
         String scrubbedLine = scrubbed.toString();
         scrubbedLines.put(hashedBridgeIdentityHex, scrubbedLine);
-        scrubbed = new DescriptorBuilder();
       }
       if (!includesFingerprintLine) {
         header.append("fingerprint ").append(authorityFingerprint).newLine();
