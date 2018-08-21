@@ -44,10 +44,9 @@ public class BridgeSnapshotReader {
     }
 
     SortedSet<String> parsed = new TreeSet<>();
-    File bdDir = bridgeDirectoriesDir;
     File pbdFile = new File(statsDirectory, "parsed-bridge-directories");
     boolean modified = false;
-    if (bdDir.exists()) {
+    if (bridgeDirectoriesDir.exists()) {
       if (pbdFile.exists()) {
         logger.debug("Reading file {}...", pbdFile.getAbsolutePath());
         try {
@@ -73,7 +72,7 @@ public class BridgeSnapshotReader {
       int parsedExtraInfoDescriptors = 0;
       int skippedExtraInfoDescriptors = 0;
       Stack<File> filesInInputDir = new Stack<>();
-      filesInInputDir.add(bdDir);
+      filesInInputDir.add(bridgeDirectoriesDir);
       while (!filesInInputDir.isEmpty()) {
         File pop = filesInInputDir.pop();
         if (pop.isDirectory()) {

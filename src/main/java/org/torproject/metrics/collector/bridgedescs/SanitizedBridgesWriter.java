@@ -274,11 +274,10 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       byte[] secret = this.getSecretForMonth(month);
       System.arraycopy(secret, 0, hashInput, 24, 31);
       byte[] hashOutput = DigestUtils.sha256(hashInput);
-      String hashedAddress = "10."
+      return "10."
           + (((int) hashOutput[0] + 256) % 256) + "."
           + (((int) hashOutput[1] + 256) % 256) + "."
           + (((int) hashOutput[2] + 256) % 256);
-      return hashedAddress;
     } else {
       return "127.0.0.1";
     }
@@ -1090,9 +1089,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
               masterKeyEd25519, 0, masterKeyEd25519.length);
           String masterKeyEd25519Base64 = Base64.encodeBase64String(
               masterKeyEd25519);
-          String masterKeyEd25519Base64NoTrailingEqualSigns =
-              masterKeyEd25519Base64.replaceAll("=", "");
-          return masterKeyEd25519Base64NoTrailingEqualSigns;
+          return masterKeyEd25519Base64.replaceAll("=", "");
         }
         extensionStart += 4 + extensionLength;
       }

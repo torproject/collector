@@ -146,16 +146,14 @@ public class CreateIndexJson extends CollecTorMain {
         }
       }
     }
-    DirectoryNode directoryNode = new DirectoryNode(
+    return new DirectoryNode(
         directory.getName(), fileNodes.isEmpty() ? null : fileNodes,
         directoryNodes.isEmpty() ? null : directoryNodes);
-    return directoryNode;
   }
 
   private FileNode indexFile(File file) {
-    FileNode fileNode = new FileNode(file.getName(), file.length(),
+    return new FileNode(file.getName(), file.length(),
         dateTimeFormat.format(file.lastModified()));
-    return fileNode;
   }
 
   private void writeIndex(IndexNode indexNode) throws Exception {
