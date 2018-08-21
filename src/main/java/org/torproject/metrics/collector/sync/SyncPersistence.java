@@ -58,7 +58,7 @@ public class SyncPersistence {
   }
 
   /**
-   * Cleans the directory in <code>RecentPath</code> after storing descriptors.
+   * Cleans the directory in {@code RecentPath} after storing descriptors.
    */
   public void cleanDirectory() {
     try {
@@ -70,8 +70,8 @@ public class SyncPersistence {
 
   /**
    * Stores descriptors in main storage and recent.
-   * The storage locations are taken from <code>collector.properties</code>'
-   * options <code>OutputPath</code> and <code>RecentPath</code>.
+   * The storage locations are taken from {@code collector.properties}'
+   * options {@code OutputPath} and {@code RecentPath}.
    */
   public void storeDescs(Iterable<Descriptor> descs, long received) {
     for (Descriptor desc : descs) {
@@ -81,8 +81,8 @@ public class SyncPersistence {
 
   /**
    * Stores a descriptor in main storage and recent.
-   * The storage locations are taken from <code>collector.properties</code>'
-   * options <code>OutputPath</code> and <code>RecentPath</code>.
+   * The storage locations are taken from {@code collector.properties}'
+   * options {@code OutputPath} and {@code RecentPath}.
    */
   public void storeDesc(Descriptor desc, long received) {
     String filename = desc.getDescriptorFile().getName();

@@ -38,7 +38,7 @@ import java.util.zip.InflaterInputStream;
 /**
  * Downloads relay descriptors from the directory authorities via HTTP.
  * Keeps a list of missing descriptors that gets updated by parse results
- * from <code>RelayDescriptorParser</code> and downloads all missing
+ * from {@code RelayDescriptorParser} and downloads all missing
  * descriptors that have been published in the last 24 hours. Also
  * downloads all server and extra-info descriptors known to a directory
  * authority at most once a day.
@@ -105,7 +105,7 @@ public class RelayDescriptorDownloader {
   private Map<String, String> lastDownloadedAllDescriptors;
 
   /**
-   * <code>RelayDescriptorParser</code> that we will hand over the
+   * {@code RelayDescriptorParser} that we will hand over the
    * downloaded descriptors for parsing.
    */
   private RelayDescriptorParser rdp;
@@ -286,9 +286,9 @@ public class RelayDescriptorDownloader {
 
   /**
    * Initializes this class, including reading in missing descriptors from
-   * <code>stats/missing-relay-descriptors</code> and the times when we
+   * {@code stats/missing-relay-descriptors} and the times when we
    * last downloaded all server and extra-info descriptors from
-   * <code>stats/last-downloaded-all-descriptors</code>.
+   * {@code stats/last-downloaded-all-descriptors}.
    */
   public RelayDescriptorDownloader(RelayDescriptorParser rdp,
       String[] authorities, String[] authorityFingerprints,
@@ -472,8 +472,8 @@ public class RelayDescriptorDownloader {
 
   /**
    * We have parsed a consensus. Take this consensus off the missing list
-   * and add the votes created by the given <code>authorities</code> and
-   * the <code>serverDescriptors</code> which are in the format
+   * and add the votes created by the given {@code authorities} and
+   * the {@code serverDescriptors} which are in the format
    * "&lt;published&gt;,&lt;relayid&gt;,&lt;descid&gt;" to that list.
    */
   public void haveParsedConsensus(String validAfter,
@@ -510,7 +510,7 @@ public class RelayDescriptorDownloader {
 
   /**
    * We have parsed a microdesc consensus. Take this microdesc consensus off the
-   * missing list and add the <code>microdescriptors</code> which are in the
+   * missing list and add the {@code microdescriptors} which are in the
    * format "&lt;validafter&gt;,&lt;relayid&gt;,&lt;descid&gt;" to that list.
    */
   public void haveParsedMicrodescConsensus(String validAfter,
@@ -568,7 +568,7 @@ public class RelayDescriptorDownloader {
 
   /**
    * We have parsed a vote. Take this vote off the missing list and add
-   * the <code>serverDescriptors</code> which are in the format
+   * the {@code serverDescriptors} which are in the format
    * "&lt;published&gt;,&lt;relayid&gt;,&lt;descid&gt;" to that list.
    */
   public void haveParsedVote(String validAfter, String fingerprint,
@@ -847,9 +847,9 @@ public class RelayDescriptorDownloader {
   /**
    * Attempts to download one or more descriptors identified by a resource
    * string from a directory authority and passes the returned
-   * descriptor(s) to the <code>RelayDescriptorParser</code> upon success.
+   * descriptor(s) to the {@code RelayDescriptorParser} upon success.
    * Returns the number of descriptors contained in the reply. Throws an
-   * <code>IOException</code> if something goes wrong while downloading.
+   * {@code IOException} if something goes wrong while downloading.
    */
   private int downloadResourceFromAuthority(String authority,
       String resource) throws IOException {

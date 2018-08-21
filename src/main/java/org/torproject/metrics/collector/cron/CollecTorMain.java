@@ -95,7 +95,9 @@ public abstract class CollecTorMain extends SyncManager
         && config.getSourceTypeSet(Key.valueOf(key)).size() == 1;
   }
 
-  /** Wrapper for <code>run</code>. */
+  /**
+   * Wrapper for {@code run}.
+   */
   @Override
   public final Object call() {
     run();

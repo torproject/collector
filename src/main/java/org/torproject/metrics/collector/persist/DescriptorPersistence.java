@@ -34,7 +34,9 @@ public abstract class DescriptorPersistence<T extends Descriptor> {
   protected String storagePath;
   protected String recentPath;
 
-  /** Initializes the paths for storing descriptors of type <code>T</code>. */
+  /**
+   * Initializes the paths for storing descriptors of type {@code T}.
+   */
   protected DescriptorPersistence(T desc, byte[] defaultAnnotation) {
     this.desc = desc;
     List<String> annotations = desc.getAnnotations();
@@ -51,7 +53,7 @@ public abstract class DescriptorPersistence<T extends Descriptor> {
 
   /** Stores the descriptor to all locations.
    * First attempt to store the 'out' path, if that works store to 'recent'.
-   * Returns <code>true</code>, if both were written. */
+   * Returns {@code true}, if both were written. */
   public boolean storeAll(String recentRoot, String outRoot) {
     return storeAll(recentRoot, outRoot, StandardOpenOption.APPEND,
         StandardOpenOption.CREATE_NEW);
@@ -59,7 +61,7 @@ public abstract class DescriptorPersistence<T extends Descriptor> {
 
   /** Stores the descriptor to all locations.
    * First attempt to store the 'out' path, if that works store to 'recent'.
-   * Returns <code>true</code>, if both were written. */
+   * Returns {@code true}, if both were written. */
   public boolean storeAll(String recentRoot, String outRoot,
       StandardOpenOption optionRecent, StandardOpenOption optionOut) {
     if (storeOut(outRoot, optionOut)) {
@@ -76,7 +78,7 @@ public abstract class DescriptorPersistence<T extends Descriptor> {
 
   /** Stores the descriptor in recent.
    * Creates, replaces, or appends according to the given option.
-   * Returns <code>true</code>, if the file was written. */
+   * Returns {@code true}, if the file was written. */
   public boolean storeRecent(String recentRoot, StandardOpenOption option) {
     return PersistenceUtils.storeToFileSystem(annotation,
         desc.getRawDescriptorBytes(), Paths.get(recentRoot, getRecentPath()),
@@ -85,14 +87,14 @@ public abstract class DescriptorPersistence<T extends Descriptor> {
 
   /** Stores the descriptor in out (i.e. internal storage).
    * Only writes, if the file doesn't exist yet.
-   * Returns <code>true</code>, if the file was written. */
+   * Returns {@code true}, if the file was written. */
   public boolean storeOut(String outRoot) {
     return storeOut(outRoot, StandardOpenOption.CREATE_NEW);
   }
 
   /** Stores the descriptor in out (i.e. internal storage).
    * Creates, replaces, or appends according to the given option.
-   * Returns <code>true</code>, if the file was written. */
+   * Returns {@code true}, if the file was written. */
   public boolean storeOut(String outRoot, StandardOpenOption option) {
     return PersistenceUtils.storeToFileSystem(annotation,
         desc.getRawDescriptorBytes(), Paths.get(outRoot, getStoragePath()),

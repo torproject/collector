@@ -204,7 +204,7 @@ public class Configuration extends Observable implements Cloneable {
 
   /**
    * Parse an integer property and translate the String
-   * <code>"inf"</code> into Integer.MAX_VALUE.
+   * {@code "inf"} into Integer.MAX_VALUE.
    * Verifies that this enum is a Key for an integer value.
    */
   public int getInt(Key key) throws ConfigurationException {

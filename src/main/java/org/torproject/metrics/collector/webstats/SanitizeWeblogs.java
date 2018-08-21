@@ -52,7 +52,7 @@ import java.util.stream.Stream;
 
 /**
  * This module processes web-logs for CollecTor according to the weblog
- * sanitation specification published on metrics.torproject.org</p>
+ * sanitation specification published on metrics.torproject.org.
  */
 public class SanitizeWeblogs extends CollecTorMain {
 

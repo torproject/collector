@@ -7,5 +7,5 @@ package org.torproject.metrics.collector.persist;
  * simply determine the two storage paths based on the descriptor
  * and further parameters like acquisition time.
  * <p>All special persistence classes extend
- * <code>DescriptorPersistence</code>.</p>
+ * {@code DescriptorPersistence}.</p>
  */

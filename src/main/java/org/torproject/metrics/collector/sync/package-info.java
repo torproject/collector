@@ -4,10 +4,10 @@
 package org.torproject.metrics.collector.sync;
 
 /** This package coordinates syncing and merging the fetched data.
- * <p>The central class for this process is <code>SyncManager</code>, which
+ * <p>The central class for this process is {@code SyncManager}, which
  * coordinates download from other instances and merging the new data
  * to the local directories.</p>
  * <p>Storing data to the file system is facilitated by
- * <code>SyncPersistence</code>.</p>
+ * {@code SyncPersistence}.</p>
  */
 

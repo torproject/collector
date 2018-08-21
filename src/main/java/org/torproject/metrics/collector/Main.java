@@ -32,7 +32,7 @@ import java.util.Map;
  * <br>
  * Run without arguments in order to read the usage information, i.e.
  * <br>
- * <code>java -jar collector.jar</code>
+ * {@code java -jar collector.jar}
  */
 public class Main {
 
