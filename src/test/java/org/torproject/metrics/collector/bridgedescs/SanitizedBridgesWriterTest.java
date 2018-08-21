@@ -136,7 +136,7 @@ public class SanitizedBridgesWriterTest {
     this.configuration.setProperty(Key.BridgeLocalOrigins.name(),
         bridgeDirectoriesDir);
     this.configuration.setProperty(Key.OutputPath.name(),
-        sanitizedBridgesDirectory.toFile().getParent().toString());
+        sanitizedBridgesDirectory.toFile().getParent());
   }
 
   /** Runs this test by executing all builders, performing the sanitizing

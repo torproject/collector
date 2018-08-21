@@ -43,7 +43,7 @@ public abstract class DescriptorPersistence<T extends Descriptor> {
     if (annotations.isEmpty()) {
       this.annotation = defaultAnnotation;
     } else {
-      StringBuilder sb = new StringBuilder("");
+      StringBuilder sb = new StringBuilder();
       for (String annotation : annotations) {
         sb.append(annotation).append("\n");
       }
