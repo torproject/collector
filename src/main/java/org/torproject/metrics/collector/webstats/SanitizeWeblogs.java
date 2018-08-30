@@ -97,7 +97,10 @@ public class SanitizeWeblogs extends CollecTorMain {
       if (sources.contains(SourceType.Local)) {
         log.info("Processing logs using batch value {}.", BATCH);
         findCleanWrite(this.config.getPath(Key.WebstatsLocalOrigins));
-        PersistenceUtils.cleanDirectory(this.config.getPath(Key.RecentPath));
+        long cutOffMillis = System.currentTimeMillis()
+            - 3L * 24L * 60L * 60L * 1000L;
+        PersistenceUtils.cleanDirectory(this.config.getPath(Key.RecentPath),
+            cutOffMillis);
       }
     } catch (Exception e) {
       log.error("Cannot sanitize web-logs: {}", e.getMessage(), e);

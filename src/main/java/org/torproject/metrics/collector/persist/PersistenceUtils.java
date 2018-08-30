@@ -82,12 +82,23 @@ public class PersistenceUtils {
 
   /** Move temporary files to their final location. */
   public static void cleanDirectory(Path pathToClean) throws IOException {
+    PersistenceUtils.cleanDirectory(pathToClean, -1L);
+  }
+
+  /** Clean up the given directory by deleting files that are older than the
+   * given cut-off timestamp, and by moving temporary files to their final
+   * location. */
+  public static void cleanDirectory(Path pathToClean, long cutOffMillis)
+      throws IOException {
     SimpleFileVisitor<Path> sfv = new SimpleFileVisitor<Path>() {
       @Override
       public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
           throws IOException {
         String tempName = file.toString();
-        if (tempName.endsWith(TEMPFIX)) {
+        if (cutOffMillis >= 0L
+            && attrs.lastModifiedTime().toMillis() < cutOffMillis) {
+          file.toFile().delete();
+        } else if (tempName.endsWith(TEMPFIX)) {
           Path outputPath = Paths
               .get(tempName.substring(0, tempName.length() - TEMPFIX.length()));
           Files.deleteIfExists(outputPath);

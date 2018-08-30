@@ -1,5 +1,9 @@
 # Changes in version 1.?.? - 2018-0?-??
 
+ * Medium changes
+   - Properly clean up sanitized web server logs in the recent/
+     directory when they turn older than three days.
+
  * Minor changes
    - Once more, fix the bug in the tarball-creation script where
      tarballs are not compressed in a run following an aborted run.
