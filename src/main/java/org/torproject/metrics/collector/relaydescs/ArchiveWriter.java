@@ -551,17 +551,36 @@ public class ArchiveWriter extends CollecTorMain {
     while (!allFiles.isEmpty()) {
       File file = allFiles.pop();
       if (file.isDirectory()) {
-        allFiles.addAll(Arrays.asList(file.listFiles()));
+        File[] containedFiles = file.listFiles();
+        if (null == containedFiles) {
+          logger.warn("Unable to list files contained in directory {}.", file);
+        } else {
+          allFiles.addAll(Arrays.asList(containedFiles));
+        }
       } else if (file.getName().endsWith("-micro")) {
         if (file.lastModified() < cutOffMicroMillis) {
-          file.delete();
+          if (!file.delete()) {
+            logger.warn("Unable to delete outdated descriptor file {}.", file);
+          }
         }
       } else if (file.lastModified() < cutOffMillis) {
-        file.delete();
+        if (!file.delete()) {
+          logger.warn("Unable to delete outdated descriptor file {}.", file);
+        }
       } else if (file.getName().endsWith(".tmp")) {
-        file.renameTo(new File(file.getParentFile(),
-            file.getName().substring(0,
-            file.getName().lastIndexOf(".tmp"))));
+        File destinationFile = new File(file.getParentFile(),
+            file.getName().substring(0, file.getName().lastIndexOf(".tmp")));
+        if (destinationFile.exists()) {
+          logger.warn("Attempting to rename descriptor file {} to existing "
+              + "file {}.", file, destinationFile);
+        } else {
+          logger.info("Renaming descriptor file {} to non-existing file {}.",
+              file, destinationFile);
+        }
+        if (!file.renameTo(destinationFile)) {
+          logger.warn("Unable to rename descriptor file {} to {}.", file,
+              destinationFile);
+        }
       }
     }
   }
@@ -571,7 +590,11 @@ public class ArchiveWriter extends CollecTorMain {
         "yyyy-MM-dd HH:mm:ss");
     dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     try {
-      this.storedServerDescriptorsFile.getParentFile().mkdirs();
+      if (!this.storedServerDescriptorsFile.getParentFile().exists()
+          && !this.storedServerDescriptorsFile.getParentFile().mkdirs()) {
+        logger.warn("Unable to create parent directories of file {}.",
+            this.storedServerDescriptorsFile);
+      }
       BufferedWriter bw = new BufferedWriter(new FileWriter(
           this.storedServerDescriptorsFile));
       for (Map.Entry<Long, Map<String, String>> e :
@@ -586,7 +609,11 @@ public class ArchiveWriter extends CollecTorMain {
         }
       }
       bw.close();
-      this.storedExtraInfoDescriptorsFile.getParentFile().mkdirs();
+      if (!this.storedExtraInfoDescriptorsFile.getParentFile().exists()
+          && !this.storedExtraInfoDescriptorsFile.getParentFile().mkdirs()) {
+        logger.warn("Unable to create parent directories of file {}.",
+            this.storedExtraInfoDescriptorsFile);
+      }
       bw = new BufferedWriter(new FileWriter(
           this.storedExtraInfoDescriptorsFile));
       for (Map.Entry<Long, Set<String>> e :
@@ -598,7 +625,11 @@ public class ArchiveWriter extends CollecTorMain {
         }
       }
       bw.close();
-      this.storedMicrodescriptorsFile.getParentFile().mkdirs();
+      if (!this.storedMicrodescriptorsFile.getParentFile().exists()
+          && !this.storedMicrodescriptorsFile.getParentFile().mkdirs()) {
+        logger.warn("Unable to create parent directories of file {}.",
+            this.storedMicrodescriptorsFile);
+      }
       bw = new BufferedWriter(new FileWriter(
           this.storedMicrodescriptorsFile));
       for (Map.Entry<Long, Set<String>> e :
@@ -814,7 +845,28 @@ public class ArchiveWriter extends CollecTorMain {
       for (int i = 0; i < outputFiles.length; i++) {
         File outputFile = outputFiles[i];
         boolean appendToFile = append != null && append[i];
-        outputFile.getParentFile().mkdirs();
+        if (!outputFile.getParentFile().exists()
+            && !outputFile.getParentFile().mkdirs()) {
+          logger.warn("Unable to create parent directories of file {}.",
+              outputFile);
+        }
+        if (!outputFile.exists()) {
+          if (appendToFile) {
+            logger.info("Creating and appending to non-existing descriptor "
+                + "file {}.", outputFile);
+          } else {
+            logger.debug("Writing to non-existing descriptor file {}.",
+                outputFile);
+          }
+        } else {
+          if (appendToFile) {
+            logger.debug("Appending to existing descriptor file {}.",
+                outputFile);
+          } else {
+            logger.warn("Overwriting existing descriptor file {}.",
+                outputFile);
+          }
+        }
         BufferedOutputStream bos = new BufferedOutputStream(
             new FileOutputStream(outputFile, appendToFile));
         if (data.length > 0 && data[0] != '@') {
