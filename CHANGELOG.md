@@ -1,4 +1,4 @@
-# Changes in version 1.?.? - 2018-0?-??
+# Changes in version 1.8.0 - 2018-10-11
 
  * Medium changes
    - Properly clean up sanitized web server logs in the recent/
@@ -7,6 +7,10 @@
  * Minor changes
    - Once more, fix the bug in the tarball-creation script where
      tarballs are not compressed in a run following an aborted run.
+   - Improve logging to find possible issue with missing server
+     descriptors.
+   - Update directory authority IP addresses in default properties
+     file.
 
 
 # Changes in version 1.7.0 - 2018-07-14
