@@ -89,6 +89,7 @@
 
    'relay-descriptors' contains  the following substructure:
 
+   * bandwidths
    * consensuses
    * extra-infos
    * microdescs
@@ -111,7 +112,9 @@
 
    * for consensuses, microdescs, and votes from the valid-after dates,
    * for extra-infos, server-descriptors, statuses, and tor from the
-     published dates.
+     published dates,
+   * for bandwidths, from the file_created value if available, otherwise the
+     timestamp.
 
 3.0 Index Files
 
@@ -181,6 +184,7 @@
 
    'relay-descriptors' contains  the following substructure:
 
+   * bandwidths
    * consensuses
    * extra-infos
    * microdescs
@@ -235,6 +239,15 @@
    Where MICRO is the string "micro" and all time related values
    are derived from the valid-after dates of the referencing microdesc
    consensus.
+
+4.3.6
+   'bandwidths' contains documents named:
+
+   year DASH month DASH day DASH hour DASH minute DASH second
+   DASH BANDWIDTH DASH DIGEST
+
+   Where DIGEST is the uppercase-hex encoded SHA256 digest of the bandwidth
+   file and BANDWIDTH is the string "bandwidth".
 
 4.4 'webstats' below 'recent'
 
@@ -331,6 +344,7 @@
 
    'relay-descriptors' contains  the following substructure:
 
+   * bandwidth
    * certs
    * consensus
    * extra-info
@@ -386,6 +400,16 @@
    MICRODESCS DASH year DASH month
 
    and below the subdirectories of 'micro' and 'consensus-microdescs'.
+
+5.3.5
+   'bandwidth' contains the subdirectory structure
+
+   year SEP month SEP day
+
+   Where the time related values are taken from the file_created value where
+   available, otherwise the timestamp.
+
+   The files are named according to the structure in 4.3.6.
 
 5.4 'webstats' below 'out'
 
