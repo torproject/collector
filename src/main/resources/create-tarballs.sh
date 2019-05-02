@@ -47,6 +47,8 @@ TARBALLS=(
   consensuses-$YEARTWO-$MONTHTWO
   votes-$YEARONE-$MONTHONE
   votes-$YEARTWO-$MONTHTWO
+  bandwidths-$YEARONE-$MONTHONE
+  bandwidths-$YEARTWO-$MONTHTWO
   server-descriptors-$YEARONE-$MONTHONE
   server-descriptors-$YEARTWO-$MONTHTWO
   extra-infos-$YEARONE-$MONTHONE
@@ -72,6 +74,8 @@ DIRECTORIES=(
   $OUTDIR/relay-descriptors/consensus/$YEARTWO/$MONTHTWO
   $OUTDIR/relay-descriptors/vote/$YEARONE/$MONTHONE/
   $OUTDIR/relay-descriptors/vote/$YEARTWO/$MONTHTWO/
+  $OUTDIR/relay-descriptors/bandwidth/$YEARONE/$MONTHONE/
+  $OUTDIR/relay-descriptors/bandwidth/$YEARTWO/$MONTHTWO/
   $OUTDIR/relay-descriptors/server-descriptor/$YEARONE/$MONTHONE/
   $OUTDIR/relay-descriptors/server-descriptor/$YEARTWO/$MONTHTWO/
   $OUTDIR/relay-descriptors/extra-info/$YEARONE/$MONTHONE/
@@ -155,6 +159,9 @@ ln -f -s -t $ARCHIVEDIR/relay-descriptors/tor/ $TARBALLTARGETDIR/tor-20??-??.tar
 
 mkdir -p $ARCHIVEDIR/relay-descriptors/votes/
 ln -f -s -t $ARCHIVEDIR/relay-descriptors/votes/ $TARBALLTARGETDIR/votes-20??-??.tar.xz
+
+mkdir -p $ARCHIVEDIR/relay-descriptors/bandwidths/
+ln -f -s -t $ARCHIVEDIR/relay-descriptors/bandwidths/ $TARBALLTARGETDIR/bandwidths-20??-??.tar.xz
 
 mkdir -p $ARCHIVEDIR/torperf/
 ln -f -s -t $ARCHIVEDIR/torperf/ $TARBALLTARGETDIR/torperf-20??-??.tar.xz

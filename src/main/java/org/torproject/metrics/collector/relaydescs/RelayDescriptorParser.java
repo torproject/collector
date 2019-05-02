@@ -14,6 +14,10 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
@@ -318,6 +322,44 @@ public class RelayDescriptorParser {
          * time(s) of microdesc consensuses containing them, because we
          * don't know which month directories to put them in.  Have to use
          * storeMicrodescriptor below. */
+      } else if (line.matches("[0-9]{10}")) {
+        /* The following code is a much more lenient version of the parser in
+         * metrics-lib that we need for storing a bandwidth file even if
+         * metrics-lib has trouble verifying its format. As in metrics-lib,
+         * identifying bandwidth files by a 10-digit timestamp in the first line
+         * breaks with files generated before 2002 or after 2286 and when the
+         * next descriptor identifier starts with just a timestamp in the first
+         * line rather than a document type identifier. */
+        String timestampLine = line;
+        LocalDateTime fileCreatedOrTimestamp = null;
+        try {
+          while ((line = br.readLine()) != null) {
+            if (line.startsWith("file_created=")) {
+              fileCreatedOrTimestamp = LocalDateTime.parse(
+                  line.substring("file_created=".length()));
+              break;
+            } else if (line.startsWith("bw=") || line.contains(" bw=")
+                || "====".equals(line) || "=====".equals(line)) {
+              break;
+            }
+          }
+        } catch (IOException | DateTimeParseException e) {
+          /* Fall back to using timestamp in first line. */
+        }
+        if (null == fileCreatedOrTimestamp) {
+          try {
+            fileCreatedOrTimestamp = LocalDateTime.ofInstant(
+                Instant.ofEpochSecond(Long.parseLong(timestampLine)),
+                ZoneOffset.UTC);
+          } catch (NumberFormatException | DateTimeParseException e) {
+            logger.warn("Could not parse timestamp or file_created time from "
+                + "bandwidth file. Storing with timestamp 2000-01-01 00:00:00");
+            fileCreatedOrTimestamp = LocalDateTime.of(2000, 1, 1, 0, 0, 0);
+          }
+        }
+        this.aw.storeBandwidthFile(data, fileCreatedOrTimestamp,
+            DigestUtils.sha256Hex(data).toUpperCase());
+        stored = true;
       }
       br.close();
     } catch (IOException | ParseException e) {

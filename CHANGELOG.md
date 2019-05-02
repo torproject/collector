@@ -1,3 +1,10 @@
+# Changes in version 1.9.0 - 2019-05-??
+
+ * Medium changes
+   - Archive bandwidth files in relaydescs module.
+   - Update to metrics-lib 2.6.1.
+
+
 # Changes in version 1.8.0 - 2018-10-11
 
  * Medium changes

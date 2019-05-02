@@ -258,6 +258,8 @@ public class RelayDescriptorDownloader {
 
   private int requestedVotes = 0;
 
+  private int requestedBandwidthFiles = 0;
+
   private int requestedMissingServerDescriptors = 0;
 
   private int requestedAllServerDescriptors = 0;
@@ -273,6 +275,8 @@ public class RelayDescriptorDownloader {
   private int downloadedMicrodescConsensuses = 0;
 
   private int downloadedVotes = 0;
+
+  private int downloadedBandwidthFiles = 0;
 
   private int downloadedMissingServerDescriptors = 0;
 
@@ -729,6 +733,14 @@ public class RelayDescriptorDownloader {
           }
         }
 
+        /* Now try to download the bandwidth file, regardless of whether this
+         * authority might provide one or when we last downloaded a bandwidth
+         * file from it. */
+        this.requestedBandwidthFiles++;
+        this.downloadedBandwidthFiles +=
+            this.downloadResourceFromAuthority(authority,
+            "/tor/status-vote/next/bandwidth");
+
         /* Download either all server and extra-info descriptors or only
          * those that we're missing. Start with server descriptors, then
          * request extra-info descriptors. Finally, request missing
@@ -886,7 +898,7 @@ public class RelayDescriptorDownloader {
         allData == null ? 0 : allData.length);
     int receivedDescriptors = 0;
     if (allData != null) {
-      if (resource.startsWith("/tor/status-vote/current/")) {
+      if (resource.startsWith("/tor/status-vote/")) {
         this.rdp.parse(allData);
         receivedDescriptors = 1;
       } else if (resource.startsWith("/tor/server/")
@@ -1067,11 +1079,13 @@ public class RelayDescriptorDownloader {
         this.newMissingServerDescriptors, this.newMissingExtraInfoDescriptors,
         this.newMissingMicrodescriptors);
     logger.info("We requested {} consensus(es), {} microdesc consensus(es), "
-        + "{} vote(s), {} missing server descriptor(s), {} times all server "
+        + "{} vote(s), {} bandwidth file(s), {} missing server descriptor(s), "
+        + "{} times all server "
         + "descriptors, {} missing extra-info descriptor(s), {} times all "
         + "extra-info descriptors, and {} missing microdescriptor(s) from the "
         + "directory authorities.", this.requestedConsensuses,
         this.requestedMicrodescConsensuses, this.requestedVotes,
+        this.requestedBandwidthFiles,
         this.requestedMissingServerDescriptors,
         this.requestedAllServerDescriptors,
         this.requestedMissingExtraInfoDescriptors,
@@ -1085,12 +1099,14 @@ public class RelayDescriptorDownloader {
     logger.info("We sent these numbers of requests to the directory "
         + "authorities:{}", sb.toString());
     logger.info("We successfully downloaded {} consensus(es), {} microdesc "
-        + "consensus(es), {} vote(s), {} missing server descriptor(s), {} "
+        + "consensus(es), {} vote(s), {} bandwidth file(s), "
+        + "{} missing server descriptor(s), {} "
         + "server descriptor(s) when downloading all descriptors, {} missing "
         + "extra-info descriptor(s), {} extra-info descriptor(s) when "
         + "downloading all descriptors, and {} missing microdescriptor(s).",
         this.downloadedConsensuses, this.downloadedMicrodescConsensuses,
-        this.downloadedVotes, this.downloadedMissingServerDescriptors,
+        this.downloadedVotes, this.downloadedBandwidthFiles,
+        this.downloadedMissingServerDescriptors,
         this.downloadedAllServerDescriptors,
         this.downloadedMissingExtraInfoDescriptors,
         this.downloadedAllExtraInfoDescriptors,

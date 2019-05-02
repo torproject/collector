@@ -6,6 +6,7 @@ package org.torproject.metrics.collector.conf;
 /** This enum contains all currently valid descriptor annotations. */
 public enum Annotation {
 
+  BandwidthFile("@type bandwidth-file 1.0\n"),
   BridgeExtraInfo("@type bridge-extra-info 1.3\n"),
   BridgeServer("@type bridge-server-descriptor 1.2\n"),
   Cert("@type dir-key-certificate-3 1.0\n"),

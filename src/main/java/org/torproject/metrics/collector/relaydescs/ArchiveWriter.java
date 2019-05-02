@@ -3,6 +3,7 @@
 
 package org.torproject.metrics.collector.relaydescs;
 
+import org.torproject.descriptor.BandwidthFile;
 import org.torproject.descriptor.Descriptor;
 import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
@@ -33,6 +34,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -44,6 +49,7 @@ import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TimeZone;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class ArchiveWriter extends CollecTorMain {
 
@@ -51,12 +57,15 @@ public class ArchiveWriter extends CollecTorMain {
       ArchiveWriter.class);
 
   private long now = System.currentTimeMillis();
+  private LocalDateTime nowLocalDateTime
+      = LocalDateTime.ofInstant(Instant.ofEpochMilli(this.now), ZoneOffset.UTC);
   private String outputDirectory;
   private String rsyncCatString;
   private DescriptorParser descriptorParser;
   private int storedConsensusesCounter = 0;
   private int storedMicrodescConsensusesCounter = 0;
   private int storedVotesCounter = 0;
+  private int storedBandwidthsCounter = 0;
   private int storedCertsCounter = 0;
   private int storedServerDescriptorsCounter = 0;
   private int storedExtraInfoDescriptorsCounter = 0;
@@ -74,6 +83,8 @@ public class ArchiveWriter extends CollecTorMain {
   private SortedMap<Long, Set<String>> storedExtraInfoDescriptors =
       new TreeMap<>();
   private SortedMap<Long, Set<String>> storedMicrodescriptors = new TreeMap<>();
+  private SortedMap<LocalDateTime, Set<String>> storedBandwidths
+      = new TreeMap<>();
 
   private File storedServerDescriptorsFile;
   private File storedExtraInfoDescriptorsFile;
@@ -103,6 +114,8 @@ public class ArchiveWriter extends CollecTorMain {
         RelayServerDescriptor.class);
     this.mapPathDescriptors.put("recent/relay-descriptors/extra-infos",
         RelayExtraInfoDescriptor.class);
+    this.mapPathDescriptors.put("recent/relay-descriptors/bandwidths",
+        BandwidthFile.class);
   }
 
   @Override
@@ -203,6 +216,7 @@ public class ArchiveWriter extends CollecTorMain {
     this.storedConsensuses.clear();
     this.storedMicrodescConsensuses.clear();
     this.storedVotes.clear();
+    this.storedBandwidths.clear();
     this.storedServerDescriptors.clear();
     this.storedExtraInfoDescriptors.clear();
     this.storedMicrodescriptors.clear();
@@ -299,7 +313,8 @@ public class ArchiveWriter extends CollecTorMain {
         .append(this.storedConsensusesCounter).append(" consensus(es), ")
         .append(this.storedMicrodescConsensusesCounter).append(" microdesc ")
         .append("consensus(es), ").append(this.storedVotesCounter)
-        .append(" vote(s), ").append(this.storedCertsCounter)
+        .append(" vote(s), ").append(this.storedBandwidthsCounter)
+        .append(" bandwidth file(s), ").append(this.storedCertsCounter)
         .append(" certificate(s), ").append(this.storedServerDescriptorsCounter)
         .append(" server descriptor(s), ")
         .append(this.storedExtraInfoDescriptorsCounter).append(" extra-info ")
@@ -309,6 +324,7 @@ public class ArchiveWriter extends CollecTorMain {
     this.storedConsensusesCounter = 0;
     this.storedMicrodescConsensusesCounter = 0;
     this.storedVotesCounter = 0;
+    this.storedBandwidthsCounter = 0;
     this.storedCertsCounter = 0;
     this.storedServerDescriptorsCounter = 0;
     this.storedExtraInfoDescriptorsCounter = 0;
@@ -724,6 +740,30 @@ public class ArchiveWriter extends CollecTorMain {
       this.storedVotes.putIfAbsent(validAfter, new TreeMap<>());
       this.storedVotes.get(validAfter).put(fingerprint,
           serverDescriptorDigests);
+    }
+  }
+
+  /** Stores a bandwidth file to disk. */
+  void storeBandwidthFile(byte[] data, LocalDateTime fileCreatedOrTimestamp,
+      String bandwidthFileDigest) {
+    DateTimeFormatter printFormat = DateTimeFormatter
+        .ofPattern("uuuu/MM/dd/uuuu-MM-dd-HH-mm-ss").withZone(ZoneOffset.UTC);
+    File tarballFile = Paths.get(this.outputDirectory, "bandwidth",
+        fileCreatedOrTimestamp.format(printFormat) + "-bandwidth-"
+        + bandwidthFileDigest).toFile();
+    boolean tarballFileExistedBefore = tarballFile.exists();
+    File rsyncFile = Paths.get(recentPathName, RELAY_DESCRIPTORS, "bandwidths",
+        tarballFile.getName()).toFile();
+    File[] outputFiles = new File[] { tarballFile, rsyncFile };
+    if (this.store(Annotation.BandwidthFile.bytes(), data, outputFiles, null)) {
+      this.storedVotesCounter++;
+    }
+    if (!tarballFileExistedBefore
+        && this.nowLocalDateTime.isAfter(fileCreatedOrTimestamp.plusDays(3L))) {
+      this.storedBandwidths.putIfAbsent(fileCreatedOrTimestamp,
+          new TreeSet<>());
+      this.storedBandwidths.get(fileCreatedOrTimestamp)
+          .add(bandwidthFileDigest);
     }
   }
 
