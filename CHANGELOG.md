@@ -1,6 +1,7 @@
-# Changes in version 1.9.0 - 2019-05-??
+# Changes in version 1.9.0 - 2019-05-13
 
  * Medium changes
+   - Stop signing jar files.
    - Archive bandwidth files in relaydescs module.
    - Update to metrics-lib 2.6.1.
 
