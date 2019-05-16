@@ -3,6 +3,7 @@
 
 package org.torproject.metrics.collector.sync;
 
+import org.torproject.descriptor.BandwidthFile;
 import org.torproject.descriptor.BridgeExtraInfoDescriptor;
 import org.torproject.descriptor.BridgeNetworkStatus;
 import org.torproject.descriptor.BridgeServerDescriptor;
@@ -17,6 +18,7 @@ import org.torproject.descriptor.WebServerAccessLog;
 import org.torproject.metrics.collector.conf.Configuration;
 import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
+import org.torproject.metrics.collector.persist.BandwidthFilePersistence;
 import org.torproject.metrics.collector.persist.BridgeExtraInfoPersistence;
 import org.torproject.metrics.collector.persist.BridgeServerDescriptorPersistence;
 import org.torproject.metrics.collector.persist.ConsensusPersistence;
@@ -137,6 +139,9 @@ public class SyncPersistence {
         case "WebServerAccessLog":
           descPersist = new WebServerAccessLogPersistence(
               (WebServerAccessLog) desc);
+          break;
+        case "BandwidthFile":
+          descPersist = new BandwidthFilePersistence((BandwidthFile) desc);
           break;
         default:
           log.trace("Invalid descriptor type {} for sync-merge.",
