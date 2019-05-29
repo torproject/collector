@@ -8,7 +8,7 @@
 
   <property name="javadoc-title" value="CollecTor API Documentation"/>
   <property name="implementation-title" value="CollecTor" />
-  <property name="release.version" value="1.9.0-dev" />
+  <property name="release.version" value="1.9.1" />
   <property name="project-main-class" value="org.torproject.metrics.collector.Main" />
   <property name="name" value="collector"/>
   <property name="metricslibversion" value="2.6.2" />

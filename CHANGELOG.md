@@ -1,3 +1,10 @@
+# Changes in version 1.9.1 - 2019-05-29
+
+ * Medium changes
+   - Fix synchronizing bandwidth files from other CollecTors.
+   - Update to metrics-lib 2.6.2.
+
+
 # Changes in version 1.9.0 - 2019-05-13
 
  * Medium changes
