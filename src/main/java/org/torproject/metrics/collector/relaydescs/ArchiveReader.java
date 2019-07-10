@@ -141,7 +141,7 @@ public class ArchiveReader {
             }
             bis.close();
             byte[] allData = baos.toByteArray();
-            boolean stored = this.rdp.parse(allData);
+            boolean stored = this.rdp.parse(allData, pop);
             if (!stored) {
               filesToRetry.add(pop);
               continue;

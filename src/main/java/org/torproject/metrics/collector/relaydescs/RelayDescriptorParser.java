@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.text.ParseException;
@@ -75,7 +76,7 @@ public class RelayDescriptorParser {
    * forwards them to the archive writer to store them to disk, and tells
    * the relay descriptor downloader and archive reader about the
    * contained descriptor and all referenced descriptors. */
-  public boolean parse(byte[] data) {
+  public boolean parse(byte[] data, File containingFile) {
     boolean stored = false;
     try {
       /* Convert descriptor to ASCII for parsing. This means we'll lose
@@ -357,7 +358,9 @@ public class RelayDescriptorParser {
             fileCreatedOrTimestamp = LocalDateTime.of(2000, 1, 1, 0, 0, 0);
           }
         }
-        this.aw.storeBandwidthFile(data, fileCreatedOrTimestamp,
+        String sourceName = containingFile == null ? null
+            : containingFile.getParentFile().getName();
+        this.aw.storeBandwidthFile(data, fileCreatedOrTimestamp, sourceName,
             DigestUtils.sha256Hex(data).toUpperCase());
         stored = true;
       }

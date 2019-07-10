@@ -158,7 +158,7 @@ public class CachedRelayDescriptorReader {
                 allData));
             if (!this.lastImportHistory.contains(digest)
                 && !this.currentImportHistory.contains(digest)) {
-              this.rdp.parse(allData);
+              this.rdp.parse(allData, null);
             } else {
               this.dumpStats.append(" (skipped)");
             }
@@ -183,7 +183,7 @@ public class CachedRelayDescriptorReader {
                     rawNetworkStatusBytes));
                 if (!this.lastImportHistory.contains(digest)
                     && !this.currentImportHistory.contains(digest)) {
-                  this.rdp.parse(rawNetworkStatusBytes);
+                  this.rdp.parse(rawNetworkStatusBytes, null);
                   parsedNum++;
                 } else {
                   skippedNum++;
@@ -229,7 +229,7 @@ public class CachedRelayDescriptorReader {
                   descBytes));
               if (!this.lastImportHistory.contains(digest)
                   && !this.currentImportHistory.contains(digest)) {
-                this.rdp.parse(descBytes);
+                this.rdp.parse(descBytes, null);
                 parsedNum++;
               } else {
                 skippedNum++;

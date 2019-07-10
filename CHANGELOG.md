@@ -1,3 +1,10 @@
+# Changes in version 1.10.0 - 2019-??-??
+
+ * Medium changes
+   - Changed local import of bandwidth files to include the parent
+     directory name as @source annotation and to the filename.
+
+
 # Changes in version 1.9.1 - 2019-05-29
 
  * Medium changes

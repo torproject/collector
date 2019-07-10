@@ -899,7 +899,7 @@ public class RelayDescriptorDownloader {
     int receivedDescriptors = 0;
     if (allData != null) {
       if (resource.startsWith("/tor/status-vote/")) {
-        this.rdp.parse(allData);
+        this.rdp.parse(allData, null);
         receivedDescriptors = 1;
       } else if (resource.startsWith("/tor/server/")
           || resource.startsWith("/tor/extra/")) {
@@ -933,7 +933,7 @@ public class RelayDescriptorDownloader {
           end += endToken.length();
           byte[] descBytes = new byte[end - start];
           System.arraycopy(allData, start, descBytes, 0, end - start);
-          this.rdp.parse(descBytes);
+          this.rdp.parse(descBytes, null);
           receivedDescriptors++;
         }
       } else if (resource.startsWith("/tor/micro/")) {

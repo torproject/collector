@@ -745,18 +745,24 @@ public class ArchiveWriter extends CollecTorMain {
 
   /** Stores a bandwidth file to disk. */
   void storeBandwidthFile(byte[] data, LocalDateTime fileCreatedOrTimestamp,
-      String bandwidthFileDigest) {
+      String sourceName, String bandwidthFileDigest) {
     DateTimeFormatter printFormat = DateTimeFormatter
         .ofPattern("uuuu/MM/dd/uuuu-MM-dd-HH-mm-ss").withZone(ZoneOffset.UTC);
     File tarballFile = Paths.get(this.outputDirectory, "bandwidth",
         fileCreatedOrTimestamp.format(printFormat) + "-bandwidth-"
+        + (null == sourceName ? "" : (sourceName + "-"))
         + bandwidthFileDigest).toFile();
+    StringBuilder sb = new StringBuilder();
+    sb.append(Annotation.BandwidthFile.toString());
+    if (null != sourceName) {
+      sb.append("@source ").append(sourceName).append('\n');
+    }
     boolean tarballFileExistedBefore = tarballFile.exists();
     File rsyncFile = Paths.get(recentPathName, RELAY_DESCRIPTORS, "bandwidths",
         tarballFile.getName()).toFile();
     File[] outputFiles = new File[] { tarballFile, rsyncFile };
-    if (this.store(Annotation.BandwidthFile.bytes(), data, outputFiles, null)) {
-      this.storedVotesCounter++;
+    if (this.store(sb.toString().getBytes(), data, outputFiles, null)) {
+      this.storedBandwidthsCounter++;
     }
     if (!tarballFileExistedBefore
         && this.nowLocalDateTime.isAfter(fileCreatedOrTimestamp.plusDays(3L))) {
