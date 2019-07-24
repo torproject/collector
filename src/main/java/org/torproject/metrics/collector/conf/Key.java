@@ -72,7 +72,9 @@ public enum Key {
   private static Set<String> keys;
 
   /**
-   * @param Class of key value.
+   * Instantiate a new {@code Key} using the given class for the key value.
+   *
+   * @param clazz Class of key value.
    */
   Key(Class clazz) {
     this.clazz = clazz;

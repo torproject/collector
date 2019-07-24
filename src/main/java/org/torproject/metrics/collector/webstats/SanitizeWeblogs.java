@@ -166,7 +166,7 @@ public class SanitizeWeblogs extends CollecTorMain {
   private static final int BATCH = 100_000;
 
   static byte[] toCompressedBytes(Map<String, Long> lines)
-    throws DescriptorParseException {
+      throws DescriptorParseException {
     try (ByteArrayOutputStream baos =  new ByteArrayOutputStream();
          OutputStream os = FileType.XZ.outputStream(baos)) {
       for (Map.Entry<String, Long> entry : lines.entrySet()) {
