@@ -3,6 +3,15 @@
  * Medium changes
    - Changed local import of bandwidth files to include the parent
      directory name as @source annotation and to the filename.
+   - Use Ivy for resolving external dependencies rather than relying
+     on files found in Debian stable packages. Requires installing Ivy
+     (using `apt-get install ivy`, `brew install ivy`, or similar) and
+     running `ant resolve` (or `ant -lib /usr/share/java resolve`).
+     Retrieved files are then copied to the `lib/` directory, except
+     for dependencies on other metrics libraries that still need to be
+     copied to the `lib/` directory manually. Current dependency
+     versions resolved by Ivy are the same as in Debian stretch with
+     few exceptions.
 
 
 # Changes in version 1.9.1 - 2019-05-29
