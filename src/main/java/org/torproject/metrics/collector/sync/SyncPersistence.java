@@ -13,6 +13,7 @@ import org.torproject.descriptor.RelayExtraInfoDescriptor;
 import org.torproject.descriptor.RelayNetworkStatusConsensus;
 import org.torproject.descriptor.RelayNetworkStatusVote;
 import org.torproject.descriptor.RelayServerDescriptor;
+import org.torproject.descriptor.SnowflakeStats;
 import org.torproject.descriptor.TorperfResult;
 import org.torproject.descriptor.WebServerAccessLog;
 import org.torproject.metrics.collector.conf.Configuration;
@@ -29,6 +30,7 @@ import org.torproject.metrics.collector.persist.MicroConsensusPersistence;
 import org.torproject.metrics.collector.persist.OnionPerfPersistence;
 import org.torproject.metrics.collector.persist.PersistenceUtils;
 import org.torproject.metrics.collector.persist.ServerDescriptorPersistence;
+import org.torproject.metrics.collector.persist.SnowflakeStatsPersistence;
 import org.torproject.metrics.collector.persist.StatusPersistence;
 import org.torproject.metrics.collector.persist.VotePersistence;
 import org.torproject.metrics.collector.persist.WebServerAccessLogPersistence;
@@ -142,6 +144,9 @@ public class SyncPersistence {
           break;
         case "BandwidthFile":
           descPersist = new BandwidthFilePersistence((BandwidthFile) desc);
+          break;
+        case "SnowflakeStats":
+          descPersist = new SnowflakeStatsPersistence((SnowflakeStats) desc);
           break;
         default:
           log.trace("Invalid descriptor type {} for sync-merge.",

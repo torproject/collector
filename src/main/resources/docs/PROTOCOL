@@ -45,6 +45,7 @@
    * exit-lists
    * relay-descriptors
    * torperf
+   * snowflakes
 
    The substructure of these folders differs depending on their content.
 
@@ -116,6 +117,13 @@
    * for bandwidths, from the file_created value if available, otherwise the
      timestamp.
 
+2.5 'snowflakes' below 'archive'
+
+   'snowflakes' contains compressed tarballs with snowflake statistics,
+   named in the following way:
+
+   'snowflakes' DASH year DASH month DOT TAR DOT compression-type
+
 3.0 Index Files
 
    The index.json file and its compressed versions of various types are
@@ -132,6 +140,7 @@
    * exit-lists
    * relay-descriptors
    * torperf
+   * snowflakes
 
 4.1 'exit-lists' and 'torperf' below 'recent'
 
@@ -254,6 +263,16 @@
    'webstats' contains compressed log files named according to
    the 'Tor web server logs' specification, section 4.3 [0].
 
+4.5 'snowflakes' below 'recent'
+
+   'snowflakes' contains files named
+
+   year DASH month DASH day DASH hour DASH minute DASH second
+   DASH SNOWFLAKESTATS
+
+   Where SNOWFLAKESTATS is the string "snowflake-stats" and all time related
+   values are derived from the snowflake statistics interval end.
+
 5.0 The Tar-ball's Directory Structure and the Internal Structure
 
    The 'out' directory is the internal storage that is used for
@@ -266,8 +285,9 @@
    * exit-lists
    * relay-descriptors
    * torperf
+   * snowflakes
 
-   (There has been a fifth subdirectory 'bridge-pool-assignments' which has been
+   (There has been another subdirectory 'bridge-pool-assignments' which has been
    removed when CollecTor stopped collecting those descriptors.  However, it's
    structure can still be found in the tarballs.)
 
@@ -415,6 +435,17 @@
 
    'webstats' contains compressed log files structured and named according
    to the 'Tor web server logs' specification, section 4.3 [0].
+
+5.5 'snowflakes' below 'out'
+
+   'snowflakes' contains the subdirectory structure
+
+   year SEP month SEP day
+
+   Where the time related values are taken from the snowflake statistics
+   interval end.
+
+   The files are named according to the structure in 4.5.
 
 6.0 The 'contrib' Folder
 

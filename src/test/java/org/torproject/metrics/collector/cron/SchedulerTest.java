@@ -31,7 +31,9 @@ public class SchedulerTest {
       + "UpdateindexActivated=true\nUpdateindexPeriodMinutes=1\n"
       + "UpdateindexOffsetMinutes=0\n"
       + "BridgedescsActivated=true\nBridgedescsPeriodMinutes=1\n"
-      + "BridgedescsOffsetMinutes=0\n";
+      + "BridgedescsOffsetMinutes=0\n"
+      + "SnowflakeStatsActivated=true\nSnowflakeStatsPeriodMinutes=1\n"
+      + "SnowflakeStatsOffsetMinutes=0\n";
 
   @Test()
   public void testSimpleSchedule() throws Exception {
@@ -42,6 +44,7 @@ public class SchedulerTest {
     ctms.put(Key.BridgedescsActivated, Dummy.class);
     ctms.put(Key.RelaydescsActivated, Dummy.class);
     ctms.put(Key.ExitlistsActivated, Dummy.class);
+    ctms.put(Key.SnowflakeStatsActivated, Dummy.class);
     ctms.put(Key.UpdateindexActivated, Dummy.class);
     Field schedulerField = Scheduler.class.getDeclaredField("scheduler");
     schedulerField.setAccessible(true);
@@ -74,6 +77,7 @@ public class SchedulerTest {
     ctms.put(Key.BridgedescsActivated, Counter.class);
     ctms.put(Key.RelaydescsActivated, Counter.class);
     ctms.put(Key.ExitlistsActivated, Counter.class);
+    ctms.put(Key.SnowflakeStatsActivated, Counter.class);
     ctms.put(Key.UpdateindexActivated, Counter.class);
     conf.setProperty(Key.BridgeSources.name(), "Local");
     conf.setProperty(Key.RelaySources.name(), "Remote");
@@ -84,7 +88,7 @@ public class SchedulerTest {
         schedulerField.get(Scheduler.getInstance());
     Scheduler.getInstance().scheduleModuleRuns(ctms, conf);
     Scheduler.getInstance().shutdownScheduler();
-    assertEquals(5, Counter.count.get());
+    assertEquals(6, Counter.count.get());
   }
 
   @Ignore("This test takes 180 seconds, which is too long.")
@@ -97,6 +101,7 @@ public class SchedulerTest {
     ctms.put(Key.BridgedescsActivated, Broken.class);
     ctms.put(Key.RelaydescsActivated, Broken.class);
     ctms.put(Key.ExitlistsActivated, Broken.class);
+    ctms.put(Key.SnowflakeStatsActivated, Broken.class);
     ctms.put(Key.UpdateindexActivated, Broken.class);
     Field schedulerField = Scheduler.class.getDeclaredField("scheduler");
     schedulerField.setAccessible(true);

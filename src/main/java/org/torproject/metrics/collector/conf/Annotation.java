@@ -18,7 +18,8 @@ public enum Annotation {
   Server("@type server-descriptor 1.0\n"),
   Status("@type bridge-network-status 1.2\n"),
   OnionPerf("@type torperf 1.1\n"),
-  Vote("@type network-status-vote-3 1.0\n");
+  Vote("@type network-status-vote-3 1.0\n"),
+  SnowflakeStats("@type snowflake-stats 1.0\n");
 
   private final String annotation;
   private final byte[] bytes;

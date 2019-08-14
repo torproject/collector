@@ -59,6 +59,8 @@ TARBALLS=(
   bridge-server-descriptors-$YEARTWO-$MONTHTWO
   bridge-extra-infos-$YEARONE-$MONTHONE
   bridge-extra-infos-$YEARTWO-$MONTHTWO
+  snowflakes-$YEARONE-$MONTHONE
+  snowflakes-$YEARTWO-$MONTHTWO
 )
 TARBALLS=($(printf "%s\n" "${TARBALLS[@]}" | uniq))
 
@@ -86,6 +88,8 @@ DIRECTORIES=(
   $OUTDIR/bridge-descriptors/$YEARTWO/$MONTHTWO/server-descriptors/
   $OUTDIR/bridge-descriptors/$YEARONE/$MONTHONE/extra-infos/
   $OUTDIR/bridge-descriptors/$YEARTWO/$MONTHTWO/extra-infos/
+  $OUTDIR/snowflakes/$YEARONE/$MONTHONE/
+  $OUTDIR/snowflakes/$YEARTWO/$MONTHTWO/
 )
 DIRECTORIES=($(printf "%s\n" "${DIRECTORIES[@]}" | uniq))
 
@@ -168,5 +172,8 @@ ln -f -s -t $ARCHIVEDIR/torperf/ $TARBALLTARGETDIR/torperf-20??-??.tar.xz
 
 mkdir -p $ARCHIVEDIR/webstats/
 ln -f -s -t $ARCHIVEDIR/webstats/ $TARBALLTARGETDIR/webstats-20??-??.tar
+
+mkdir -p $ARCHIVEDIR/snowflakes/
+ln -f -s -t $ARCHIVEDIR/snowflakes/ $TARBALLTARGETDIR/snowflakes-20??-??.tar.xz
 
 echo `date` "Finished."

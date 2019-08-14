@@ -13,6 +13,8 @@
      versions resolved by Ivy are the same as in Debian stretch with
      few exceptions.
    - Remove Cobertura from the build process.
+   - Archive snowflake statistics.
+   - Update to metrics-lib 2.7.0.
 
 
 # Changes in version 1.9.1 - 2019-05-29

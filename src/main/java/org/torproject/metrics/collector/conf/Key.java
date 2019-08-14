@@ -66,7 +66,13 @@ public enum Key {
   WebstatsActivated(Boolean.class),
   WebstatsLimits(Boolean.class),
   WebstatsOffsetMinutes(Integer.class),
-  WebstatsPeriodMinutes(Integer.class);
+  WebstatsPeriodMinutes(Integer.class),
+  SnowflakeStatsActivated(Boolean.class),
+  SnowflakeStatsOffsetMinutes(Integer.class),
+  SnowflakeStatsPeriodMinutes(Integer.class),
+  SnowflakeStatsUrl(URL.class),
+  SnowflakeStatsSources(SourceType[].class),
+  SnowflakeStatsSyncOrigins(URL[].class);
 
   private Class clazz;
   private static Set<String> keys;
