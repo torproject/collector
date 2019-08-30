@@ -4,6 +4,7 @@
 package org.torproject.metrics.collector;
 
 import org.torproject.metrics.collector.bridgedescs.SanitizedBridgesWriter;
+import org.torproject.metrics.collector.bridgepools.BridgePoolAssignmentsProcessor;
 import org.torproject.metrics.collector.conf.Configuration;
 import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
@@ -49,6 +50,8 @@ public class Main {
 
   static { // add a new main class here
     collecTorMains.put(Key.BridgedescsActivated, SanitizedBridgesWriter.class);
+    collecTorMains.put(Key.BridgePoolAssignmentsActivated,
+        BridgePoolAssignmentsProcessor.class);
     collecTorMains.put(Key.ExitlistsActivated, ExitListDownloader.class);
     collecTorMains.put(Key.UpdateindexActivated, CreateIndexJson.class);
     collecTorMains.put(Key.RelaydescsActivated, ArchiveWriter.class);

@@ -8,6 +8,7 @@ public enum Annotation {
 
   BandwidthFile("@type bandwidth-file 1.0\n"),
   BridgeExtraInfo("@type bridge-extra-info 1.3\n"),
+  BridgePoolAssignment("@type bridge-pool-assignment 1.0\n"),
   BridgeServer("@type bridge-server-descriptor 1.2\n"),
   Cert("@type dir-key-certificate-3 1.0\n"),
   Consensus("@type network-status-consensus-3 1.0\n"),

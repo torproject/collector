@@ -15,6 +15,7 @@
    - Remove Cobertura from the build process.
    - Archive snowflake statistics.
    - Update to metrics-lib 2.7.0.
+   - Archive bridge pool assignments again.
 
 
 # Changes in version 1.9.1 - 2019-05-29

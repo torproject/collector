@@ -69,6 +69,7 @@ public class CollecTorMainTest {
       switch (marker) {
         case "Relay":
         case "Bridge":
+        case "BridgePoolAssignments":
         case "Exitlist":
         case "OnionPerf":
         case "Webstats":

@@ -6,6 +6,7 @@ package org.torproject.metrics.collector.sync;
 import org.torproject.descriptor.BandwidthFile;
 import org.torproject.descriptor.BridgeExtraInfoDescriptor;
 import org.torproject.descriptor.BridgeNetworkStatus;
+import org.torproject.descriptor.BridgePoolAssignment;
 import org.torproject.descriptor.BridgeServerDescriptor;
 import org.torproject.descriptor.Descriptor;
 import org.torproject.descriptor.ExitList;
@@ -21,6 +22,7 @@ import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
 import org.torproject.metrics.collector.persist.BandwidthFilePersistence;
 import org.torproject.metrics.collector.persist.BridgeExtraInfoPersistence;
+import org.torproject.metrics.collector.persist.BridgePoolAssignmentPersistence;
 import org.torproject.metrics.collector.persist.BridgeServerDescriptorPersistence;
 import org.torproject.metrics.collector.persist.ConsensusPersistence;
 import org.torproject.metrics.collector.persist.DescriptorPersistence;
@@ -131,6 +133,10 @@ public class SyncPersistence {
         case "BridgeServerDescriptor":
           descPersist = new BridgeServerDescriptorPersistence(
               (BridgeServerDescriptor) desc, received);
+          break;
+        case "BridgePoolAssignment":
+          descPersist = new BridgePoolAssignmentPersistence(
+              (BridgePoolAssignment) desc);
           break;
         case "ExitList": // downloaded is part of desc, which to use?
           descPersist = new ExitlistPersistence((ExitList) desc, received);

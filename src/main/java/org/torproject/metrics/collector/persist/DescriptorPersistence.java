@@ -18,6 +18,8 @@ public abstract class DescriptorPersistence<T extends Descriptor> {
       DescriptorPersistence.class);
 
   protected static final String BRIDGEDESCS = "bridge-descriptors";
+  protected static final String BRIDGEPOOLASSIGNMENTS
+      = "bridge-pool-assignments";
   protected static final String DASH = "-";
   protected static final String DOT = ".";
   protected static final String MICRODESC = "microdesc";

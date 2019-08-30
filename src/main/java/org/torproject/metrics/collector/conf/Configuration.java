@@ -88,6 +88,7 @@ public class Configuration extends Observable implements Cloneable {
   private void anythingActivated() throws ConfigurationException {
     if (!(this.getBool(Key.RelaydescsActivated)
         || this.getBool(Key.BridgedescsActivated)
+        || this.getBool(Key.BridgePoolAssignmentsActivated)
         || this.getBool(Key.ExitlistsActivated)
         || this.getBool(Key.UpdateindexActivated)
         || this.getBool(Key.OnionPerfActivated)
