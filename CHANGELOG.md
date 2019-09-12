@@ -1,4 +1,4 @@
-# Changes in version 1.10.0 - 2019-??-??
+# Changes in version 1.10.0 - 2019-09-12
 
  * Medium changes
    - Changed local import of bandwidth files to include the parent
