@@ -1,6 +1,6 @@
 variables:
   GIT_STRATEGY: clone
-  METRICS_LIB_VERSION: "2.6.2"
+  METRICS_LIB_VERSION: "2.7.0"
   JAVA_TOOL_OPTIONS: "-Dfile.encoding=UTF-8"
 
 stages:
