@@ -78,7 +78,13 @@ public enum Key {
   SnowflakeStatsPeriodMinutes(Integer.class),
   SnowflakeStatsUrl(URL.class),
   SnowflakeStatsSources(SourceType[].class),
-  SnowflakeStatsSyncOrigins(URL[].class);
+  SnowflakeStatsSyncOrigins(URL[].class),
+  BridgedbMetricsActivated(Boolean.class),
+  BridgedbMetricsOffsetMinutes(Integer.class),
+  BridgedbMetricsPeriodMinutes(Integer.class),
+  BridgedbMetricsSources(SourceType[].class),
+  BridgedbMetricsLocalOrigins(Path.class),
+  BridgedbMetricsSyncOrigins(URL[].class);
 
   private Class clazz;
   private static Set<String> keys;

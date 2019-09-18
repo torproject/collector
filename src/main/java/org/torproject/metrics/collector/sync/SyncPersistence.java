@@ -8,6 +8,7 @@ import org.torproject.descriptor.BridgeExtraInfoDescriptor;
 import org.torproject.descriptor.BridgeNetworkStatus;
 import org.torproject.descriptor.BridgePoolAssignment;
 import org.torproject.descriptor.BridgeServerDescriptor;
+import org.torproject.descriptor.BridgedbMetrics;
 import org.torproject.descriptor.Descriptor;
 import org.torproject.descriptor.ExitList;
 import org.torproject.descriptor.RelayExtraInfoDescriptor;
@@ -24,6 +25,7 @@ import org.torproject.metrics.collector.persist.BandwidthFilePersistence;
 import org.torproject.metrics.collector.persist.BridgeExtraInfoPersistence;
 import org.torproject.metrics.collector.persist.BridgePoolAssignmentPersistence;
 import org.torproject.metrics.collector.persist.BridgeServerDescriptorPersistence;
+import org.torproject.metrics.collector.persist.BridgedbMetricsPersistence;
 import org.torproject.metrics.collector.persist.ConsensusPersistence;
 import org.torproject.metrics.collector.persist.DescriptorPersistence;
 import org.torproject.metrics.collector.persist.ExitlistPersistence;
@@ -153,6 +155,9 @@ public class SyncPersistence {
           break;
         case "SnowflakeStats":
           descPersist = new SnowflakeStatsPersistence((SnowflakeStats) desc);
+          break;
+        case "BridgedbStats":
+          descPersist = new BridgedbMetricsPersistence((BridgedbMetrics) desc);
           break;
         default:
           log.trace("Invalid descriptor type {} for sync-merge.",

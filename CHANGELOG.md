@@ -2,6 +2,8 @@
 
  * Medium changes
    - Require Mockito 1.10.19 as dependency for running tests.
+   - Archive BridgeDB statistics.
+   - Update to metrics-lib 2.8.0.
 
 
 # Changes in version 1.11.1 - 2019-09-19

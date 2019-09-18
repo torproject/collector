@@ -89,6 +89,7 @@ public class Configuration extends Observable implements Cloneable {
     if (!(this.getBool(Key.RelaydescsActivated)
         || this.getBool(Key.BridgedescsActivated)
         || this.getBool(Key.BridgePoolAssignmentsActivated)
+        || this.getBool(Key.BridgedbMetricsActivated)
         || this.getBool(Key.ExitlistsActivated)
         || this.getBool(Key.UpdateindexActivated)
         || this.getBool(Key.OnionPerfActivated)

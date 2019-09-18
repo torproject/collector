@@ -3,6 +3,7 @@
 
 package org.torproject.metrics.collector;
 
+import org.torproject.metrics.collector.bridgedb.BridgedbMetricsProcessor;
 import org.torproject.metrics.collector.bridgedescs.SanitizedBridgesWriter;
 import org.torproject.metrics.collector.bridgepools.BridgePoolAssignmentsProcessor;
 import org.torproject.metrics.collector.conf.Configuration;
@@ -59,6 +60,8 @@ public class Main {
     collecTorMains.put(Key.WebstatsActivated, SanitizeWeblogs.class);
     collecTorMains.put(Key.SnowflakeStatsActivated,
         SnowflakeStatsDownloader.class);
+    collecTorMains.put(Key.BridgedbMetricsActivated,
+        BridgedbMetricsProcessor.class);
   }
 
   private static Configuration conf = new Configuration();

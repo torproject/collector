@@ -70,6 +70,7 @@ public class CollecTorMainTest {
         case "Relay":
         case "Bridge":
         case "BridgePoolAssignments":
+        case "BridgedbMetrics":
         case "Exitlist":
         case "OnionPerf":
         case "Webstats":
