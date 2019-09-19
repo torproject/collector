@@ -115,11 +115,19 @@ public class BridgePoolAssignmentsProcessor extends CollecTorMain {
     logger.info("Starting bridge-pool-assignments module of CollecTor.");
     this.initializeConfiguration();
     List<File> assignmentFiles = this.listAssignmentFiles();
+    LocalDateTime latestPublished = null;
     for (File assignmentFile : assignmentFiles) {
       logger.info("Processing bridge pool assignment file '{}'...",
           assignmentFile.getAbsolutePath());
+      SortedMap<LocalDateTime, SortedMap<String, String>>
+          readBridgePoolAssignments
+          = this.readBridgePoolAssignments(assignmentFile);
+      if (null == latestPublished
+          || readBridgePoolAssignments.lastKey().isAfter(latestPublished)) {
+        latestPublished = readBridgePoolAssignments.lastKey();
+      }
       for (Map.Entry<LocalDateTime, SortedMap<String, String>> e
-           : this.readBridgePoolAssignments(assignmentFile).entrySet()) {
+           : readBridgePoolAssignments.entrySet()) {
         LocalDateTime published = e.getKey();
         SortedMap<String, String> originalAssignments = e.getValue();
         SortedMap<String, String> sanitizedAssignments
@@ -143,6 +151,12 @@ public class BridgePoolAssignmentsProcessor extends CollecTorMain {
           }
         }
       }
+    }
+    if (null != latestPublished
+        && latestPublished.minusMinutes(330L).isBefore(LocalDateTime.now())) {
+      logger.warn("The last known bridge pool assignment list was "
+          + "published at {}, which is more than 5:30 hours in the past.",
+          latestPublished);
     }
     this.cleanUpRsyncDirectory();
     logger.info("Finished processing bridge pool assignment file(s).");
@@ -250,13 +264,6 @@ public class BridgePoolAssignmentsProcessor extends CollecTorMain {
     } catch (IOException e) {
       logger.warn("Could not read bridge pool assignment file '{}'. "
           + "Skipping.", assignmentFile.getAbsolutePath(), e);
-    }
-    if (!readBridgePoolAssignments.isEmpty()
-        && readBridgePoolAssignments.lastKey().minusMinutes(330L)
-        .isBefore(LocalDateTime.now())) {
-      logger.warn("The last known bridge pool assignment list was "
-          + "published at {}, which is more than 5:30 hours in the past.",
-          readBridgePoolAssignments.lastKey());
     }
     return readBridgePoolAssignments;
   }
