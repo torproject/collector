@@ -3,6 +3,7 @@
 
 package org.torproject.metrics.collector.bridgepools;
 
+import org.torproject.descriptor.BridgePoolAssignment;
 import org.torproject.metrics.collector.conf.Configuration;
 import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
@@ -79,6 +80,8 @@ public class BridgePoolAssignmentsProcessor extends CollecTorMain {
    */
   public BridgePoolAssignmentsProcessor(Configuration config) {
     super(config);
+    this.mapPathDescriptors.put("recent/bridge-pool-assignments",
+        BridgePoolAssignment.class);
   }
 
   /**
@@ -153,7 +156,7 @@ public class BridgePoolAssignmentsProcessor extends CollecTorMain {
       }
     }
     if (null != latestPublished
-        && latestPublished.minusMinutes(330L).isBefore(LocalDateTime.now())) {
+        && latestPublished.plusMinutes(330L).isBefore(LocalDateTime.now())) {
       logger.warn("The last known bridge pool assignment list was "
           + "published at {}, which is more than 5:30 hours in the past.",
           latestPublished);

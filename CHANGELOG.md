@@ -3,6 +3,8 @@
  * Minor changes
    - Update create-tarballs.sh to also produce bridge pool assignments
      tarballs.
+   - Fix synchronization part of newly re-added bridge pool
+     assignments module.
 
 
 # Changes in version 1.11.0 - 2019-09-19
