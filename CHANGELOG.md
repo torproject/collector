@@ -1,3 +1,9 @@
+# Changes in version 1.11.0 - 2019-09-19
+
+ * Medium changes
+   - Archive bridge pool assignments again.
+
+
 # Changes in version 1.10.0 - 2019-09-12
 
  * Medium changes
@@ -15,7 +21,6 @@
    - Remove Cobertura from the build process.
    - Archive snowflake statistics.
    - Update to metrics-lib 2.7.0.
-   - Archive bridge pool assignments again.
 
 
 # Changes in version 1.9.1 - 2019-05-29
