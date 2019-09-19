@@ -1,3 +1,10 @@
+# Changes in version 1.??.? - 2019-??-??
+
+ * Minor changes
+   - Update create-tarballs.sh to also produce bridge pool assignments
+     tarballs.
+
+
 # Changes in version 1.11.0 - 2019-09-19
 
  * Medium changes

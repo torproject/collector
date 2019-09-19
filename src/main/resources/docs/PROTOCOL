@@ -282,14 +282,11 @@
    The top level of subdirectories is
 
    * bridge-descriptors
+   * bridge-pool-assignments
    * exit-lists
    * relay-descriptors
    * torperf
    * snowflakes
-
-   (There has been another subdirectory 'bridge-pool-assignments' which has been
-   removed when CollecTor stopped collecting those descriptors.  However, it's
-   structure can still be found in the tarballs.)
 
 5.1 'exit-lists' and 'torperf' Tars
 
