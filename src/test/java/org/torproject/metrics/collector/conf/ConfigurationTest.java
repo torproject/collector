@@ -12,6 +12,7 @@ import org.torproject.metrics.collector.MainTest;
 import org.torproject.metrics.collector.cron.CollecTorMain;
 import org.torproject.metrics.collector.cron.Dummy;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -127,6 +128,7 @@ public class ConfigurationTest {
     }
   }
 
+  @Ignore("This test takes 40 seconds, which is too long.")
   @Test()
   public void testUrlArrayValues() throws Exception {
     URL[] array = new URL[randomSource.nextInt(30) + 1];
@@ -180,6 +182,7 @@ public class ConfigurationTest {
     conf.setWatchableSourceAndLoad(Paths.get("/tmp/phantom.path"));
   }
 
+  @Ignore("This test takes 13 seconds, which is too long.")
   @Test()
   public void testConfigChange() throws Exception {
     Configuration conf = new Configuration();

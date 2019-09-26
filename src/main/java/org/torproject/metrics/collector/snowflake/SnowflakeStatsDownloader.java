@@ -12,18 +12,16 @@ import org.torproject.metrics.collector.conf.Configuration;
 import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
 import org.torproject.metrics.collector.cron.CollecTorMain;
+import org.torproject.metrics.collector.downloader.Downloader;
 import org.torproject.metrics.collector.persist.SnowflakeStatsPersistence;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -60,9 +58,15 @@ public class SnowflakeStatsDownloader extends CollecTorMain {
     this.recentPathName = config.getPath(Key.RecentPath).toString();
     logger.debug("Downloading snowflake stats...");
     URL url = config.getUrl(Key.SnowflakeStatsUrl);
-    ByteArrayOutputStream downloadedSnowflakeStats
-        = this.downloadFromHttpServer(url);
-    if (null == downloadedSnowflakeStats) {
+    byte[] downloadedBytes;
+    try {
+      downloadedBytes = Downloader.downloadFromHttpServer(url);
+    } catch (IOException e) {
+      logger.warn("Failed downloading {}.", url, e);
+      return;
+    }
+    if (null == downloadedBytes) {
+      logger.warn("Could not download {}.", url);
       return;
     }
     logger.debug("Finished downloading {}.", url);
@@ -72,7 +76,7 @@ public class SnowflakeStatsDownloader extends CollecTorMain {
     SortedSet<LocalDateTime> snowflakeStatsEnds = new TreeSet<>();
     String outputPathName = config.getPath(Key.OutputPath).toString();
     for (Descriptor descriptor : descriptorParser.parseDescriptors(
-        downloadedSnowflakeStats.toByteArray(), null, null)) {
+        downloadedBytes, null, null)) {
       if (descriptor instanceof SnowflakeStats) {
         SnowflakeStats snowflakeStats = (SnowflakeStats) descriptor;
         LocalDateTime snowflakeStatsEnd = snowflakeStats.snowflakeStatsEnd();
@@ -103,44 +107,6 @@ public class SnowflakeStatsDownloader extends CollecTorMain {
     }
 
     this.cleanUpRsyncDirectory();
-  }
-
-  /**
-   * Download the given URL from an HTTP server and return a stream with
-   * downloaded bytes.
-   *
-   * <p>If anything goes wrong while downloading, log a warning and return
-   * {@code null}.</p>
-   *
-   * @param url URL to download.
-   * @return Stream with downloaded bytes, or {@code null} if an error has
-   *     occurred.
-   */
-  private ByteArrayOutputStream downloadFromHttpServer(URL url) {
-    ByteArrayOutputStream downloadedBytes = new ByteArrayOutputStream();
-    try  {
-      HttpURLConnection huc = (HttpURLConnection) url.openConnection();
-      huc.setRequestMethod("GET");
-      huc.setReadTimeout(5000);
-      huc.connect();
-      int response = huc.getResponseCode();
-      if (response != 200) {
-        logger.warn("Could not download {}. Response code {}", url, response);
-        return null;
-      }
-      try (BufferedInputStream in = new BufferedInputStream(
-          huc.getInputStream())) {
-        int len;
-        byte[] data = new byte[1024];
-        while ((len = in.read(data, 0, 1024)) >= 0) {
-          downloadedBytes.write(data, 0, len);
-        }
-      }
-    } catch (IOException e) {
-      logger.warn("Failed downloading {}.", url, e);
-      return null;
-    }
-    return downloadedBytes;
   }
 
   /**

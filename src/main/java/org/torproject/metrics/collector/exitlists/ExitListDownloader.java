@@ -12,16 +12,15 @@ import org.torproject.metrics.collector.conf.Configuration;
 import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
 import org.torproject.metrics.collector.cron.CollecTorMain;
+import org.torproject.metrics.collector.downloader.Downloader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -77,32 +76,18 @@ public class ExitListDownloader extends CollecTorMain {
     sb.append("Downloaded ").append(dateTimeFormat.format(downloadedDate))
         .append("\n");
     URL url = config.getUrl(Key.ExitlistUrl);
-    try  {
-      HttpURLConnection huc = (HttpURLConnection) url.openConnection();
-      huc.setRequestMethod("GET");
-      huc.setReadTimeout(5000);
-      huc.connect();
-      int response = huc.getResponseCode();
-      if (response != 200) {
-        logger.warn("Could not download exit list. Response code {}",
-            response);
-        return;
-      }
-      try (BufferedInputStream in = new BufferedInputStream(
-          huc.getInputStream())) {
-        int len;
-        byte[] data = new byte[1024];
-        while ((len = in.read(data, 0, 1024)) >= 0) {
-          sb.append(new String(data, 0, len));
-        }
-      }
-      downloadedExitList = sb.toString();
-      logger.debug("Finished downloading exit list.");
+    byte[] downloadedBytes;
+    try {
+      downloadedBytes = Downloader.downloadFromHttpServer(url);
     } catch (IOException e) {
       logger.warn("Failed downloading exit list", e);
       return;
     }
-    if (downloadedExitList == null) {
+    if (null != downloadedBytes) {
+      sb.append(new String(downloadedBytes));
+      downloadedExitList = sb.toString();
+      logger.debug("Finished downloading exit list.");
+    } else {
       logger.warn("Failed downloading exit list.");
       return;
     }

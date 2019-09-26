@@ -11,6 +11,7 @@ import org.torproject.metrics.collector.conf.Configuration;
 import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
 import org.torproject.metrics.collector.cron.CollecTorMain;
+import org.torproject.metrics.collector.downloader.Downloader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -200,12 +200,25 @@ public class OnionPerfDownloader extends CollecTorMain {
 
     /* Download file contents to temporary file. */
     File tempFile = new File(this.recentDirectory, "." + tpfFileName);
-    tempFile.getParentFile().mkdirs();
-    try (InputStream is = new URL(baseUrl + tpfFileName).openStream()) {
-      Files.copy(is, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    byte[] downloadedBytes;
+    try {
+      downloadedBytes = Downloader.downloadFromHttpServer(
+          new URL(baseUrl + tpfFileName));
     } catch (IOException e) {
-      logger.warn("Unable to download '{}{}' to temporary file '{}'.  "
-          + "Skipping.", baseUrl, tpfFileName, tempFile, e);
+      logger.warn("Unable to download '{}{}'. Skipping.", baseUrl, tpfFileName,
+          e);
+      return;
+    }
+    if (null == downloadedBytes) {
+      logger.warn("Unable to download '{}{}'. Skipping.", baseUrl, tpfFileName);
+      return;
+    }
+    tempFile.getParentFile().mkdirs();
+    try {
+      Files.write(tempFile.toPath(), downloadedBytes);
+    } catch (IOException e) {
+      logger.warn("Unable to write previously downloaded '{}{}' to temporary "
+          + "file '{}'. Skipping.", baseUrl, tpfFileName, tempFile, e);
       return;
     }
 

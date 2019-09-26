@@ -3,20 +3,19 @@
 
 package org.torproject.metrics.collector.relaydescs;
 
+import org.torproject.metrics.collector.downloader.Downloader;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
@@ -33,7 +32,6 @@ import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.zip.InflaterInputStream;
 
 /**
  * Downloads relay descriptors from the directory authorities via HTTP.
@@ -875,29 +873,11 @@ public class RelayDescriptorDownloader {
     String fullUrl
         = "http://" + authority + resource + (isCompressed ? ".z" : "");
     URL url = new URL(fullUrl);
-    HttpURLConnection huc = (HttpURLConnection) url.openConnection();
-    huc.setRequestMethod("GET");
-    huc.setReadTimeout(5000);
-    huc.connect();
-    int response = huc.getResponseCode();
-    if (response == 200) {
-      try (BufferedInputStream in
-          = isCompressed ? new BufferedInputStream(new InflaterInputStream(
-          huc.getInputStream()))
-          : new BufferedInputStream(huc.getInputStream())) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        int len;
-        byte[] data = new byte[1024];
-        while ((len = in.read(data, 0, 1024)) >= 0) {
-          baos.write(data, 0, len);
-        }
-        allData = baos.toByteArray();
-      }
-    }
-    logger.debug("Downloaded {} -> {} ({} bytes)", fullUrl, response,
-        allData == null ? 0 : allData.length);
+    allData = Downloader.downloadFromHttpServer(url, isCompressed);
     int receivedDescriptors = 0;
-    if (allData != null) {
+    logger.debug("Downloaded {} -> ({} bytes)", fullUrl,
+        allData == null ? 0 : allData.length);
+    if (null != allData) {
       if (resource.startsWith("/tor/status-vote/")) {
         this.rdp.parse(allData, null);
         receivedDescriptors = 1;
