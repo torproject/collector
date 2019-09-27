@@ -85,7 +85,7 @@ public class DownloaderTest {
 
   @Test
   public void testExistingResource() throws Exception {
-    URL requestedUrl = new URL("http://example.org/exists");
+    URL requestedUrl = new URL("http://localhost/exists");
     byte[] expectedDownloadedBytes = "content".getBytes();
     HttpURLConnection urlConnection = mock(HttpURLConnection.class);
     httpUrlStreamHandler.addConnection(requestedUrl, urlConnection);
@@ -98,7 +98,7 @@ public class DownloaderTest {
 
   @Test
   public void testNonExistingResource() throws Exception {
-    URL requestedUrl = new URL("http://example.org/notfound");
+    URL requestedUrl = new URL("http://localhost/notfound");
     HttpURLConnection urlConnection = mock(HttpURLConnection.class);
     httpUrlStreamHandler.addConnection(requestedUrl, urlConnection);
     given(urlConnection.getResponseCode()).willReturn(404);
@@ -108,7 +108,7 @@ public class DownloaderTest {
 
   @Test
   public void testEmptyResource() throws Exception {
-    URL requestedUrl = new URL("http://example.org/empty");
+    URL requestedUrl = new URL("http://localhost/empty");
     byte[] expectedDownloadedBytes = new byte[0];
     HttpURLConnection urlConnection = mock(HttpURLConnection.class);
     httpUrlStreamHandler.addConnection(requestedUrl, urlConnection);
@@ -121,7 +121,7 @@ public class DownloaderTest {
 
   @Test(expected = SocketTimeoutException.class)
   public void testTimeout() throws Exception {
-    URL requestedUrl = new URL("http://example.org/timeout");
+    URL requestedUrl = new URL("http://localhost/timeout");
     SocketTimeoutException expectedException = new SocketTimeoutException();
     HttpURLConnection urlConnection = mock(HttpURLConnection.class);
     httpUrlStreamHandler.addConnection(requestedUrl, urlConnection);

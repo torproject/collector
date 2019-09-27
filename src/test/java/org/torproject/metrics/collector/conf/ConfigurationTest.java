@@ -128,13 +128,12 @@ public class ConfigurationTest {
     }
   }
 
-  @Ignore("This test takes 40 seconds, which is too long.")
   @Test()
   public void testUrlArrayValues() throws Exception {
     URL[] array = new URL[randomSource.nextInt(30) + 1];
     for (int i = 0; i < array.length; i++) {
-      array[i] = new URL("https://"
-          + Integer.toBinaryString(randomSource.nextInt(100)) + ".dummy.org");
+      array[i] = new URL("http://localhost/"
+          + Integer.toBinaryString(randomSource.nextInt(100)));
     }
     String input =
         Arrays.toString(array).replace("[", "").replace("]", "")
