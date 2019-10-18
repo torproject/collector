@@ -1,4 +1,4 @@
-# Changes in version 1.12.0 - 2019-??-??
+# Changes in version 1.12.0 - 2019-10-18
 
  * Medium changes
    - Require Mockito 1.10.19 as dependency for running tests.
