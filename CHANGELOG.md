@@ -1,5 +1,18 @@
 # Changes in version 1.??.? - 2019-??-??
 
+ * Medium changes
+   - Extend index.json by including descriptor types, first and last
+     publication timestamp, and SHA-256 file digest. Requires making
+     configuration changes in collector.properties:
+      1) IndexedPath is a new directory with subdirectories for
+         archived and recent descriptors,
+      2) ArchivePath and IndexPath are hard-wired to be subdirectories
+         of IndexedPath,
+      3) RecentPath must be set to be a subdirectory of IndexedPath,
+      4) ContribPath has disappeared, and
+      5) HtdocsPath is a new directory with files served by the web
+         server.
+
 
 # Changes in version 1.12.0 - 2019-10-18
 

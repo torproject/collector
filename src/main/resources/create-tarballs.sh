@@ -10,7 +10,7 @@
 # Configuration section:
 # The following path should be adjusted, if the CollecTor server layout differs.
 # All paths should be given absolute.
-ARCHIVEDIR="/srv/collector.torproject.org/collector/archive"
+ARCHIVEDIR="/srv/collector.torproject.org/collector/indexed/archive"
 WORKDIR="/srv/collector.torproject.org/collector/tarballs"
 OUTDIR="/srv/collector.torproject.org/collector/out"
 TARBALLTARGETDIR="/srv/collector.torproject.org/collector/data"
