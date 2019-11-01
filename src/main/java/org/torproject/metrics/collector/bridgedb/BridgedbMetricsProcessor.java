@@ -11,6 +11,7 @@ import org.torproject.metrics.collector.conf.Configuration;
 import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
 import org.torproject.metrics.collector.cron.CollecTorMain;
+import org.torproject.metrics.collector.persist.BridgedbMetricsPersistence;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Stack;
@@ -48,12 +48,6 @@ public class BridgedbMetricsProcessor extends CollecTorMain {
    * Directory for writing recently processed BridgeDB statistics files.
    */
   private String recentPathName;
-
-  /**
-   * File name format.
-   */
-  private DateTimeFormatter filenameFormat = DateTimeFormatter.ofPattern(
-      "uuuu/MM/dd/uuuu-MM-dd-HH-mm-ss");
 
   /**
    * Initialize this class with the given configuration.
@@ -101,10 +95,12 @@ public class BridgedbMetricsProcessor extends CollecTorMain {
         .readDescriptors(this.inputDirectory)) {
       if (descriptor instanceof BridgedbMetrics) {
         BridgedbMetrics bridgedbMetrics = (BridgedbMetrics) descriptor;
+        BridgedbMetricsPersistence persistence
+            = new BridgedbMetricsPersistence(bridgedbMetrics);
         Path tarballPath = Paths.get(this.outputPathName,
-            bridgedbMetrics.bridgedbMetricsEnd().format(this.filenameFormat));
+            persistence.getStoragePath());
         Path rsyncPath = Paths.get(this.recentPathName,
-            bridgedbMetrics.bridgedbMetricsEnd().format(this.filenameFormat));
+            persistence.getRecentPath());
         this.writeDescriptor(bridgedbMetrics.getRawDescriptorBytes(),
             tarballPath, rsyncPath);
       } else if (descriptor instanceof UnparseableDescriptor) {
@@ -127,10 +123,8 @@ public class BridgedbMetricsProcessor extends CollecTorMain {
    * storing them in instance attributes.
    */
   private void initializeConfiguration() throws ConfigurationException {
-    this.outputPathName = Paths.get(config.getPath(Key.OutputPath).toString(),
-        "bridgedb-metrics").toString();
-    this.recentPathName = Paths.get(config.getPath(Key.RecentPath).toString(),
-        "bridgedb-metrics").toString();
+    this.outputPathName = config.getPath(Key.OutputPath).toString();
+    this.recentPathName = config.getPath(Key.RecentPath).toString();
     this.inputDirectory =
         config.getPath(Key.BridgedbMetricsLocalOrigins).toFile();
   }

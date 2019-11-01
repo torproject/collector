@@ -63,6 +63,8 @@ TARBALLS=(
   snowflakes-$YEARTWO-$MONTHTWO
   bridge-pool-assignments-$YEARONE-$MONTHONE
   bridge-pool-assignments-$YEARTWO-$MONTHTWO
+  bridgedb-metrics-$YEARONE-$MONTHONE
+  bridgedb-metrics-$YEARTWO-$MONTHTWO
 )
 TARBALLS=($(printf "%s\n" "${TARBALLS[@]}" | uniq))
 
@@ -94,6 +96,8 @@ DIRECTORIES=(
   $OUTDIR/snowflakes/$YEARTWO/$MONTHTWO/
   $OUTDIR/bridge-pool-assignments/$YEARONE/$MONTHONE/
   $OUTDIR/bridge-pool-assignments/$YEARTWO/$MONTHTWO/
+  $OUTDIR/bridgedb-metrics/$YEARONE/$MONTHONE/
+  $OUTDIR/bridgedb-metrics/$YEARTWO/$MONTHTWO/
 )
 DIRECTORIES=($(printf "%s\n" "${DIRECTORIES[@]}" | uniq))
 
@@ -182,5 +186,8 @@ ln -f -s -t $ARCHIVEDIR/snowflakes/ $TARBALLTARGETDIR/snowflakes-20??-??.tar.xz
 
 mkdir -p $ARCHIVEDIR/bridge-pool-assignments/
 ln -f -s -t $ARCHIVEDIR/bridge-pool-assignments/ $TARBALLTARGETDIR/bridge-pool-assignments-20??-??.tar.xz
+
+mkdir -p $ARCHIVEDIR/bridgedb-metrics/
+ln -f -s -t $ARCHIVEDIR/bridgedb-metrics/ $TARBALLTARGETDIR/bridgedb-metrics-20??-??.tar.xz
 
 echo `date` "Finished."
