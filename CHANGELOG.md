@@ -1,4 +1,4 @@
-# Changes in version 1.??.? - 2019-??-??
+# Changes in version 1.13.0 - 2019-11-09
 
  * Medium changes
    - Extend index.json by including descriptor types, first and last
@@ -12,6 +12,8 @@
       4) ContribPath has disappeared, and
       5) HtdocsPath is a new directory with files served by the web
          server.
+   - Tweak BridgeDB metrics file names.
+   - Update to metrics-lib 2.9.0.
 
 
 # Changes in version 1.12.0 - 2019-10-18
