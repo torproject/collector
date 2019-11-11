@@ -1,4 +1,7 @@
-# Changes in version 1.1?.? - 2019-1?-??
+# Changes in version 1.13.1 - 2019-11-11
+
+ * Minor changes
+   - Update to metrics-lib 2.9.1.
 
 
 # Changes in version 1.13.0 - 2019-11-09
