@@ -15,7 +15,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
@@ -42,21 +41,19 @@ public class DownloaderTest {
    */
   private static class HttpUrlStreamHandler extends URLStreamHandler {
 
-    private Map<URL, URLConnection> connections = new HashMap();
+    private Map<URL, URLConnection> connections = new HashMap<>();
 
     @Override
-    protected URLConnection openConnection(URL url) throws IOException {
-      return connections.get(url);
+    protected URLConnection openConnection(URL url) {
+      return this.connections.get(url);
     }
 
     private void resetConnections() {
-      connections = new HashMap();
+      this.connections = new HashMap<>();
     }
 
-    private HttpUrlStreamHandler addConnection(URL url,
-        URLConnection urlConnection) {
-      connections.put(url, urlConnection);
-      return this;
+    private void addConnection(URL url, URLConnection urlConnection) {
+      this.connections.put(url, urlConnection);
     }
   }
 
