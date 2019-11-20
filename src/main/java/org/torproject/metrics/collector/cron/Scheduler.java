@@ -58,7 +58,7 @@ public final class Scheduler implements ThreadFactory {
     try {
       gracePeriodMinutes = conf.getLong(Key.ShutdownGraceWaitMinutes);
     } catch (ConfigurationException ce) {
-      logger.warn("Cannot read grace period: {}", ce);
+      logger.warn("Cannot read grace period.", ce);
       gracePeriodMinutes = 10L;
     }
     List<Callable<Object>> runOnceMains = new ArrayList<>();
