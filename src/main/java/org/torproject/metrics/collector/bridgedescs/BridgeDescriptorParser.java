@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 
 public class BridgeDescriptorParser {
 
@@ -33,7 +34,7 @@ public class BridgeDescriptorParser {
       String authorityFingerprint) {
     try {
       BufferedReader br = new BufferedReader(new StringReader(
-          new String(allData, "US-ASCII")));
+          new String(allData, StandardCharsets.US_ASCII)));
       String line = br.readLine();
       if (line == null) {
         return;

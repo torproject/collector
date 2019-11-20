@@ -20,6 +20,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -139,7 +140,7 @@ public class BridgeSnapshotReader {
                 }
                 String fileDigest = Hex.encodeHexString(DigestUtils.sha1(
                     allData));
-                String ascii = new String(allData, "US-ASCII");
+                String ascii = new String(allData, StandardCharsets.US_ASCII);
                 BufferedReader br3 = new BufferedReader(new StringReader(
                     ascii));
                 String firstLine;

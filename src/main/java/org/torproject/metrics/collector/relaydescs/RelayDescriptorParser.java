@@ -13,6 +13,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -83,7 +84,7 @@ public class RelayDescriptorParser {
        * the non-ASCII chars, but we don't care about them for parsing
        * anyway. */
       BufferedReader br = new BufferedReader(new StringReader(new String(
-          data, "US-ASCII")));
+          data, StandardCharsets.US_ASCII)));
       String line;
       do {
         line = br.readLine();
@@ -209,7 +210,7 @@ public class RelayDescriptorParser {
             break;
           default:
             if (this.aw != null || this.rdd != null) {
-              String ascii = new String(data, "US-ASCII");
+              String ascii = new String(data, StandardCharsets.US_ASCII);
               String startToken = "network-status-version ";
               String sigToken = "directory-signature ";
               int start = ascii.indexOf(startToken);
@@ -260,7 +261,7 @@ public class RelayDescriptorParser {
                 : line.split(" ")[1].toLowerCase();
           }
         }
-        String ascii = new String(data, "US-ASCII");
+        String ascii = new String(data, StandardCharsets.US_ASCII);
         String startToken = "router ";
         String sigToken = "\nrouter-signature\n";
         int start = ascii.indexOf(startToken);
@@ -290,7 +291,7 @@ public class RelayDescriptorParser {
             published = parseFormat.parse(publishedTime).getTime();
           }
         }
-        String ascii = new String(data, "US-ASCII");
+        String ascii = new String(data, StandardCharsets.US_ASCII);
         String startToken = "extra-info ";
         String sigToken = "\nrouter-signature\n";
         String digest = null;

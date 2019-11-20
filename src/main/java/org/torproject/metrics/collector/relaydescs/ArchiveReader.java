@@ -184,7 +184,7 @@ public class ArchiveReader {
           bis.close();
           byte[] allData = baos.toByteArray();
           BufferedReader br = new BufferedReader(new StringReader(
-              new String(allData, "US-ASCII")));
+              new String(allData, StandardCharsets.US_ASCII)));
           String line;
           do {
             line = br.readLine();

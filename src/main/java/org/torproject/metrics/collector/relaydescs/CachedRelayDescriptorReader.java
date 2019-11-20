@@ -18,6 +18,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -130,7 +131,7 @@ public class CachedRelayDescriptorReader {
           if (f.getName().equals("cached-consensus")) {
             /* Check if directory information is stale. */
             BufferedReader br = new BufferedReader(new StringReader(
-                new String(allData, "US-ASCII")));
+                new String(allData, StandardCharsets.US_ASCII)));
             String line;
             while ((line = br.readLine()) != null) {
               if (line.startsWith("valid-after ")) {
@@ -166,7 +167,7 @@ public class CachedRelayDescriptorReader {
           } else if (f.getName().equals("v3-status-votes")) {
             int parsedNum = 0;
             int skippedNum = 0;
-            String ascii = new String(allData, "US-ASCII");
+            String ascii = new String(allData, StandardCharsets.US_ASCII);
             String startToken = "network-status-version ";
             int end = ascii.length();
             int start = ascii.indexOf(startToken);
@@ -197,7 +198,7 @@ public class CachedRelayDescriptorReader {
                 .append(" votes");
           } else if (f.getName().startsWith("cached-descriptors")
               || f.getName().startsWith("cached-extrainfo")) {
-            String ascii = new String(allData, "US-ASCII");
+            String ascii = new String(allData, StandardCharsets.US_ASCII);
             int start;
             int sig;
             int end = -1;

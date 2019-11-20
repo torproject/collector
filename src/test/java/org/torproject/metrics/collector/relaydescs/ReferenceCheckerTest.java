@@ -12,7 +12,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 public class ReferenceCheckerTest {
@@ -36,12 +36,12 @@ public class ReferenceCheckerTest {
     File histFile = tmpf.newFile();
     Files.write(refsFile.toPath(), validReferenceJson.getBytes());
     assertEquals(validReferenceJson, Files.readAllLines(refsFile.toPath(),
-        Charset.forName("US-ASCII")).get(0));
+        StandardCharsets.US_ASCII).get(0));
     ReferenceChecker rc = new ReferenceChecker(descDir, refsFile, histFile);
     rc.check();
     assertTrue(refsFile.exists());
     assertEquals(validReferenceJson, Files.readAllLines(refsFile.toPath(),
-        Charset.forName("US-ASCII")).get(0));
+        StandardCharsets.US_ASCII).get(0));
   }
 
   @Test()
@@ -52,12 +52,12 @@ public class ReferenceCheckerTest {
     String badJson = "[{\"xx\":7]}";
     Files.write(refsFile.toPath(), badJson.getBytes());
     assertEquals(badJson, Files.readAllLines(refsFile.toPath(),
-        Charset.forName("US-ASCII")).get(0));
+        StandardCharsets.US_ASCII).get(0));
     ReferenceChecker rc = new ReferenceChecker(descDir, refsFile, histFile);
     rc.check();
     assertTrue(refsFile.exists());
     assertEquals("[]", Files.readAllLines(refsFile.toPath(),
-        Charset.forName("US-ASCII")).get(0));
+        StandardCharsets.US_ASCII).get(0));
   }
 
   @Test()
@@ -70,7 +70,7 @@ public class ReferenceCheckerTest {
     rc.check();
     assertTrue(refsFile.exists());
     assertEquals("The file's contents shouldn't have changed, but did.", "[]",
-        Files.readAllLines(refsFile.toPath(), Charset.forName("US-ASCII"))
+        Files.readAllLines(refsFile.toPath(), StandardCharsets.US_ASCII)
             .get(0));
   }
 
@@ -87,13 +87,13 @@ public class ReferenceCheckerTest {
     Files.write(refsFile.toPath(), validEmptyReferencedString.getBytes());
     assertEquals(validEmptyReferencedString,
         Files.readAllLines(refsFile.toPath(),
-        Charset.forName("US-ASCII")).get(0));
+        StandardCharsets.US_ASCII).get(0));
     ReferenceChecker rc = new ReferenceChecker(descDir, refsFile, histFile);
     rc.check();
     assertTrue(refsFile.exists());
     assertEquals(validEmptyReferencedString,
         Files.readAllLines(refsFile.toPath(),
-        Charset.forName("US-ASCII")).get(0));
+        StandardCharsets.US_ASCII).get(0));
   }
 }
 

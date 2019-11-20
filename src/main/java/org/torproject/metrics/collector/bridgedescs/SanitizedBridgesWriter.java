@@ -470,7 +470,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     try {
       DescriptorBuilder scrubbed = new DescriptorBuilder();
       BufferedReader br = new BufferedReader(new StringReader(new String(
-          data, "US-ASCII")));
+          data, StandardCharsets.US_ASCII)));
       String line;
       String mostRecentDescPublished = null;
       byte[] fingerprintBytes = null;
@@ -682,7 +682,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     String masterKeyEd25519FromIdentityEd25519 = null;
     DescriptorBuilder scrubbed = new DescriptorBuilder();
     try (BufferedReader br = new BufferedReader(new StringReader(
-        new String(data, "US-ASCII")))) {
+        new String(data, StandardCharsets.US_ASCII)))) {
       scrubbed.append(Annotation.BridgeServer.toString());
       String line;
       String masterKeyEd25519 = null;
@@ -1112,7 +1112,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     String masterKeyEd25519FromIdentityEd25519 = null;
     try {
       BufferedReader br = new BufferedReader(new StringReader(new String(
-          data, "US-ASCII")));
+          data, StandardCharsets.US_ASCII)));
       String line;
       DescriptorBuilder scrubbed = null;
       String hashedBridgeIdentity;
