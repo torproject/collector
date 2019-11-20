@@ -3,84 +3,39 @@
 
 package org.torproject.metrics.collector.conf;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileTime;
 import java.util.EnumSet;
-import java.util.Observable;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Initialize configuration with defaults from collector.properties,
  * unless a configuration properties file is available.
  */
-public class Configuration extends Observable implements Cloneable {
-
-  private static final Logger logger = LoggerFactory.getLogger(
-      Configuration.class);
-
-  private final ScheduledExecutorService scheduler =
-      Executors.newScheduledThreadPool(1);
+public class Configuration {
 
   public static final String FIELDSEP = ",";
 
   private final Properties props = new Properties();
-  private Path configurationFile;
-  private FileTime ft;
 
   /**
-   * Load the configuration from the given path and start monitoring changes.
-   * If the file was changed, re-read and inform all observers.
+   * Load the configuration from the given path.
    */
-  public void setWatchableSourceAndLoad(final Path confPath) throws
+  public void loadAndCheckConfiguration(Path confPath) throws
       ConfigurationException {
-    this.configurationFile = confPath;
-    try {
-      ft = Files.getLastModifiedTime(confPath);
-      reload();
+    try (FileInputStream fis
+             = new FileInputStream(confPath.toFile())) {
+      this.props.load(fis);
       anythingActivated();
     } catch (IOException e) {
-      throw new ConfigurationException("Cannot watch configuration file. "
+      throw new ConfigurationException("Cannot load configuration file. "
           + "Reason: " + e.getMessage(), e);
-    }
-    if (this.getBool(Key.RunOnce)) { // no need to watch
-      return;
-    }
-    this.scheduler.scheduleAtFixedRate(() -> {
-      logger.trace("Check configuration file.");
-      try {
-        FileTime ftNow = Files.getLastModifiedTime(confPath);
-        if (ft.compareTo(ftNow) < 0) {
-          logger.info("Configuration file was changed.");
-          reload();
-          setChanged();
-          notifyObservers(null);
-        }
-        ft = ftNow;
-      } catch (Throwable th) { // Catch all and keep running.
-        logger.error("Cannot reload configuration file.", th);
-      }
-    }, 5, 5, TimeUnit.SECONDS);
-  }
-
-  private void reload() throws IOException {
-    props.clear();
-    try (FileInputStream fis
-        = new FileInputStream(configurationFile.toFile())) {
-      props.load(fis);
     }
   }
 

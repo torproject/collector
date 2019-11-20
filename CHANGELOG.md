@@ -1,5 +1,9 @@
 # Changes in version 1.1?.? - 2019-1?-??
 
+ * Medium changes
+   - Give up on periodically checking the configuration file for
+     updates and reloading it in case of changes.
+
 
 # Changes in version 1.13.1 - 2019-11-11
 

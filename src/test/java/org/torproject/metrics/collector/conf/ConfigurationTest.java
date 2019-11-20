@@ -8,25 +8,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.torproject.metrics.collector.MainTest;
-import org.torproject.metrics.collector.cron.CollecTorMain;
-import org.torproject.metrics.collector.cron.Dummy;
-
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.lang.reflect.Field;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ConfigurationTest {
 
@@ -167,53 +158,4 @@ public class ConfigurationTest {
     conf.setProperty(Key.BridgeDescriptorMappingsLimit.name(), "y7");
     conf.getInt(Key.BridgeDescriptorMappingsLimit);
   }
-
-  @Test(expected = ConfigurationException.class)
-  public void testSetWatchableSourceAndLoad() throws Exception {
-    Configuration conf = new Configuration();
-    conf.setWatchableSourceAndLoad(Paths.get("/tmp/phantom.path"));
-  }
-
-  @Ignore("This test takes 13 seconds, which is too long.")
-  @Test()
-  public void testConfigChange() throws Exception {
-    Configuration conf = new Configuration();
-    final AtomicBoolean called = new AtomicBoolean(false);
-    conf.addObserver((obs, obj) -> called.set(true));
-    File confFile = tmpf.newFile("empty");
-    Files.write(confFile.toPath(), (Key.RelaydescsActivated.name() + "=true")
-        .getBytes());
-    conf.setWatchableSourceAndLoad(confFile.toPath());
-    MainTest.waitSec(1);
-    confFile.setLastModified(System.currentTimeMillis());
-    MainTest.waitSec(6);
-    assertTrue("Update was not called.", called.get());
-    called.set(false);
-    MainTest.waitSec(6);
-    assertFalse("Update was called.", called.get());
-  }
-
-  @Test()
-  public void testConfigUnreadable() throws Exception {
-    Configuration conf = new Configuration();
-    final AtomicBoolean called = new AtomicBoolean(false);
-    conf.addObserver((obs, obj) -> called.set(true));
-    File confFile = tmpf.newFile("empty");
-    Files.write(confFile.toPath(), (Key.RelaydescsActivated.name() + "=true")
-        .getBytes());
-    conf.setWatchableSourceAndLoad(confFile.toPath());
-    MainTest.waitSec(1);
-    confFile.delete();
-    conf.setProperty(Key.RunOnce.name(), "false");
-    final Dummy dummy = new Dummy(conf);
-    tmpf.newFolder("empty");
-    MainTest.waitSec(6);
-    assertFalse("Update was called.", called.get());
-    assertEquals(0, conf.size());
-    Field confField = CollecTorMain.class.getDeclaredField("config");
-    confField.setAccessible(true);
-    int size = ((Configuration)(confField.get(dummy))).size();
-    assertEquals(2, size);
-  }
-
 }

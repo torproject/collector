@@ -85,7 +85,7 @@ public class Main {
         writeDefaultConfig(confPath);
         return;
       } else {
-        conf.setWatchableSourceAndLoad(confPath);
+        conf.loadAndCheckConfiguration(confPath);
       }
       Scheduler.getInstance().scheduleModuleRuns(collecTorMains, conf);
     } catch (ConfigurationException ce) {

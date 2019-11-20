@@ -43,10 +43,10 @@ public class MainTest {
     Configuration conf = new Configuration();
     thrown.expect(ConfigurationException.class);
     thrown.expectMessage(Matchers
-         .containsString("Cannot watch configuration file."));
+         .containsString("Cannot load configuration file."));
 
     // dir instead of file; the following should throw a ConfigurationException
-    conf.setWatchableSourceAndLoad(tmpFolder.toPath());
+    conf.loadAndCheckConfiguration(tmpFolder.toPath());
   }
 
   private void checkCleanEnv(File conf) {
@@ -210,7 +210,7 @@ public class MainTest {
     thrown.expectMessage(Matchers.containsString("Nothing is activated!"));
 
     // no module activated; the following should throw a ConfigurationException
-    conf.setWatchableSourceAndLoad(confPath);
+    conf.loadAndCheckConfiguration(confPath);
   }
 }
 

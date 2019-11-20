@@ -19,31 +19,24 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class CollecTorMain extends SyncManager
-    implements Callable<Object>, Observer, Runnable {
+    implements Callable<Object>, Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(
       CollecTorMain.class);
 
   private static final long LIMIT_MB = 200;
   public static final String SOURCES = "Sources";
-  private final AtomicBoolean newConfigAvailable = new AtomicBoolean(false);
 
   protected Configuration config = new Configuration();
-
-  private Configuration newConfig;
 
   protected final Map<String, Class<? extends Descriptor>> mapPathDescriptors
       = new HashMap<>();
 
   public CollecTorMain(Configuration conf) {
     this.config.putAll(conf.getPropertiesCopy());
-    conf.addObserver(this);
   }
 
   /**
@@ -51,16 +44,6 @@ public abstract class CollecTorMain extends SyncManager
    */
   @Override
   public final void run() {
-    synchronized (this) {
-      if (newConfigAvailable.get()) {
-        logger.info("Module {} is using the new configuration.", module());
-        synchronized (newConfig) {
-          config.clear();
-          config.putAll(newConfig.getPropertiesCopy());
-          newConfigAvailable.set(false);
-        }
-      }
-    }
     try {
       if (!isSyncOnly()) {
         logger.info("Starting {} module of CollecTor.", module());
@@ -102,15 +85,6 @@ public abstract class CollecTorMain extends SyncManager
   public final Object call() {
     run();
     return null;
-  }
-
-  @Override
-  public synchronized void update(Observable obs, Object obj) {
-    newConfigAvailable.set(true);
-    if (obs instanceof Configuration) {
-      newConfig = (Configuration) obs;
-      logger.info("Module {} just received a new configuration.", module());
-    }
   }
 
   /**
