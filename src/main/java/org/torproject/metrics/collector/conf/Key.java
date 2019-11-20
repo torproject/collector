@@ -89,7 +89,7 @@ public enum Key {
   private static Set<String> keys;
 
   /**
-   * @param Class of key value.
+   * @param clazz Class of key value.
    */
   Key(Class clazz) {
     this.clazz = clazz;
