@@ -26,7 +26,7 @@ class TarballTestBuilder {
 
   /** Internal helper class to store details about a file contained in the
    * tarball. */
-  private class TarballFile {
+  private static class TarballFile {
 
     /** Last modified time of the file. */
     private long modifiedMillis;
