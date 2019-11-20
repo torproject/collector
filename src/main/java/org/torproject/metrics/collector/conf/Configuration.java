@@ -77,7 +77,7 @@ public class Configuration extends Observable implements Cloneable {
     }, 5, 5, TimeUnit.SECONDS);
   }
 
-  private final void reload() throws IOException {
+  private void reload() throws IOException {
     props.clear();
     try (FileInputStream fis
         = new FileInputStream(configurationFile.toFile())) {
