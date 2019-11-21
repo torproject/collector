@@ -148,13 +148,6 @@ public class ConfigurationTest {
   }
 
   @Test(expected = ConfigurationException.class)
-  public void testArrayArrayValueException() throws Exception {
-    Configuration conf = new Configuration();
-    conf.setProperty(Key.RelayCacheOrigins.name(), "");
-    conf.getStringArrayArray(Key.OutputPath);
-  }
-
-  @Test(expected = ConfigurationException.class)
   public void testPathValueException() throws Exception {
     Configuration conf = new Configuration();
     conf.setProperty(Key.RelayLocalOrigins.name(), "\\\u0000:");

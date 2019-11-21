@@ -36,7 +36,6 @@ public class Configuration extends Observable implements Cloneable {
       Executors.newScheduledThreadPool(1);
 
   public static final String FIELDSEP = ",";
-  public static final String ARRAYSEP = ";";
 
   private final Properties props = new Properties();
   private Path configurationFile;
@@ -140,29 +139,6 @@ public class Configuration extends Observable implements Cloneable {
   /** Count of properties. */
   public int size() {
     return props.size();
-  }
-
-  /**
-   * Returns {@code String[][]} from a property. Commas seperate array elements
-   * and semicolons separate arrays, e.g.,
-   * {@code propertyname = a1, a2, a3; b1, b2, b3}
-   */
-  public String[][] getStringArrayArray(Key key) throws ConfigurationException {
-    try {
-      checkClass(key, String[][].class);
-      String[] interim = props.getProperty(key.name()).split(ARRAYSEP);
-      String[][] res = new String[interim.length][];
-      for (int i = 0; i < interim.length; i++) {
-        res[i] = interim[i].trim().split(FIELDSEP);
-        for (int j = 0; j < res[i].length; j++) {
-          res[i][j] = res[i][j].trim();
-        }
-      }
-      return res;
-    } catch (RuntimeException re) {
-      throw new ConfigurationException("Corrupt property: " + key
-          + " reason: " + re.getMessage(), re);
-    }
   }
 
   /**
