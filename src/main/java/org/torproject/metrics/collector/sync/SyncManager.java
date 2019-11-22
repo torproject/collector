@@ -8,7 +8,6 @@ import org.torproject.descriptor.DescriptorCollector;
 import org.torproject.descriptor.DescriptorReader;
 import org.torproject.descriptor.DescriptorSourceFactory;
 import org.torproject.descriptor.UnparseableDescriptor;
-import org.torproject.descriptor.index.DescriptorIndexCollector;
 import org.torproject.metrics.collector.conf.Configuration;
 import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
@@ -47,8 +46,8 @@ public class SyncManager {
       String marker, Configuration conf) throws ConfigurationException {
     Path basePath = conf.getPath(Key.SyncPath);
 
-    // The default implementation is less robust.
-    DescriptorCollector descriptorCollector = new DescriptorIndexCollector();
+    DescriptorCollector descriptorCollector
+        = DescriptorSourceFactory.createDescriptorCollector();
     for (URL source : sources) {
       try {
         File storage = new File(basePath.toFile(),
