@@ -4,6 +4,9 @@
    - Give up on periodically checking the configuration file for
      updates and reloading it in case of changes.
 
+ * Minor changes
+   - Remove dependency on metrics-lib's internal package.
+
 
 # Changes in version 1.13.1 - 2019-11-11
 

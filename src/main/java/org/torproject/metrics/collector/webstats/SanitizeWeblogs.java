@@ -12,7 +12,6 @@ import static java.util.stream.Collectors.summingLong;
 import org.torproject.descriptor.DescriptorParseException;
 import org.torproject.descriptor.Method;
 import org.torproject.descriptor.WebServerAccessLog;
-import org.torproject.descriptor.internal.FileType;
 import org.torproject.descriptor.log.InternalLogDescriptor;
 import org.torproject.descriptor.log.InternalWebServerAccessLog;
 import org.torproject.descriptor.log.WebServerAccessLogImpl;

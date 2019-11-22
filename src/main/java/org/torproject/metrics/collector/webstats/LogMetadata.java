@@ -5,8 +5,6 @@ package org.torproject.metrics.collector.webstats;
 
 import static org.torproject.descriptor.log.WebServerAccessLogImpl.MARKER;
 
-import org.torproject.descriptor.internal.FileType;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
