@@ -7,9 +7,6 @@ import org.torproject.descriptor.WebServerAccessLog;
 import org.torproject.metrics.collector.webstats.FileType;
 import org.torproject.metrics.collector.webstats.InternalWebServerAccessLog;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.format.DateTimeFormatter;
@@ -19,8 +16,6 @@ public class WebServerAccessLogPersistence
 
   public static final String SEP = InternalWebServerAccessLog.SEP;
   public static final FileType COMPRESSION = FileType.XZ;
-  private static final Logger log
-      = LoggerFactory.getLogger(WebServerAccessLogPersistence.class);
 
   private DateTimeFormatter yearPattern = DateTimeFormatter.ofPattern("yyyy");
   private DateTimeFormatter monthPattern = DateTimeFormatter.ofPattern("MM");

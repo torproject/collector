@@ -15,7 +15,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.stream.Stream;
 
 /**
  * Processes the given path and stores metadata for log files.
@@ -73,31 +72,6 @@ public class LogFileMap
         = virtualHosts.computeIfAbsent(metadata.physicalHost,
           k -> new TreeMap<>());
     physicalHosts.put(metadata.date, metadata);
-  }
-
-  /**
-   * Takes the given metadata and returns the LogMetadata for the entry
-   * of the next day.
-   */
-  public Optional<LogMetadata> nextDayLogFor(LogMetadata metadata) {
-    TreeMap<String, TreeMap<LocalDate, LogMetadata>> virtualHosts
-        = this.get(metadata.virtualHost);
-    if (null == virtualHosts) {
-      return Optional.empty();
-    }
-    TreeMap<LocalDate, LogMetadata> physicalHosts
-        = virtualHosts.get(metadata.physicalHost);
-    if (null == physicalHosts) {
-      return Optional.empty();
-    }
-    return Optional.ofNullable(physicalHosts.get(metadata.date.plusDays(1)));
-  }
-
-  /** Returns a stream of all contained log metadata. */
-  public Stream<LogMetadata> metadataStream() {
-    return this.values().stream()
-        .flatMap((virtualHosts) -> virtualHosts.values().stream())
-        .flatMap((physicalHosts) -> physicalHosts.values().stream());
   }
 }
 

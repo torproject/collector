@@ -6,9 +6,6 @@ package org.torproject.metrics.collector.webstats;
 import org.torproject.descriptor.DescriptorParseException;
 import org.torproject.descriptor.WebServerAccessLog;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -32,9 +29,6 @@ import java.util.stream.Stream;
 public class WebServerAccessLogImpl extends LogDescriptorImpl
     implements InternalWebServerAccessLog, WebServerAccessLog {
 
-  private static final Logger log
-      = LoggerFactory.getLogger(WebServerAccessLogImpl.class);
-
   /** The log's name should include this string. */
   public static final String MARKER = InternalWebServerAccessLog.MARKER;
 
@@ -48,8 +42,6 @@ public class WebServerAccessLogImpl extends LogDescriptorImpl
   private final String virtualHost;
 
   private final LocalDate logDate;
-
-  private boolean validate = true;
 
   /**
    * Creates a WebServerAccessLog from the given bytes and filename.
@@ -68,30 +60,7 @@ public class WebServerAccessLogImpl extends LogDescriptorImpl
    */
   protected WebServerAccessLogImpl(byte[] logBytes, File file, String logName)
       throws DescriptorParseException {
-    this(logBytes, file, logName, FileType.XZ);
-  }
-
-  /** For internal use only. */
-  public WebServerAccessLogImpl(byte[] bytes, String filename,
-      boolean validate) throws DescriptorParseException {
-    this(bytes, null, filename, FileType.XZ, validate);
-  }
-
-  /** For internal use only. */
-  public WebServerAccessLogImpl(byte[] bytes, File sourceFile, String filename,
-      boolean validate) throws DescriptorParseException {
-    this(bytes, sourceFile, filename, FileType.XZ, validate);
-  }
-
-  private WebServerAccessLogImpl(byte[] logBytes, File file, String logName,
-      FileType defaultCompression) throws DescriptorParseException {
-    this(logBytes, file, logName, defaultCompression, true);
-  }
-
-  private WebServerAccessLogImpl(byte[] logBytes, File file, String logName,
-      FileType defaultCompression, boolean validate)
-      throws DescriptorParseException {
-    super(logBytes, file, logName, defaultCompression);
+    super(logBytes, file, logName);
     try {
       String fn = Paths.get(logName).getFileName().toString();
       Matcher mat = filenamePattern.matcher(fn);
@@ -108,11 +77,6 @@ public class WebServerAccessLogImpl extends LogDescriptorImpl
       }
       String ymd = mat.group(3);
       this.logDate = LocalDate.parse(ymd, DateTimeFormatter.BASIC_ISO_DATE);
-      this.setValidator((line)
-          -> WebServerAccessLogLine.makeLine(line).isValid());
-      if (validate) {
-        this.validate();
-      }
     } catch (DescriptorParseException dpe) {
       throw dpe; // escalate
     } catch (Exception pe) {

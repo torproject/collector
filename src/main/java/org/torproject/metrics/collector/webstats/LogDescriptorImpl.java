@@ -3,25 +3,17 @@
 
 package org.torproject.metrics.collector.webstats;
 
-import org.torproject.descriptor.Descriptor;
 import org.torproject.descriptor.DescriptorParseException;
 import org.torproject.descriptor.LogDescriptor;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Base class for log descriptors.
@@ -33,11 +25,6 @@ public abstract class LogDescriptorImpl
 
   /** The log's file name should contain this string. */
   public static final String MARKER = ".log";
-
-  private static final int unrecognizedLinesLimit = 3;
-
-  private static final Logger log
-      = LoggerFactory.getLogger(LogDescriptorImpl.class);
 
   private static Pattern filenamePattern = Pattern.compile(
       "(?:\\S*)" + MARKER + SEP + "(?:[0-9a-zA-Z]*)(?:\\.?)([a-zA-Z2]*)");
@@ -51,8 +38,6 @@ public abstract class LogDescriptorImpl
 
   private List<String> unrecognizedLines = new ArrayList<>();
 
-  private Validator validator = (String line) -> true;
-
   /**
    * This constructor performs basic operations on the given bytes.
    *
@@ -63,8 +48,7 @@ public abstract class LogDescriptorImpl
    * @since 2.2.0
    */
   protected LogDescriptorImpl(byte[] logBytes, File descriptorFile,
-       String logName, FileType defaultCompression)
-       throws DescriptorParseException {
+      String logName) throws DescriptorParseException {
     this.logBytes = logBytes;
     this.descriptorFile = descriptorFile;
     try {
@@ -75,7 +59,7 @@ public abstract class LogDescriptorImpl
       }
       this.fileType = FileType.findType(mat.group(1).toUpperCase());
       if (FileType.PLAIN == this.fileType) {
-        this.fileType = defaultCompression;
+        this.fileType = FileType.XZ;
         this.logBytes = this.fileType.compress(this.logBytes);
       }
     } catch (Exception ex) {
@@ -92,39 +76,6 @@ public abstract class LogDescriptorImpl
       throw new DescriptorParseException("Cannot provide deflated stream of "
           + this.descriptorFile + ".", ex);
     }
-  }
-
-  @Override
-  public void validate() throws DescriptorParseException {
-    try (BufferedReader br = new BufferedReader(
-        new InputStreamReader(decompressedByteStream()))) {
-      this.unrecognizedLines.addAll(br.lines().parallel().filter((line)
-          -> null != line && !line.isEmpty() && !validator.validate(line))
-          .limit(unrecognizedLinesLimit).collect(Collectors.toList()));
-    } catch (Exception ex) {
-      throw new DescriptorParseException("Cannot validate log lines.", ex);
-    }
-  }
-
-  /**
-   * Assemble a LogDescriptor.
-   *
-   * @since 2.2.0
-   */
-  public static List<Descriptor> parse(byte[] logBytes,
-      File descriptorFile, String logName) throws DescriptorParseException {
-    if (logName.contains(InternalWebServerAccessLog.MARKER)) {
-      return Arrays.asList(new Descriptor[]{
-          new WebServerAccessLogImpl(logBytes, descriptorFile, logName)});
-    } else {
-      throw new DescriptorParseException("Cannot parse file " + logName
-          + " from file " + descriptorFile.getName());
-    }
-  }
-
-  @Override
-  public void setValidator(Validator validator) {
-    this.validator = validator;
   }
 
   @Override
