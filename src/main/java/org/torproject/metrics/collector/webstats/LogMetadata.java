@@ -3,7 +3,7 @@
 
 package org.torproject.metrics.collector.webstats;
 
-import static org.torproject.descriptor.log.WebServerAccessLogImpl.MARKER;
+import static org.torproject.metrics.collector.webstats.WebServerAccessLogImpl.MARKER;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

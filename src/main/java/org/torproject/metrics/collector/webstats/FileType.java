@@ -12,6 +12,8 @@ import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -69,10 +71,52 @@ public enum FileType {
   }
 
   /**
+   * Compresses the given bytes in memory and returns the compressed bytes.
+   */
+  public byte[] compress(byte[] bytes) throws Exception {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (OutputStream os = this.outputStream(baos)) {
+      os.write(bytes);
+      os.flush();
+    }
+    return baos.toByteArray();
+  }
+
+  /**
+   * Compresses the given InputStream and returns an OutputStream.
+   */
+  public OutputStream compress(OutputStream os) throws Exception {
+    return this.outputStream(os);
+  }
+
+  /**
    * Decompresses the given InputStream and returns an OutputStream.
    */
   public InputStream decompress(InputStream is) throws Exception {
     return this.inputStream(is);
   }
+
+  /**
+   * Decompresses the given bytes in memory and returns the decompressed bytes.
+   *
+   * @since 2.2.0
+   */
+  public byte[] decompress(byte[] bytes) throws Exception {
+    if (0 == bytes.length) {
+      return bytes;
+    }
+    try (InputStream is
+        = this.inputStream(new ByteArrayInputStream(bytes));
+        ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+      int readByte = is.read();
+      while (readByte > 0) {
+        baos.write(readByte);
+        readByte = is.read();
+      }
+      baos.flush();
+      return baos.toByteArray();
+    }
+  }
+
 }
 

@@ -4,8 +4,8 @@
 package org.torproject.metrics.collector.persist;
 
 import org.torproject.descriptor.WebServerAccessLog;
-import org.torproject.descriptor.log.InternalWebServerAccessLog;
 import org.torproject.metrics.collector.webstats.FileType;
+import org.torproject.metrics.collector.webstats.InternalWebServerAccessLog;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
