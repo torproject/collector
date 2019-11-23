@@ -7,13 +7,15 @@ import org.torproject.descriptor.DescriptorParseException;
 import org.torproject.descriptor.WebServerAccessLog;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,8 +28,10 @@ import java.util.stream.Stream;
  *
  * @since 2.2.0
  */
-public class WebServerAccessLogImpl extends LogDescriptorImpl
-    implements WebServerAccessLog {
+public class WebServerAccessLogImpl implements WebServerAccessLog {
+
+  /** Logfile name parts separator. */
+  public static final String SEP = "_";
 
   /** The log's name should include this string. */
   public static final String MARKER = "access.log";
@@ -36,6 +40,15 @@ public class WebServerAccessLogImpl extends LogDescriptorImpl
   public static final Pattern filenamePattern
       = Pattern.compile("(\\S*)" + SEP + "(\\S*)" + SEP + "" + MARKER
       + SEP + "(\\d*)(?:\\.?)([a-zA-Z]*)");
+
+  private final File descriptorFile;
+
+  /** Byte array for plain, i.e. uncompressed, log data. */
+  private byte[] logBytes;
+
+  private FileType fileType;
+
+  private List<String> unrecognizedLines = new ArrayList<>();
 
   private final String physicalHost;
 
@@ -58,31 +71,80 @@ public class WebServerAccessLogImpl extends LogDescriptorImpl
    * The immediate parent name is taken to be the physical host collecting the
    * logs.</p>
    */
-  protected WebServerAccessLogImpl(byte[] logBytes, File file, String logName)
-      throws DescriptorParseException {
-    super(logBytes, file, logName);
+  protected WebServerAccessLogImpl(byte[] logBytes, File descriptorFile,
+      String logName) throws DescriptorParseException {
+    this.logBytes = logBytes;
+    this.descriptorFile = descriptorFile;
     try {
-      String fn = Paths.get(logName).getFileName().toString();
-      Matcher mat = filenamePattern.matcher(fn);
+      Matcher mat = filenamePattern.matcher(logName);
       if (!mat.find()) {
         throw new DescriptorParseException(
-            "WebServerAccessLog file name doesn't comply to standard: " + fn);
+            "Log file name doesn't comply to standard: " + logName);
       }
       this.virtualHost = mat.group(1);
       this.physicalHost = mat.group(2);
       if (null == this.virtualHost || null == this.physicalHost
           || this.virtualHost.isEmpty() || this.physicalHost.isEmpty()) {
         throw new DescriptorParseException(
-            "WebServerAccessLog file name doesn't comply to standard: " + fn);
+            "WebServerAccessLog file name doesn't comply to standard: "
+            + logName);
       }
       String ymd = mat.group(3);
       this.logDate = LocalDate.parse(ymd, DateTimeFormatter.BASIC_ISO_DATE);
+      this.fileType = FileType.findType(mat.group(4).toUpperCase());
+      if (FileType.PLAIN == this.fileType) {
+        this.fileType = FileType.XZ;
+        this.logBytes = this.fileType.compress(this.logBytes);
+      }
     } catch (DescriptorParseException dpe) {
       throw dpe; // escalate
     } catch (Exception pe) {
       throw new DescriptorParseException(
           "Cannot parse WebServerAccessLog file: " + logName, pe);
     }
+  }
+
+  @Override
+  public InputStream decompressedByteStream() throws DescriptorParseException {
+    try {
+      return this.fileType.decompress(new ByteArrayInputStream(this.logBytes));
+    } catch (Exception ex) {
+      throw new DescriptorParseException("Cannot provide deflated stream of "
+          + this.descriptorFile + ".", ex);
+    }
+  }
+
+  public String getCompressionType() {
+    return this.fileType.name().toLowerCase();
+  }
+
+  @Override
+  public byte[] getRawDescriptorBytes() {
+    return this.logBytes;
+  }
+
+  public void setRawDescriptorBytes(byte[] bytes) {
+    this.logBytes = bytes;
+  }
+
+  @Override
+  public int getRawDescriptorLength() {
+    return this.logBytes.length;
+  }
+
+  @Override
+  public List<String> getAnnotations() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<String> getUnrecognizedLines() {
+    return this.unrecognizedLines;
+  }
+
+  @Override
+  public File getDescriptorFile() {
+    return descriptorFile;
   }
 
   @Override
