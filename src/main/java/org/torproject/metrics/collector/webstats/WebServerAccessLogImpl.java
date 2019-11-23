@@ -27,10 +27,10 @@ import java.util.stream.Stream;
  * @since 2.2.0
  */
 public class WebServerAccessLogImpl extends LogDescriptorImpl
-    implements InternalWebServerAccessLog, WebServerAccessLog {
+    implements WebServerAccessLog {
 
   /** The log's name should include this string. */
-  public static final String MARKER = InternalWebServerAccessLog.MARKER;
+  public static final String MARKER = "access.log";
 
   /** The mandatory web server log descriptor file name pattern. */
   public static final Pattern filenamePattern

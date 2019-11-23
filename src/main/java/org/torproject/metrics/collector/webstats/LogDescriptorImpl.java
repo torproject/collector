@@ -20,8 +20,10 @@ import java.util.regex.Pattern;
  *
  * @since 2.2.0
  */
-public abstract class LogDescriptorImpl
-    implements LogDescriptor, InternalLogDescriptor {
+public abstract class LogDescriptorImpl implements LogDescriptor {
+
+  /** Logfile name parts separator. */
+  public static final String SEP = "_";
 
   /** The log's file name should contain this string. */
   public static final String MARKER = ".log";
@@ -78,7 +80,6 @@ public abstract class LogDescriptorImpl
     }
   }
 
-  @Override
   public String getCompressionType() {
     return this.fileType.name().toLowerCase();
   }
@@ -88,7 +89,6 @@ public abstract class LogDescriptorImpl
     return this.logBytes;
   }
 
-  @Override
   public void setRawDescriptorBytes(byte[] bytes) {
     this.logBytes = bytes;
   }

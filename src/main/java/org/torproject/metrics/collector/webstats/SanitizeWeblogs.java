@@ -135,9 +135,9 @@ public class SanitizeWeblogs extends CollecTorMain {
 
   private void storeSortedAndForget(String virtualHost, String physicalHost,
       LocalDate date, Map<String, Long> lineCounts) {
-    String name = new StringJoiner(InternalLogDescriptor.SEP)
+    String name = new StringJoiner(LogDescriptorImpl.SEP)
         .add(virtualHost).add(physicalHost)
-        .add(InternalWebServerAccessLog.MARKER)
+        .add(WebServerAccessLogImpl.MARKER)
         .add(date.format(DateTimeFormatter.BASIC_ISO_DATE))
         .toString() + "." + FileType.XZ.name().toLowerCase();
     log.debug("Storing {}.", name);

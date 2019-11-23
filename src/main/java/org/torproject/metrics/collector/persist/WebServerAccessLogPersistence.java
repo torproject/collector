@@ -5,7 +5,7 @@ package org.torproject.metrics.collector.persist;
 
 import org.torproject.descriptor.WebServerAccessLog;
 import org.torproject.metrics.collector.webstats.FileType;
-import org.torproject.metrics.collector.webstats.InternalWebServerAccessLog;
+import org.torproject.metrics.collector.webstats.WebServerAccessLogImpl;
 
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter;
 public class WebServerAccessLogPersistence
     extends DescriptorPersistence<WebServerAccessLog> {
 
-  public static final String SEP = InternalWebServerAccessLog.SEP;
+  public static final String SEP = WebServerAccessLogImpl.SEP;
   public static final FileType COMPRESSION = FileType.XZ;
 
   private DateTimeFormatter yearPattern = DateTimeFormatter.ofPattern("yyyy");
