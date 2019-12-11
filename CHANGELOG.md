@@ -3,6 +3,7 @@
  * Medium changes
    - Give up on periodically checking the configuration file for
      updates and reloading it in case of changes.
+   - Avoid reprocessing webstats files.
 
  * Minor changes
    - Remove dependency on metrics-lib's internal package.

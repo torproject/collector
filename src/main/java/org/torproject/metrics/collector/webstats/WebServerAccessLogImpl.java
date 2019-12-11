@@ -104,6 +104,25 @@ public class WebServerAccessLogImpl implements WebServerAccessLog {
     }
   }
 
+  /**
+   * Creates an empty WebServerAccessLog from the given filename parts.
+   *
+   * <p>This instance is not intended to be written to disk, as it doesn't have
+   * any content. The main intention of this instance is to compute storage
+   * paths.</p>
+   *
+   * @param virtualHost Virtual host name.
+   * @param physicalHost Physical host name.
+   * @param logDate Log date.
+   */
+  protected WebServerAccessLogImpl(String virtualHost, String physicalHost,
+      LocalDate logDate) {
+    this.descriptorFile = null;
+    this.virtualHost = virtualHost;
+    this.physicalHost = physicalHost;
+    this.logDate = logDate;
+  }
+
   @Override
   public InputStream decompressedByteStream() throws DescriptorParseException {
     try {

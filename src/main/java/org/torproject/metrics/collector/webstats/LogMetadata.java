@@ -81,5 +81,22 @@ public class LogMetadata {
     }
     return Optional.ofNullable(metadata);
   }
+
+  @Override
+  public boolean equals(Object other) {
+    if (this == other) {
+      return true;
+    }
+    if (other == null || getClass() != other.getClass()) {
+      return false;
+    }
+    LogMetadata that = (LogMetadata) other;
+    return path.toString().equals(that.path.toString());
+  }
+
+  @Override
+  public int hashCode() {
+    return path.hashCode();
+  }
 }
 
