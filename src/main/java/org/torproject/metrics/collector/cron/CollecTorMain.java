@@ -16,9 +16,14 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 
 public abstract class CollecTorMain extends SyncManager
@@ -126,6 +131,48 @@ public abstract class CollecTorMain extends SyncManager
     } catch (IOException ioe) {
       throw new RuntimeException("Cannot access " + location + " reason: "
           + ioe.getMessage(), ioe);
+    }
+  }
+
+  /**
+   * Read file names of processed files from the given state file.
+   *
+   * @param stateFile State file to read file names from.
+   * @return File names of processed files.
+   */
+  public SortedSet<Path> readProcessedFiles(Path stateFile) {
+    SortedSet<Path> processedFiles = new TreeSet<>();
+    if (Files.exists(stateFile)) {
+      try {
+        for (String line : Files.readAllLines(stateFile)) {
+          processedFiles.add(Paths.get(line));
+        }
+      } catch (IOException e) {
+        logger.warn("I/O error while reading processed files.", e);
+      }
+    }
+    return processedFiles;
+  }
+
+  /**
+   * Write file names of processed files to the state file.
+   *
+   * @param stateFile State file to write file names to.
+   * @param processedFiles File names of processed files.
+   */
+  public void writeProcessedFiles(Path stateFile,
+      SortedSet<Path> processedFiles) {
+    List<String> lines = new ArrayList<>();
+    for (Path processedFile : processedFiles) {
+      lines.add(processedFile.toString());
+    }
+    try {
+      if (!Files.exists(stateFile)) {
+        Files.createDirectories(stateFile.getParent());
+      }
+      Files.write(stateFile, lines);
+    } catch (IOException e) {
+      logger.warn("I/O error while writing processed files.", e);
     }
   }
 }

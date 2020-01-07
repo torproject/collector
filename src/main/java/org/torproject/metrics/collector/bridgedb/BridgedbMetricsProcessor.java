@@ -24,7 +24,9 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.SortedSet;
 import java.util.Stack;
+import java.util.TreeSet;
 
 public class BridgedbMetricsProcessor extends CollecTorMain {
 
@@ -38,6 +40,11 @@ public class BridgedbMetricsProcessor extends CollecTorMain {
    * Directory for reading BridgeDB statistics files.
    */
   private File inputDirectory;
+
+  /**
+   * File containing file names of previously parsed BridgeDB metrics files.
+   */
+  private Path parsedBridgedbMetricsFile;
 
   /**
    * Directory for writing BridgeDB statistics files to be archived in tarballs.
@@ -88,11 +95,19 @@ public class BridgedbMetricsProcessor extends CollecTorMain {
   protected void startProcessing() throws ConfigurationException {
     logger.info("Starting BridgeDB statistics module of CollecTor.");
     this.initializeConfiguration();
+    SortedSet<Path> previouslyProcessedFiles = this.readProcessedFiles(
+        this.parsedBridgedbMetricsFile);
+    SortedSet<Path> processedFiles = new TreeSet<>();
     logger.info("Reading BridgeDB statistics files in {}.",
         this.inputDirectory);
     for (Descriptor descriptor
         : DescriptorSourceFactory.createDescriptorReader()
         .readDescriptors(this.inputDirectory)) {
+      processedFiles.add(descriptor.getDescriptorFile().toPath());
+      if (previouslyProcessedFiles.contains(
+          descriptor.getDescriptorFile().toPath())) {
+        continue;
+      }
       if (descriptor instanceof BridgedbMetrics) {
         BridgedbMetrics bridgedbMetrics = (BridgedbMetrics) descriptor;
         BridgedbMetricsPersistence persistence
@@ -114,6 +129,7 @@ public class BridgedbMetricsProcessor extends CollecTorMain {
     }
     logger.info("Cleaning up directory {} containing recent files.",
         this.recentPathName);
+    this.writeProcessedFiles(this.parsedBridgedbMetricsFile, processedFiles);
     this.cleanUpRsyncDirectory();
     logger.info("Finished processing BridgeDB statistics file(s).");
   }
@@ -123,6 +139,8 @@ public class BridgedbMetricsProcessor extends CollecTorMain {
    * storing them in instance attributes.
    */
   private void initializeConfiguration() throws ConfigurationException {
+    this.parsedBridgedbMetricsFile = this.config.getPath(Key.StatsPath)
+        .resolve("processed-bridgedb-metrics");
     this.outputPathName = config.getPath(Key.OutputPath).toString();
     this.recentPathName = config.getPath(Key.RecentPath).toString();
     this.inputDirectory =

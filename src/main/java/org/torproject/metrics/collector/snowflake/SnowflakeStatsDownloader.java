@@ -23,6 +23,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.SortedSet;
@@ -71,6 +73,11 @@ public class SnowflakeStatsDownloader extends CollecTorMain {
     }
     logger.debug("Finished downloading {}.", url);
 
+    Path parsedSnowflakeStatsFile = this.config.getPath(Key.StatsPath)
+        .resolve("processed-snowflake-stats");
+    SortedSet<Path> previouslyProcessedFiles = this.readProcessedFiles(
+        parsedSnowflakeStatsFile);
+    SortedSet<Path> processedFiles = new TreeSet<>();
     DescriptorParser descriptorParser =
         DescriptorSourceFactory.createDescriptorParser();
     SortedSet<LocalDateTime> snowflakeStatsEnds = new TreeSet<>();
@@ -85,6 +92,11 @@ public class SnowflakeStatsDownloader extends CollecTorMain {
             = new SnowflakeStatsPersistence(snowflakeStats);
         File tarballFile = new File(outputPathName + "/"
             + persistence.getStoragePath());
+        Path relativeFileName = Paths.get(tarballFile.getName());
+        processedFiles.add(relativeFileName);
+        if (previouslyProcessedFiles.contains(relativeFileName)) {
+          continue;
+        }
         if (tarballFile.exists()) {
           continue;
         }
@@ -106,6 +118,7 @@ public class SnowflakeStatsDownloader extends CollecTorMain {
           snowflakeStatsEnds.last());
     }
 
+    this.writeProcessedFiles(parsedSnowflakeStatsFile, processedFiles);
     this.cleanUpRsyncDirectory();
   }
 

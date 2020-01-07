@@ -25,6 +25,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.DateTimeException;
 import java.time.Instant;
@@ -36,8 +37,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class BridgePoolAssignmentsProcessor extends CollecTorMain {
 
@@ -52,6 +55,11 @@ public class BridgePoolAssignmentsProcessor extends CollecTorMain {
    * files.
    */
   private File assignmentsDirectory;
+
+  /**
+   * File containing file names of previously parsed assignments files.
+   */
+  private Path parsedBridgePoolAssignmentsFile;
 
   /**
    * Directory containing sanitized bridge pool assignments for tarballs.
@@ -117,9 +125,16 @@ public class BridgePoolAssignmentsProcessor extends CollecTorMain {
   protected void startProcessing() throws ConfigurationException {
     logger.info("Starting bridge-pool-assignments module of CollecTor.");
     this.initializeConfiguration();
+    SortedSet<Path> previouslyProcessedFiles = this.readProcessedFiles(
+        this.parsedBridgePoolAssignmentsFile);
+    SortedSet<Path> processedFiles = new TreeSet<>();
     List<File> assignmentFiles = this.listAssignmentFiles();
     LocalDateTime latestPublished = null;
     for (File assignmentFile : assignmentFiles) {
+      processedFiles.add(assignmentFile.toPath());
+      if (previouslyProcessedFiles.contains(assignmentFile.toPath())) {
+        continue;
+      }
       logger.info("Processing bridge pool assignment file '{}'...",
           assignmentFile.getAbsolutePath());
       SortedMap<LocalDateTime, SortedMap<String, String>>
@@ -161,6 +176,8 @@ public class BridgePoolAssignmentsProcessor extends CollecTorMain {
           + "published at {}, which is more than 5:30 hours in the past.",
           latestPublished);
     }
+    this.writeProcessedFiles(this.parsedBridgePoolAssignmentsFile,
+        processedFiles);
     this.cleanUpRsyncDirectory();
     logger.info("Finished processing bridge pool assignment file(s).");
   }
@@ -170,6 +187,8 @@ public class BridgePoolAssignmentsProcessor extends CollecTorMain {
    * storing them in instance attributes.
    */
   private void initializeConfiguration() throws ConfigurationException {
+    this.parsedBridgePoolAssignmentsFile = this.config.getPath(Key.StatsPath)
+        .resolve("parsed-bridge-pool-assignments");
     this.outputPathName = Paths.get(config.getPath(Key.OutputPath).toString(),
         "bridge-pool-assignments").toString();
     this.recentPathName = Paths.get(config.getPath(Key.RecentPath).toString(),

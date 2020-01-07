@@ -4,6 +4,9 @@
    - Give up on periodically checking the configuration file for
      updates and reloading it in case of changes.
    - Avoid reprocessing webstats files.
+   - Remember processed files between module runs for archived
+     Snowflake statistics, bridge pool assignments, and BridgeDB
+     metrics.
 
  * Minor changes
    - Remove dependency on metrics-lib's internal package.
