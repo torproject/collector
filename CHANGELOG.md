@@ -10,6 +10,7 @@
 
  * Minor changes
    - Remove dependency on metrics-lib's internal package.
+   - Update to metrics-lib 2.10.0.
 
 
 # Changes in version 1.13.1 - 2019-11-11
