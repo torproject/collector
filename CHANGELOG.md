@@ -1,4 +1,4 @@
-# Changes in version 1.1?.? - 2019-1?-??
+# Changes in version 1.14.0 - 2020-01-15
 
  * Medium changes
    - Give up on periodically checking the configuration file for
