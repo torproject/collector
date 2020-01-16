@@ -87,12 +87,16 @@ public class Main {
       } else {
         conf.loadAndCheckConfiguration(confPath);
       }
-      Scheduler.getInstance().scheduleModuleRuns(collecTorMains, conf);
+      if (!Scheduler.getInstance().scheduleModuleRuns(collecTorMains, conf)) {
+        return;
+      }
     } catch (ConfigurationException ce) {
       printUsage(ce.getMessage());
       return;
     }
-    Runtime.getRuntime().addShutdownHook(new ShutdownHook());
+    ShutdownHook shutdownHook = new ShutdownHook();
+    Runtime.getRuntime().addShutdownHook(shutdownHook);
+    shutdownHook.stayAlive();
   }
 
   private static void printUsage(String msg) {

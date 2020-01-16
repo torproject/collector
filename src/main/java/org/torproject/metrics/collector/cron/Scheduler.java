@@ -50,10 +50,10 @@ public final class Scheduler implements ThreadFactory {
   }
 
   /**
-   * Schedule all classes given according to the parameters in the
-   * the configuration.
+   * Schedule all classes given according to the parameters in the configuration
+   * and return whether the caller should wait for completion.
    */
-  public void scheduleModuleRuns(Map<Key,
+  public boolean scheduleModuleRuns(Map<Key,
       Class<? extends CollecTorMain>> collecTorMains, Configuration conf) {
     try {
       gracePeriodMinutes = conf.getLong(Key.ShutdownGraceWaitMinutes);
@@ -89,11 +89,13 @@ public final class Scheduler implements ThreadFactory {
     try {
       if (conf.getBool(Key.RunOnce)) {
         scheduler.invokeAll(runOnceMains);
+        return false;
       }
     } catch (ConfigurationException | InterruptedException
         | RejectedExecutionException | NullPointerException ex) {
       logger.error("Cannot schedule run-once: {}", ex.getMessage(), ex);
     }
+    return true;
   }
 
   private void scheduleExecutions(CollecTorMain ctm, int offset, int period) {

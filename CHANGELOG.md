@@ -1,4 +1,9 @@
-# Changes in version 1.1?.? - 2020-0?-??
+# Changes in version 1.14.1 - 2020-01-16
+
+ * Medium changes
+   - Stay alive after scheduling (daemon) threads for modules. This
+     was broken by taking out the periodic check for configuration
+     file updates.
 
 
 # Changes in version 1.14.0 - 2020-01-15
