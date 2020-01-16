@@ -99,10 +99,9 @@ public class MainTest {
     assertEquals(0L, conf.length());
     Main.main(new String[]{conf.toString()});
     assertTrue(4_000L <= conf.length());
-    changeFilePathsAndSetActivation(conf,
-        Key.OnionPerfActivated.name());
+    changeFilePathsAndSetActivationAndRunOnce(conf,
+        Key.ExitlistsActivated.name());
     Main.main(new String[]{conf.toString()});
-    waitSec(2);
   }
 
   /** Wait for the given number of seconds. */
@@ -119,14 +118,15 @@ public class MainTest {
     } while ((toWait = start + 1_000L * sec - System.currentTimeMillis()) > 0);
   }
 
-  private void changeFilePathsAndSetActivation(File file, String activation)
-      throws Exception {
+  private void changeFilePathsAndSetActivationAndRunOnce(File file,
+      String activation) throws Exception {
     List<String> lines = Files.readAllLines(file.toPath(),
         StandardCharsets.UTF_8);
     BufferedWriter bw = Files.newBufferedWriter(file.toPath(),
         StandardCharsets.UTF_8);
     File in = tmpf.newFolder();
     File out = tmpf.newFolder();
+    String runOnce = "RunOnce";
     String inStr = "in/";
     String outStr = "out/";
     for (String line : lines) {
@@ -134,7 +134,7 @@ public class MainTest {
         line = line.replace(inStr, in.toString() + inStr);
       } else if (line.contains(outStr)) {
         line = line.replace(outStr, out.toString() + outStr);
-      } else if (line.contains(activation)) {
+      } else if (line.contains(activation) || line.contains(runOnce)) {
         line = line.replace("false", "true");
       }
       bw.write(line);
