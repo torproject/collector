@@ -183,7 +183,9 @@ public class RelayDescriptorDownloader {
   /**
    * Cut-off time for missing server and extra-info descriptors, formatted
    * "yyyy-MM-dd HH:mm:ss". This time is initialized as the current system
-   * time minus 24 hours.
+   * time minus 30 hours (24 hours for the maximum age of descriptors to be
+   * referenced plus 6 hours for the time between generating votes and
+   * processing a consensus).
    */
   private String descriptorCutOff;
 
@@ -329,7 +331,7 @@ public class RelayDescriptorDownloader {
     long now = System.currentTimeMillis();
     this.currentValidAfter = format.format((now / (60L * 60L * 1000L))
         * (60L * 60L * 1000L));
-    this.descriptorCutOff = format.format(now - 24L * 60L * 60L * 1000L);
+    this.descriptorCutOff = format.format(now - 30L * 60L * 60L * 1000L);
     this.currentTimestamp = format.format(now);
     this.downloadAllDescriptorsCutOff = format.format(now
         - 23L * 60L * 60L * 1000L - 30L * 60L * 1000L);

@@ -4,6 +4,10 @@
    - Simplify logging configuration.
    - Set default locale `US` and default time zone `UTC` at the
      beginning of the execution.
+   - Download missing server and extra-info descriptors that have been
+     published up to 30 hours ago: 24 hours for the maximum age of
+     descriptors to be referenced plus 6 hours for the time between
+     generating votes and processing a consensus.
 
 
 # Changes in version 1.14.1 - 2020-01-16
