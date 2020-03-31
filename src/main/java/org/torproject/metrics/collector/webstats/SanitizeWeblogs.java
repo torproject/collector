@@ -55,7 +55,7 @@ import java.util.stream.Stream;
  */
 public class SanitizeWeblogs extends CollecTorMain {
 
-  private static final Logger log =
+  private static final Logger logger =
       LoggerFactory.getLogger(SanitizeWeblogs.class);
   private static final int LIMIT = 2;
 
@@ -99,7 +99,7 @@ public class SanitizeWeblogs extends CollecTorMain {
       Set<SourceType> sources = this.config.getSourceTypeSet(
           Key.WebstatsSources);
       if (sources.contains(SourceType.Local)) {
-        log.info("Processing logs using batch value {}.", BATCH);
+        logger.info("Processing logs using batch value {}.", BATCH);
         Map<LogMetadata, Set<LocalDate>> previouslyProcessedWebstats
             = this.readProcessedWebstats();
         Map<LogMetadata, Set<LocalDate>> newlyProcessedWebstats
@@ -112,7 +112,7 @@ public class SanitizeWeblogs extends CollecTorMain {
             cutOffMillis);
       }
     } catch (Exception e) {
-      log.error("Cannot sanitize web-logs: {}", e.getMessage(), e);
+      logger.error("Cannot sanitize web-logs: {}", e.getMessage(), e);
       throw new RuntimeException(e);
     }
   }
@@ -132,9 +132,10 @@ public class SanitizeWeblogs extends CollecTorMain {
           }
         }
       } catch (IOException e) {
-        log.error("Cannot read state file {}.", this.processedWebstatsFile, e);
+        logger.error("Cannot read state file {}.", this.processedWebstatsFile,
+            e);
       }
-      log.debug("Read state file containing {} log files.",
+      logger.debug("Read state file containing {} log files.",
           processedWebstats.size());
     }
     return processedWebstats;
@@ -144,14 +145,14 @@ public class SanitizeWeblogs extends CollecTorMain {
       Map<LogMetadata, Set<LocalDate>> previouslyProcessedWebstats) {
     Map<LogMetadata, Set<LocalDate>> newlyProcessedWebstats = new HashMap<>();
     LogFileMap fileMapIn = new LogFileMap(dir);
-    log.info("Found log files for {} virtual hosts.", fileMapIn.size());
+    logger.info("Found log files for {} virtual hosts.", fileMapIn.size());
     for (Map.Entry<String,TreeMap<String,TreeMap<LocalDate,LogMetadata>>>
              virtualEntry : fileMapIn.entrySet()) {
       String virtualHost = virtualEntry.getKey();
       for (Map.Entry<String, TreeMap<LocalDate, LogMetadata>> physicalEntry
           : virtualEntry.getValue().entrySet()) {
         String physicalHost = physicalEntry.getKey();
-        log.info("Processing logs for {} on {}.", virtualHost, physicalHost);
+        logger.info("Processing logs for {} on {}.", virtualHost, physicalHost);
         /* Go through current input log files for given virtual and physical
          * host, and either look up contained log dates from the last execution,
          * or parse files to memory now. */
@@ -231,7 +232,7 @@ public class SanitizeWeblogs extends CollecTorMain {
         .add(WebServerAccessLogImpl.MARKER)
         .add(date.format(DateTimeFormatter.BASIC_ISO_DATE))
         .toString() + "." + FileType.XZ.name().toLowerCase();
-    log.debug("Storing {}.", name);
+    logger.debug("Storing {}.", name);
     Map<String, Long> retainedLines = new TreeMap<>(lineCounts);
     lineCounts.clear(); // not needed anymore
     try {
@@ -239,13 +240,14 @@ public class SanitizeWeblogs extends CollecTorMain {
           = new WebServerAccessLogPersistence(
           new WebServerAccessLogImpl(toCompressedBytes(retainedLines),
           new File(name), name));
-      log.debug("Storing {}.", name);
+      logger.debug("Storing {}.", name);
       walp.storeOut(this.outputDirectory.toString());
       walp.storeRecent(this.recentDirectory.toString());
     } catch (DescriptorParseException dpe) {
-      log.error("Cannot store log desriptor {}.", name, dpe);
+      logger.error("Cannot store log desriptor {}.", name, dpe);
     } catch (Throwable th) { // catch all else
-      log.error("Serious problem.  Cannot store log desriptor {}.", name, th);
+      logger.error("Serious problem.  Cannot store log desriptor {}.", name,
+          th);
     }
   }
 
@@ -327,7 +329,7 @@ public class SanitizeWeblogs extends CollecTorMain {
 
   private Map<LocalDate, Map<String, Long>>
       sanitzedLineStream(LogMetadata metadata) {
-    log.debug("Processing file {}.", metadata.path);
+    logger.debug("Processing file {}.", metadata.path);
     try (BufferedReader br
         = new BufferedReader(new InputStreamReader(
          metadata.fileType.decompress(Files.newInputStream(metadata.path))))) {
@@ -365,7 +367,7 @@ public class SanitizeWeblogs extends CollecTorMain {
                     .collect(groupingByConcurrent(Map.Entry::getKey,
                         summingLong(Map.Entry::getValue))))));
     } catch (Exception ex) {
-      log.debug("Skipping log-file {}.", metadata.path, ex);
+      logger.debug("Skipping log-file {}.", metadata.path, ex);
     }
     return Collections.emptyMap();
   }
@@ -385,9 +387,10 @@ public class SanitizeWeblogs extends CollecTorMain {
       }
       Files.write(this.processedWebstatsFile, lines);
     } catch (IOException e) {
-      log.error("Cannot write state file {}.", this.processedWebstatsFile, e);
+      logger.error("Cannot write state file {}.", this.processedWebstatsFile,
+          e);
     }
-    log.debug("Wrote state file containing {} log files.",
+    logger.debug("Wrote state file containing {} log files.",
         newlyProcessedWebstats.size());
   }
 }

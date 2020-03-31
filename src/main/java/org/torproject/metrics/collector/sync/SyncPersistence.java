@@ -48,7 +48,7 @@ import java.nio.file.Path;
 /** Provides persistence for descriptors based on the descriptor type. */
 public class SyncPersistence {
 
-  private static final Logger log
+  private static final Logger logger
       = LoggerFactory.getLogger(SyncPersistence.class);
 
   private final Path recentPath;
@@ -72,7 +72,7 @@ public class SyncPersistence {
     try {
       PersistenceUtils.cleanDirectory(recentPath);
     } catch (IOException ioe) {
-      log.error("Cleaning of {} failed.", recentPath.toString(), ioe);
+      logger.error("Cleaning of {} failed.", recentPath.toString(), ioe);
     }
   }
 
@@ -126,7 +126,8 @@ public class SyncPersistence {
         case "BridgeNetworkStatus": // need to infer authId from filename
           String[] filenameParts = filename.split(DASH);
           if (filenameParts.length < 3) {
-            log.error("Invalid BridgeNetworkStatus; skipping: {}.", filename);
+            logger.error("Invalid BridgeNetworkStatus; skipping: {}.",
+                filename);
             break;
           }
           descPersist = new StatusPersistence(
@@ -160,7 +161,7 @@ public class SyncPersistence {
           descPersist = new BridgedbMetricsPersistence((BridgedbMetrics) desc);
           break;
         default:
-          log.trace("Invalid descriptor type {} for sync-merge.",
+          logger.trace("Invalid descriptor type {} for sync-merge.",
               clazz.getName());
           continue;
       }
@@ -171,7 +172,7 @@ public class SyncPersistence {
       break;
     }
     if (!recognizedAndWritten) {
-      log.error("Unknown descriptor type {} implementing {}.",
+      logger.error("Unknown descriptor type {} implementing {}.",
           desc.getClass().getSimpleName(), desc.getClass().getInterfaces());
     }
   }

@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 
 public class LogMetadata {
 
-  private static final Logger log
+  private static final Logger logger
       = LoggerFactory.getLogger(LogMetadata.class);
 
   /** The mandatory web server log descriptor file name pattern. */
@@ -67,7 +67,7 @@ public class LogMetadata {
               = LocalDate.parse(mat.group(2), DateTimeFormatter.BASIC_ISO_DATE);
           if (null == virtualHost || null == physicalHost || null == logDate
               || virtualHost.isEmpty() || physicalHost.isEmpty()) {
-            log.debug("Non-matching file encountered: '{}/{}'.",
+            logger.debug("Non-matching file encountered: '{}/{}'.",
                 parentPath, file);
           } else {
             metadata = new LogMetadata(logPath, physicalHost, virtualHost,
@@ -77,7 +77,7 @@ public class LogMetadata {
       }
     } catch (Throwable ex) {
       metadata = null;
-      log.debug("Problem parsing path '{}'.", logPath, ex);
+      logger.debug("Problem parsing path '{}'.", logPath, ex);
     }
     return Optional.ofNullable(metadata);
   }

@@ -7,6 +7,8 @@ import org.torproject.descriptor.BandwidthFile;
 import org.torproject.metrics.collector.conf.Annotation;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -15,6 +17,9 @@ import java.time.format.DateTimeFormatter;
 
 public class BandwidthFilePersistence
     extends DescriptorPersistence<BandwidthFile> {
+
+  private static final Logger logger
+      = LoggerFactory.getLogger(BandwidthFilePersistence.class);
 
   private static final String BANDWIDTH = "bandwidth";
   private static final String BANDWIDTHS = "bandwidths";
@@ -57,7 +62,7 @@ public class BandwidthFilePersistence
       System.arraycopy(bytes, start, forDigest, 0, forDigest.length);
       digest = DigestUtils.sha256Hex(forDigest).toUpperCase();
     } else {
-      log.error("No digest calculation possible.  Returning empty string.");
+      logger.error("No digest calculation possible.  Returning empty string.");
     }
     return digest;
   }

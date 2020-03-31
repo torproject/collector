@@ -1,5 +1,8 @@
 # Changes in version 1.1?.? - 2020-0?-??
 
+ * Minor changes
+   - Simplify logging configuration.
+
 
 # Changes in version 1.14.1 - 2020-01-16
 

@@ -7,12 +7,17 @@ import org.torproject.descriptor.RelayNetworkStatusVote;
 import org.torproject.metrics.collector.conf.Annotation;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 
 public class VotePersistence
     extends DescriptorPersistence<RelayNetworkStatusVote> {
+
+  private static final Logger logger
+      = LoggerFactory.getLogger(VotePersistence.class);
 
   private static final String VOTE = "vote";
   private static final String VOTES = "votes";
@@ -56,7 +61,7 @@ public class VotePersistence
       System.arraycopy(bytes, start, forDigest, 0, sig - start);
       digest = DigestUtils.sha1Hex(forDigest).toUpperCase();
     } else {
-      log.error("No digest calculation possible.  Returning empty string.");
+      logger.error("No digest calculation possible.  Returning empty string.");
     }
     return digest;
   }

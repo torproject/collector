@@ -25,7 +25,8 @@ import java.util.Set;
 
 public class SyncManager {
 
-  private static final Logger log = LoggerFactory.getLogger(SyncManager.class);
+  private static final Logger logger
+      = LoggerFactory.getLogger(SyncManager.class);
   public static final String SYNCORIGINS = "SyncOrigins";
 
   private Date collectionDate;
@@ -53,12 +54,12 @@ public class SyncManager {
         File storage = new File(basePath.toFile(),
             marker + "-" + source.getHost());
         storage.mkdirs();
-        log.info("Collecting {} from {} ...", marker, source.getHost());
+        logger.info("Collecting {} from {} ...", marker, source.getHost());
         descriptorCollector.collectDescriptors(source.toString(),
             dirs.toArray(new String[dirs.size()]), 0L, storage, true);
-        log.info("Done collecting {} from {}.", marker, source.getHost());
+        logger.info("Done collecting {} from {}.", marker, source.getHost());
       } catch (Throwable th) { // catch all
-        log.warn("Cannot download {} from {}.", dirs, source, th);
+        logger.warn("Cannot download {} from {}.", dirs, source, th);
       }
     }
   }
@@ -72,7 +73,7 @@ public class SyncManager {
         = new ProcessCriterium(UnparseableDescriptor.class);
     for (URL source : sources) {
       File base = new File(basePath.toFile(), marker + "-" + source.getHost());
-      log.info("Merging {} from {} into storage ...", marker,
+      logger.info("Merging {} from {} into storage ...", marker,
           source.getHost());
       for (Map.Entry<String, Class<? extends Descriptor>> entry
           : mapPathDesc.entrySet()) {
@@ -86,21 +87,21 @@ public class SyncManager {
             "sync-history-" + source.getHost() + "-" + marker + "-"
             + histFileEnding);
         descriptorReader.setHistoryFile(historyFile);
-        log.info("Reading {} of type {} ... ", marker, histFileEnding);
+        logger.info("Reading {} of type {} ... ", marker, histFileEnding);
         Iterator<Descriptor> descriptors
             = descriptorReader.readDescriptors(descFile).iterator();
-        log.info("Done reading {} of type {}.", marker, histFileEnding);
+        logger.info("Done reading {} of type {}.", marker, histFileEnding);
         Criterium<Descriptor> crit = new ProcessCriterium(entry.getValue());
         while (descriptors.hasNext()) {
           Descriptor desc = descriptors.next();
           if (unparseable.applies(desc)) {
             Exception ex
                 = ((UnparseableDescriptor)desc).getDescriptorParseException();
-            log.warn("Parsing of {} caused Exception(s). Processing anyway.",
+            logger.warn("Parsing of {} caused Exception(s). Processing anyway.",
                 desc.getDescriptorFile(), ex);
           }
           if (!crit.applies(desc)) {
-            log.warn("Not processing {} in {}.", desc.getClass().getName(),
+            logger.warn("Not processing {} in {}.", desc.getClass().getName(),
                 desc.getDescriptorFile());
             continue;
           }
@@ -110,7 +111,7 @@ public class SyncManager {
         persist.cleanDirectory();
         descriptorReader.saveHistoryFile(historyFile);
       }
-      log.info("Done merging {} from {}.", marker, source.getHost());
+      logger.info("Done merging {} from {}.", marker, source.getHost());
     }
   }
 

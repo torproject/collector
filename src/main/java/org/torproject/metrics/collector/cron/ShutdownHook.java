@@ -11,7 +11,8 @@ import org.slf4j.LoggerFactory;
  */
 public final class ShutdownHook extends Thread {
 
-  private static final Logger log = LoggerFactory.getLogger(ShutdownHook.class);
+  private static final Logger logger
+      = LoggerFactory.getLogger(ShutdownHook.class);
 
   private boolean stayAlive = true;
 
@@ -37,13 +38,13 @@ public final class ShutdownHook extends Thread {
 
   @Override
   public void run() {
-    log.info("Shutdown in progress ... ");
+    logger.info("Shutdown in progress ... ");
     Scheduler.getInstance().shutdownScheduler();
     synchronized (this) {
       this.stayAlive = false;
       this.notify();
     }
-    log.info("Shutdown finished. Exiting.");
+    logger.info("Shutdown finished. Exiting.");
   }
 }
 

@@ -39,7 +39,7 @@ import java.util.Map;
  */
 public class Main {
 
-  private static final Logger log = LoggerFactory.getLogger(Main.class);
+  private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
   public static final String CONF_FILE = "collector.properties";
 
@@ -116,7 +116,7 @@ public class Main {
           + ") and provide at least one data source and one data sink. "
           + "Refer to the manual for more information.");
     } catch (IOException e) {
-      log.error("Cannot write default configuration.", e);
+      logger.error("Cannot write default configuration.", e);
       throw new RuntimeException(e);
     }
   }

@@ -23,7 +23,7 @@ import java.util.TimeZone;
 
 public class PersistenceUtils {
 
-  private static final Logger log = LoggerFactory.getLogger(
+  private static final Logger logger = LoggerFactory.getLogger(
       PersistenceUtils.class);
 
   public static final String TEMPFIX = ".tmp";
@@ -55,14 +55,14 @@ public class PersistenceUtils {
       }
       return createOrAppend(typeAnnotation, data, tmpPath, option);
     } catch (FileAlreadyExistsException faee) {
-      log.debug("Already have descriptor(s) of type '{}': {}. Skipping.",
+      logger.debug("Already have descriptor(s) of type '{}': {}. Skipping.",
           new String(typeAnnotation), outputPath);
     } catch (IOException | SecurityException
           | UnsupportedOperationException e) {
-      log.warn("Could not store descriptor(s) {} of type '{}'",
+      logger.warn("Could not store descriptor(s) {} of type '{}'",
           outputPath, new String(typeAnnotation), e);
     } catch (Throwable th) {  // anything else
-      log.warn("Problem storing descriptor(s) {} of type '{}'",
+      logger.warn("Problem storing descriptor(s) {} of type '{}'",
           outputPath, new String(typeAnnotation), th);
     }
     return false;

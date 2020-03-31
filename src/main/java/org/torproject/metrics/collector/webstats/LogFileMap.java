@@ -22,7 +22,8 @@ import java.util.TreeMap;
 public class LogFileMap
     extends TreeMap<String, TreeMap<String, TreeMap<LocalDate, LogMetadata>>> {
 
-  private static final Logger log = LoggerFactory.getLogger(LogFileMap.class);
+  private static final Logger logger
+      = LoggerFactory.getLogger(LogFileMap.class);
 
   /**
    * The map to keep track of the logfiles by virtual host,
@@ -54,13 +55,13 @@ public class LogFileMap
 
         private FileVisitResult logIfError(Path path, IOException ex) {
           if (null != ex) {
-            log.warn("Cannot process '{}'.", path, ex);
+            logger.warn("Cannot process '{}'.", path, ex);
           }
           return FileVisitResult.CONTINUE;
         }
       });
     } catch (IOException ex) {
-      log.error("Cannot read directory '{}'.", startDir, ex);
+      logger.error("Cannot read directory '{}'.", startDir, ex);
     }
   }
 
