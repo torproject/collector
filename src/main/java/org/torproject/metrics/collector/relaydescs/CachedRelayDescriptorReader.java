@@ -26,7 +26,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.Stack;
-import java.util.TimeZone;
 import java.util.TreeSet;
 
 /**
@@ -139,7 +138,6 @@ public class CachedRelayDescriptorReader {
                     .append(line.substring("valid-after ".length()));
                 SimpleDateFormat dateTimeFormat =
                     new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
                 if (dateTimeFormat.parse(line.substring("valid-after "
                     .length())).getTime() < System.currentTimeMillis()
                     - 6L * 60L * 60L * 1000L) {

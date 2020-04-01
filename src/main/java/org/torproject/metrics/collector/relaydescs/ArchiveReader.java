@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.Stack;
-import java.util.TimeZone;
 import java.util.TreeSet;
 
 /**
@@ -201,7 +200,6 @@ public class ArchiveReader {
           }
           SimpleDateFormat parseFormat =
               new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-          parseFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
           String ascii = new String(allData, StandardCharsets.US_ASCII);
           int start;
           int end = -1;

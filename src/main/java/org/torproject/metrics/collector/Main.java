@@ -28,7 +28,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 /**
  * Main class for starting a CollecTor instance.
@@ -71,6 +73,8 @@ public class Main {
    * See class description {@link Main}.
    */
   public static void main(String[] args) {
+    Locale.setDefault(Locale.US);
+    TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     try {
       Path confPath;
       if (args == null || args.length == 0) {

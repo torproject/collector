@@ -47,7 +47,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.Stack;
-import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -146,7 +145,6 @@ public class ArchiveWriter extends CollecTorMain {
               RELAY_DESCRIPTORS).toString();
     SimpleDateFormat rsyncCatFormat = new SimpleDateFormat(
         "yyyy-MM-dd-HH-mm-ss");
-    rsyncCatFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     this.rsyncCatString = rsyncCatFormat.format(
         System.currentTimeMillis());
     this.descriptorParser =
@@ -225,7 +223,6 @@ public class ArchiveWriter extends CollecTorMain {
   private void loadDescriptorDigests() {
     SimpleDateFormat dateTimeFormat = new SimpleDateFormat(
         "yyyy-MM-dd HH:mm:ss");
-    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     try {
       if (this.storedServerDescriptorsFile.exists()) {
         BufferedReader br = new BufferedReader(new FileReader(
@@ -339,7 +336,6 @@ public class ArchiveWriter extends CollecTorMain {
         + "descriptors:");
     SimpleDateFormat dateTimeFormat =
         new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     Map<String, String> knownServerDescriptors = new HashMap<>();
     for (Map<String, String> descriptors :
         this.storedServerDescriptors.values()) {
@@ -513,7 +509,6 @@ public class ArchiveWriter extends CollecTorMain {
   private void checkStaledescriptors() {
     SimpleDateFormat dateTimeFormat = new SimpleDateFormat(
         "yyyy-MM-dd HH:mm:ss");
-    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     long tooOldMillis = this.now - 330L * 60L * 1000L;
     if (!this.storedConsensuses.isEmpty()
         && this.storedConsensuses.lastKey() < tooOldMillis) {
@@ -604,7 +599,6 @@ public class ArchiveWriter extends CollecTorMain {
   private void saveDescriptorDigests() {
     SimpleDateFormat dateTimeFormat = new SimpleDateFormat(
         "yyyy-MM-dd HH:mm:ss");
-    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     try {
       if (!this.storedServerDescriptorsFile.getParentFile().exists()
           && !this.storedServerDescriptorsFile.getParentFile().mkdirs()) {
@@ -671,7 +665,6 @@ public class ArchiveWriter extends CollecTorMain {
       SortedSet<String> serverDescriptorDigests) {
     SimpleDateFormat printFormat = new SimpleDateFormat(
         "yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
-    printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     File tarballFile = Paths.get(this.outputDirectory, "consensus",
         printFormat.format(new Date(validAfter)) + "-consensus").toFile();
     boolean tarballFileExistedBefore = tarballFile.exists();
@@ -694,10 +687,8 @@ public class ArchiveWriter extends CollecTorMain {
       SortedSet<String> microdescriptorDigests) {
     SimpleDateFormat yearMonthDirectoryFormat = new SimpleDateFormat(
         "yyyy/MM");
-    yearMonthDirectoryFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     SimpleDateFormat dayDirectoryFileFormat = new SimpleDateFormat(
         "dd/yyyy-MM-dd-HH-mm-ss");
-    dayDirectoryFileFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     File tarballFile = Paths.get(this.outputDirectory, MICRODESC,
         yearMonthDirectoryFormat.format(validAfter), CONSENSUS_MICRODESC,
         dayDirectoryFileFormat.format(validAfter)
@@ -724,7 +715,6 @@ public class ArchiveWriter extends CollecTorMain {
       SortedSet<String> serverDescriptorDigests) {
     SimpleDateFormat printFormat = new SimpleDateFormat(
         "yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
-    printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     File tarballFile = Paths.get(this.outputDirectory, "vote",
         printFormat.format(new Date(validAfter)) + "-vote-"
         + fingerprint + "-" + digest).toFile();
@@ -778,7 +768,6 @@ public class ArchiveWriter extends CollecTorMain {
       long published) {
     SimpleDateFormat printFormat = new SimpleDateFormat(
         "yyyy-MM-dd-HH-mm-ss");
-    printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     File tarballFile = Paths.get(this.outputDirectory, "certs",
         fingerprint + "-" + printFormat.format(new Date(published))).toFile();
     File[] outputFiles = new File[] { tarballFile };
@@ -792,7 +781,6 @@ public class ArchiveWriter extends CollecTorMain {
   public void storeServerDescriptor(byte[] data, String digest,
       long published, String extraInfoDigest) {
     SimpleDateFormat printFormat = new SimpleDateFormat("yyyy/MM/");
-    printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     File tarballFile = Paths.get(this.outputDirectory,
         "server-descriptor", printFormat.format(new Date(published)),
         digest.substring(0, 1), digest.substring(1, 2), digest).toFile();
@@ -818,7 +806,6 @@ public class ArchiveWriter extends CollecTorMain {
   public void storeExtraInfoDescriptor(byte[] data,
       String extraInfoDigest, long published) {
     SimpleDateFormat descriptorFormat = new SimpleDateFormat("yyyy/MM/");
-    descriptorFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     File tarballFile = Paths.get(this.outputDirectory, "extra-info",
         descriptorFormat.format(new Date(published)),
         extraInfoDigest.substring(0, 1),
@@ -850,7 +837,6 @@ public class ArchiveWriter extends CollecTorMain {
      * called twice to store the same microdescriptor in two different
      * valid-after months. */
     SimpleDateFormat descriptorFormat = new SimpleDateFormat("yyyy/MM/");
-    descriptorFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     File tarballFile = Paths.get(this.outputDirectory, MICRODESC,
         descriptorFormat.format(validAfter), MICRO,
         microdescriptorDigest.substring(0, 1),

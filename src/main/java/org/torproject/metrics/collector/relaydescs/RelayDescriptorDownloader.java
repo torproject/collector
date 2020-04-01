@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
-import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -327,7 +326,6 @@ public class RelayDescriptorDownloader {
      * list and the list of authorities to download all server and
      * extra-info descriptors from. */
     SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    format.setTimeZone(TimeZone.getTimeZone("UTC"));
     long now = System.currentTimeMillis();
     this.currentValidAfter = format.format((now / (60L * 60L * 1000L))
         * (60L * 60L * 1000L));
@@ -924,7 +922,6 @@ public class RelayDescriptorDownloader {
          * pretty badly. */
         SimpleDateFormat parseFormat =
             new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        parseFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         String ascii = new String(allData, StandardCharsets.US_ASCII);
         int start;
         int end = -1;

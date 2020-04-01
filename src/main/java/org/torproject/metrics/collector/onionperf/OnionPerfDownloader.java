@@ -35,7 +35,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.Stack;
-import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -156,7 +155,6 @@ public class OnionPerfDownloader extends CollecTorMain {
   static {
     DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
     DATE_FORMAT.setLenient(false);
-    DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 
   private void downloadAndParseOnionPerfTpfFile(URL baseUrl, String source,

@@ -21,7 +21,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.SortedSet;
-import java.util.TimeZone;
 import java.util.TreeSet;
 
 /**
@@ -61,7 +60,6 @@ public class RelayDescriptorParser {
     this.aw = aw;
 
     this.dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    this.dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 
   public void setRelayDescriptorDownloader(
@@ -96,7 +94,6 @@ public class RelayDescriptorParser {
       }
       SimpleDateFormat parseFormat =
           new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-      parseFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       if (line.startsWith("network-status-version 3")) {
         String statusType = "consensus";
         if (line.equals("network-status-version 3 microdesc")) {

@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.Stack;
-import java.util.TimeZone;
 import java.util.TreeMap;
 
 /**
@@ -139,7 +138,6 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         config.getBool(Key.ReplaceIpAddressesWithHashes);
     SimpleDateFormat rsyncCatFormat = new SimpleDateFormat(
         "yyyy-MM-dd-HH-mm-ss");
-    rsyncCatFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     this.rsyncCatString = rsyncCatFormat.format(
         System.currentTimeMillis());
 
@@ -604,7 +602,6 @@ public class SanitizedBridgesWriter extends CollecTorMain {
        * whether this status is possibly stale. */
       SimpleDateFormat formatter = new SimpleDateFormat(
           "yyyy-MM-dd HH:mm:ss");
-      formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
       if (null == mostRecentDescPublished) {
         logger.warn("The bridge network status published at {}"
             + " does not contain a single entry. Please ask the bridge "
@@ -1355,7 +1352,6 @@ public class SanitizedBridgesWriter extends CollecTorMain {
   private void checkStaleDescriptors() {
     SimpleDateFormat dateTimeFormat = new SimpleDateFormat(
         "yyyy-MM-dd HH:mm:ss");
-    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     long tooOldMillis = System.currentTimeMillis() - 330L * 60L * 1000L;
     try {
       long maxNetworkStatusPublishedMillis =

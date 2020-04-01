@@ -19,7 +19,6 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.TimeZone;
 
 public class PersistenceUtils {
 
@@ -118,7 +117,6 @@ public class PersistenceUtils {
   /** Return all date-time parts as array. */
   public static String[] dateTimeParts(Date dateTime) {
     SimpleDateFormat printFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
-    printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     return printFormat.format(dateTime).split("-");
   }
 
@@ -130,7 +128,6 @@ public class PersistenceUtils {
   /** Return all date-time as string. */
   public static String dateTime(Date dateTime) {
     SimpleDateFormat printFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
-    printFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     return printFormat.format(dateTime);
   }
 

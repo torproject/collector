@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.SortedSet;
 import java.util.Stack;
-import java.util.TimeZone;
 import java.util.TreeSet;
 
 public class ExitListDownloader extends CollecTorMain {
@@ -61,9 +60,6 @@ public class ExitListDownloader extends CollecTorMain {
   @Override
   protected void startProcessing() throws ConfigurationException {
 
-    SimpleDateFormat dateTimeFormat =
-        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     outputPathName = Paths.get(config.getPath(Key.OutputPath).toString(),
         EXITLISTS).toString();
     recentPathName = Paths.get(config.getPath(Key.RecentPath).toString(),
@@ -73,6 +69,8 @@ public class ExitListDownloader extends CollecTorMain {
     logger.debug("Downloading exit list...");
     StringBuilder sb = new StringBuilder();
     sb.append(Annotation.ExitList.toString());
+    SimpleDateFormat dateTimeFormat =
+        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     sb.append("Downloaded ").append(dateTimeFormat.format(downloadedDate))
         .append("\n");
     URL url = config.getUrl(Key.ExitlistUrl);
@@ -94,7 +92,6 @@ public class ExitListDownloader extends CollecTorMain {
 
     SimpleDateFormat tarballFormat =
         new SimpleDateFormat("yyyy/MM/dd/yyyy-MM-dd-HH-mm-ss");
-    tarballFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     File tarballFile = Paths.get(outputPathName,
         tarballFormat.format(downloadedDate)).toFile();
 

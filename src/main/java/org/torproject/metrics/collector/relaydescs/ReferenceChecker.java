@@ -28,10 +28,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.TimeZone;
 import java.util.TreeSet;
 
 public class ReferenceChecker {
@@ -56,10 +54,8 @@ public class ReferenceChecker {
   private static DateFormat dateTimeFormat;
 
   static {
-    dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'",
-        Locale.US);
+    dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     dateTimeFormat.setLenient(false);
-    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 
   private static final long ONE_HOUR = 60L * 60L * 1000L;
