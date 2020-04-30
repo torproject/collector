@@ -1,4 +1,7 @@
-# Changes in version 1.??.? - 2020-??-??
+# Changes in version 1.15.1 - 2020-04-30
+
+ * Medium changes
+   - Update to metrics-lib 2.12.2.
 
 
 # Changes in version 1.15.0 - 2020-04-30
