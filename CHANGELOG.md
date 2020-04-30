@@ -1,5 +1,10 @@
 # Changes in version 1.1?.? - 2020-0?-??
 
+ * Medium changes
+   - Update to metrics-lib 2.12.1.
+   - Download OnionPerf analysis .json files in addition to .tpf
+     files.
+
  * Minor changes
    - Simplify logging configuration.
    - Set default locale `US` and default time zone `UTC` at the

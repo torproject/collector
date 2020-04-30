@@ -40,6 +40,8 @@ TARBALLS=(
   exit-list-$YEARTWO-$MONTHTWO
   torperf-$YEARONE-$MONTHONE
   torperf-$YEARTWO-$MONTHTWO
+  onionperf-$YEARONE-$MONTHONE
+  onionperf-$YEARTWO-$MONTHTWO
   certs
   microdescs-$YEARONE-$MONTHONE
   microdescs-$YEARTWO-$MONTHTWO
@@ -73,6 +75,8 @@ DIRECTORIES=(
   $OUTDIR/exit-lists/$YEARTWO/$MONTHTWO/
   $OUTDIR/torperf/$YEARONE/$MONTHONE/
   $OUTDIR/torperf/$YEARTWO/$MONTHTWO/
+  $OUTDIR/onionperf/$YEARONE/$MONTHONE/
+  $OUTDIR/onionperf/$YEARTWO/$MONTHTWO/
   $OUTDIR/relay-descriptors/certs/
   $OUTDIR/relay-descriptors/microdesc/$YEARONE/$MONTHONE
   $OUTDIR/relay-descriptors/microdesc/$YEARTWO/$MONTHTWO
@@ -177,6 +181,9 @@ ln -f -s -t $ARCHIVEDIR/relay-descriptors/bandwidths/ $TARBALLTARGETDIR/bandwidt
 
 mkdir -p $ARCHIVEDIR/torperf/
 ln -f -s -t $ARCHIVEDIR/torperf/ $TARBALLTARGETDIR/torperf-20??-??.tar.xz
+
+mkdir -p $ARCHIVEDIR/onionperf/
+ln -f -s -t $ARCHIVEDIR/onionperf/ $TARBALLTARGETDIR/onionperf-20??-??.tar.xz
 
 mkdir -p $ARCHIVEDIR/webstats/
 ln -f -s -t $ARCHIVEDIR/webstats/ $TARBALLTARGETDIR/webstats-20??-??.tar

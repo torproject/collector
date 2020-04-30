@@ -13,6 +13,7 @@ import org.torproject.metrics.collector.conf.Key;
 import org.torproject.metrics.collector.cron.CollecTorMain;
 import org.torproject.metrics.collector.downloader.Downloader;
 
+import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,20 +33,24 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Download download .tpf files from OnionPerf hosts. */
+/** Download OnionPerf files from OnionPerf hosts. */
 public class OnionPerfDownloader extends CollecTorMain {
 
   private static final Logger logger = LoggerFactory.getLogger(
       OnionPerfDownloader.class);
 
   private static final String TORPERF = "torperf";
+
+  private static final String ONIONPERF = "onionperf";
 
   /** Instantiate the OnionPerf module using the given configuration. */
   public OnionPerfDownloader(Configuration config) {
@@ -54,21 +59,25 @@ public class OnionPerfDownloader extends CollecTorMain {
   }
 
   /** File containing the download history, which is necessary, because
-   * OnionPerf does not delete older .tpf files, but which enables us to do
-   * so. */
+   * OnionPerf does not delete older files, but which enables us to do so. */
   private File onionPerfDownloadedFile;
 
-  /** Full URLs of .tpf files downloaded in the current or in past
-   * executions. */
-  private SortedSet<String> downloadedTpfFiles = new TreeSet<>();
+  /** Full URLs of files downloaded in the current or in past executions. */
+  private SortedSet<String> downloadedFiles = new TreeSet<>();
 
   /** Base URLs of configured OnionPerf hosts. */
   private URL[] onionPerfHosts = null;
 
-  /** Directory for storing archived .tpf files. */
+  /** Relative URLs of available .tpf files by base URL. */
+  private Map<URL, List<String>> tpfFileUrls = new HashMap<>();
+
+  /** Relative URLs of available OnionPerf analysis files by base URL. */
+  private Map<URL, List<String>> onionPerfAnalysisFileUrls = new HashMap<>();
+
+  /** Directory for storing archived files. */
   private File archiveDirectory = null;
 
-  /** Directory for storing recent .tpf files. */
+  /** Directory for storing recent files. */
   private File recentDirectory = null;
 
   @Override
@@ -87,19 +96,17 @@ public class OnionPerfDownloader extends CollecTorMain {
         new File(config.getPath(Key.StatsPath).toFile(),
         "onionperf-downloaded");
     this.onionPerfHosts = config.getUrlArray(Key.OnionPerfHosts);
-    this.readDownloadedOnionPerfTpfFiles();
-    this.archiveDirectory = new File(config.getPath(Key.OutputPath).toFile(),
-        TORPERF);
-    this.recentDirectory = new File(config.getPath(Key.RecentPath).toFile(),
-        TORPERF);
+    this.readDownloadedOnionPerfFiles();
+    this.archiveDirectory = config.getPath(Key.OutputPath).toFile();
+    this.recentDirectory = config.getPath(Key.RecentPath).toFile();
     for (URL baseUrl : this.onionPerfHosts) {
       this.downloadFromOnionPerfHost(baseUrl);
     }
-    this.writeDownloadedOnionPerfTpfFiles();
+    this.writeDownloadedOnionPerfFiles();
     this.cleanUpRsyncDirectory();
   }
 
-  private void readDownloadedOnionPerfTpfFiles() {
+  private void readDownloadedOnionPerfFiles() {
     if (!this.onionPerfDownloadedFile.exists()) {
       return;
     }
@@ -107,47 +114,69 @@ public class OnionPerfDownloader extends CollecTorMain {
           this.onionPerfDownloadedFile))) {
       String line;
       while ((line = br.readLine()) != null) {
-        this.downloadedTpfFiles.add(line);
+        this.downloadedFiles.add(line);
       }
     } catch (IOException e) {
       logger.info("Unable to read download history file '{}'. Ignoring "
-          + "download history and downloading all available .tpf files.",
+          + "download history and downloading all available files.",
           this.onionPerfDownloadedFile.getAbsolutePath());
-      this.downloadedTpfFiles.clear();
+      this.downloadedFiles.clear();
     }
   }
 
   private void downloadFromOnionPerfHost(URL baseUrl) {
     logger.info("Downloading from OnionPerf host {}", baseUrl);
-    List<String> tpfFileNames =
-        this.downloadOnionPerfDirectoryListing(baseUrl);
+    this.downloadOnionPerfDirectoryListing(baseUrl);
     String source = baseUrl.getHost().split("\\.")[0];
-    for (String tpfFileName : tpfFileNames) {
-      this.downloadAndParseOnionPerfTpfFile(baseUrl, source, tpfFileName);
+    if (this.tpfFileUrls.containsKey(baseUrl)) {
+      for (String tpfFileName : this.tpfFileUrls.get(baseUrl)) {
+        this.downloadAndParseOnionPerfTpfFile(baseUrl, source, tpfFileName);
+      }
+    }
+    if (this.onionPerfAnalysisFileUrls.containsKey(baseUrl)) {
+      for (String onionPerfAnalysisFileName
+          : this.onionPerfAnalysisFileUrls.get(baseUrl)) {
+        this.downloadAndParseOnionPerfAnalysisFile(baseUrl, source,
+            onionPerfAnalysisFileName);
+      }
     }
   }
 
-  /** Pattern for links contained in directory listings. */
+  /** Patterns for links contained in directory listings. */
   private static final Pattern TPF_FILE_URL_PATTERN =
       Pattern.compile(".*<a href=\"([^\"]+\\.tpf)\">.*");
 
-  private List<String> downloadOnionPerfDirectoryListing(URL baseUrl) {
-    List<String> tpfFileUrls = new ArrayList<>();
+  private static final Pattern ONIONPERF_ANALYSIS_FILE_URL_PATTERN =
+      Pattern.compile(
+      ".*<a href=\"([0-9-]{10}\\.onionperf\\.analysis\\.json\\.xz)\">.*");
+
+  private void downloadOnionPerfDirectoryListing(URL baseUrl) {
     try (BufferedReader br = new BufferedReader(new InputStreamReader(
         baseUrl.openStream()))) {
       String line;
       while ((line = br.readLine()) != null) {
-        Matcher matcher = TPF_FILE_URL_PATTERN.matcher(line);
-        if (matcher.matches() && !matcher.group(1).startsWith("/")) {
-          tpfFileUrls.add(matcher.group(1));
+        Matcher tpfFileMatcher = TPF_FILE_URL_PATTERN.matcher(line);
+        if (tpfFileMatcher.matches()
+            && !tpfFileMatcher.group(1).startsWith("/")) {
+          this.tpfFileUrls.putIfAbsent(baseUrl, new ArrayList<>());
+          this.tpfFileUrls.get(baseUrl).add(tpfFileMatcher.group(1));
+        }
+        Matcher onionPerfAnalysisFileMatcher
+            = ONIONPERF_ANALYSIS_FILE_URL_PATTERN.matcher(line);
+        if (onionPerfAnalysisFileMatcher.matches()
+            && !onionPerfAnalysisFileMatcher.group(1).startsWith("/")) {
+          this.onionPerfAnalysisFileUrls.putIfAbsent(baseUrl,
+              new ArrayList<>());
+          this.onionPerfAnalysisFileUrls.get(baseUrl)
+              .add(onionPerfAnalysisFileMatcher.group(1));
         }
       }
     } catch (IOException e) {
       logger.warn("Unable to download directory listing from '{}'.  Skipping "
           + "this OnionPerf host.", baseUrl);
-      tpfFileUrls.clear();
+      this.tpfFileUrls.remove(baseUrl);
+      this.onionPerfAnalysisFileUrls.remove(baseUrl);
     }
-    return tpfFileUrls;
   }
 
   private static final DateFormat DATE_FORMAT;
@@ -169,7 +198,7 @@ public class OnionPerfDownloader extends CollecTorMain {
     }
 
     /* Skip if we successfully downloaded this file before. */
-    if (this.downloadedTpfFiles.contains(tpfFileUrl.toString())) {
+    if (this.downloadedFiles.contains(tpfFileUrl.toString())) {
       return;
     }
 
@@ -197,7 +226,8 @@ public class OnionPerfDownloader extends CollecTorMain {
     }
 
     /* Download file contents to temporary file. */
-    File tempFile = new File(this.recentDirectory, "." + tpfFileName);
+    File tempFile = new File(this.recentDirectory,
+        TORPERF + "/." + tpfFileName);
     byte[] downloadedBytes;
     try {
       downloadedBytes = Downloader.downloadFromHttpServer(
@@ -263,7 +293,7 @@ public class OnionPerfDownloader extends CollecTorMain {
 
     /* Copy/move files in place. */
     File archiveFile = new File(this.archiveDirectory,
-         date.replaceAll("-", "/") + "/" + tpfFileName);
+         TORPERF + "/" + date.replaceAll("-", "/") + "/" + tpfFileName);
     archiveFile.getParentFile().mkdirs();
     try {
       Files.copy(tempFile.toPath(), archiveFile.toPath(),
@@ -274,18 +304,132 @@ public class OnionPerfDownloader extends CollecTorMain {
       tempFile.delete();
       return;
     }
-    File recentFile = new File(this.recentDirectory, tpfFileName);
+    File recentFile = new File(this.recentDirectory,
+        TORPERF + "/" + tpfFileName);
     tempFile.renameTo(recentFile);
 
     /* Add to download history to avoid downloading it again. */
-    this.downloadedTpfFiles.add(baseUrl + tpfFileName);
+    this.downloadedFiles.add(baseUrl + tpfFileName);
   }
 
-  private void writeDownloadedOnionPerfTpfFiles() {
+
+  private void downloadAndParseOnionPerfAnalysisFile(URL baseUrl, String source,
+      String onionPerfAnalysisFileName) {
+    URL onionPerfAnalysisFileUrl;
+    try {
+      onionPerfAnalysisFileUrl = new URL(baseUrl, onionPerfAnalysisFileName);
+    } catch (MalformedURLException e1) {
+      logger.warn("Unable to put together base URL '{}' and file path '{}' to "
+          + "a URL. Skipping.", baseUrl, onionPerfAnalysisFileName);
+      return;
+    }
+
+    /* Skip if we successfully downloaded this file before. */
+    if (this.downloadedFiles.contains(onionPerfAnalysisFileUrl.toString())) {
+      return;
+    }
+
+    /* Parse date from file name: yyyy-MM-dd.onionperf.analysis.json.xz */
+    String date;
+    try {
+      date = onionPerfAnalysisFileName.substring(0, 10);
+      DATE_FORMAT.parse(date);
+    } catch (NumberFormatException | ParseException e) {
+      logger.warn("Invalid file name '{}{}'. Skipping.", baseUrl,
+          onionPerfAnalysisFileName, e);
+      return;
+    }
+
+    /* Download file contents to temporary file. */
+    File tempFile = new File(this.recentDirectory,
+        ONIONPERF + "/." + onionPerfAnalysisFileName);
+    byte[] downloadedBytes;
+    try {
+      downloadedBytes = Downloader.downloadFromHttpServer(
+          new URL(baseUrl + onionPerfAnalysisFileName));
+    } catch (IOException e) {
+      logger.warn("Unable to download '{}{}'. Skipping.", baseUrl,
+          onionPerfAnalysisFileName, e);
+      return;
+    }
+    if (null == downloadedBytes) {
+      logger.warn("Unable to download '{}{}'. Skipping.", baseUrl,
+          onionPerfAnalysisFileName);
+      return;
+    }
+    tempFile.getParentFile().mkdirs();
+    try {
+      Files.write(tempFile.toPath(), downloadedBytes);
+    } catch (IOException e) {
+      logger.warn("Unable to write previously downloaded '{}{}' to temporary "
+          + "file '{}'. Skipping.", baseUrl, onionPerfAnalysisFileName,
+          tempFile, e);
+      return;
+    }
+
+    /* Validate contained descriptors. */
+    DescriptorParser descriptorParser =
+        DescriptorSourceFactory.createDescriptorParser();
+    byte[] rawDescriptorBytes;
+    try {
+      rawDescriptorBytes = IOUtils.toByteArray(
+          Files.newInputStream(tempFile.toPath()));
+    } catch (IOException e) {
+      logger.warn("OnionPerf file '{}{}' could not be read. Skipping.", baseUrl,
+          onionPerfAnalysisFileName, e);
+      tempFile.delete();
+      return;
+    }
+    Iterable<Descriptor> descriptors = descriptorParser.parseDescriptors(
+        rawDescriptorBytes, null, onionPerfAnalysisFileName);
+    String message = null;
+    for (Descriptor descriptor : descriptors) {
+      if (!(descriptor instanceof TorperfResult)) {
+        message = "File contains descriptors other than an OnionPerf analysis "
+            + "document: " + descriptor.getClass();
+        break;
+      }
+      TorperfResult torperf = (TorperfResult) descriptor;
+      if (!source.equals(torperf.getSource())) {
+        message = "File contains transfer from another source: "
+            + torperf.getSource();
+        break;
+      }
+    }
+    if (null != message) {
+      logger.warn("OnionPerf file '{}{}' was found to be invalid: {}. "
+          + "Skipping.", baseUrl, onionPerfAnalysisFileName, message);
+      tempFile.delete();
+      return;
+    }
+
+    /* Copy/move files in place. */
+    File archiveFile = new File(this.archiveDirectory,
+        ONIONPERF + "/" + date.replaceAll("-", "/") + "/" + date + "." + source
+        + ".onionperf.analysis.json.xz");
+    archiveFile.getParentFile().mkdirs();
+    try {
+      Files.copy(tempFile.toPath(), archiveFile.toPath(),
+          StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
+      logger.warn("Unable to copy OnionPerf file {} to {}. Skipping.",
+          tempFile, archiveFile, e);
+      tempFile.delete();
+      return;
+    }
+    File recentFile = new File(this.recentDirectory,
+        ONIONPERF + "/" + date + "." + source + ".onionperf.analysis.json.xz");
+    tempFile.renameTo(recentFile);
+
+    /* Add to download history to avoid downloading it again. */
+    this.downloadedFiles.add(baseUrl + onionPerfAnalysisFileName);
+  }
+
+  private void writeDownloadedOnionPerfFiles() {
     this.onionPerfDownloadedFile.getParentFile().mkdirs();
     try (BufferedWriter bw = new BufferedWriter(new FileWriter(
           this.onionPerfDownloadedFile))) {
-      for (String line : this.downloadedTpfFiles) {
+      for (String line : this.downloadedFiles) {
         bw.write(line);
         bw.newLine();
       }
