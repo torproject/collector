@@ -1,4 +1,7 @@
-# Changes in version 1.??.? - 2020-??-??
+# Changes in version 1.16.0 - 2020-08-05
+
+ * Medium changes
+   - Retain ipv6- lines in bridge extra-info descriptors.
 
 
 # Changes in version 1.15.2 - 2020-05-17
