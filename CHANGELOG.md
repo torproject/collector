@@ -1,3 +1,10 @@
+# Changes in version 1.??.? - 2020-1?-??
+
+ * Medium changes
+  - Clean up descriptors written to the `out/` directory by deleting
+    files that are older than seven weeks.
+
+
 # Changes in version 1.16.1 - 2020-08-16
 
  * Medium changes

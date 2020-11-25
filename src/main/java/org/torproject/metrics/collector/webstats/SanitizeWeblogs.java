@@ -31,8 +31,10 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -106,10 +108,12 @@ public class SanitizeWeblogs extends CollecTorMain {
             = this.findCleanWrite(this.config.getPath(Key.WebstatsLocalOrigins),
             previouslyProcessedWebstats);
         this.writeProcessedWebstats(newlyProcessedWebstats);
-        long cutOffMillis = System.currentTimeMillis()
-            - 3L * 24L * 60L * 60L * 1000L;
-        PersistenceUtils.cleanDirectory(this.config.getPath(Key.RecentPath),
-            cutOffMillis);
+        PersistenceUtils.cleanDirectory(
+            Paths.get(this.recentDirectory.toString(), WEBSTATS),
+            Instant.now().minus(3, ChronoUnit.DAYS).toEpochMilli());
+        PersistenceUtils.cleanDirectory(
+            Paths.get(this.outputDirectory.toString(), WEBSTATS),
+            Instant.now().minus(49, ChronoUnit.DAYS).toEpochMilli());
       }
     } catch (Exception e) {
       logger.error("Cannot sanitize web-logs: {}", e.getMessage(), e);

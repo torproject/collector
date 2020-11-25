@@ -18,6 +18,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 
 public class PersistenceUtils {
@@ -80,33 +81,70 @@ public class PersistenceUtils {
   }
 
   /** Move temporary files to their final location. */
-  public static void cleanDirectory(Path pathToClean) throws IOException {
+  public static void cleanDirectory(Path pathToClean) {
     PersistenceUtils.cleanDirectory(pathToClean, -1L);
   }
 
   /** Clean up the given directory by deleting files that are older than the
    * given cut-off timestamp, and by moving temporary files to their final
    * location. */
-  public static void cleanDirectory(Path pathToClean, long cutOffMillis)
-      throws IOException {
+  public static void cleanDirectory(Path pathToClean, long cutOffMillis) {
+    PersistenceUtils.cleanDirectory(pathToClean, cutOffMillis, null);
+  }
+
+  /** Clean up the given directory, excluding the given subdirectory, by
+   * deleting files that are older than the given cut-off timestamp, and by
+   * moving temporary files to their final location. */
+  public static void cleanDirectory(Path pathToClean, long cutOffMillis,
+      Path pathToExclude) {
+    if (!Files.exists(pathToClean)) {
+      return;
+    }
+    logger.info("Cleaning up directory {} with cut-off time {}.",
+        pathToClean, Instant.ofEpochMilli(cutOffMillis));
     SimpleFileVisitor<Path> sfv = new SimpleFileVisitor<Path>() {
+      @Override
+      public FileVisitResult preVisitDirectory(Path dir,
+          BasicFileAttributes attrs) {
+        if (null == pathToExclude || !pathToExclude.equals(dir)) {
+          return FileVisitResult.CONTINUE;
+        } else {
+          return FileVisitResult.SKIP_SUBTREE;
+        }
+      }
+
       @Override
       public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
           throws IOException {
         String tempName = file.toString();
         if (cutOffMillis >= 0L
             && attrs.lastModifiedTime().toMillis() < cutOffMillis) {
-          file.toFile().delete();
+          Files.delete(file);
         } else if (tempName.endsWith(TEMPFIX)) {
           Path outputPath = Paths
               .get(tempName.substring(0, tempName.length() - TEMPFIX.length()));
           Files.deleteIfExists(outputPath);
-          file.toFile().renameTo(outputPath.toFile());
+          Files.move(file, outputPath);
+        }
+        return FileVisitResult.CONTINUE;
+      }
+
+      @Override
+      public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+          throws IOException {
+        if (!Files.list(dir).findFirst().isPresent()) {
+          Files.delete(dir);
         }
         return FileVisitResult.CONTINUE;
       }
     };
-    Files.walkFileTree(pathToClean, sfv);
+    try {
+      Files.walkFileTree(pathToClean, sfv);
+    } catch (IOException e) {
+      logger.warn("Caught I/O exception while cleaning up directory {} with "
+          + "cut-off time {}. Continuing.",
+          pathToClean, Instant.ofEpochMilli(cutOffMillis), e);
+    }
   }
 
   /** Return all date-time parts as array. */

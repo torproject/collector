@@ -16,6 +16,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 public class PersistUtilsTest {
@@ -107,4 +110,33 @@ public class PersistUtilsTest {
     assertEquals("File contained: " + text, theText2, text.get(3));
   }
 
+  @Test()
+  public void testCleanDirectory() throws Exception {
+    /*
+     * out/
+     *   a/           # empty after deleting x
+     *     x          # too old file, delete
+     *   b/           # keep together with recent file y
+     *     y.tmp      # recent enough, rename to y
+     *   c/           # exclude (empty) subdirectory
+     */
+    Instant now = Instant.now();
+    Path out = tmpf.newFolder().toPath();
+    Path dirA = Files.createDirectory(out.resolve("a"));
+    Path fileX = Files.createFile(dirA.resolve("x"));
+    Files.setLastModifiedTime(fileX,
+        FileTime.from(now.minus(9L, ChronoUnit.DAYS)));
+    Path dirB = Files.createDirectory(out.resolve("b"));
+    Path fileYTmp = Files.createFile(dirB.resolve("y.tmp"));
+    Files.setLastModifiedTime(fileYTmp, FileTime.from(now));
+    Path dirC = Files.createDirectory(out.resolve("c"));
+    PersistenceUtils.cleanDirectory(out,
+        now.minus(3L, ChronoUnit.DAYS).toEpochMilli(), dirC);
+    assertFalse(Files.exists(dirA));
+    assertFalse(Files.exists(fileX));
+    assertTrue(Files.exists(dirB));
+    assertFalse(Files.exists(fileYTmp));
+    assertTrue(Files.exists(dirB.resolve("y")));
+    assertTrue(Files.exists(dirC));
+  }
 }

@@ -13,6 +13,7 @@ import org.torproject.metrics.collector.conf.Configuration;
 import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
 import org.torproject.metrics.collector.cron.CollecTorMain;
+import org.torproject.metrics.collector.persist.PersistenceUtils;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
@@ -34,15 +35,15 @@ import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
-import java.util.Stack;
 import java.util.TreeMap;
 
 /**
@@ -228,7 +229,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
 
     this.checkStaleDescriptors();
 
-    this.cleanUpRsyncDirectory();
+    this.cleanUpDirectories();
   }
 
   private String scrubOrAddress(String orAddress, byte[] fingerprintBytes,
@@ -1388,27 +1389,15 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     }
   }
 
-  /** Delete all files from the rsync directory that have not been modified
-   * in the last three days, and remove the .tmp extension from newly
-   * written files. */
-  public void cleanUpRsyncDirectory() throws ConfigurationException {
-    long cutOffMillis = System.currentTimeMillis()
-        - 3L * 24L * 60L * 60L * 1000L;
-    Stack<File> allFiles = new Stack<>();
-    allFiles.add(new File(config.getPath(Key.RecentPath).toFile(),
-        BRIDGE_DESCRIPTORS));
-    while (!allFiles.isEmpty()) {
-      File file = allFiles.pop();
-      if (file.isDirectory()) {
-        allFiles.addAll(Arrays.asList(file.listFiles()));
-      } else if (file.lastModified() < cutOffMillis) {
-        file.delete();
-      } else if (file.getName().endsWith(".tmp")) {
-        file.renameTo(new File(file.getParentFile(),
-            file.getName().substring(0,
-            file.getName().lastIndexOf(".tmp"))));
-      }
-    }
+  /**
+   * Delete all files from the rsync (out) directory that have not been modified
+   * in the last three days (seven weeks), and remove the .tmp extension from
+   * newly written files. */
+  private void cleanUpDirectories() {
+    PersistenceUtils.cleanDirectory(Paths.get(this.recentPathName),
+        Instant.now().minus(3, ChronoUnit.DAYS).toEpochMilli());
+    PersistenceUtils.cleanDirectory(Paths.get(this.outputPathName),
+        Instant.now().minus(49, ChronoUnit.DAYS).toEpochMilli());
   }
 }
 

@@ -13,6 +13,7 @@ import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
 import org.torproject.metrics.collector.cron.CollecTorMain;
 import org.torproject.metrics.collector.downloader.Downloader;
+import org.torproject.metrics.collector.persist.PersistenceUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.SortedSet;
@@ -168,24 +171,16 @@ public class ExitListDownloader extends CollecTorMain {
     }
     logger.info(dumpStats.toString());
 
-    this.cleanUpRsyncDirectory();
+    this.cleanUpDirectories();
   }
 
-  /** Delete all files from the rsync directory that have not been modified
-   * in the last three days. */
-  public void cleanUpRsyncDirectory() {
-    long cutOffMillis = System.currentTimeMillis()
-        - 3L * 24L * 60L * 60L * 1000L;
-    Stack<File> allFiles = new Stack<>();
-    allFiles.add(new File(recentPathName));
-    while (!allFiles.isEmpty()) {
-      File file = allFiles.pop();
-      if (file.isDirectory()) {
-        allFiles.addAll(Arrays.asList(file.listFiles()));
-      } else if (file.lastModified() < cutOffMillis) {
-        file.delete();
-      }
-    }
+  /** Delete all files from the rsync (out) directory that have not been
+   * modified in the last three days (seven weeks). */
+  private void cleanUpDirectories() {
+    PersistenceUtils.cleanDirectory(Paths.get(this.recentPathName),
+        Instant.now().minus(3, ChronoUnit.DAYS).toEpochMilli());
+    PersistenceUtils.cleanDirectory(Paths.get(this.outputPathName),
+        Instant.now().minus(49, ChronoUnit.DAYS).toEpochMilli());
   }
 }
 

@@ -8,6 +8,7 @@ import org.torproject.metrics.collector.conf.Configuration;
 import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
 import org.torproject.metrics.collector.cron.CollecTorMain;
+import org.torproject.metrics.collector.persist.PersistenceUtils;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -24,7 +25,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.DateTimeException;
@@ -178,7 +178,7 @@ public class BridgePoolAssignmentsProcessor extends CollecTorMain {
     }
     this.writeProcessedFiles(this.parsedBridgePoolAssignmentsFile,
         processedFiles);
-    this.cleanUpRsyncDirectory();
+    this.cleanUpDirectories();
     logger.info("Finished processing bridge pool assignment file(s).");
   }
 
@@ -363,29 +363,14 @@ public class BridgePoolAssignmentsProcessor extends CollecTorMain {
   }
 
   /**
-   * Delete all files from the rsync directory that have not been modified in
-   * the last three days.
+   * Delete all files from the rsync (out) directory that have not been modified
+   * in the last three days (seven weeks).
    */
-  public void cleanUpRsyncDirectory() {
-    Instant cutOff = Instant.now().minus(3L, ChronoUnit.DAYS);
-    Stack<File> allFiles = new Stack<>();
-    allFiles.add(new File(this.recentPathName));
-    while (!allFiles.isEmpty()) {
-      File file = allFiles.pop();
-      if (file.isDirectory()) {
-        File[] filesInDirectory = file.listFiles();
-        if (null != filesInDirectory) {
-          allFiles.addAll(Arrays.asList(filesInDirectory));
-        }
-      } else if (Instant.ofEpochMilli(file.lastModified()).isBefore(cutOff)) {
-        try {
-          Files.deleteIfExists(file.toPath());
-        } catch (IOException e) {
-          logger.warn("Unable to delete file {} that is apparently older than "
-              + "three days.", file, e);
-        }
-      }
-    }
+  public void cleanUpDirectories() {
+    PersistenceUtils.cleanDirectory(Paths.get(this.recentPathName),
+        Instant.now().minus(3, ChronoUnit.DAYS).toEpochMilli());
+    PersistenceUtils.cleanDirectory(Paths.get(this.outputPathName),
+        Instant.now().minus(49, ChronoUnit.DAYS).toEpochMilli());
   }
 }
 

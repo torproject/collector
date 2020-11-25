@@ -42,7 +42,6 @@ import org.torproject.metrics.collector.persist.WebServerAccessLogPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.file.Path;
 
 /** Provides persistence for descriptors based on the descriptor type. */
@@ -69,11 +68,7 @@ public class SyncPersistence {
    * Cleans the directory in {@code RecentPath} after storing descriptors.
    */
   public void cleanDirectory() {
-    try {
-      PersistenceUtils.cleanDirectory(recentPath);
-    } catch (IOException ioe) {
-      logger.error("Cleaning of {} failed.", recentPath.toString(), ioe);
-    }
+    PersistenceUtils.cleanDirectory(recentPath);
   }
 
   /**

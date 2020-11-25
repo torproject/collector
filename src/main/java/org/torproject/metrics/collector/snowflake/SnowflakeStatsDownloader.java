@@ -13,6 +13,7 @@ import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
 import org.torproject.metrics.collector.cron.CollecTorMain;
 import org.torproject.metrics.collector.downloader.Downloader;
+import org.torproject.metrics.collector.persist.PersistenceUtils;
 import org.torproject.metrics.collector.persist.SnowflakeStatsPersistence;
 
 import org.slf4j.Logger;
@@ -25,10 +26,10 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.time.temporal.ChronoUnit;
 import java.util.SortedSet;
-import java.util.Stack;
 import java.util.TreeSet;
 
 public class SnowflakeStatsDownloader extends CollecTorMain {
@@ -37,6 +38,8 @@ public class SnowflakeStatsDownloader extends CollecTorMain {
       SnowflakeStatsDownloader.class);
 
   private String recentPathName;
+
+  private String outputPathName;
 
   /** Instantiate the snowflake-stats module using the given configuration. */
   public SnowflakeStatsDownloader(Configuration config) {
@@ -81,7 +84,7 @@ public class SnowflakeStatsDownloader extends CollecTorMain {
     DescriptorParser descriptorParser =
         DescriptorSourceFactory.createDescriptorParser();
     SortedSet<LocalDateTime> snowflakeStatsEnds = new TreeSet<>();
-    String outputPathName = config.getPath(Key.OutputPath).toString();
+    this.outputPathName = config.getPath(Key.OutputPath).toString();
     for (Descriptor descriptor : descriptorParser.parseDescriptors(
         downloadedBytes, null, null)) {
       if (descriptor instanceof SnowflakeStats) {
@@ -119,7 +122,7 @@ public class SnowflakeStatsDownloader extends CollecTorMain {
     }
 
     this.writeProcessedFiles(parsedSnowflakeStatsFile, processedFiles);
-    this.cleanUpRsyncDirectory();
+    this.cleanUpDirectories();
   }
 
   /**
@@ -150,21 +153,13 @@ public class SnowflakeStatsDownloader extends CollecTorMain {
     }
   }
 
-  /** Delete all files from the rsync directory that have not been modified
-   * in the last three days. */
-  public void cleanUpRsyncDirectory() {
-    long cutOffMillis = System.currentTimeMillis()
-        - 3L * 24L * 60L * 60L * 1000L;
-    Stack<File> allFiles = new Stack<>();
-    allFiles.add(new File(recentPathName));
-    while (!allFiles.isEmpty()) {
-      File file = allFiles.pop();
-      if (file.isDirectory()) {
-        allFiles.addAll(Arrays.asList(file.listFiles()));
-      } else if (file.lastModified() < cutOffMillis) {
-        file.delete();
-      }
-    }
+  /** Delete all files from the rsync (out) directory that have not been
+   * modified in the last three days (seven weeks). */
+  private void cleanUpDirectories() {
+    PersistenceUtils.cleanDirectory(Paths.get(this.recentPathName),
+        Instant.now().minus(3, ChronoUnit.DAYS).toEpochMilli());
+    PersistenceUtils.cleanDirectory(Paths.get(this.outputPathName),
+        Instant.now().minus(49, ChronoUnit.DAYS).toEpochMilli());
   }
 }
 

@@ -12,6 +12,7 @@ import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
 import org.torproject.metrics.collector.cron.CollecTorMain;
 import org.torproject.metrics.collector.downloader.Downloader;
+import org.torproject.metrics.collector.persist.PersistenceUtils;
 
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
@@ -31,13 +32,13 @@ import java.nio.file.StandardCopyOption;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
-import java.util.Stack;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -103,7 +104,7 @@ public class OnionPerfDownloader extends CollecTorMain {
       this.downloadFromOnionPerfHost(baseUrl);
     }
     this.writeDownloadedOnionPerfFiles();
-    this.cleanUpRsyncDirectory();
+    this.cleanUpDirectories();
   }
 
   private void readDownloadedOnionPerfFiles() {
@@ -441,21 +442,21 @@ public class OnionPerfDownloader extends CollecTorMain {
     }
   }
 
-  /** Delete all files from the rsync directory that have not been modified
-   * in the last three days. */
-  public void cleanUpRsyncDirectory() throws ConfigurationException {
-    long cutOffMillis = System.currentTimeMillis()
-        - 3L * 24L * 60L * 60L * 1000L;
-    Stack<File> allFiles = new Stack<>();
-    allFiles.add(new File(config.getPath(Key.RecentPath).toFile(), TORPERF));
-    while (!allFiles.isEmpty()) {
-      File file = allFiles.pop();
-      if (file.isDirectory()) {
-        allFiles.addAll(Arrays.asList(file.listFiles()));
-      } else if (file.lastModified() < cutOffMillis) {
-        file.delete();
-      }
-    }
+  /** Delete all files from the rsync (out) directories that have not been
+   * modified in the last three days (seven weeks). */
+  private void cleanUpDirectories() {
+    PersistenceUtils.cleanDirectory(
+        new File(this.recentDirectory, TORPERF).toPath(),
+        Instant.now().minus(3, ChronoUnit.DAYS).toEpochMilli());
+    PersistenceUtils.cleanDirectory(
+        new File(this.recentDirectory, ONIONPERF).toPath(),
+        Instant.now().minus(3, ChronoUnit.DAYS).toEpochMilli());
+    PersistenceUtils.cleanDirectory(
+        new File(this.archiveDirectory, TORPERF).toPath(),
+        Instant.now().minus(49, ChronoUnit.DAYS).toEpochMilli());
+    PersistenceUtils.cleanDirectory(
+        new File(this.archiveDirectory, ONIONPERF).toPath(),
+        Instant.now().minus(49, ChronoUnit.DAYS).toEpochMilli());
   }
 }
 

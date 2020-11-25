@@ -18,6 +18,7 @@ import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
 import org.torproject.metrics.collector.conf.SourceType;
 import org.torproject.metrics.collector.cron.CollecTorMain;
+import org.torproject.metrics.collector.persist.PersistenceUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,7 +47,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
-import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -197,7 +197,7 @@ public class ArchiveWriter extends CollecTorMain {
 
     this.checkStaledescriptors();
 
-    this.cleanUpRsyncDirectory();
+    this.cleanUpDirectories();
 
     this.saveDescriptorDigests();
 
@@ -549,51 +549,16 @@ public class ArchiveWriter extends CollecTorMain {
     }
   }
 
-  /** Delete all files from the rsync directory that have not been modified
-   * in the last three days (except for microdescriptors which are kept
-   * for up to thirty days), and remove the .tmp extension from newly
-   * written files. */
-  public void cleanUpRsyncDirectory() {
-    long cutOffMillis = System.currentTimeMillis()
-        - 3L * 24L * 60L * 60L * 1000L;
-    long cutOffMicroMillis = cutOffMillis - 27L * 24L * 60L * 60L * 1000L;
-    Stack<File> allFiles = new Stack<>();
-    allFiles.add(new File(recentPathName, RELAY_DESCRIPTORS));
-    while (!allFiles.isEmpty()) {
-      File file = allFiles.pop();
-      if (file.isDirectory()) {
-        File[] containedFiles = file.listFiles();
-        if (null == containedFiles) {
-          logger.warn("Unable to list files contained in directory {}.", file);
-        } else {
-          allFiles.addAll(Arrays.asList(containedFiles));
-        }
-      } else if (file.getName().endsWith("-micro")) {
-        if (file.lastModified() < cutOffMicroMillis) {
-          if (!file.delete()) {
-            logger.warn("Unable to delete outdated descriptor file {}.", file);
-          }
-        }
-      } else if (file.lastModified() < cutOffMillis) {
-        if (!file.delete()) {
-          logger.warn("Unable to delete outdated descriptor file {}.", file);
-        }
-      } else if (file.getName().endsWith(".tmp")) {
-        File destinationFile = new File(file.getParentFile(),
-            file.getName().substring(0, file.getName().lastIndexOf(".tmp")));
-        if (destinationFile.exists()) {
-          logger.warn("Attempting to rename descriptor file {} to existing "
-              + "file {}.", file, destinationFile);
-        } else {
-          logger.info("Renaming descriptor file {} to non-existing file {}.",
-              file, destinationFile);
-        }
-        if (!file.renameTo(destinationFile)) {
-          logger.warn("Unable to rename descriptor file {} to {}.", file,
-              destinationFile);
-        }
-      }
-    }
+  /** Delete all files from the rsync (out) directory that have not been
+   * modified in the last three days (seven weeks), and remove the .tmp
+   * extension from newly written files. */
+  public void cleanUpDirectories() {
+    PersistenceUtils.cleanDirectory(
+        Paths.get(recentPathName, RELAY_DESCRIPTORS),
+        Instant.now().minus(3, ChronoUnit.DAYS).toEpochMilli());
+    PersistenceUtils.cleanDirectory(Paths.get(outputDirectory),
+        Instant.now().minus(49, ChronoUnit.DAYS).toEpochMilli(),
+        Paths.get(this.outputDirectory, "certs"));
   }
 
   private void saveDescriptorDigests() {

@@ -12,6 +12,7 @@ import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
 import org.torproject.metrics.collector.cron.CollecTorMain;
 import org.torproject.metrics.collector.persist.BridgedbMetricsPersistence;
+import org.torproject.metrics.collector.persist.PersistenceUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.SortedSet;
-import java.util.Stack;
 import java.util.TreeSet;
 
 public class BridgedbMetricsProcessor extends CollecTorMain {
@@ -127,10 +126,10 @@ public class BridgedbMetricsProcessor extends CollecTorMain {
             descriptor.getClass(), descriptor.getDescriptorFile());
       }
     }
-    logger.info("Cleaning up directory {} containing recent files.",
-        this.recentPathName);
+    logger.info("Cleaning up directories {} and {}.",
+        this.recentPathName, this.outputPathName);
     this.writeProcessedFiles(this.parsedBridgedbMetricsFile, processedFiles);
-    this.cleanUpRsyncDirectory();
+    this.cleanUpDirectories();
     logger.info("Finished processing BridgeDB statistics file(s).");
   }
 
@@ -175,28 +174,13 @@ public class BridgedbMetricsProcessor extends CollecTorMain {
   }
 
   /**
-   * Delete all files from the rsync directory that have not been modified in
-   * the last three days.
+   * Delete all files from the rsync (out) directory that have not been modified
+   * in the last three days (seven weeks).
    */
-  public void cleanUpRsyncDirectory() {
-    Instant cutOff = Instant.now().minus(3L, ChronoUnit.DAYS);
-    Stack<File> allFiles = new Stack<>();
-    allFiles.add(new File(this.recentPathName));
-    while (!allFiles.isEmpty()) {
-      File file = allFiles.pop();
-      if (file.isDirectory()) {
-        File[] filesInDirectory = file.listFiles();
-        if (null != filesInDirectory) {
-          allFiles.addAll(Arrays.asList(filesInDirectory));
-        }
-      } else if (Instant.ofEpochMilli(file.lastModified()).isBefore(cutOff)) {
-        try {
-          Files.deleteIfExists(file.toPath());
-        } catch (IOException e) {
-          logger.warn("Unable to delete file {} that is apparently older than "
-              + "three days.", file, e);
-        }
-      }
-    }
+  private void cleanUpDirectories() {
+    PersistenceUtils.cleanDirectory(Paths.get(this.recentPathName),
+        Instant.now().minus(3, ChronoUnit.DAYS).toEpochMilli());
+    PersistenceUtils.cleanDirectory(Paths.get(this.outputPathName),
+        Instant.now().minus(49, ChronoUnit.DAYS).toEpochMilli());
   }
 }
