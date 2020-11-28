@@ -132,7 +132,8 @@ public class PersistenceUtils {
       @Override
       public FileVisitResult postVisitDirectory(Path dir, IOException exc)
           throws IOException {
-        if (!Files.list(dir).findFirst().isPresent()) {
+        if (!pathToClean.equals(dir)
+            && !Files.list(dir).findFirst().isPresent()) {
           Files.delete(dir);
         }
         return FileVisitResult.CONTINUE;
