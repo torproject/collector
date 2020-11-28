@@ -3,6 +3,7 @@
  * Medium changes
   - Clean up descriptors written to the `out/` directory by deleting
     files that are older than seven weeks.
+  - Correctly index files that are moved away and back.
 
 
 # Changes in version 1.16.1 - 2020-08-16
