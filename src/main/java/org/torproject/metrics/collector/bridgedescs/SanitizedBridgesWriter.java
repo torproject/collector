@@ -26,16 +26,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.text.ParseException;
@@ -45,7 +44,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -89,12 +87,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
 
   private String rsyncCatString;
 
-  private File bridgeDirectoriesDirectory;
-
-  /**
-   * Output directory for writing sanitized bridge descriptors.
-   */
-  private File sanitizedBridgesDirectory;
+  private Path inputDirectory;
 
   private boolean replaceIpAddressesWithHashes;
 
@@ -106,13 +99,15 @@ public class SanitizedBridgesWriter extends CollecTorMain {
 
   private boolean haveWarnedAboutInterval;
 
-  private File bridgeIpSecretsFile;
+  private Path bridgeIpSecretsFile;
 
   private SecureRandom secureRandom;
 
-  private String outputPathName;
+  private Path outputDirectory;
 
-  private String recentPathName;
+  private Path recentDirectory;
+
+  private Path statsDirectory;
 
   @Override
   public String module() {
@@ -127,25 +122,12 @@ public class SanitizedBridgesWriter extends CollecTorMain {
   @Override
   protected void startProcessing() throws ConfigurationException {
 
-    outputPathName = Paths.get(config.getPath(Key.OutputPath).toString(),
-        BRIDGE_DESCRIPTORS).toString();
-    recentPathName = Paths.get(config.getPath(Key.RecentPath).toString(),
-        BRIDGE_DESCRIPTORS).toString();
-    File bridgeDirectoriesDirectory =
-        config.getPath(Key.BridgeLocalOrigins).toFile();
-    File sanitizedBridgesDirectory = new File(outputPathName);
-    File statsDirectory = config.getPath(Key.StatsPath).toFile();
-
-    if (bridgeDirectoriesDirectory == null
-        || sanitizedBridgesDirectory == null || statsDirectory == null) {
-      throw new ConfigurationException("BridgeSnapshotsDirectory, "
-          + "SanitizedBridgesWriteDirectory, StatsPath should be set. "
-          + "Please, edit the 'collector.properties' file.");
-    }
-
-    /* Memorize argument values. */
-    this.bridgeDirectoriesDirectory = bridgeDirectoriesDirectory;
-    this.sanitizedBridgesDirectory = sanitizedBridgesDirectory;
+    this.outputDirectory = config.getPath(Key.OutputPath)
+        .resolve(BRIDGE_DESCRIPTORS);
+    this.recentDirectory = config.getPath(Key.RecentPath)
+        .resolve(BRIDGE_DESCRIPTORS);
+    this.inputDirectory = config.getPath(Key.BridgeLocalOrigins);
+    this.statsDirectory = config.getPath(Key.StatsPath);
     this.replaceIpAddressesWithHashes =
         config.getBool(Key.ReplaceIpAddressesWithHashes);
     SimpleDateFormat rsyncCatFormat = new SimpleDateFormat(
@@ -168,13 +150,10 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     /* Read hex-encoded secrets for replacing IP addresses with hashes
      * from disk. */
     this.secretsForHashingIpAddresses = new TreeMap<>();
-    this.bridgeIpSecretsFile = new File(statsDirectory,
-        "bridge-ip-secrets");
-    if (this.bridgeIpSecretsFile.exists()) {
-      try (BufferedReader br = new BufferedReader(new FileReader(
-          this.bridgeIpSecretsFile))) {
-        String line;
-        while ((line = br.readLine()) != null) {
+    this.bridgeIpSecretsFile = statsDirectory.resolve("bridge-ip-secrets");
+    if (Files.exists(this.bridgeIpSecretsFile)) {
+      try {
+        for (String line : Files.readAllLines(this.bridgeIpSecretsFile)) {
           String[] parts = line.split(",");
           if ((line.length() != ("yyyy-MM,".length() + 31 * 2)
               && line.length() != ("yyyy-MM,".length() + 50 * 2)
@@ -229,7 +208,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         this.bridgeSanitizingCutOffTimestamp);
 
     // Import bridge descriptors
-    this.readBridgeSnapshots(this.bridgeDirectoriesDirectory, statsDirectory);
+    this.readBridgeSnapshots(this.inputDirectory, this.statsDirectory);
 
     // Finish writing sanitized bridge descriptors to disk
     this.finishWriting();
@@ -239,8 +218,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     this.cleanUpDirectories();
   }
 
-  private void readBridgeSnapshots(File bridgeDirectoriesDir,
-      File statsDirectory) {
+  private void readBridgeSnapshots(Path bridgeDirectoriesDir,
+      Path statsDirectory) {
 
     if (bridgeDirectoriesDir == null
         || statsDirectory == null) {
@@ -248,21 +227,16 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     }
 
     SortedSet<String> parsed = new TreeSet<>();
-    File pbdFile = new File(statsDirectory, "parsed-bridge-directories");
+    Path pbdFile = statsDirectory.resolve("parsed-bridge-directories");
     boolean modified = false;
-    if (bridgeDirectoriesDir.exists()) {
-      if (pbdFile.exists()) {
-        logger.debug("Reading file {}...", pbdFile.getAbsolutePath());
+    if (Files.exists(bridgeDirectoriesDir)) {
+      if (Files.exists(pbdFile)) {
+        logger.debug("Reading file {}...", pbdFile);
         try {
-          BufferedReader br = new BufferedReader(new FileReader(pbdFile));
-          String line;
-          while ((line = br.readLine()) != null) {
-            parsed.add(line);
-          }
-          br.close();
-          logger.debug("Finished reading file {}.", pbdFile.getAbsolutePath());
+          parsed.addAll(Files.readAllLines(pbdFile));
+          logger.debug("Finished reading file {}.", pbdFile);
         } catch (IOException e) {
-          logger.warn("Failed reading file {}!", pbdFile.getAbsolutePath(), e);
+          logger.warn("Failed reading file {}!", pbdFile, e);
           return;
         }
       }
@@ -275,28 +249,31 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       int skippedServerDescriptors = 0;
       int parsedExtraInfoDescriptors = 0;
       int skippedExtraInfoDescriptors = 0;
-      Stack<File> filesInInputDir = new Stack<>();
+      Stack<Path> filesInInputDir = new Stack<>();
       filesInInputDir.add(bridgeDirectoriesDir);
       while (!filesInInputDir.isEmpty()) {
-        File pop = filesInInputDir.pop();
-        if (pop.isDirectory()) {
-          Collections.addAll(filesInInputDir, pop.listFiles());
-        } else if (!parsed.contains(pop.getName())) {
+        Path pop = filesInInputDir.pop();
+        String fn = pop.getFileName().toString();
+        if (Files.isDirectory(pop)) {
           try {
-            FileInputStream in = new FileInputStream(pop);
+            Files.list(pop).forEachOrdered(filesInInputDir::add);
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        } else if (!parsed.contains(pop.getFileName().toString())) {
+          try (InputStream in = Files.newInputStream(pop)) {
             if (in.available() > 0) {
               TarArchiveInputStream tais;
-              if (pop.getName().endsWith(".tar.gz")) {
+              if (fn.endsWith(".tar.gz")) {
                 GzipCompressorInputStream gcis =
                     new GzipCompressorInputStream(in);
                 tais = new TarArchiveInputStream(gcis);
-              } else if (pop.getName().endsWith(".tar")) {
+              } else if (fn.endsWith(".tar")) {
                 tais = new TarArchiveInputStream(in);
               } else {
                 continue;
               }
               BufferedInputStream bis = new BufferedInputStream(tais);
-              String fn = pop.getName();
               String[] fnParts = fn.split("-");
               if (fnParts.length != 5) {
                 logger.warn("Invalid bridge descriptor tarball file name: {}. "
@@ -416,16 +393,14 @@ public class SanitizedBridgesWriter extends CollecTorMain {
               }
               bis.close();
             }
-            in.close();
 
             /* Let's give some memory back, or we'll run out of it. */
             System.gc();
 
-            parsed.add(pop.getName());
+            parsed.add(fn);
             modified = true;
           } catch (IOException e) {
-            logger.warn("Could not parse bridge snapshot {}!", pop.getName(),
-                e);
+            logger.warn("Could not parse bridge snapshot {}!", pop, e);
           }
         }
       }
@@ -436,15 +411,13 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           parsedStatuses, parsedServerDescriptors, skippedServerDescriptors,
           parsedExtraInfoDescriptors, skippedExtraInfoDescriptors);
       if (!parsed.isEmpty() && modified) {
-        logger.debug("Writing file {}...", pbdFile.getAbsolutePath());
-        pbdFile.getParentFile().mkdirs();
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(pbdFile))) {
-          for (String f : parsed) {
-            bw.append(f).append("\n");
-          }
-          logger.debug("Finished writing file {}.", pbdFile.getAbsolutePath());
+        logger.debug("Writing file {}...", pbdFile);
+        try {
+          Files.createDirectories(pbdFile.getParent());
+          Files.write(pbdFile, parsed);
+          logger.debug("Finished writing file {}.", pbdFile);
         } catch (IOException e) {
-          logger.warn("Failed writing file {}!", pbdFile.getAbsolutePath(), e);
+          logger.warn("Failed writing file {}!", pbdFile, e);
         }
       }
     }
@@ -627,15 +600,16 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       } else {
         /* Append secret to file on disk immediately before using it, or
          * we might end with inconsistently sanitized bridges. */
+        byte[] newBytes = (month + "," + Hex.encodeHexString(secret) + "\n")
+            .getBytes();
         try {
-          if (!this.bridgeIpSecretsFile.exists()) {
-            this.bridgeIpSecretsFile.getParentFile().mkdirs();
+          if (Files.exists(this.bridgeIpSecretsFile)) {
+            Files.write(this.bridgeIpSecretsFile, newBytes,
+                StandardOpenOption.APPEND);
+          } else {
+            Files.createDirectories(this.bridgeIpSecretsFile.getParent());
+            Files.write(this.bridgeIpSecretsFile, newBytes);
           }
-          BufferedWriter bw = new BufferedWriter(new FileWriter(
-              this.bridgeIpSecretsFile,
-              this.bridgeIpSecretsFile.exists()));
-          bw.write(month + "," + Hex.encodeHexString(secret) + "\n");
-          bw.close();
         } catch (IOException e) {
           logger.warn("Could not store new secret "
               + "to disk! Not calculating any IP address or TCP port "
@@ -850,24 +824,24 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       String stime = publicationTime.substring(11, 13)
           + publicationTime.substring(14, 16)
           + publicationTime.substring(17, 19);
-      File tarballFile = new File(
-          this.sanitizedBridgesDirectory.getAbsolutePath() + "/" + syear
-          + "/" + smonth + "/statuses/" + sday + "/" + syear + smonth
-          + sday + "-" + stime + "-" + authorityFingerprint);
-      File rsyncFile = new File(recentPathName, "statuses/"
-          + tarballFile.getName());
-      File[] outputFiles = new File[] { tarballFile, rsyncFile };
-      for (File outputFile : outputFiles) {
-        outputFile.getParentFile().mkdirs();
-        BufferedWriter bw = new BufferedWriter(new FileWriter(
-            outputFile));
-        bw.write(Annotation.Status.toString());
-        bw.write("published " + publicationTime + "\n");
-        bw.write(header.toString());
+      String fileName = syear + smonth + sday + "-" + stime + "-"
+          + authorityFingerprint;
+      Path tarballFile = this.outputDirectory.resolve(
+          Paths.get(syear, smonth, "statuses", sday, fileName));
+      Path rsyncFile = this.recentDirectory.resolve(
+          Paths.get("statuses", fileName));
+      Path[] outputFiles = new Path[] { tarballFile, rsyncFile };
+      for (Path outputFile : outputFiles) {
+        Files.createDirectories(outputFile.getParent());
+        StringBuilder sanitizedStatus = new StringBuilder();
+        sanitizedStatus.append(Annotation.Status.toString());
+        sanitizedStatus.append("published ").append(publicationTime)
+            .append("\n");
+        sanitizedStatus.append(header.toString());
         for (String scrubbed : scrubbedLines.values()) {
-          bw.write(scrubbed);
+          sanitizedStatus.append(scrubbed);
         }
-        bw.close();
+        Files.write(outputFile, sanitizedStatus.toString().getBytes());
       }
     } catch (IOException e) {
       logger.warn("Could not write sanitized bridge "
@@ -1234,33 +1208,30 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     /* Determine filename of sanitized server descriptor. */
     String dyear = published.substring(0, 4);
     String dmonth = published.substring(5, 7);
-    File tarballFile = new File(
-        this.sanitizedBridgesDirectory.getAbsolutePath() + "/"
-        + dyear + "/" + dmonth + "/server-descriptors/"
-        + "/" + descriptorDigest.charAt(0) + "/"
-        + descriptorDigest.charAt(1) + "/"
-        + descriptorDigest);
     try {
-      File rsyncCatFile = new File(config.getPath(Key.RecentPath).toFile(),
-          "bridge-descriptors/server-descriptors/" + this.rsyncCatString
-          + "-server-descriptors.tmp");
-      File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
+      Path tarballFile = this.outputDirectory.resolve(
+          Paths.get(dyear, dmonth, "server-descriptors",
+          descriptorDigest.substring(0, 1), descriptorDigest.substring(1, 2),
+          descriptorDigest));
+      Path rsyncCatFile = this.recentDirectory.resolve(
+          Paths.get("bridge-descriptors", "server-descriptors",
+          this.rsyncCatString + "-server-descriptors.tmp"));
+      Path[] outputFiles = new Path[] { tarballFile, rsyncCatFile };
       boolean[] append = new boolean[] { false, true };
       for (int i = 0; i < outputFiles.length; i++) {
-        File outputFile = outputFiles[i];
-        boolean appendToFile = append[i];
-        if (outputFile.exists() && !appendToFile) {
+        Path outputFile = outputFiles[i];
+        StandardOpenOption openOption = append[i] ? StandardOpenOption.APPEND
+            : StandardOpenOption.CREATE_NEW;
+        if (Files.exists(outputFile)
+            && openOption != StandardOpenOption.APPEND) {
           /* We already stored this descriptor to disk before, so let's
            * not store it yet another time. */
           break;
         }
-        outputFile.getParentFile().mkdirs();
-        BufferedWriter bw = new BufferedWriter(new FileWriter(
-            outputFile, appendToFile));
-        bw.write(scrubbed.toString());
-        bw.close();
+        Files.createDirectories(outputFile.getParent());
+        Files.write(outputFile, scrubbed.toString().getBytes(), openOption);
       }
-    } catch (ConfigurationException | IOException e) {
+    } catch (IOException e) {
       logger.warn("Could not write sanitized server descriptor to disk.", e);
     }
   }
@@ -1323,14 +1294,13 @@ public class SanitizedBridgesWriter extends CollecTorMain {
   public void sanitizeAndStoreExtraInfoDescriptor(byte[] data) {
 
     /* Parse descriptor to generate a sanitized version. */
-    String scrubbedDesc = null;
     String published = null;
     String masterKeyEd25519FromIdentityEd25519 = null;
-    try {
-      BufferedReader br = new BufferedReader(new StringReader(new String(
-          data, StandardCharsets.US_ASCII)));
+    DescriptorBuilder scrubbed = new DescriptorBuilder();
+    try (BufferedReader br = new BufferedReader(new StringReader(new String(
+          data, StandardCharsets.US_ASCII)))) {
+      scrubbed.append(Annotation.BridgeExtraInfo.toString());
       String line;
-      DescriptorBuilder scrubbed = null;
       String hashedBridgeIdentity;
       String masterKeyEd25519 = null;
       while ((line = br.readLine()) != null) {
@@ -1346,7 +1316,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           }
           hashedBridgeIdentity = DigestUtils.sha1Hex(Hex.decodeHex(
               parts[2].toCharArray())).toLowerCase();
-          scrubbed = new DescriptorBuilder("extra-info ").append(parts[1])
+          scrubbed.append("extra-info ").append(parts[1])
             .space().append(hashedBridgeIdentity.toUpperCase()).newLine();
 
         /* Parse the publication time to determine the file name. */
@@ -1432,7 +1402,6 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         /* When we reach the signature, we're done. Write the sanitized
          * descriptor to disk below. */
         } else if (line.startsWith("router-signature")) {
-          scrubbedDesc = scrubbed.toString();
           break;
 
         /* Skip the ed25519 signature; we'll include a SHA256 digest of
@@ -1491,44 +1460,43 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         return;
       }
     }
+    if (descriptorDigestSha256Base64 != null) {
+      scrubbed.append("router-digest-sha256 ")
+          .append(descriptorDigestSha256Base64).newLine();
+    }
+    scrubbed.append("router-digest ").append(descriptorDigest.toUpperCase())
+        .newLine();
+
+    /* Determine filename of sanitized extra-info descriptor. */
     String dyear = published.substring(0, 4);
     String dmonth = published.substring(5, 7);
-    File tarballFile = new File(
-        this.sanitizedBridgesDirectory.getAbsolutePath() + "/"
-        + dyear + "/" + dmonth + "/extra-infos/"
-        + descriptorDigest.charAt(0) + "/"
-        + descriptorDigest.charAt(1) + "/"
-        + descriptorDigest);
+
     try {
-      File rsyncCatFile = new File(config.getPath(Key.RecentPath).toFile(),
-          "bridge-descriptors/extra-infos/" + this.rsyncCatString
-          + "-extra-infos.tmp");
-      File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
+      Path tarballFile = this.outputDirectory.resolve(
+          Paths.get(dyear, dmonth, "extra-infos",
+          descriptorDigest.substring(0, 1), descriptorDigest.substring(1, 2),
+          descriptorDigest));
+      Path rsyncCatFile = this.recentDirectory.resolve(
+          Paths.get("bridge-descriptors", "extra-infos",
+          this.rsyncCatString + "-extra-infos.tmp"));
+      Path[] outputFiles = new Path[] { tarballFile, rsyncCatFile };
       boolean[] append = new boolean[] { false, true };
       for (int i = 0; i < outputFiles.length; i++) {
-        File outputFile = outputFiles[i];
-        boolean appendToFile = append[i];
-        if (outputFile.exists() && !appendToFile) {
+        Path outputFile = outputFiles[i];
+        StandardOpenOption openOption = append[i] ? StandardOpenOption.APPEND
+            : StandardOpenOption.CREATE_NEW;
+        if (Files.exists(outputFile)
+            && openOption != StandardOpenOption.APPEND) {
           /* We already stored this descriptor to disk before, so let's
            * not store it yet another time. */
           break;
         }
-        outputFile.getParentFile().mkdirs();
-        BufferedWriter bw = new BufferedWriter(new FileWriter(
-            outputFile, appendToFile));
-        bw.write(Annotation.BridgeExtraInfo.toString());
-        bw.write(scrubbedDesc);
-        if (descriptorDigestSha256Base64 != null) {
-          bw.write("router-digest-sha256 " + descriptorDigestSha256Base64
-              + "\n");
-        }
-        bw.write("router-digest " + descriptorDigest.toUpperCase()
-            + "\n");
-        bw.close();
+        Files.createDirectories(outputFile.getParent());
+        Files.write(outputFile, scrubbed.toString().getBytes(), openOption);
       }
-    } catch (Exception e) {
-      logger.warn("Could not write sanitized "
-          + "extra-info descriptor to disk.", e);
+    } catch (IOException e) {
+      logger.warn("Could not write sanitized extra-info descriptor to disk.",
+          e);
     }
   }
 
@@ -1547,20 +1515,18 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       try {
         int kept = 0;
         int deleted = 0;
-        BufferedWriter bw = new BufferedWriter(new FileWriter(
-            this.bridgeIpSecretsFile));
+        List<String> lines = new ArrayList<>();
         for (Map.Entry<String, byte[]> e :
             this.secretsForHashingIpAddresses.entrySet()) {
           if (e.getKey().compareTo(
               this.bridgeSanitizingCutOffTimestamp) < 0) {
             deleted++;
           } else {
-            bw.write(e.getKey() + "," + Hex.encodeHexString(e.getValue())
-                + "\n");
+            lines.add(e.getKey() + "," + Hex.encodeHexString(e.getValue()));
             kept++;
           }
         }
-        bw.close();
+        Files.write(this.bridgeIpSecretsFile, lines);
         logger.info("Deleted {} secrets that we don't "
             + "need anymore and kept {}.", deleted, kept);
       } catch (IOException e) {
@@ -1612,9 +1578,9 @@ public class SanitizedBridgesWriter extends CollecTorMain {
    * in the last three days (seven weeks), and remove the .tmp extension from
    * newly written files. */
   private void cleanUpDirectories() {
-    PersistenceUtils.cleanDirectory(Paths.get(this.recentPathName),
+    PersistenceUtils.cleanDirectory(this.recentDirectory,
         Instant.now().minus(3, ChronoUnit.DAYS).toEpochMilli());
-    PersistenceUtils.cleanDirectory(Paths.get(this.outputPathName),
+    PersistenceUtils.cleanDirectory(this.outputDirectory,
         Instant.now().minus(49, ChronoUnit.DAYS).toEpochMilli());
   }
 }
