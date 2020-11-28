@@ -426,6 +426,12 @@ public class CreateIndexJson extends CollecTorMain {
           /* We do have index results, but we don't have a link yet, so we're
            * going to create a link. */
           linksToCreate.put(linkPath, filePath);
+          if (null != fileNode.markedForDeletion) {
+            /* We had already marked the link for deletion, but given that the
+             * original file has returned, we're going to list this file again
+             * and not delete the link in the future. */
+            fileNode.markedForDeletion = null;
+          }
         } else {
           String linkLastModified = dateTimeFormatter
               .format(Files.getLastModifiedTime(linkPath).toInstant());

@@ -404,8 +404,7 @@ public class CreateIndexJsonTest {
     createFile(recentExitListFilePath, Instant.parse("2016-09-20T13:02:00Z"));
     writeIndexJson(recentExitListIndexJsonString);
     startProcessing(firstExecution);
-    startProcessing(secondExecution);
-    assertEquals(recentExitListIndexJsonString, readIndexJson());
+    assertTrue(this.indexerTasks.isEmpty());
   }
 
   /**
@@ -422,7 +421,6 @@ public class CreateIndexJsonTest {
     deleteFile(recentExitListFilePath);
     startProcessing(secondExecution);
     assertEquals(emptyIndexJsonString, readIndexJson());
-    fileExists(recentExitListLinkPath);
     assertTrue(fileExists(recentExitListLinkPath));
     startProcessing(thirdExecution);
     assertFalse(fileExists(recentExitListLinkPath));
@@ -517,6 +515,25 @@ public class CreateIndexJsonTest {
     finishIndexing(archiveExitListFileNode);
     startProcessing(thirdExecution);
     assertTrue(this.indexerTasks.isEmpty());
+  }
+
+  /**
+   * Test whether a file that was previously contained in the index and deleted
+   * or moved away and that is later recreated or moved back to its original
+   * location is included in the index again and still has a corresponding link
+   * three hours later.
+   */
+  @Test
+  public void testMoveBackFile() {
+    writeIndexJson(recentExitListIndexJsonString);
+    startProcessing(firstExecution);
+    createFile(recentExitListFilePath, Instant.parse("2016-09-20T13:02:00Z"));
+    startProcessing(secondExecution);
+    assertTrue(this.indexerTasks.isEmpty());
+    assertTrue(Files.exists(recentExitListLinkPath));
+    assertEquals(recentExitListIndexJsonString, readIndexJson());
+    startProcessing(thirdExecution);
+    assertTrue(Files.exists(recentExitListLinkPath));
   }
 }
 
