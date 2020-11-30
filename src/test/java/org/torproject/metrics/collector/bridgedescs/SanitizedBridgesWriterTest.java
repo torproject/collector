@@ -821,6 +821,8 @@ public class SanitizedBridgesWriterTest {
 
   @Test
   public void testBridgeIpSecretsIsDirectory() throws Exception {
+    this.configuration.setProperty(Key.ReplaceIpAddressesWithHashes.name(),
+        "true");
     Files.createDirectory(Paths.get(statsDirectory, "bridge-ip-secrets"));
     this.runTest();
     assertTrue("Sanitized server descriptors without secrets.",
