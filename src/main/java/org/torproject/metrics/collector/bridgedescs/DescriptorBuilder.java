@@ -96,4 +96,7 @@ class DescriptorBuilder {
     return value;
   }
 
+  public byte[] toBytes() {
+    return this.toString().getBytes();
+  }
 }

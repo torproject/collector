@@ -79,13 +79,9 @@ public class SanitizedBridgesWriter extends CollecTorMain {
 
   private String rsyncCatString;
 
-  private Path inputDirectory;
-
   private Path outputDirectory;
 
   private Path recentDirectory;
-
-  private Path statsDirectory;
 
   private SensitivePartsSanitizer sensitivePartsSanitizer;
 
@@ -106,8 +102,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         .resolve(BRIDGE_DESCRIPTORS);
     this.recentDirectory = config.getPath(Key.RecentPath)
         .resolve(BRIDGE_DESCRIPTORS);
-    this.inputDirectory = config.getPath(Key.BridgeLocalOrigins);
-    this.statsDirectory = config.getPath(Key.StatsPath);
+    Path inputDirectory = config.getPath(Key.BridgeLocalOrigins);
+    Path statsDirectory = config.getPath(Key.StatsPath);
     boolean replaceIpAddressesWithHashes =
         config.getBool(Key.ReplaceIpAddressesWithHashes);
     SimpleDateFormat rsyncCatFormat = new SimpleDateFormat(
@@ -126,7 +122,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     }
 
     // Import bridge descriptors
-    this.readBridgeSnapshots(this.inputDirectory, this.statsDirectory);
+    this.readBridgeSnapshots(inputDirectory, statsDirectory);
 
     // Finish writing sanitized bridge descriptors to disk
     if (replaceIpAddressesWithHashes) {
@@ -362,11 +358,16 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     }
 
     /* Parse the given network status line by line. */
-    DescriptorBuilder header = new DescriptorBuilder();
     boolean includesFingerprintLine = false;
-    SortedMap<String, String> scrubbedLines = new TreeMap<>();
+    DescriptorBuilder scrubbed = new DescriptorBuilder();
+    scrubbed.append(Annotation.Status.toString());
+    SortedMap<String, String> scrubbedEntries = new TreeMap<>();
+    StringBuilder publishedStringBuilder = new StringBuilder();
+    scrubbed.append("published ").append(publishedStringBuilder).newLine();
+    DescriptorBuilder header = new DescriptorBuilder();
+    scrubbed.append(header);
+
     try {
-      DescriptorBuilder scrubbed = new DescriptorBuilder();
       BufferedReader br = new BufferedReader(new StringReader(new String(
           data, StandardCharsets.US_ASCII)));
       String line;
@@ -374,6 +375,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
       byte[] fingerprintBytes = null;
       String descPublicationTime = null;
       String hashedBridgeIdentityHex = null;
+      DescriptorBuilder scrubbedEntry = new DescriptorBuilder();
       while ((line = br.readLine()) != null) {
 
         /* Use publication time from "published" line instead of the
@@ -403,10 +405,10 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         } else if (line.startsWith("r ")) {
 
           /* Clear buffer from previously scrubbed lines. */
-          if (scrubbed.hasContent()) {
-            String scrubbedLine = scrubbed.toString();
-            scrubbedLines.put(hashedBridgeIdentityHex, scrubbedLine);
-            scrubbed = new DescriptorBuilder();
+          if (scrubbedEntry.hasContent()) {
+            scrubbedEntries.put(hashedBridgeIdentityHex,
+                scrubbedEntry.toString());
+            scrubbedEntry = new DescriptorBuilder();
           }
 
           /* Parse the relevant parts of this r line. */
@@ -452,7 +454,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
               orPort, fingerprintBytes, descPublicationTime);
           String scrubbedDirPort = this.sensitivePartsSanitizer.scrubTcpPort(
               dirPort, fingerprintBytes, descPublicationTime);
-          scrubbed.append("r ").append(nickname).space()
+          scrubbedEntry.append("r ").append(nickname).space()
               .append(hashedBridgeIdentityBase64).space()
               .append(hashedDescriptorIdentifier).space()
               .append(descPublicationTime).space()
@@ -467,7 +469,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
               .scrubOrAddress(line.substring("a ".length()), fingerprintBytes,
               descPublicationTime);
           if (scrubbedOrAddress != null) {
-            scrubbed.append("a ").append(scrubbedOrAddress).newLine();
+            scrubbedEntry.append("a ").append(scrubbedOrAddress).newLine();
           } else {
             logger.warn("Invalid address in line '{}' "
                 + "in bridge network status.  Skipping line!", line);
@@ -477,7 +479,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         } else if (line.startsWith("s ") || line.equals("s")
             || line.startsWith("w ") || line.equals("w")
             || line.startsWith("p ") || line.equals("p")) {
-          scrubbed.append(line).newLine();
+          scrubbedEntry.append(line).newLine();
 
         /* There should be nothing else but r, a, w, p, and s lines in the
          * network status.  If there is, we should probably learn before
@@ -489,9 +491,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         }
       }
       br.close();
-      if (scrubbed.hasContent()) {
-        String scrubbedLine = scrubbed.toString();
-        scrubbedLines.put(hashedBridgeIdentityHex, scrubbedLine);
+      if (scrubbedEntry.hasContent()) {
+        scrubbedEntries.put(hashedBridgeIdentityHex, scrubbedEntry.toString());
       }
       if (!includesFingerprintLine) {
         header.append("fingerprint ").append(authorityFingerprint).newLine();
@@ -523,6 +524,10 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     }
 
     /* Write the sanitized network status to disk. */
+    publishedStringBuilder.append(publicationTime);
+    for (String scrubbedEntry : scrubbedEntries.values()) {
+      scrubbed.append(scrubbedEntry);
+    }
     try {
       String syear = publicationTime.substring(0, 4);
       String smonth = publicationTime.substring(5, 7);
@@ -536,18 +541,9 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           Paths.get(syear, smonth, "statuses", sday, fileName));
       Path rsyncFile = this.recentDirectory.resolve(
           Paths.get("statuses", fileName));
-      Path[] outputFiles = new Path[] { tarballFile, rsyncFile };
-      for (Path outputFile : outputFiles) {
+      for (Path outputFile : new Path[] { tarballFile, rsyncFile }) {
         Files.createDirectories(outputFile.getParent());
-        StringBuilder sanitizedStatus = new StringBuilder();
-        sanitizedStatus.append(Annotation.Status.toString());
-        sanitizedStatus.append("published ").append(publicationTime)
-            .append("\n");
-        sanitizedStatus.append(header.toString());
-        for (String scrubbed : scrubbedLines.values()) {
-          sanitizedStatus.append(scrubbed);
-        }
-        Files.write(outputFile, sanitizedStatus.toString().getBytes());
+        Files.write(outputFile, scrubbed.toBytes());
       }
     } catch (IOException e) {
       logger.warn("Could not write sanitized bridge "
@@ -922,7 +918,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           break;
         }
         Files.createDirectories(outputFile.getParent());
-        Files.write(outputFile, scrubbed.toString().getBytes(), openOption);
+        Files.write(outputFile, scrubbed.toBytes(), openOption);
       }
     } catch (IOException e) {
       logger.warn("Could not write sanitized server descriptor to disk.", e);
@@ -1185,7 +1181,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
           break;
         }
         Files.createDirectories(outputFile.getParent());
-        Files.write(outputFile, scrubbed.toString().getBytes(), openOption);
+        Files.write(outputFile, scrubbed.toBytes(), openOption);
       }
     } catch (IOException e) {
       logger.warn("Could not write sanitized extra-info descriptor to disk.",
