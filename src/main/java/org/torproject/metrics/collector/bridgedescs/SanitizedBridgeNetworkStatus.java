@@ -15,8 +15,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -186,24 +186,25 @@ public class SanitizedBridgeNetworkStatus extends SanitizedBridgeDescriptor {
 
       /* Check if we can tell from the descriptor publication times
        * whether this status is possibly stale. */
-      SimpleDateFormat formatter = new SimpleDateFormat(
-          "yyyy-MM-dd HH:mm:ss");
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
+          "uuuu-MM-dd HH:mm:ss");
       if (null == mostRecentDescPublished) {
         logger.warn("The bridge network status published at {}"
             + " does not contain a single entry. Please ask the bridge "
             + "authority operator to check!", this.publishedString);
-      } else if (formatter.parse(this.publishedString).getTime()
-          - formatter.parse(mostRecentDescPublished).getTime()
-          > 60L * 60L * 1000L) {
-        logger.warn("The most recent descriptor in the bridge "
-                + "network status published at {} was published at {} which is "
-                + "more than 1 hour before the status. This is a sign for "
-                + "the status being stale. Please check!",
-            this.publishedString, mostRecentDescPublished);
+      } else {
+        LocalDateTime networkStatusTime
+            = LocalDateTime.parse(this.publishedString, formatter);
+        LocalDateTime mostRecentDescTime
+            = LocalDateTime.parse(mostRecentDescPublished, formatter);
+        if (mostRecentDescTime.isBefore(networkStatusTime.minusHours(1L))) {
+          logger.warn("The most recent descriptor in the bridge "
+              + "network status published at {} was published at {} which is "
+              + "more than 1 hour before the status. This is a sign for "
+              + "the status being stale. Please check!",
+              this.publishedString, mostRecentDescPublished);
+        }
       }
-    } catch (ParseException e) {
-      logger.warn("Could not parse timestamp in bridge network status.", e);
-      return false;
     } catch (IOException e) {
       logger.warn("Could not parse bridge network status.", e);
       return false;

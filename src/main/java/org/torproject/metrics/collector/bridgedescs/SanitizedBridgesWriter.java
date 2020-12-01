@@ -30,9 +30,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.Set;
@@ -99,10 +99,9 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     Path statsDirectory = config.getPath(Key.StatsPath);
     boolean replaceIpAddressesWithHashes =
         config.getBool(Key.ReplaceIpAddressesWithHashes);
-    SimpleDateFormat rsyncCatFormat = new SimpleDateFormat(
-        "yyyy-MM-dd-HH-mm-ss");
-    this.rsyncCatString = rsyncCatFormat.format(
-        System.currentTimeMillis());
+    DateTimeFormatter rsyncCatFormat = DateTimeFormatter.ofPattern(
+        "uuuu-MM-dd-HH-mm-ss");
+    this.rsyncCatString = LocalDateTime.now().format(rsyncCatFormat);
 
     Path bridgeIpSecretsFile = statsDirectory.resolve("bridge-ip-secrets");
     if (replaceIpAddressesWithHashes) {
@@ -332,7 +331,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     }
   }
 
-  private String maxNetworkStatusPublishedTime = "1970-01-01 00:00:00";
+  private String maxNetworkStatusPublishedTime = null;
 
   /**
    * Sanitizes a network status and writes it to disk.
@@ -349,7 +348,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     }
     byte[] scrubbedBytes = sanitizedBridgeNetworkStatus.getSanitizedBytes();
     publicationTime = sanitizedBridgeNetworkStatus.getPublishedString();
-    if (publicationTime.compareTo(maxNetworkStatusPublishedTime) > 0) {
+    if (null == maxNetworkStatusPublishedTime
+        || publicationTime.compareTo(maxNetworkStatusPublishedTime) > 0) {
       maxNetworkStatusPublishedTime = publicationTime;
     }
     try {
@@ -375,7 +375,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     }
   }
 
-  private String maxServerDescriptorPublishedTime = "1970-01-01 00:00:00";
+  private String maxServerDescriptorPublishedTime = null;
 
   /**
    * Sanitizes a bridge server descriptor and writes it to disk.
@@ -392,7 +392,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     byte[] scrubbedBytes
         = sanitizedBridgeServerDescriptor.getSanitizedBytes();
     String published = sanitizedBridgeServerDescriptor.getPublishedString();
-    if (published.compareTo(maxServerDescriptorPublishedTime) > 0) {
+    if (null == maxServerDescriptorPublishedTime
+        || published.compareTo(maxServerDescriptorPublishedTime) > 0) {
       maxServerDescriptorPublishedTime = published;
     }
     String descriptorDigest
@@ -429,8 +430,7 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     }
   }
 
-  private String maxExtraInfoDescriptorPublishedTime =
-      "1970-01-01 00:00:00";
+  private String maxExtraInfoDescriptorPublishedTime = null;
 
   /**
    * Sanitizes an extra-info descriptor and writes it to disk.
@@ -447,7 +447,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     byte[] scrubbedBytes
         = sanitizedBridgeExtraInfoDescriptor.getSanitizedBytes();
     String published = sanitizedBridgeExtraInfoDescriptor.getPublishedString();
-    if (published.compareTo(maxExtraInfoDescriptorPublishedTime) > 0) {
+    if (null == maxExtraInfoDescriptorPublishedTime
+        || published.compareTo(maxExtraInfoDescriptorPublishedTime) > 0) {
       maxExtraInfoDescriptorPublishedTime = published;
     }
     String descriptorDigest
@@ -487,38 +488,35 @@ public class SanitizedBridgesWriter extends CollecTorMain {
   }
 
   private void checkStaleDescriptors() {
-    SimpleDateFormat dateTimeFormat = new SimpleDateFormat(
-        "yyyy-MM-dd HH:mm:ss");
-    long tooOldMillis = System.currentTimeMillis() - 330L * 60L * 1000L;
-    try {
-      long maxNetworkStatusPublishedMillis =
-          dateTimeFormat.parse(maxNetworkStatusPublishedTime).getTime();
-      if (maxNetworkStatusPublishedMillis > 0L
-          && maxNetworkStatusPublishedMillis < tooOldMillis) {
+    DateTimeFormatter dateTimeFormat = DateTimeFormatter.ofPattern(
+        "uuuu-MM-dd HH:mm:ss");
+    LocalDateTime tooOld = LocalDateTime.now().minusMinutes(330L);
+    if (null != maxNetworkStatusPublishedTime) {
+      LocalDateTime maxNetworkStatusPublished = LocalDateTime.parse(
+          maxNetworkStatusPublishedTime, dateTimeFormat);
+      if (maxNetworkStatusPublished.isBefore(tooOld)) {
         logger.warn("The last known bridge network status was "
             + "published {}, which is more than 5:30 hours in the past.",
             maxNetworkStatusPublishedTime);
       }
-      long maxServerDescriptorPublishedMillis =
-          dateTimeFormat.parse(maxServerDescriptorPublishedTime)
-          .getTime();
-      if (maxServerDescriptorPublishedMillis > 0L
-          && maxServerDescriptorPublishedMillis < tooOldMillis) {
+    }
+    if (null != maxServerDescriptorPublishedTime) {
+      LocalDateTime maxServerDescriptorPublished = LocalDateTime.parse(
+          maxServerDescriptorPublishedTime, dateTimeFormat);
+      if (maxServerDescriptorPublished.isBefore(tooOld)) {
         logger.warn("The last known bridge server descriptor was "
             + "published {}, which is more than 5:30 hours in the past.",
             maxServerDescriptorPublishedTime);
       }
-      long maxExtraInfoDescriptorPublishedMillis =
-          dateTimeFormat.parse(maxExtraInfoDescriptorPublishedTime)
-          .getTime();
-      if (maxExtraInfoDescriptorPublishedMillis > 0L
-          && maxExtraInfoDescriptorPublishedMillis < tooOldMillis) {
+    }
+    if (null != maxExtraInfoDescriptorPublishedTime) {
+      LocalDateTime maxExtraInfoDescriptorPublished = LocalDateTime.parse(
+          maxExtraInfoDescriptorPublishedTime, dateTimeFormat);
+      if (maxExtraInfoDescriptorPublished.isBefore(tooOld)) {
         logger.warn("The last known bridge extra-info descriptor "
             + "was published {}, which is more than 5:30 hours in the past.",
             maxExtraInfoDescriptorPublishedTime);
       }
-    } catch (ParseException e) {
-      logger.warn("Unable to parse timestamp for stale check.", e);
     }
   }
 

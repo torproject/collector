@@ -74,14 +74,14 @@ public class BridgePoolAssignmentsProcessor extends CollecTorMain {
   /**
    * Timestamp format in bridge-pool-assignments line.
    */
-  private DateTimeFormatter assignmentFormat = DateTimeFormatter.ofPattern(
-      "uuuu-MM-dd HH:mm:ss");
+  private final DateTimeFormatter assignmentFormat
+      = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss");
 
   /**
    * File name format.
    */
-  private DateTimeFormatter filenameFormat = DateTimeFormatter.ofPattern(
-      "uuuu/MM/dd/uuuu-MM-dd-HH-mm-ss");
+  private final DateTimeFormatter filenameFormat
+      = DateTimeFormatter.ofPattern("uuuu/MM/dd/uuuu-MM-dd-HH-mm-ss");
 
   /**
    * Initialize this class with the given configuration.
