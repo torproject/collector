@@ -10,6 +10,9 @@ import org.torproject.metrics.collector.conf.Configuration;
 import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
 import org.torproject.metrics.collector.cron.CollecTorMain;
+import org.torproject.metrics.collector.persist.BridgeExtraInfoDescriptorPersistence;
+import org.torproject.metrics.collector.persist.BridgeNetworkStatusPersistence;
+import org.torproject.metrics.collector.persist.BridgeServerDescriptorPersistence;
 import org.torproject.metrics.collector.persist.PersistenceUtils;
 
 import org.apache.commons.codec.binary.Hex;
@@ -28,8 +31,6 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -57,7 +58,6 @@ public class SanitizedBridgesWriter extends CollecTorMain {
 
   private static final Logger logger = LoggerFactory.getLogger(
       SanitizedBridgesWriter.class);
-  private static final String BRIDGE_DESCRIPTORS = "bridge-descriptors";
 
   /** Initialize configuration. */
   public SanitizedBridgesWriter(Configuration config) {
@@ -91,10 +91,8 @@ public class SanitizedBridgesWriter extends CollecTorMain {
   @Override
   protected void startProcessing() throws ConfigurationException {
 
-    this.outputDirectory = config.getPath(Key.OutputPath)
-        .resolve(BRIDGE_DESCRIPTORS);
-    this.recentDirectory = config.getPath(Key.RecentPath)
-        .resolve(BRIDGE_DESCRIPTORS);
+    this.outputDirectory = config.getPath(Key.OutputPath);
+    this.recentDirectory = config.getPath(Key.RecentPath);
     Path inputDirectory = config.getPath(Key.BridgeLocalOrigins);
     Path statsDirectory = config.getPath(Key.StatsPath);
     boolean replaceIpAddressesWithHashes =
@@ -352,27 +350,9 @@ public class SanitizedBridgesWriter extends CollecTorMain {
         || publicationTime.compareTo(maxNetworkStatusPublishedTime) > 0) {
       maxNetworkStatusPublishedTime = publicationTime;
     }
-    try {
-      String syear = publicationTime.substring(0, 4);
-      String smonth = publicationTime.substring(5, 7);
-      String sday = publicationTime.substring(8, 10);
-      String stime = publicationTime.substring(11, 13)
-          + publicationTime.substring(14, 16)
-          + publicationTime.substring(17, 19);
-      String fileName = syear + smonth + sday + "-" + stime + "-"
-          + authorityFingerprint;
-      Path tarballFile = this.outputDirectory.resolve(
-          Paths.get(syear, smonth, "statuses", sday, fileName));
-      Path rsyncFile = this.recentDirectory.resolve(
-          Paths.get("statuses", fileName));
-      for (Path outputFile : new Path[] { tarballFile, rsyncFile }) {
-        Files.createDirectories(outputFile.getParent());
-        Files.write(outputFile, scrubbedBytes);
-      }
-    } catch (IOException e) {
-      logger.warn("Could not write sanitized bridge "
-          + "network status to disk.", e);
-    }
+    new BridgeNetworkStatusPersistence(scrubbedBytes, publicationTime,
+        authorityFingerprint)
+        .storeAll(this.recentDirectory, this.outputDirectory);
   }
 
   private String maxServerDescriptorPublishedTime = null;
@@ -398,36 +378,9 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     }
     String descriptorDigest
         = sanitizedBridgeServerDescriptor.getDescriptorDigest();
-
-    /* Determine filename of sanitized server descriptor. */
-    String dyear = published.substring(0, 4);
-    String dmonth = published.substring(5, 7);
-    try {
-      Path tarballFile = this.outputDirectory.resolve(
-          Paths.get(dyear, dmonth, "server-descriptors",
-          descriptorDigest.substring(0, 1), descriptorDigest.substring(1, 2),
-          descriptorDigest));
-      Path rsyncCatFile = this.recentDirectory.resolve(
-          Paths.get("bridge-descriptors", "server-descriptors",
-          this.rsyncCatString + "-server-descriptors.tmp"));
-      Path[] outputFiles = new Path[] { tarballFile, rsyncCatFile };
-      boolean[] append = new boolean[] { false, true };
-      for (int i = 0; i < outputFiles.length; i++) {
-        Path outputFile = outputFiles[i];
-        StandardOpenOption openOption = append[i] ? StandardOpenOption.APPEND
-            : StandardOpenOption.CREATE_NEW;
-        if (Files.exists(outputFile)
-            && openOption != StandardOpenOption.APPEND) {
-          /* We already stored this descriptor to disk before, so let's
-           * not store it yet another time. */
-          break;
-        }
-        Files.createDirectories(outputFile.getParent());
-        Files.write(outputFile, scrubbedBytes, openOption);
-      }
-    } catch (IOException e) {
-      logger.warn("Could not write sanitized server descriptor to disk.", e);
-    }
+    new BridgeServerDescriptorPersistence(scrubbedBytes, published,
+        this.rsyncCatString, descriptorDigest)
+        .storeAll(this.recentDirectory, this.outputDirectory);
   }
 
   private String maxExtraInfoDescriptorPublishedTime = null;
@@ -453,38 +406,9 @@ public class SanitizedBridgesWriter extends CollecTorMain {
     }
     String descriptorDigest
         = sanitizedBridgeExtraInfoDescriptor.getDescriptorDigest();
-
-    /* Determine filename of sanitized extra-info descriptor. */
-    String dyear = published.substring(0, 4);
-    String dmonth = published.substring(5, 7);
-
-    try {
-      Path tarballFile = this.outputDirectory.resolve(
-          Paths.get(dyear, dmonth, "extra-infos",
-          descriptorDigest.substring(0, 1), descriptorDigest.substring(1, 2),
-          descriptorDigest));
-      Path rsyncCatFile = this.recentDirectory.resolve(
-          Paths.get("bridge-descriptors", "extra-infos",
-          this.rsyncCatString + "-extra-infos.tmp"));
-      Path[] outputFiles = new Path[] { tarballFile, rsyncCatFile };
-      boolean[] append = new boolean[] { false, true };
-      for (int i = 0; i < outputFiles.length; i++) {
-        Path outputFile = outputFiles[i];
-        StandardOpenOption openOption = append[i] ? StandardOpenOption.APPEND
-            : StandardOpenOption.CREATE_NEW;
-        if (Files.exists(outputFile)
-            && openOption != StandardOpenOption.APPEND) {
-          /* We already stored this descriptor to disk before, so let's
-           * not store it yet another time. */
-          break;
-        }
-        Files.createDirectories(outputFile.getParent());
-        Files.write(outputFile, scrubbedBytes, openOption);
-      }
-    } catch (IOException e) {
-      logger.warn("Could not write sanitized extra-info descriptor to disk.",
-          e);
-    }
+    new BridgeExtraInfoDescriptorPersistence(scrubbedBytes, published,
+        this.rsyncCatString, descriptorDigest)
+        .storeAll(this.recentDirectory, this.outputDirectory);
   }
 
   private void checkStaleDescriptors() {

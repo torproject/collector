@@ -22,7 +22,8 @@ import org.torproject.metrics.collector.conf.Configuration;
 import org.torproject.metrics.collector.conf.ConfigurationException;
 import org.torproject.metrics.collector.conf.Key;
 import org.torproject.metrics.collector.persist.BandwidthFilePersistence;
-import org.torproject.metrics.collector.persist.BridgeExtraInfoPersistence;
+import org.torproject.metrics.collector.persist.BridgeExtraInfoDescriptorPersistence;
+import org.torproject.metrics.collector.persist.BridgeNetworkStatusPersistence;
 import org.torproject.metrics.collector.persist.BridgePoolAssignmentPersistence;
 import org.torproject.metrics.collector.persist.BridgeServerDescriptorPersistence;
 import org.torproject.metrics.collector.persist.BridgedbMetricsPersistence;
@@ -35,7 +36,6 @@ import org.torproject.metrics.collector.persist.OnionPerfPersistence;
 import org.torproject.metrics.collector.persist.PersistenceUtils;
 import org.torproject.metrics.collector.persist.ServerDescriptorPersistence;
 import org.torproject.metrics.collector.persist.SnowflakeStatsPersistence;
-import org.torproject.metrics.collector.persist.StatusPersistence;
 import org.torproject.metrics.collector.persist.VotePersistence;
 import org.torproject.metrics.collector.persist.WebServerAccessLogPersistence;
 
@@ -111,7 +111,7 @@ public class SyncPersistence {
               (RelayServerDescriptor) desc, received);
           break;
         case "BridgeExtraInfoDescriptor":
-          descPersist = new BridgeExtraInfoPersistence(
+          descPersist = new BridgeExtraInfoDescriptorPersistence(
               (BridgeExtraInfoDescriptor) desc, received);
           break;
         case "RelayExtraInfoDescriptor":
@@ -125,8 +125,8 @@ public class SyncPersistence {
                 filename);
             break;
           }
-          descPersist = new StatusPersistence(
-              (BridgeNetworkStatus) desc, filenameParts[2], received);
+          descPersist = new BridgeNetworkStatusPersistence(
+              (BridgeNetworkStatus) desc, filenameParts[2]);
           break;
         case "BridgeServerDescriptor":
           descPersist = new BridgeServerDescriptorPersistence(

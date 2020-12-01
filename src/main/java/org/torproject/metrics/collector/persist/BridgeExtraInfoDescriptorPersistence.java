@@ -3,20 +3,20 @@
 
 package org.torproject.metrics.collector.persist;
 
-import org.torproject.descriptor.BridgeServerDescriptor;
+import org.torproject.descriptor.BridgeExtraInfoDescriptor;
 import org.torproject.metrics.collector.conf.Annotation;
 
 import java.nio.file.Paths;
 
-public class BridgeServerDescriptorPersistence
-    extends DescriptorPersistence<BridgeServerDescriptor> {
+public class BridgeExtraInfoDescriptorPersistence
+    extends DescriptorPersistence<BridgeExtraInfoDescriptor> {
 
   /**
    * Construct a persistence instance from a previously parsed descriptor.
    */
-  public BridgeServerDescriptorPersistence(BridgeServerDescriptor descriptor,
-      long received) {
-    super(descriptor, Annotation.BridgeServer.bytes());
+  public BridgeExtraInfoDescriptorPersistence(
+      BridgeExtraInfoDescriptor descriptor, long received) {
+    super(descriptor, Annotation.BridgeExtraInfo.bytes());
     this.calculatePaths(
         PersistenceUtils.dateTimeParts(descriptor.getPublishedMillis()),
         PersistenceUtils.dateTime(received),
@@ -26,7 +26,7 @@ public class BridgeServerDescriptorPersistence
   /**
    * Construct a persistence instance from raw descriptor bytes.
    */
-  public BridgeServerDescriptorPersistence(byte[] descriptorBytes,
+  public BridgeExtraInfoDescriptorPersistence(byte[] descriptorBytes,
       String publishedString, String receivedString, String descriptorDigest) {
     super(descriptorBytes);
     this.calculatePaths(
@@ -39,13 +39,13 @@ public class BridgeServerDescriptorPersistence
       String descriptorDigest) {
     this.recentPath = Paths.get(
         BRIDGEDESCS,
-        SERVERDESCS,
-        receivedString + DASH + SERVERDESCS).toString();
+        EXTRA_INFOS,
+        receivedString + DASH + EXTRA_INFOS).toString();
     this.storagePath = Paths.get(
         BRIDGEDESCS,
         publishedParts[0], // year
         publishedParts[1], // month
-        SERVERDESCS,
+        EXTRA_INFOS,
         descriptorDigest.substring(0, 1),
         descriptorDigest.substring(1, 2),
         descriptorDigest).toString();

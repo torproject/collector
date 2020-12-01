@@ -151,7 +151,7 @@ public class SanitizedBridgesWriterTest {
     this.parsedServerDescriptors = new ArrayList<>();
     this.parsedExtraInfoDescriptors = new ArrayList<>();
     this.parsedNetworkStatuses = new ArrayList<>();
-    Files.walkFileTree(sanitizedBridgesDirectory,
+    Files.walkFileTree(sanitizedBridgesDirectory.getParent(),
         new SimpleFileVisitor<Path>() {
           @Override
           public FileVisitResult visitFile(Path path, BasicFileAttributes bfa)
