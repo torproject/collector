@@ -20,6 +20,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Date;
+import java.util.stream.Stream;
 
 public class PersistenceUtils {
 
@@ -132,9 +133,12 @@ public class PersistenceUtils {
       @Override
       public FileVisitResult postVisitDirectory(Path dir, IOException exc)
           throws IOException {
-        if (!pathToClean.equals(dir)
-            && !Files.list(dir).findFirst().isPresent()) {
-          Files.delete(dir);
+        if (!pathToClean.equals(dir)) {
+          try (Stream<Path> files = Files.list(dir)) {
+            if (!files.findFirst().isPresent()) {
+              Files.delete(dir);
+            }
+          }
         }
         return FileVisitResult.CONTINUE;
       }
