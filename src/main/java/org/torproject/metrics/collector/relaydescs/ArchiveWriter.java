@@ -7,6 +7,7 @@ import org.torproject.descriptor.BandwidthFile;
 import org.torproject.descriptor.Descriptor;
 import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
+import org.torproject.descriptor.Microdescriptor;
 import org.torproject.descriptor.RelayExtraInfoDescriptor;
 import org.torproject.descriptor.RelayNetworkStatusConsensus;
 import org.torproject.descriptor.RelayNetworkStatusVote;
@@ -109,6 +110,8 @@ public class ArchiveWriter extends CollecTorMain {
     this.mapPathDescriptors.put(
         "recent/relay-descriptors/microdescs/consensus-microdesc",
         RelayNetworkStatusConsensus.class);
+    this.mapPathDescriptors.put("recent/relay-descriptors/microdescs/micro/",
+        Microdescriptor.class);
     this.mapPathDescriptors.put("recent/relay-descriptors/server-descriptors",
         RelayServerDescriptor.class);
     this.mapPathDescriptors.put("recent/relay-descriptors/extra-infos",
@@ -801,15 +804,17 @@ public class ArchiveWriter extends CollecTorMain {
      * file written in the first call.  However, this method must be
      * called twice to store the same microdescriptor in two different
      * valid-after months. */
-    SimpleDateFormat descriptorFormat = new SimpleDateFormat("yyyy/MM/");
+    SimpleDateFormat descriptorFormat = new SimpleDateFormat("yyyy-MM");
+    String[] yearMonth = descriptorFormat.format(validAfter).split("-");
     File tarballFile = Paths.get(this.outputDirectory, MICRODESC,
-        descriptorFormat.format(validAfter), MICRO,
+        yearMonth[0], yearMonth[1], MICRO,
         microdescriptorDigest.substring(0, 1),
         microdescriptorDigest.substring(1, 2),
         microdescriptorDigest).toFile();
     boolean tarballFileExistedBefore = tarballFile.exists();
     File rsyncCatFile = Paths.get(recentPathName, RELAY_DESCRIPTORS,
-        MICRODESCS, MICRO, this.rsyncCatString + "-micro.tmp").toFile();
+        MICRODESCS, MICRO, this.rsyncCatString + "-micro-" + yearMonth[0] + "-"
+        + yearMonth[1] + ".tmp").toFile();
     File[] outputFiles = new File[] { tarballFile, rsyncCatFile };
     boolean[] append = new boolean[] { false, true };
     if (this.store(Annotation.Microdescriptor.bytes(), data, outputFiles,

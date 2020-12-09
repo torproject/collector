@@ -11,6 +11,7 @@ import org.torproject.descriptor.BridgeServerDescriptor;
 import org.torproject.descriptor.BridgedbMetrics;
 import org.torproject.descriptor.Descriptor;
 import org.torproject.descriptor.ExitList;
+import org.torproject.descriptor.Microdescriptor;
 import org.torproject.descriptor.RelayExtraInfoDescriptor;
 import org.torproject.descriptor.RelayNetworkStatusConsensus;
 import org.torproject.descriptor.RelayNetworkStatusVote;
@@ -32,6 +33,7 @@ import org.torproject.metrics.collector.persist.DescriptorPersistence;
 import org.torproject.metrics.collector.persist.ExitlistPersistence;
 import org.torproject.metrics.collector.persist.ExtraInfoPersistence;
 import org.torproject.metrics.collector.persist.MicroConsensusPersistence;
+import org.torproject.metrics.collector.persist.MicrodescriptorPersistence;
 import org.torproject.metrics.collector.persist.OnionPerfPersistence;
 import org.torproject.metrics.collector.persist.PersistenceUtils;
 import org.torproject.metrics.collector.persist.ServerDescriptorPersistence;
@@ -117,6 +119,14 @@ public class SyncPersistence {
         case "RelayExtraInfoDescriptor":
           descPersist = new ExtraInfoPersistence(
               (RelayExtraInfoDescriptor) desc, received);
+          break;
+        case "Microdescriptor":
+          if (filename.contains("-micro-")) {
+            String[] yearMonth = filename.substring(
+                filename.indexOf("-micro-") + 7).split("-");
+            descPersist = new MicrodescriptorPersistence((Microdescriptor) desc,
+                received, yearMonth[0], yearMonth[1]);
+          }
           break;
         case "BridgeNetworkStatus": // need to infer authId from filename
           String[] filenameParts = filename.split(DASH);
