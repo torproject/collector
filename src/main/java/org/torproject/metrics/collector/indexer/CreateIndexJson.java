@@ -245,6 +245,10 @@ public class CreateIndexJson extends CollecTorMain {
       logger.info("Writing uncompressed and compressed index.json files to "
           + "disk.");
       this.writeIndex(this.index, now);
+      Runtime rt = Runtime.getRuntime();
+      logger.info("Current memory usage is: free = {} B, total = {} B, "
+          + "max = {} B.",
+          rt.freeMemory(), rt.totalMemory(), rt.maxMemory());
       logger.info("Pausing until next index update run.");
     } catch (IOException e) {
       logger.error("I/O error while updating index.json files. Trying again in "
