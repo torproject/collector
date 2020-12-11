@@ -108,11 +108,11 @@ public class SyncManager {
 
           persist.storeDesc(desc, collectionDate.getTime());
         }
-        persist.cleanDirectory();
         descriptorReader.saveHistoryFile(historyFile);
       }
       logger.info("Done merging {} from {}.", marker, source.getHost());
     }
+    persist.cleanDirectory();
   }
 
 }
