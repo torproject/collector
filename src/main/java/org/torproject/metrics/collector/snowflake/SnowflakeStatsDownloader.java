@@ -156,9 +156,11 @@ public class SnowflakeStatsDownloader extends CollecTorMain {
   /** Delete all files from the rsync (out) directory that have not been
    * modified in the last three days (seven weeks). */
   private void cleanUpDirectories() {
-    PersistenceUtils.cleanDirectory(Paths.get(this.recentPathName),
+    PersistenceUtils.cleanDirectory(
+        Paths.get(this.recentPathName, "snowflakes"),
         Instant.now().minus(3, ChronoUnit.DAYS).toEpochMilli());
-    PersistenceUtils.cleanDirectory(Paths.get(this.outputPathName),
+    PersistenceUtils.cleanDirectory(
+        Paths.get(this.outputPathName, "snowflakes"),
         Instant.now().minus(49, ChronoUnit.DAYS).toEpochMilli());
   }
 }

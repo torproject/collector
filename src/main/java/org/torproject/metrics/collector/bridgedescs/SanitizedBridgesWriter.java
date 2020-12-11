@@ -449,9 +449,11 @@ public class SanitizedBridgesWriter extends CollecTorMain {
    * in the last three days (seven weeks), and remove the .tmp extension from
    * newly written files. */
   private void cleanUpDirectories() {
-    PersistenceUtils.cleanDirectory(this.recentDirectory,
+    PersistenceUtils.cleanDirectory(
+        this.recentDirectory.resolve("bridge-descriptors"),
         Instant.now().minus(3, ChronoUnit.DAYS).toEpochMilli());
-    PersistenceUtils.cleanDirectory(this.outputDirectory,
+    PersistenceUtils.cleanDirectory(
+        this.outputDirectory.resolve("bridge-descriptors"),
         Instant.now().minus(49, ChronoUnit.DAYS).toEpochMilli());
   }
 }

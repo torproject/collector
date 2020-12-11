@@ -178,9 +178,11 @@ public class BridgedbMetricsProcessor extends CollecTorMain {
    * in the last three days (seven weeks).
    */
   private void cleanUpDirectories() {
-    PersistenceUtils.cleanDirectory(Paths.get(this.recentPathName),
+    PersistenceUtils.cleanDirectory(
+        Paths.get(this.recentPathName).resolve("bridgedb-metrics"),
         Instant.now().minus(3, ChronoUnit.DAYS).toEpochMilli());
-    PersistenceUtils.cleanDirectory(Paths.get(this.outputPathName),
+    PersistenceUtils.cleanDirectory(
+        Paths.get(this.outputPathName).resolve("bridgedb-metrics"),
         Instant.now().minus(49, ChronoUnit.DAYS).toEpochMilli());
   }
 }
