@@ -10,6 +10,7 @@ import org.torproject.descriptor.BridgePoolAssignment;
 import org.torproject.descriptor.BridgeServerDescriptor;
 import org.torproject.descriptor.BridgedbMetrics;
 import org.torproject.descriptor.Descriptor;
+import org.torproject.descriptor.DirectoryKeyCertificate;
 import org.torproject.descriptor.ExitList;
 import org.torproject.descriptor.Microdescriptor;
 import org.torproject.descriptor.RelayExtraInfoDescriptor;
@@ -30,6 +31,7 @@ import org.torproject.metrics.collector.persist.BridgeServerDescriptorPersistenc
 import org.torproject.metrics.collector.persist.BridgedbMetricsPersistence;
 import org.torproject.metrics.collector.persist.ConsensusPersistence;
 import org.torproject.metrics.collector.persist.DescriptorPersistence;
+import org.torproject.metrics.collector.persist.DirectoryKeyCertificatePersistence;
 import org.torproject.metrics.collector.persist.ExitlistPersistence;
 import org.torproject.metrics.collector.persist.ExtraInfoPersistence;
 import org.torproject.metrics.collector.persist.MicroConsensusPersistence;
@@ -107,6 +109,10 @@ public class SyncPersistence {
           } else if ("microdesc".equals(cons.getConsensusFlavor())) {
             descPersist = new MicroConsensusPersistence(cons, received);
           }
+          break;
+        case "DirectoryKeyCertificate":
+          descPersist = new DirectoryKeyCertificatePersistence(
+              (DirectoryKeyCertificate) desc);
           break;
         case "RelayServerDescriptor":
           descPersist = new ServerDescriptorPersistence(

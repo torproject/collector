@@ -7,6 +7,7 @@ import org.torproject.descriptor.BandwidthFile;
 import org.torproject.descriptor.Descriptor;
 import org.torproject.descriptor.DescriptorParser;
 import org.torproject.descriptor.DescriptorSourceFactory;
+import org.torproject.descriptor.DirectoryKeyCertificate;
 import org.torproject.descriptor.Microdescriptor;
 import org.torproject.descriptor.RelayExtraInfoDescriptor;
 import org.torproject.descriptor.RelayNetworkStatusConsensus;
@@ -105,6 +106,8 @@ public class ArchiveWriter extends CollecTorMain {
     super(config);
     this.mapPathDescriptors.put("recent/relay-descriptors/votes",
         RelayNetworkStatusVote.class);
+    this.mapPathDescriptors.put("recent/relay-descriptors/certs",
+        DirectoryKeyCertificate.class);
     this.mapPathDescriptors.put("recent/relay-descriptors/consensuses",
         RelayNetworkStatusConsensus.class);
     this.mapPathDescriptors.put(
@@ -738,7 +741,9 @@ public class ArchiveWriter extends CollecTorMain {
         "yyyy-MM-dd-HH-mm-ss");
     File tarballFile = Paths.get(this.outputDirectory, "certs",
         fingerprint + "-" + printFormat.format(new Date(published))).toFile();
-    File[] outputFiles = new File[] { tarballFile };
+    File rsyncFile = Paths.get(recentPathName, RELAY_DESCRIPTORS, "certs",
+        tarballFile.getName()).toFile();
+    File[] outputFiles = new File[] { tarballFile, rsyncFile };
     if (this.store(Annotation.Cert.bytes(), data, outputFiles, null)) {
       this.storedCertsCounter++;
     }
