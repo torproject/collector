@@ -6,11 +6,20 @@ package org.torproject.metrics.collector.persist;
 import org.torproject.descriptor.TorperfResult;
 import org.torproject.metrics.collector.conf.Annotation;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 public class OnionPerfPersistence
     extends DescriptorPersistence<TorperfResult> {
+
+  private static final Logger logger
+      = LoggerFactory.getLogger(OnionPerfPersistence.class);
 
   private static final String ONIONPERF = "torperf";
 
@@ -32,18 +41,55 @@ public class OnionPerfPersistence
         name).toString();
   }
 
-  /** OnionPerf default storage appends. */
+  /** If the original descriptor file was a .tpf file, append the parsed Torperf
+   * result to the destination .tpf file, but if it was a .json.xz file, just
+   * copy over the entire file, unless it already exists. */
   @Override
-  public boolean storeOut(String outRoot) {
-    return super.storeOut(outRoot, StandardOpenOption.APPEND);
+  public boolean storeOut(String outRoot, StandardOpenOption option) {
+    if (desc.getDescriptorFile().getName().endsWith(".tpf")) {
+      return super.storeOut(outRoot, StandardOpenOption.APPEND);
+    } else {
+      String fileName = desc.getDescriptorFile().getName();
+      String[] dateParts = fileName.split("\\.")[0].split("-");
+      return this.copyIfNotExists(
+          Paths.get(outRoot,
+              "onionperf",
+              dateParts[0], // year
+              dateParts[1], // month
+              dateParts[2], // day
+              fileName));
+    }
   }
 
-  /** OnionPerf default storage appends. */
+  /** If the original descriptor file was a .tpf file, append the parsed Torperf
+   * result to the destination .tpf file, but if it was a .json.xz file, just
+   * copy over the entire file, unless it already exists. */
   @Override
-  public boolean storeAll(String recentRoot, String outRoot) {
-    return super.storeAll(recentRoot, outRoot, StandardOpenOption.APPEND,
-        StandardOpenOption.APPEND);
+  public boolean storeRecent(String recentRoot, StandardOpenOption option) {
+    if (desc.getDescriptorFile().getName().endsWith(".tpf")) {
+      return super.storeRecent(recentRoot, StandardOpenOption.APPEND);
+    } else {
+      String fileName = desc.getDescriptorFile().getName();
+      return this.copyIfNotExists(
+          Paths.get(recentRoot,
+          "onionperf",
+          fileName));
+    }
   }
 
+  private boolean copyIfNotExists(Path destinationFile) {
+    if (Files.exists(destinationFile)) {
+      return false;
+    }
+    Path originalFile = this.desc.getDescriptorFile().toPath();
+    try {
+      Files.createDirectories(destinationFile.getParent());
+      Files.copy(originalFile, destinationFile);
+    } catch (IOException e) {
+      logger.warn("Unable to copy file.", e);
+      return false;
+    }
+    return true;
+  }
 }
 

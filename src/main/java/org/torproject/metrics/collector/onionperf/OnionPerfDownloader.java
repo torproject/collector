@@ -57,6 +57,7 @@ public class OnionPerfDownloader extends CollecTorMain {
   public OnionPerfDownloader(Configuration config) {
     super(config);
     this.mapPathDescriptors.put("recent/torperf", TorperfResult.class);
+    this.mapPathDescriptors.put("recent/onionperf", TorperfResult.class);
   }
 
   /** File containing the download history, which is necessary, because

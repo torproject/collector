@@ -4,8 +4,8 @@
   - Clean up descriptors written to the `out/` directory by deleting
     files that are older than seven weeks.
   - Correctly index files that are moved away and back.
-  - Include microdescriptors and certs when syncing from another
-    CollecTor instance.
+  - Include microdescriptors, certs, and OnionPerf analysis files when
+    syncing from another CollecTor instance.
   - Update to metrics-lib 2.15.0.
 
 
